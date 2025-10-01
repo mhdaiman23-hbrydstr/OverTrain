@@ -29,6 +29,7 @@ import { WorkoutCalendar } from "@/components/workout-calendar"
 import { ProgramStateManager } from "@/lib/program-state"
 import { getTemplateById } from "@/lib/gym-templates"
 import { getExerciseMuscleGroup } from "@/lib/exercise-muscle-groups"
+import { ProgressionCalculator } from "@/lib/progression-calculator"
 import {
   Clock,
   Save,
@@ -203,21 +204,21 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
       })
 
       if (week && day && existingWorkout.week && existingWorkout.week > week) {
-        const previousWeek = existingWorkout.week - 1
+        // Workout from a future week - check if current week is complete
         const scheduleKeys = Object.keys(activeProgram.template.schedule)
         const daysPerWeek = scheduleKeys.length
-        const isPreviousWeekCompleted = WorkoutLogger.isWeekCompleted(previousWeek, daysPerWeek)
+        const isCurrentWeekCompleted = WorkoutLogger.isWeekCompleted(week, daysPerWeek)
 
-        if (!isPreviousWeekCompleted) {
+        if (!isCurrentWeekCompleted) {
           setIsWorkoutBlocked(true)
           setBlockedMessage(
-            `Complete all workouts in Week ${previousWeek} before accessing Week ${existingWorkout.week}`,
+            `Complete all workouts in Week ${week} before accessing Week ${existingWorkout.week}`,
           )
-          console.log("[v0] Workout blocked - previous week not completed")
+          console.log("[v0] Workout blocked - current week not completed")
         } else {
           setIsWorkoutBlocked(false)
           setBlockedMessage("")
-          console.log("[v0] Workout not blocked - previous week completed")
+          console.log("[v0] Workout not blocked - current week completed")
         }
       } else {
         setIsWorkoutBlocked(false)
@@ -550,15 +551,25 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
 
       const weekKey = `week${week}`
       const transformedExercises = workoutDay.exercises.map((exercise) => {
-        const weekData = exercise.progressionTemplate[weekKey] || exercise.progressionTemplate.week1
+        // Use progression calculator to get smart targets based on previous week
+        const progressedData = ProgressionCalculator.calculateProgressedTargets(
+          exercise.id,
+          exercise.exerciseName,
+          week,
+          day,
+          exercise,
+        )
+
         return {
           exerciseId: exercise.id,
           exerciseName: exercise.exerciseName,
-          targetSets: weekData?.sets || 3,
-          targetReps: weekData?.repRange || "8-10",
+          targetSets: progressedData.targetSets,
+          targetReps: progressedData.targetReps,
           targetRest: `${Math.floor(exercise.restTime / 60)} min`,
           muscleGroup: exercise.category,
           equipmentType: "BARBELL",
+          suggestedWeight: progressedData.targetWeight,
+          progressionNote: progressedData.progressionNote,
         }
       })
 
@@ -573,19 +584,22 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
     const scheduleKeys = Object.keys(template.schedule)
     const daysPerWeek = scheduleKeys.length
 
+    // New blocking logic: Allow current week (any day order) + completed weeks
+    // Block future weeks until current week is fully completed
     if (week > activeProgram.currentWeek) {
-      const previousWeek = week - 1
-      const isPreviousWeekCompleted = WorkoutLogger.isWeekCompleted(previousWeek, daysPerWeek)
+      // Trying to access a future week - check if current week is complete
+      const isCurrentWeekCompleted = WorkoutLogger.isWeekCompleted(activeProgram.currentWeek, daysPerWeek)
 
-      if (!isPreviousWeekCompleted) {
+      if (!isCurrentWeekCompleted) {
         setIsWorkoutBlocked(true)
-        setBlockedMessage(`Complete all workouts in Week ${previousWeek} before accessing Week ${week}`)
-        console.log("[v0] Workout blocked - previous week not completed")
+        setBlockedMessage(`Complete all workouts in Week ${activeProgram.currentWeek} before accessing Week ${week}`)
+        console.log("[v0] Workout blocked - current week not completed")
       } else {
         setIsWorkoutBlocked(false)
         setBlockedMessage("")
       }
     } else {
+      // Current week or past weeks - always allow access
       setIsWorkoutBlocked(false)
       setBlockedMessage("")
     }
@@ -718,6 +732,15 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
             </div>
           )}
         </div>
+
+        {/* Progression Notes Banner */}
+        {workout?.week && workout?.week > 1 && workout?.notes && (
+          <div className="bg-blue-50 border-b border-blue-200 p-3 text-center">
+            <p className="text-sm text-blue-900">
+              <span className="font-semibold">Week {workout.week}, Day {workout.day}:</span> {workout.notes}
+            </p>
+          </div>
+        )}
 
         {restTimer && restTimeLeft > 0 && (
           <div className="bg-primary text-primary-foreground p-4 text-center">
@@ -917,7 +940,10 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
                         <div className="text-center px-2 max-w-full">
                           <Lock className="h-7 w-7 mx-auto mb-2 text-destructive" />
                           <p className="text-xs font-medium text-destructive leading-tight">
-                            No data from previous week. Complete workout from previous week to start logging.
+                            {blockedMessage || "Complete previous week before accessing this workout"}
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-2">
+                            You can preview the workout structure below
                           </p>
                         </div>
                       </div>

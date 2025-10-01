@@ -1,3 +1,5 @@
+import { supabase } from './supabase'
+
 export interface User {
   id: string
   email: string
@@ -38,63 +40,70 @@ export class AuthService {
   }
 
   static async signUp(email: string, password: string): Promise<User> {
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000))
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+    })
 
-    // Check if user already exists
-    const existingUsers = this.getStoredUsers()
-    if (existingUsers.some((u) => u.email === email)) {
-      throw new Error("User already exists")
-    }
+    if (error) throw error
+    if (!data.user) throw new Error("Failed to create user")
 
     const user: User = {
-      id: Math.random().toString(36).substr(2, 9),
-      email,
-      createdAt: new Date().toISOString(),
+      id: data.user.id,
+      email: data.user.email!,
+      createdAt: data.user.created_at,
     }
 
-    // Store user in mock database
-    existingUsers.push(user)
-    localStorage.setItem("liftlog_users", JSON.stringify(existingUsers))
+    // Store user profile in Supabase
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .insert([{ id: user.id, email: user.email }])
+
+    if (profileError && profileError.code !== '23505') { // Ignore duplicate key error
+      console.error('Failed to create profile:', profileError)
+    }
 
     this.setUser(user)
     return user
   }
 
   static async signIn(email: string, password: string): Promise<User> {
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000))
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    })
 
-    // Validate credentials
-    const existingUsers = this.getStoredUsers()
-    const user = existingUsers.find((u) => u.email === email)
+    if (error) throw error
+    if (!data.user) throw new Error("Failed to sign in")
 
-    if (!user) {
-      throw new Error("User not found. Please sign up first.")
-    }
+    // Get user profile from Supabase
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', data.user.id)
+      .single()
 
-    // In a real app, you'd validate the password hash here
-    // For now, we just check if a password was provided
-    if (!password) {
-      throw new Error("Password is required")
+    const user: User = {
+      id: data.user.id,
+      email: data.user.email!,
+      name: profile?.name,
+      gender: profile?.gender,
+      experience: profile?.experience,
+      goals: profile?.goals,
+      createdAt: data.user.created_at,
     }
 
     this.setUser(user)
     return user
   }
 
-  static signOut(): void {
+  static async signOut(): Promise<void> {
+    await supabase.auth.signOut()
     this.removeUser()
   }
 
-  private static getStoredUsers(): User[] {
-    if (typeof window === "undefined") return []
-
-    try {
-      const stored = localStorage.getItem("liftlog_users")
-      return stored ? JSON.parse(stored) : []
-    } catch {
-      return []
-    }
+  static async getCurrentSession() {
+    const { data: { session } } = await supabase.auth.getSession()
+    return session
   }
 }

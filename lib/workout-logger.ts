@@ -122,6 +122,8 @@ export class WorkoutLogger {
       targetSets: number
       targetReps: string
       targetRest: string
+      suggestedWeight?: number
+      progressionNote?: string
     }[],
     week?: number,
     day?: number,
@@ -178,12 +180,13 @@ export class WorkoutLogger {
         sets: Array.from({ length: ex.targetSets }, (_, i) => ({
           id: Math.random().toString(36).substr(2, 9),
           reps: 0,
-          weight: 0,
+          weight: ex.suggestedWeight || 0, // Pre-fill with suggested weight from progression
           completed: false,
         })),
         completed: false,
       })),
       completed: false,
+      notes: exercises.find((e) => e.progressionNote)?.progressionNote || "",
     }
 
     console.log("[v0] Created workout structure:", {
