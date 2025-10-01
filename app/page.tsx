@@ -134,8 +134,12 @@ export default function HomePage() {
 
   if (user && currentView === "train") {
     return (
-      <div className="relative">
-        <TrainSection onStartWorkout={handleStartWorkout} onAddProgram={() => setCurrentView("programs")} />
+      <div className="flex h-screen bg-background overflow-x-hidden">
+        <SidebarNavigation currentView="train" onViewChange={setCurrentView} />
+
+        <div className="flex-1 lg:ml-64 overflow-x-hidden">
+          <TrainSection onStartWorkout={handleStartWorkout} onAddProgram={() => setCurrentView("programs")} />
+        </div>
         <BottomNavigation currentView={currentView} onViewChange={handleViewChange} />
       </div>
     )
@@ -143,8 +147,12 @@ export default function HomePage() {
 
   if (user && currentView === "profile") {
     return (
-      <div className="relative">
-        <ProfileSection />
+      <div className="flex h-screen bg-background overflow-x-hidden">
+        <SidebarNavigation currentView="profile" onViewChange={setCurrentView} />
+
+        <div className="flex-1 lg:ml-64 overflow-x-hidden">
+          <ProfileSection />
+        </div>
         <BottomNavigation currentView={currentView} onViewChange={handleViewChange} />
       </div>
     )
