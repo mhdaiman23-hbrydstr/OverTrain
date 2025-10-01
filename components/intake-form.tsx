@@ -1,0 +1,405 @@
+"use client"
+
+import { useState } from "react"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Textarea } from "@/components/ui/textarea"
+import { Progress } from "@/components/ui/progress"
+import { ChevronLeft, ChevronRight } from "lucide-react"
+import { useAuth } from "@/contexts/auth-context"
+
+interface IntakeFormData {
+  name: string
+  age: string
+  gender: "male" | "female" | ""
+  height: string
+  weight: string
+  experience: "beginner" | "intermediate" | "advanced" | ""
+  goals: string[]
+  workoutDays: string
+  timePerWorkout: string
+  equipment: string[]
+  injuries: string
+  preferences: string
+}
+
+const MALE_GOALS = [
+  "Build muscle mass",
+  "Increase strength",
+  "Lose fat",
+  "Improve athletic performance",
+  "General fitness",
+  "Powerlifting",
+  "Bodybuilding",
+]
+
+const FEMALE_GOALS = [
+  "Tone and sculpt",
+  "Build lean muscle",
+  "Lose weight",
+  "Improve strength",
+  "General fitness",
+  "Athletic performance",
+  "Postural improvement",
+]
+
+const EQUIPMENT_OPTIONS = [
+  "Full gym access",
+  "Home gym (dumbbells, barbell)",
+  "Bodyweight only",
+  "Resistance bands",
+  "Kettlebells",
+  "Pull-up bar",
+  "Yoga mat",
+]
+
+export function IntakeForm() {
+  const { updateUser } = useAuth()
+  const [currentStep, setCurrentStep] = useState(1)
+  const [formData, setFormData] = useState<IntakeFormData>({
+    name: "",
+    age: "",
+    gender: "",
+    height: "",
+    weight: "",
+    experience: "",
+    goals: [],
+    workoutDays: "",
+    timePerWorkout: "",
+    equipment: [],
+    injuries: "",
+    preferences: "",
+  })
+
+  const totalSteps = 5
+  const progress = (currentStep / totalSteps) * 100
+
+  const handleInputChange = (field: keyof IntakeFormData, value: string | string[]) => {
+    setFormData((prev) => ({ ...prev, [field]: value }))
+  }
+
+  const handleGoalToggle = (goal: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      goals: prev.goals.includes(goal) ? prev.goals.filter((g) => g !== goal) : [...prev.goals, goal],
+    }))
+  }
+
+  const handleEquipmentToggle = (equipment: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      equipment: prev.equipment.includes(equipment)
+        ? prev.equipment.filter((e) => e !== equipment)
+        : [...prev.equipment, equipment],
+    }))
+  }
+
+  const handleNext = () => {
+    if (currentStep < totalSteps) {
+      setCurrentStep((prev) => prev + 1)
+    }
+  }
+
+  const handlePrevious = () => {
+    if (currentStep > 1) {
+      setCurrentStep((prev) => prev - 1)
+    }
+  }
+
+  const handleSubmit = () => {
+    updateUser({
+      name: formData.name,
+      gender: formData.gender as "male" | "female",
+      experience: formData.experience as "beginner" | "intermediate" | "advanced",
+      goals: formData.goals,
+    })
+  }
+
+  const handleSkip = () => {
+    updateUser({
+      name: "User",
+      gender: "male", // Default values for skipped profile
+      experience: "beginner",
+      goals: ["General fitness"],
+    })
+  }
+
+  const canProceed = () => {
+    switch (currentStep) {
+      case 1:
+        return formData.name && formData.age && formData.gender
+      case 2:
+        return formData.height && formData.weight && formData.experience
+      case 3:
+        return formData.goals.length > 0
+      case 4:
+        return formData.workoutDays && formData.timePerWorkout && formData.equipment.length > 0
+      case 5:
+        return true
+      default:
+        return false
+    }
+  }
+
+  const availableGoals = formData.gender === "male" ? MALE_GOALS : FEMALE_GOALS
+
+  return (
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <Card className="w-full max-w-2xl">
+        <CardHeader className="text-center">
+          <CardTitle className="text-2xl">Complete Your Profile</CardTitle>
+          <CardDescription>Help us create the perfect workout plan for you</CardDescription>
+          <div className="mt-4">
+            <Progress value={progress} className="w-full" />
+            <p className="text-sm text-muted-foreground mt-2">
+              Step {currentStep} of {totalSteps}
+            </p>
+          </div>
+        </CardHeader>
+
+        <CardContent className="space-y-6">
+          {/* Step 1: Basic Info */}
+          {currentStep === 1 && (
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">Basic Information</h3>
+
+              <div className="space-y-2">
+                <Label htmlFor="name">Full Name</Label>
+                <Input
+                  id="name"
+                  placeholder="Enter your full name"
+                  value={formData.name}
+                  onChange={(e) => handleInputChange("name", e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="age">Age</Label>
+                <Input
+                  id="age"
+                  type="number"
+                  placeholder="Enter your age"
+                  value={formData.age}
+                  onChange={(e) => handleInputChange("age", e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-3">
+                <Label>Gender</Label>
+                <RadioGroup value={formData.gender} onValueChange={(value) => handleInputChange("gender", value)}>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="male" id="male" />
+                    <Label htmlFor="male">Male</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="female" id="female" />
+                    <Label htmlFor="female">Female</Label>
+                  </div>
+                </RadioGroup>
+              </div>
+            </div>
+          )}
+
+          {/* Step 2: Physical Stats */}
+          {currentStep === 2 && (
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">Physical Information</h3>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="height">Height (cm)</Label>
+                  <Input
+                    id="height"
+                    type="number"
+                    placeholder="170"
+                    value={formData.height}
+                    onChange={(e) => handleInputChange("height", e.target.value)}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="weight">Weight (kg)</Label>
+                  <Input
+                    id="weight"
+                    type="number"
+                    placeholder="70"
+                    value={formData.weight}
+                    onChange={(e) => handleInputChange("weight", e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <Label>Fitness Experience</Label>
+                <RadioGroup
+                  value={formData.experience}
+                  onValueChange={(value) => handleInputChange("experience", value)}
+                >
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="beginner" id="beginner" />
+                    <Label htmlFor="beginner">Beginner (0-1 years)</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="intermediate" id="intermediate" />
+                    <Label htmlFor="intermediate">Intermediate (1-3 years)</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="advanced" id="advanced" />
+                    <Label htmlFor="advanced">Advanced (3+ years)</Label>
+                  </div>
+                </RadioGroup>
+              </div>
+            </div>
+          )}
+
+          {/* Step 3: Goals */}
+          {currentStep === 3 && (
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">
+                {formData.gender === "male" ? "Your Fitness Goals" : "Your Fitness Goals"}
+              </h3>
+              <p className="text-sm text-muted-foreground">Select all that apply to you</p>
+
+              <div className="grid grid-cols-1 gap-3">
+                {availableGoals.map((goal) => (
+                  <div key={goal} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={goal}
+                      checked={formData.goals.includes(goal)}
+                      onCheckedChange={() => handleGoalToggle(goal)}
+                    />
+                    <Label htmlFor={goal} className="text-sm font-normal">
+                      {goal}
+                    </Label>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Step 4: Workout Preferences */}
+          {currentStep === 4 && (
+            <div className="space-y-6">
+              <h3 className="text-lg font-semibold">Workout Preferences</h3>
+
+              <div className="space-y-3">
+                <Label>How many days per week can you workout?</Label>
+                <Select value={formData.workoutDays} onValueChange={(value) => handleInputChange("workoutDays", value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select workout days" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="2-3">2-3 days</SelectItem>
+                    <SelectItem value="3-4">3-4 days</SelectItem>
+                    <SelectItem value="4-5">4-5 days</SelectItem>
+                    <SelectItem value="5-6">5-6 days</SelectItem>
+                    <SelectItem value="6-7">6-7 days</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-3">
+                <Label>How much time per workout?</Label>
+                <Select
+                  value={formData.timePerWorkout}
+                  onValueChange={(value) => handleInputChange("timePerWorkout", value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select workout duration" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="30-45">30-45 minutes</SelectItem>
+                    <SelectItem value="45-60">45-60 minutes</SelectItem>
+                    <SelectItem value="60-90">60-90 minutes</SelectItem>
+                    <SelectItem value="90+">90+ minutes</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-4">
+                <Label>Available Equipment</Label>
+                <div className="grid grid-cols-1 gap-2">
+                  {EQUIPMENT_OPTIONS.map((equipment) => (
+                    <div key={equipment} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={equipment}
+                        checked={formData.equipment.includes(equipment)}
+                        onCheckedChange={() => handleEquipmentToggle(equipment)}
+                      />
+                      <Label htmlFor={equipment} className="text-sm font-normal">
+                        {equipment}
+                      </Label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Step 5: Additional Info */}
+          {currentStep === 5 && (
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">Additional Information</h3>
+
+              <div className="space-y-2">
+                <Label htmlFor="injuries">Any injuries or limitations?</Label>
+                <Textarea
+                  id="injuries"
+                  placeholder="Describe any injuries, physical limitations, or areas to avoid..."
+                  value={formData.injuries}
+                  onChange={(e) => handleInputChange("injuries", e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="preferences">Additional preferences or notes</Label>
+                <Textarea
+                  id="preferences"
+                  placeholder="Any specific preferences, favorite exercises, or additional information..."
+                  value={formData.preferences}
+                  onChange={(e) => handleInputChange("preferences", e.target.value)}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Navigation */}
+          <div className="flex justify-between items-center pt-6">
+            <Button variant="outline" onClick={handlePrevious} disabled={currentStep === 1}>
+              <ChevronLeft className="h-4 w-4 mr-2" />
+              Previous
+            </Button>
+
+            <Button
+              variant="ghost"
+              onClick={handleSkip}
+              className="text-muted-foreground hover:text-foreground border border-border hover:bg-accent"
+            >
+              Skip for now
+            </Button>
+
+            {currentStep < totalSteps ? (
+              <Button
+                onClick={handleNext}
+                disabled={!canProceed()}
+                className="gradient-primary text-primary-foreground"
+              >
+                Next
+                <ChevronRight className="h-4 w-4 ml-2" />
+              </Button>
+            ) : (
+              <Button onClick={handleSubmit} className="gradient-primary text-primary-foreground">
+                Complete Setup
+              </Button>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
