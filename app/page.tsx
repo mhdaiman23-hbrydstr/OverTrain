@@ -15,6 +15,7 @@ import { SidebarNavigation } from "@/components/sidebar-navigation"
 import { BottomNavigation } from "@/components/bottom-navigation"
 import { TrainSection } from "@/components/train-section"
 import { AnalyticsSection } from "@/components/analytics-section"
+import { ProfileSection } from "@/components/profile-section"
 import { ProgramStateManager } from "@/lib/program-state"
 
 export default function HomePage() {
@@ -143,15 +144,7 @@ export default function HomePage() {
   if (user && currentView === "profile") {
     return (
       <div className="relative">
-        <div className="min-h-screen bg-background p-4 pb-20">
-          <div className="max-w-md mx-auto space-y-6 pt-8">
-            <div className="text-center">
-              <h1 className="text-2xl font-bold">Profile</h1>
-              <p className="text-muted-foreground text-sm">Manage your account settings</p>
-            </div>
-            <div className="text-center text-muted-foreground">Profile settings coming soon...</div>
-          </div>
-        </div>
+        <ProfileSection />
         <BottomNavigation currentView={currentView} onViewChange={handleViewChange} />
       </div>
     )
