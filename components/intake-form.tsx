@@ -148,6 +148,10 @@ export function IntakeForm() {
                     <RadioGroupItem value="female" id="female" />
                     <Label htmlFor="female">Female</Label>
                   </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="Prefer not say" id="prefer-not-say" />
+                    <Label htmlFor="prefer-not-say">Prefer not to say</Label>
+                  </div>
                 </RadioGroup>
               </div>
             </div>
@@ -168,15 +172,15 @@ export function IntakeForm() {
                 >
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="beginner" id="beginner" />
-                    <Label htmlFor="beginner">Beginner (0-1 years)</Label>
+                    <Label htmlFor="beginner">Beginner (0-3 years)</Label>
                   </div>
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="intermediate" id="intermediate" />
-                    <Label htmlFor="intermediate">Intermediate (1-3 years)</Label>
+                    <Label htmlFor="intermediate">Intermediate (3-7 years)</Label>
                   </div>
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="advanced" id="advanced" />
-                    <Label htmlFor="advanced">Advanced (3+ years)</Label>
+                    <Label htmlFor="advanced">Advanced (7+ years)</Label>
                   </div>
                 </RadioGroup>
               </div>
@@ -209,8 +213,8 @@ export function IntakeForm() {
           )}
 
           {/* Navigation */}
-          <div className="flex justify-between items-center pt-6">
-            <Button variant="outline" onClick={handlePrevious} disabled={currentStep === 1}>
+          <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 pt-6">
+            <Button variant="outline" onClick={handlePrevious} disabled={currentStep === 1} className="w-full sm:w-auto">
               <ChevronLeft className="h-4 w-4 mr-2" />
               Previous
             </Button>
@@ -218,7 +222,7 @@ export function IntakeForm() {
             <Button
               variant="ghost"
               onClick={handleSkip}
-              className="text-muted-foreground hover:text-foreground border border-border hover:bg-accent"
+              className="w-full sm:w-auto text-muted-foreground hover:text-foreground border border-border hover:bg-accent"
             >
               Skip for now
             </Button>
@@ -227,13 +231,13 @@ export function IntakeForm() {
               <Button
                 onClick={handleNext}
                 disabled={!canProceed()}
-                className="gradient-primary text-primary-foreground"
+                className="w-full sm:w-auto gradient-primary text-primary-foreground"
               >
                 Next
                 <ChevronRight className="h-4 w-4 ml-2" />
               </Button>
             ) : (
-              <Button onClick={handleSubmit} className="gradient-primary text-primary-foreground">
+              <Button onClick={handleSubmit} className="w-full sm:w-auto gradient-primary text-primary-foreground whitespace-nowrap">
                 Complete Setup
               </Button>
             )}

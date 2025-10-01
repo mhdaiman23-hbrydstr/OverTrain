@@ -130,23 +130,6 @@ export function TrainSection({ onStartWorkout, onAddProgram }: TrainSectionProps
               </Button>
             </CardContent>
           </Card>
-
-          <div className="space-y-4">
-            <h3 className="font-semibold text-sm text-muted-foreground">QUICK START</h3>
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-1">
-                    <h4 className="font-medium">Custom Workout</h4>
-                    <p className="text-sm text-muted-foreground">Start a free-form workout</p>
-                  </div>
-                  <Button variant="outline" size="sm">
-                    Start
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
         </div>
       </div>
     )
