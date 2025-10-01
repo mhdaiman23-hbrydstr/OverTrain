@@ -7,25 +7,15 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
 import { Progress } from "@/components/ui/progress"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { useAuth } from "@/contexts/auth-context"
 
 interface IntakeFormData {
   name: string
-  age: string
   gender: "male" | "female" | ""
-  height: string
-  weight: string
   experience: "beginner" | "intermediate" | "advanced" | ""
   goals: string[]
-  workoutDays: string
-  timePerWorkout: string
-  equipment: string[]
-  injuries: string
-  preferences: string
 }
 
 const MALE_GOALS = [
@@ -48,35 +38,17 @@ const FEMALE_GOALS = [
   "Postural improvement",
 ]
 
-const EQUIPMENT_OPTIONS = [
-  "Full gym access",
-  "Home gym (dumbbells, barbell)",
-  "Bodyweight only",
-  "Resistance bands",
-  "Kettlebells",
-  "Pull-up bar",
-  "Yoga mat",
-]
-
 export function IntakeForm() {
   const { updateUser } = useAuth()
   const [currentStep, setCurrentStep] = useState(1)
   const [formData, setFormData] = useState<IntakeFormData>({
     name: "",
-    age: "",
     gender: "",
-    height: "",
-    weight: "",
     experience: "",
     goals: [],
-    workoutDays: "",
-    timePerWorkout: "",
-    equipment: [],
-    injuries: "",
-    preferences: "",
   })
 
-  const totalSteps = 5
+  const totalSteps = 3
   const progress = (currentStep / totalSteps) * 100
 
   const handleInputChange = (field: keyof IntakeFormData, value: string | string[]) => {
@@ -87,15 +59,6 @@ export function IntakeForm() {
     setFormData((prev) => ({
       ...prev,
       goals: prev.goals.includes(goal) ? prev.goals.filter((g) => g !== goal) : [...prev.goals, goal],
-    }))
-  }
-
-  const handleEquipmentToggle = (equipment: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      equipment: prev.equipment.includes(equipment)
-        ? prev.equipment.filter((e) => e !== equipment)
-        : [...prev.equipment, equipment],
     }))
   }
 
@@ -132,15 +95,11 @@ export function IntakeForm() {
   const canProceed = () => {
     switch (currentStep) {
       case 1:
-        return formData.name && formData.age && formData.gender
+        return formData.name && formData.gender
       case 2:
-        return formData.height && formData.weight && formData.experience
+        return formData.experience
       case 3:
         return formData.goals.length > 0
-      case 4:
-        return formData.workoutDays && formData.timePerWorkout && formData.equipment.length > 0
-      case 5:
-        return true
       default:
         return false
     }
@@ -178,17 +137,6 @@ export function IntakeForm() {
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="age">Age</Label>
-                <Input
-                  id="age"
-                  type="number"
-                  placeholder="Enter your age"
-                  value={formData.age}
-                  onChange={(e) => handleInputChange("age", e.target.value)}
-                />
-              </div>
-
               <div className="space-y-3">
                 <Label>Gender</Label>
                 <RadioGroup value={formData.gender} onValueChange={(value) => handleInputChange("gender", value)}>
@@ -205,37 +153,15 @@ export function IntakeForm() {
             </div>
           )}
 
-          {/* Step 2: Physical Stats */}
+          {/* Step 2: Experience Level */}
           {currentStep === 2 && (
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Physical Information</h3>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="height">Height (cm)</Label>
-                  <Input
-                    id="height"
-                    type="number"
-                    placeholder="170"
-                    value={formData.height}
-                    onChange={(e) => handleInputChange("height", e.target.value)}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="weight">Weight (kg)</Label>
-                  <Input
-                    id="weight"
-                    type="number"
-                    placeholder="70"
-                    value={formData.weight}
-                    onChange={(e) => handleInputChange("weight", e.target.value)}
-                  />
-                </div>
-              </div>
+              <h3 className="text-lg font-semibold">Fitness Experience</h3>
+              <p className="text-sm text-muted-foreground">
+                This helps us recommend the right workout programs for you
+              </p>
 
               <div className="space-y-3">
-                <Label>Fitness Experience</Label>
                 <RadioGroup
                   value={formData.experience}
                   onValueChange={(value) => handleInputChange("experience", value)}
@@ -278,92 +204,6 @@ export function IntakeForm() {
                     </Label>
                   </div>
                 ))}
-              </div>
-            </div>
-          )}
-
-          {/* Step 4: Workout Preferences */}
-          {currentStep === 4 && (
-            <div className="space-y-6">
-              <h3 className="text-lg font-semibold">Workout Preferences</h3>
-
-              <div className="space-y-3">
-                <Label>How many days per week can you workout?</Label>
-                <Select value={formData.workoutDays} onValueChange={(value) => handleInputChange("workoutDays", value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select workout days" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="2-3">2-3 days</SelectItem>
-                    <SelectItem value="3-4">3-4 days</SelectItem>
-                    <SelectItem value="4-5">4-5 days</SelectItem>
-                    <SelectItem value="5-6">5-6 days</SelectItem>
-                    <SelectItem value="6-7">6-7 days</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-3">
-                <Label>How much time per workout?</Label>
-                <Select
-                  value={formData.timePerWorkout}
-                  onValueChange={(value) => handleInputChange("timePerWorkout", value)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select workout duration" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="30-45">30-45 minutes</SelectItem>
-                    <SelectItem value="45-60">45-60 minutes</SelectItem>
-                    <SelectItem value="60-90">60-90 minutes</SelectItem>
-                    <SelectItem value="90+">90+ minutes</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-4">
-                <Label>Available Equipment</Label>
-                <div className="grid grid-cols-1 gap-2">
-                  {EQUIPMENT_OPTIONS.map((equipment) => (
-                    <div key={equipment} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={equipment}
-                        checked={formData.equipment.includes(equipment)}
-                        onCheckedChange={() => handleEquipmentToggle(equipment)}
-                      />
-                      <Label htmlFor={equipment} className="text-sm font-normal">
-                        {equipment}
-                      </Label>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Step 5: Additional Info */}
-          {currentStep === 5 && (
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Additional Information</h3>
-
-              <div className="space-y-2">
-                <Label htmlFor="injuries">Any injuries or limitations?</Label>
-                <Textarea
-                  id="injuries"
-                  placeholder="Describe any injuries, physical limitations, or areas to avoid..."
-                  value={formData.injuries}
-                  onChange={(e) => handleInputChange("injuries", e.target.value)}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="preferences">Additional preferences or notes</Label>
-                <Textarea
-                  id="preferences"
-                  placeholder="Any specific preferences, favorite exercises, or additional information..."
-                  value={formData.preferences}
-                  onChange={(e) => handleInputChange("preferences", e.target.value)}
-                />
               </div>
             </div>
           )}
