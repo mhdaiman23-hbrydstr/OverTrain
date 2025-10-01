@@ -120,6 +120,80 @@ export class AuthService {
     return session
   }
 
+  static async signInWithGoogle(): Promise<void> {
+    if (!supabase) {
+      throw new Error("Supabase not configured. Please add your Supabase credentials to .env.local")
+    }
+
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: typeof window !== 'undefined' ? window.location.origin : undefined,
+        queryParams: {
+          access_type: 'offline',
+          prompt: 'consent',
+        },
+      },
+    })
+
+    if (error) throw error
+
+    // User will be redirected to Google, then back to your app
+    // The actual user data will be available after redirect
+  }
+
+  static async handleOAuthCallback(): Promise<User | null> {
+    if (!supabase) return null
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+
+      if (!session?.user) return null
+
+      // Check if profile exists
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', session.user.id)
+        .single()
+
+      if (!profile) {
+        // Create profile for new OAuth user
+        const newProfile = {
+          id: session.user.id,
+          email: session.user.email,
+          name: session.user.user_metadata?.full_name ||
+                session.user.user_metadata?.name ||
+                session.user.email?.split('@')[0],
+        }
+
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .insert([newProfile])
+
+        if (profileError) {
+          console.error('Failed to create profile:', profileError)
+        }
+      }
+
+      const user: User = {
+        id: session.user.id,
+        email: session.user.email!,
+        name: profile?.name || session.user.user_metadata?.full_name || session.user.user_metadata?.name,
+        gender: profile?.gender,
+        experience: profile?.experience,
+        goals: profile?.goals,
+        createdAt: session.user.created_at,
+      }
+
+      this.setUser(user)
+      return user
+    } catch (error) {
+      console.error('OAuth callback error:', error)
+      return null
+    }
+  }
+
   // LocalStorage fallback methods
   private static async signUpLocalStorage(email: string, password: string): Promise<User> {
     // Simulate API call

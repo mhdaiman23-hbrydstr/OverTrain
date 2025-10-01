@@ -6,6 +6,7 @@ import { type User, type AuthState, AuthService } from "@/lib/auth"
 interface AuthContextType extends AuthState {
   signIn: (email: string, password: string) => Promise<void>
   signUp: (email: string, password: string) => Promise<void>
+  signInWithGoogle: () => Promise<void>
   signOut: () => void
   updateUser: (updates: Partial<User>) => void
 }
@@ -19,8 +20,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   })
 
   useEffect(() => {
-    const user = AuthService.getUser()
-    setState({ user, isLoading: false })
+    // Check for OAuth callback first
+    const checkOAuthCallback = async () => {
+      const oauthUser = await AuthService.handleOAuthCallback()
+      if (oauthUser) {
+        setState({ user: oauthUser, isLoading: false })
+      } else {
+        const localUser = AuthService.getUser()
+        setState({ user: localUser, isLoading: false })
+      }
+    }
+
+    checkOAuthCallback()
   }, [])
 
   const signIn = async (email: string, password: string) => {
@@ -39,6 +50,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const user = await AuthService.signUp(email, password)
       setState({ user, isLoading: false })
+    } catch (error) {
+      setState((prev) => ({ ...prev, isLoading: false }))
+      throw error
+    }
+  }
+
+  const signInWithGoogle = async () => {
+    setState((prev) => ({ ...prev, isLoading: true }))
+    try {
+      await AuthService.signInWithGoogle()
+      // User will be redirected to Google, then back
+      // The OAuth callback will handle setting the user state
     } catch (error) {
       setState((prev) => ({ ...prev, isLoading: false }))
       throw error
@@ -64,6 +87,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         ...state,
         signIn,
         signUp,
+        signInWithGoogle,
         signOut,
         updateUser,
       }}
