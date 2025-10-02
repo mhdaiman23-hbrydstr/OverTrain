@@ -194,6 +194,39 @@ export class AuthService {
     }
   }
 
+  static async updateProfile(userId: string, updates: Partial<User>): Promise<void> {
+    // If Supabase is not configured, just update localStorage
+    if (!supabase) {
+      const currentUser = this.getUser()
+      if (currentUser) {
+        this.setUser({ ...currentUser, ...updates })
+      }
+      return
+    }
+
+    // Update profile in Supabase
+    const { error } = await supabase
+      .from('profiles')
+      .update({
+        name: updates.name,
+        gender: updates.gender,
+        experience: updates.experience,
+        goals: updates.goals,
+      })
+      .eq('id', userId)
+
+    if (error) {
+      console.error('Failed to update profile:', error)
+      throw new Error('Failed to update profile')
+    }
+
+    // Also update localStorage
+    const currentUser = this.getUser()
+    if (currentUser) {
+      this.setUser({ ...currentUser, ...updates })
+    }
+  }
+
   // LocalStorage fallback methods
   private static async signUpLocalStorage(email: string, password: string): Promise<User> {
     // Simulate API call

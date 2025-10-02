@@ -74,22 +74,30 @@ export function IntakeForm() {
     }
   }
 
-  const handleSubmit = () => {
-    updateUser({
-      name: formData.name,
-      gender: formData.gender as "male" | "female",
-      experience: formData.experience as "beginner" | "intermediate" | "advanced",
-      goals: formData.goals,
-    })
+  const handleSubmit = async () => {
+    try {
+      await updateUser({
+        name: formData.name,
+        gender: formData.gender as "male" | "female",
+        experience: formData.experience as "beginner" | "intermediate" | "advanced",
+        goals: formData.goals,
+      })
+    } catch (error) {
+      console.error('Failed to save profile:', error)
+    }
   }
 
-  const handleSkip = () => {
-    updateUser({
-      name: "User",
-      gender: "male", // Default values for skipped profile
-      experience: "beginner",
-      goals: ["General fitness"],
-    })
+  const handleSkip = async () => {
+    try {
+      await updateUser({
+        name: "User",
+        gender: "male", // Default values for skipped profile
+        experience: "beginner",
+        goals: ["General fitness"],
+      })
+    } catch (error) {
+      console.error('Failed to save profile:', error)
+    }
   }
 
   const canProceed = () => {

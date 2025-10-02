@@ -45,14 +45,18 @@ export function ProfileSection() {
 
   if (!user) return null
 
-  const handleSave = () => {
-    updateUser({
-      name: formData.name,
-      gender: formData.gender as "male" | "female" | "Prefer not say",
-      experience: formData.experience as "beginner" | "intermediate" | "advanced",
-      goals: formData.goals,
-    })
-    setIsEditing(false)
+  const handleSave = async () => {
+    try {
+      await updateUser({
+        name: formData.name,
+        gender: formData.gender as "male" | "female" | "Prefer not say",
+        experience: formData.experience as "beginner" | "intermediate" | "advanced",
+        goals: formData.goals,
+      })
+      setIsEditing(false)
+    } catch (error) {
+      console.error('Failed to save profile:', error)
+    }
   }
 
   const handleCancel = () => {

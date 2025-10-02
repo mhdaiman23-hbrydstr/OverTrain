@@ -8,7 +8,7 @@ interface AuthContextType extends AuthState {
   signUp: (email: string, password: string) => Promise<void>
   signInWithGoogle: () => Promise<void>
   signOut: () => void
-  updateUser: (updates: Partial<User>) => void
+  updateUser: (updates: Partial<User>) => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -73,12 +73,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setState({ user: null, isLoading: false })
   }
 
-  const updateUser = (updates: Partial<User>) => {
+  const updateUser = async (updates: Partial<User>) => {
     if (!state.user) return
 
-    const updatedUser = { ...state.user, ...updates }
-    AuthService.setUser(updatedUser)
-    setState((prev) => ({ ...prev, user: updatedUser }))
+    try {
+      await AuthService.updateProfile(state.user.id, updates)
+      const updatedUser = { ...state.user, ...updates }
+      setState((prev) => ({ ...prev, user: updatedUser }))
+    } catch (error) {
+      console.error('Failed to update user:', error)
+      throw error
+    }
   }
 
   return (
