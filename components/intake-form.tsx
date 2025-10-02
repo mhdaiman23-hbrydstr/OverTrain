@@ -245,7 +245,11 @@ export function IntakeForm() {
                 <ChevronRight className="h-4 w-4 ml-2" />
               </Button>
             ) : (
-              <Button onClick={handleSubmit} className="w-full sm:w-auto gradient-primary text-primary-foreground whitespace-nowrap">
+              <Button
+                onClick={handleSubmit}
+                disabled={!canProceed()}
+                className="w-full sm:w-auto gradient-primary text-primary-foreground whitespace-nowrap"
+              >
                 Complete Setup
               </Button>
             )}
