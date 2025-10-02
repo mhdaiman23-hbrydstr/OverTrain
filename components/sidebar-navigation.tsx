@@ -1,6 +1,6 @@
 "use client"
 import { Button } from "@/components/ui/button"
-import { Dumbbell, Calendar, Zap, FileText, Sun, User, CreditCard, HelpCircle, Star, LogOut } from "lucide-react"
+import { Dumbbell, Calendar, BarChart3, User, Sun, HelpCircle, LogOut } from "lucide-react"
 import { useAuth } from "@/contexts/auth-context"
 
 interface SidebarNavigationProps {
@@ -12,18 +12,15 @@ export function SidebarNavigation({ currentView, onViewChange }: SidebarNavigati
   const { signOut } = useAuth()
 
   const navigationItems = [
-    { id: "workout", label: "Current workout", icon: Dumbbell },
+    { id: "train", label: "Train", icon: Dumbbell },
     { id: "programs", label: "Programs", icon: Calendar },
-    { id: "exercises", label: "Custom exercises", icon: Zap },
-    { id: "templates", label: "Templates", icon: FileText },
+    { id: "analytics", label: "Analytics", icon: BarChart3 },
+    { id: "profile", label: "Profile", icon: User },
   ]
 
   const settingsItems = [
     { id: "theme", label: "Light Theme", icon: Sun },
-    { id: "profile", label: "Profile & Settings", icon: User },
-    { id: "subscription", label: "Subscription", icon: CreditCard },
     { id: "help", label: "Help", icon: HelpCircle },
-    { id: "review", label: "Leave a review", icon: Star },
   ]
 
   return (
