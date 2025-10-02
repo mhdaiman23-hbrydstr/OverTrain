@@ -13,7 +13,7 @@ import { useAuth } from "@/contexts/auth-context"
 
 interface IntakeFormData {
   name: string
-  gender: "male" | "female" | ""
+  gender: "male" | "female" | "Prefer not say" | ""
   experience: "beginner" | "intermediate" | "advanced" | ""
   goals: string[]
 }
@@ -75,15 +75,21 @@ export function IntakeForm() {
   }
 
   const handleSubmit = async () => {
+    console.log('[IntakeForm] Submitting profile:', formData)
+    console.log('[IntakeForm] canProceed:', canProceed())
+
     try {
       await updateUser({
         name: formData.name,
-        gender: formData.gender as "male" | "female",
+        gender: formData.gender as "male" | "female" | "Prefer not say",
         experience: formData.experience as "beginner" | "intermediate" | "advanced",
         goals: formData.goals,
       })
+      console.log('[IntakeForm] Profile saved successfully')
     } catch (error) {
-      console.error('Failed to save profile:', error)
+      console.error('[IntakeForm] Failed to save profile:', error)
+      // Show error to user
+      alert('Failed to save profile. Please try again.')
     }
   }
 
