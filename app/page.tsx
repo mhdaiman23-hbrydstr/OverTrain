@@ -26,13 +26,7 @@ export default function HomePage() {
 
   const [currentView, setCurrentView] = useState<
     "dashboard" | "programs" | "workout" | "analytics" | "train" | "profile"
-  >(() => {
-    if (typeof window !== "undefined") {
-      const activeProgram = ProgramStateManager.getActiveProgram()
-      return activeProgram ? "workout" : "dashboard"
-    }
-    return "dashboard"
-  })
+  >("train")
 
   const [formData, setFormData] = useState({
     email: "",
@@ -42,10 +36,9 @@ export default function HomePage() {
 
   useEffect(() => {
     if (user && user.gender) {
-      const activeProgram = ProgramStateManager.getActiveProgram()
-      if (activeProgram) {
-        setCurrentView("workout")
-      }
+      // Always start on train view
+      // Train view will handle whether to show program selection or active workout
+      setCurrentView("train")
     }
   }, [user])
 
@@ -96,13 +89,6 @@ export default function HomePage() {
   }
 
   const handleViewChange = (view: string) => {
-    if (view === "train") {
-      const activeProgram = ProgramStateManager.getActiveProgram()
-      if (activeProgram) {
-        setCurrentView("workout")
-        return
-      }
-    }
     setCurrentView(view as any)
   }
 
