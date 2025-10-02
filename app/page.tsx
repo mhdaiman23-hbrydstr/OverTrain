@@ -174,6 +174,12 @@ export default function HomePage() {
   if (user && currentView === "workout") {
     const currentWorkout = ProgramStateManager.getCurrentWorkout()
 
+    // If no workout available, redirect to train view
+    if (!currentWorkout) {
+      setCurrentView("train")
+      return null
+    }
+
     return (
       <div className="flex h-screen bg-background overflow-x-hidden">
         <SidebarNavigation currentView="workout" onViewChange={setCurrentView} />
@@ -181,22 +187,7 @@ export default function HomePage() {
         <div className="flex-1 lg:ml-64 overflow-x-hidden">
           <WorkoutLoggerComponent
             key={programKey}
-            initialWorkout={
-              currentWorkout || {
-                name: "Custom Workout",
-                exercises: [
-                  {
-                    exerciseId: "smith-machine-press",
-                    exerciseName: "Smith Machine Press (Incline, Medium Grip)",
-                    targetSets: 3,
-                    targetReps: "8-12",
-                    targetRest: "3-4 min",
-                    muscleGroup: "CHEST",
-                    equipmentType: "SMITH MACHINE",
-                  },
-                ],
-              }
-            }
+            initialWorkout={currentWorkout}
             onComplete={handleWorkoutComplete}
             onCancel={() => setCurrentView("train")}
             onViewAnalytics={() => setCurrentView("analytics")}
@@ -209,8 +200,12 @@ export default function HomePage() {
 
   if (user && currentView === "analytics") {
     return (
-      <div className="relative">
-        <AnalyticsSection />
+      <div className="flex h-screen bg-background overflow-x-hidden">
+        <SidebarNavigation currentView="analytics" onViewChange={setCurrentView} />
+
+        <div className="flex-1 lg:ml-64 overflow-x-hidden">
+          <AnalyticsSection />
+        </div>
         <BottomNavigation currentView={currentView} onViewChange={handleViewChange} />
       </div>
     )
@@ -218,8 +213,11 @@ export default function HomePage() {
 
   if (user) {
     return (
-      <div className="relative">
-        <div className="min-h-screen bg-background">
+      <div className="flex h-screen bg-background overflow-x-hidden">
+        <SidebarNavigation currentView="dashboard" onViewChange={setCurrentView} />
+
+        <div className="flex-1 lg:ml-64 overflow-x-hidden">
+          <div className="min-h-screen bg-background">
           <header className="border-b border-border/50">
             <div className="container mx-auto px-4 py-4 flex items-center justify-between">
               <h1 className="text-2xl font-bold text-gradient">LiftLog</h1>
@@ -287,6 +285,7 @@ export default function HomePage() {
               </div>
             </div>
           </main>
+          </div>
         </div>
         <BottomNavigation currentView={currentView} onViewChange={handleViewChange} />
       </div>
