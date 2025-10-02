@@ -723,7 +723,7 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
                       <MoreVertical className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
+                  <DropdownMenuContent align="end" className="z-[100]">
                     <DropdownMenuItem onClick={() => setShowNotesDialog(true)}>
                       <FileText className="h-4 w-4 mr-2" />
                       Workout Notes
@@ -1060,7 +1060,7 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
                                       <MoreVertical className="h-4 w-4" />
                                     </Button>
                                   </DropdownMenuTrigger>
-                                  <DropdownMenuContent align="start">
+                                  <DropdownMenuContent align="start" className="z-[100]">
                                     <DropdownMenuItem onClick={() => handleAddSet(exercise.id, set.id)}>
                                       <Plus className="h-4 w-4 mr-2" />
                                       Add set below
