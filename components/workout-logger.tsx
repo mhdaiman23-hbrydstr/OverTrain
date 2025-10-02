@@ -383,6 +383,33 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
     setShowNotesDialog(false)
   }
 
+  const handleEndWorkout = () => {
+    if (!workout) return
+
+    // Mark all uncompleted sets as skipped (blue tick)
+    const updatedWorkout = { ...workout }
+    updatedWorkout.exercises.forEach((exercise) => {
+      exercise.sets.forEach((set) => {
+        if (!set.completed) {
+          set.completed = true
+          set.reps = 0
+          set.weight = 0
+          set.skipped = true
+        }
+      })
+    })
+
+    setWorkout(updatedWorkout)
+    WorkoutLogger.saveCurrentWorkout(updatedWorkout)
+
+    // Complete the workout
+    const completedWorkout = WorkoutLogger.completeWorkout(updatedWorkout.id)
+    if (completedWorkout) {
+      setCompletedWorkout(completedWorkout)
+      setShowCompletionDialog(true)
+    }
+  }
+
   const handleEndProgram = () => {
     if (!workout || endProgramConfirmation !== "End Program") return
 
@@ -707,6 +734,13 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
                       Add Exercise
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={handleEndWorkout}
+                      className="text-orange-600 focus:text-orange-600"
+                    >
+                      <Check className="h-4 w-4 mr-2" />
+                      End Workout
+                    </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={() => setShowEndProgramDialog(true)}
                       className="text-red-600 focus:text-red-600"
