@@ -227,6 +227,24 @@ export class AuthService {
     }
   }
 
+  static async loadUserData(userId: string): Promise<void> {
+    // Load all user data from database to localStorage
+    const { ProgramStateManager } = await import('./program-state')
+    const { WorkoutLogger } = await import('./workout-logger')
+
+    console.log('[Auth] Loading user data from database...')
+
+    try {
+      await Promise.all([
+        ProgramStateManager.loadFromDatabase(userId),
+        WorkoutLogger.loadFromDatabase(userId),
+      ])
+      console.log('[Auth] User data loaded successfully')
+    } catch (error) {
+      console.error('[Auth] Failed to load user data:', error)
+    }
+  }
+
   // LocalStorage fallback methods
   private static async signUpLocalStorage(email: string, password: string): Promise<User> {
     // Simulate API call

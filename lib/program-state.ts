@@ -1,5 +1,6 @@
 import { GYM_TEMPLATES, type GymTemplate } from "./gym-templates"
 import { WorkoutLogger } from "./workout-logger"
+import { supabase } from "./supabase"
 
 export interface ActiveProgram {
   templateId: string
@@ -70,7 +71,7 @@ export class ProgramStateManager {
     }
   }
 
-  static setActiveProgram(templateId: string): ActiveProgram | null {
+  static async setActiveProgram(templateId: string, userId?: string): Promise<ActiveProgram | null> {
     if (typeof window === "undefined") return null
 
     const template = GYM_TEMPLATES.find((t) => t.id === templateId)
@@ -118,6 +119,11 @@ export class ProgramStateManager {
 
     history.push(newHistoryEntry)
     localStorage.setItem(this.PROGRAM_HISTORY_KEY, JSON.stringify(history))
+
+    // Sync to database
+    if (userId) {
+      await this.syncToDatabase(userId)
+    }
 
     return activeProgram
   }
@@ -170,7 +176,7 @@ export class ProgramStateManager {
     }
   }
 
-  static completeWorkout(): void {
+  static async completeWorkout(userId?: string): Promise<void> {
     const activeProgram = this.getActiveProgram()
     if (!activeProgram) return
 
@@ -215,6 +221,11 @@ export class ProgramStateManager {
     }
 
     console.log("[v0] Completed workout, updated progress:", activeProgram)
+
+    // Sync to database
+    if (userId) {
+      await this.syncToDatabase(userId)
+    }
   }
 
   static recalculateProgress(): void {
@@ -274,6 +285,136 @@ export class ProgramStateManager {
       return history ? JSON.parse(history) : []
     } catch {
       return []
+    }
+  }
+
+  // ============================================================================
+  // SUPABASE SYNC METHODS
+  // ============================================================================
+
+  static async syncToDatabase(userId: string): Promise<void> {
+    if (!supabase) {
+      console.log("[ProgramState] Supabase not configured, skipping sync")
+      return
+    }
+
+    try {
+      const activeProgram = this.getActiveProgram()
+
+      if (activeProgram) {
+        // Upsert active program
+        const { error } = await supabase
+          .from("active_programs")
+          .upsert({
+            user_id: userId,
+            template_id: activeProgram.templateId,
+            template_data: activeProgram.template,
+            start_date: activeProgram.startDate,
+            current_week: activeProgram.currentWeek,
+            current_day: activeProgram.currentDay,
+            completed_workouts: activeProgram.completedWorkouts,
+            total_workouts: activeProgram.totalWorkouts,
+            progress: activeProgram.progress,
+          })
+
+        if (error) {
+          console.error("[ProgramState] Failed to sync active program:", error)
+        } else {
+          console.log("[ProgramState] Synced active program to database")
+        }
+      }
+
+      // Sync program history
+      const history = this.getProgramHistory()
+      if (history.length > 0) {
+        const { error } = await supabase
+          .from("program_history")
+          .upsert(
+            history.map((h) => ({
+              id: h.id,
+              user_id: userId,
+              template_id: h.templateId,
+              name: h.name,
+              start_date: h.startDate,
+              end_date: h.endDate || null,
+              completion_rate: h.completionRate,
+              total_workouts: h.totalWorkouts,
+              completed_workouts: h.completedWorkouts,
+              is_active: h.isActive,
+            }))
+          )
+
+        if (error) {
+          console.error("[ProgramState] Failed to sync program history:", error)
+        } else {
+          console.log("[ProgramState] Synced program history to database")
+        }
+      }
+    } catch (error) {
+      console.error("[ProgramState] Sync to database failed:", error)
+    }
+  }
+
+  static async loadFromDatabase(userId: string): Promise<void> {
+    if (!supabase) {
+      console.log("[ProgramState] Supabase not configured, skipping load")
+      return
+    }
+
+    try {
+      // Load active program
+      const { data: activeProgramData, error: activeProgramError } = await supabase
+        .from("active_programs")
+        .select("*")
+        .eq("user_id", userId)
+        .single()
+
+      if (activeProgramError && activeProgramError.code !== "PGRST116") {
+        // PGRST116 = no rows returned
+        console.error("[ProgramState] Failed to load active program:", activeProgramError)
+      } else if (activeProgramData) {
+        const activeProgram: ActiveProgram = {
+          templateId: activeProgramData.template_id,
+          template: activeProgramData.template_data || GYM_TEMPLATES.find((t) => t.id === activeProgramData.template_id)!,
+          startDate: activeProgramData.start_date,
+          currentWeek: activeProgramData.current_week,
+          currentDay: activeProgramData.current_day,
+          completedWorkouts: activeProgramData.completed_workouts,
+          totalWorkouts: activeProgramData.total_workouts,
+          progress: activeProgramData.progress,
+        }
+
+        localStorage.setItem(this.ACTIVE_PROGRAM_KEY, JSON.stringify(activeProgram))
+        console.log("[ProgramState] Loaded active program from database")
+      }
+
+      // Load program history
+      const { data: historyData, error: historyError } = await supabase
+        .from("program_history")
+        .select("*")
+        .eq("user_id", userId)
+        .order("start_date", { ascending: false })
+
+      if (historyError) {
+        console.error("[ProgramState] Failed to load program history:", historyError)
+      } else if (historyData && historyData.length > 0) {
+        const history: ProgramHistoryEntry[] = historyData.map((h) => ({
+          id: h.id,
+          templateId: h.template_id,
+          name: h.name,
+          startDate: h.start_date,
+          endDate: h.end_date || undefined,
+          completionRate: h.completion_rate,
+          totalWorkouts: h.total_workouts,
+          completedWorkouts: h.completed_workouts,
+          isActive: h.is_active,
+        }))
+
+        localStorage.setItem(this.PROGRAM_HISTORY_KEY, JSON.stringify(history))
+        console.log("[ProgramState] Loaded program history from database")
+      }
+    } catch (error) {
+      console.error("[ProgramState] Load from database failed:", error)
     }
   }
 }

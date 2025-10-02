@@ -1,3 +1,5 @@
+import { supabase } from "./supabase"
+
 export interface WorkoutSet {
   id: string
   reps: number
@@ -74,7 +76,7 @@ export class WorkoutLogger {
     }
   }
 
-  static saveCurrentWorkout(workout: WorkoutSession): void {
+  static async saveCurrentWorkout(workout: WorkoutSession, userId?: string): Promise<void> {
     if (typeof window === "undefined") return
     if (!workout.week || !workout.day) return
 
@@ -89,12 +91,29 @@ export class WorkoutLogger {
       workouts.push(workout)
 
       localStorage.setItem(this.IN_PROGRESS_KEY, JSON.stringify(workouts))
+
+      // Sync to database
+      if (userId && supabase) {
+        await supabase
+          .from("in_progress_workouts")
+          .upsert({
+            id: workout.id,
+            user_id: userId,
+            program_id: workout.programId || null,
+            workout_name: workout.workoutName,
+            start_time: workout.startTime,
+            week: workout.week,
+            day: workout.day,
+            exercises: workout.exercises,
+            notes: workout.notes || null,
+          })
+      }
     } catch (error) {
       console.error("Failed to save workout:", error)
     }
   }
 
-  static clearCurrentWorkout(week?: number, day?: number): void {
+  static async clearCurrentWorkout(week?: number, day?: number, userId?: string): Promise<void> {
     if (typeof window === "undefined") return
 
     try {
@@ -103,11 +122,28 @@ export class WorkoutLogger {
         if (!stored) return
 
         let workouts: WorkoutSession[] = JSON.parse(stored)
+        const workoutToDelete = workouts.find((w) => w.week === week && w.day === day)
         workouts = workouts.filter((w) => !(w.week === week && w.day === day))
         localStorage.setItem(this.IN_PROGRESS_KEY, JSON.stringify(workouts))
+
+        // Delete from database
+        if (userId && supabase && workoutToDelete) {
+          await supabase
+            .from("in_progress_workouts")
+            .delete()
+            .eq("id", workoutToDelete.id)
+        }
       } else {
         // Clear all in-progress workouts
         localStorage.removeItem(this.IN_PROGRESS_KEY)
+
+        // Delete all from database
+        if (userId && supabase) {
+          await supabase
+            .from("in_progress_workouts")
+            .delete()
+            .eq("user_id", userId)
+        }
       }
     } catch (error) {
       console.error("Failed to clear workout:", error)
@@ -244,7 +280,7 @@ export class WorkoutLogger {
     return workout
   }
 
-  static completeWorkout(workoutId: string): WorkoutSession | null {
+  static async completeWorkout(workoutId: string, userId?: string): Promise<WorkoutSession | null> {
     if (typeof window === "undefined") return null
 
     try {
@@ -259,11 +295,11 @@ export class WorkoutLogger {
       workout.endTime = Date.now()
 
       // Save to workout history
-      this.saveWorkoutToHistory(workout)
+      await this.saveWorkoutToHistory(workout, userId)
 
       // Remove from in-progress
       if (workout.week && workout.day) {
-        this.clearCurrentWorkout(workout.week, workout.day)
+        await this.clearCurrentWorkout(workout.week, workout.day, userId)
       }
 
       return workout
@@ -273,7 +309,7 @@ export class WorkoutLogger {
     }
   }
 
-  private static saveWorkoutToHistory(workout: WorkoutSession): void {
+  private static async saveWorkoutToHistory(workout: WorkoutSession, userId?: string): Promise<void> {
     if (typeof window === "undefined") return
 
     try {
@@ -281,6 +317,25 @@ export class WorkoutLogger {
       const workouts: WorkoutSession[] = existing ? JSON.parse(existing) : []
       workouts.push(workout)
       localStorage.setItem(this.STORAGE_KEY, JSON.stringify(workouts))
+
+      // Sync to database
+      if (userId && supabase) {
+        await supabase
+          .from("workouts")
+          .insert({
+            id: workout.id,
+            user_id: userId,
+            program_id: workout.programId || null,
+            workout_name: workout.workoutName,
+            start_time: workout.startTime,
+            end_time: workout.endTime || null,
+            exercises: workout.exercises,
+            notes: workout.notes || null,
+            completed: workout.completed,
+            week: workout.week || null,
+            day: workout.day || null,
+          })
+      }
     } catch (error) {
       console.error("Failed to save workout to history:", error)
     }
@@ -323,5 +378,142 @@ export class WorkoutLogger {
       }
     }
     return true
+  }
+
+  // ============================================================================
+  // SUPABASE SYNC METHODS
+  // ============================================================================
+
+  static async syncToDatabase(userId: string): Promise<void> {
+    if (!supabase) {
+      console.log("[WorkoutLogger] Supabase not configured, skipping sync")
+      return
+    }
+
+    try {
+      // Sync completed workouts
+      const workouts = this.getWorkoutHistory()
+      if (workouts.length > 0) {
+        const { error } = await supabase
+          .from("workouts")
+          .upsert(
+            workouts.map((w) => ({
+              id: w.id,
+              user_id: userId,
+              program_id: w.programId || null,
+              workout_name: w.workoutName,
+              start_time: w.startTime,
+              end_time: w.endTime || null,
+              exercises: w.exercises,
+              notes: w.notes || null,
+              completed: w.completed,
+              week: w.week || null,
+              day: w.day || null,
+            }))
+          )
+
+        if (error) {
+          console.error("[WorkoutLogger] Failed to sync workouts:", error)
+        } else {
+          console.log("[WorkoutLogger] Synced", workouts.length, "workouts to database")
+        }
+      }
+
+      // Sync in-progress workouts
+      const stored = localStorage.getItem(this.IN_PROGRESS_KEY)
+      if (stored) {
+        const inProgressWorkouts: WorkoutSession[] = JSON.parse(stored)
+        if (inProgressWorkouts.length > 0) {
+          const { error } = await supabase
+            .from("in_progress_workouts")
+            .upsert(
+              inProgressWorkouts.map((w) => ({
+                id: w.id,
+                user_id: userId,
+                program_id: w.programId || null,
+                workout_name: w.workoutName,
+                start_time: w.startTime,
+                week: w.week || null,
+                day: w.day || null,
+                exercises: w.exercises,
+                notes: w.notes || null,
+              }))
+            )
+
+          if (error) {
+            console.error("[WorkoutLogger] Failed to sync in-progress workouts:", error)
+          } else {
+            console.log("[WorkoutLogger] Synced", inProgressWorkouts.length, "in-progress workouts to database")
+          }
+        }
+      }
+    } catch (error) {
+      console.error("[WorkoutLogger] Sync to database failed:", error)
+    }
+  }
+
+  static async loadFromDatabase(userId: string): Promise<void> {
+    if (!supabase) {
+      console.log("[WorkoutLogger] Supabase not configured, skipping load")
+      return
+    }
+
+    try {
+      // Load completed workouts
+      const { data: workoutsData, error: workoutsError } = await supabase
+        .from("workouts")
+        .select("*")
+        .eq("user_id", userId)
+        .order("start_time", { ascending: false })
+
+      if (workoutsError) {
+        console.error("[WorkoutLogger] Failed to load workouts:", workoutsError)
+      } else if (workoutsData && workoutsData.length > 0) {
+        const workouts: WorkoutSession[] = workoutsData.map((w) => ({
+          id: w.id,
+          userId: w.user_id,
+          programId: w.program_id || undefined,
+          workoutName: w.workout_name,
+          startTime: w.start_time,
+          endTime: w.end_time || undefined,
+          exercises: w.exercises,
+          notes: w.notes || undefined,
+          completed: w.completed,
+          week: w.week || undefined,
+          day: w.day || undefined,
+        }))
+
+        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(workouts))
+        console.log("[WorkoutLogger] Loaded", workouts.length, "workouts from database")
+      }
+
+      // Load in-progress workouts
+      const { data: inProgressData, error: inProgressError } = await supabase
+        .from("in_progress_workouts")
+        .select("*")
+        .eq("user_id", userId)
+
+      if (inProgressError) {
+        console.error("[WorkoutLogger] Failed to load in-progress workouts:", inProgressError)
+      } else if (inProgressData && inProgressData.length > 0) {
+        const inProgressWorkouts: WorkoutSession[] = inProgressData.map((w) => ({
+          id: w.id,
+          userId: w.user_id,
+          programId: w.program_id || undefined,
+          workoutName: w.workout_name,
+          startTime: w.start_time,
+          week: w.week || undefined,
+          day: w.day || undefined,
+          exercises: w.exercises,
+          notes: w.notes || undefined,
+          completed: false,
+        }))
+
+        localStorage.setItem(this.IN_PROGRESS_KEY, JSON.stringify(inProgressWorkouts))
+        console.log("[WorkoutLogger] Loaded", inProgressWorkouts.length, "in-progress workouts from database")
+      }
+    } catch (error) {
+      console.error("[WorkoutLogger] Load from database failed:", error)
+    }
   }
 }

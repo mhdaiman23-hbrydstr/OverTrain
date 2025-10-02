@@ -25,9 +25,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const oauthUser = await AuthService.handleOAuthCallback()
       if (oauthUser) {
         setState({ user: oauthUser, isLoading: false })
+        // Load user data from database
+        if (oauthUser.id) {
+          await AuthService.loadUserData(oauthUser.id)
+        }
       } else {
         const localUser = AuthService.getUser()
         setState({ user: localUser, isLoading: false })
+        // Load user data from database if user exists
+        if (localUser && localUser.id) {
+          await AuthService.loadUserData(localUser.id)
+        }
       }
     }
 
@@ -39,6 +47,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const user = await AuthService.signIn(email, password)
       setState({ user, isLoading: false })
+
+      // Load user data from database
+      if (user && user.id) {
+        await AuthService.loadUserData(user.id)
+      }
     } catch (error) {
       setState((prev) => ({ ...prev, isLoading: false }))
       throw error
