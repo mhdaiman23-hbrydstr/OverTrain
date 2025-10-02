@@ -105,7 +105,7 @@ export function TrainSection({ onStartWorkout, onAddProgram }: TrainSectionProps
   if (!activeProgram) {
     return (
       <div className="min-h-screen bg-background p-4 pb-20">
-        <div className="max-w-md mx-auto space-y-6 pt-8">
+        <div className="space-y-6 pt-8">
           <div className="text-center space-y-4">
             <div className="w-24 h-24 bg-muted rounded-full flex items-center justify-center mx-auto">
               <Dumbbell className="h-12 w-12 text-muted-foreground" />
@@ -138,7 +138,7 @@ export function TrainSection({ onStartWorkout, onAddProgram }: TrainSectionProps
   // When user has an active program
   return (
     <div className="min-h-screen bg-background p-4 pb-20">
-      <div className="max-w-md mx-auto space-y-6">
+      <div className="space-y-6">
         {/* Header */}
         <div className="text-center space-y-2 pt-4">
           <h1 className="text-2xl font-bold">Train</h1>

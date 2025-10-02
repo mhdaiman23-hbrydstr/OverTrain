@@ -85,7 +85,7 @@ export function ProfileSection() {
 
   return (
     <div className="min-h-screen bg-background p-4 pb-20">
-      <div className="max-w-2xl mx-auto space-y-6 pt-4">
+      <div className="space-y-6 pt-4">
         {/* Header */}
         <div className="text-center space-y-2">
           <h1 className="text-2xl font-bold">Profile</h1>
