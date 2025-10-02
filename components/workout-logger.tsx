@@ -760,7 +760,7 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
             </div>
           </div>
           {showCalendar && (
-            <div className="border-t border-border/50 bg-muted/30 w-full overflow-x-hidden">
+            <div className="border-t border-border/50 bg-muted/30 w-full">
               <WorkoutCalendar
                 onWorkoutClick={handleWorkoutClick}
                 selectedWeek={workout?.week}
@@ -962,7 +962,7 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
           </DialogContent>
         </Dialog>
 
-        <div className="container mx-auto px-4 pb-8">
+        <div className="container mx-auto px-4 pb-8 relative">
           {Object.entries(groupedExercises).map(([muscleGroup, exercises]) => (
             <div key={muscleGroup}>
               {exercises.map((exercise, index) => {
@@ -1000,7 +1000,7 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
                                   <MoreVertical className="h-4 w-4" />
                                 </Button>
                               </DropdownMenuTrigger>
-                              <DropdownMenuContent align="start">
+                              <DropdownMenuContent align="start" className="z-[100]">
                                 <DropdownMenuItem
                                   onClick={() => handleAddSet(exercise.id, exercise.sets[exercise.sets.length - 1].id)}
                                 >
