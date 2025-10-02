@@ -73,10 +73,12 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
   const [showNotesDialog, setShowNotesDialog] = useState(false)
   const [showSummaryDialog, setShowSummaryDialog] = useState(false)
   const [showAddExerciseDialog, setShowAddExerciseDialog] = useState(false)
+  const [showEndWorkoutDialog, setShowEndWorkoutDialog] = useState(false)
   const [showEndProgramDialog, setShowEndProgramDialog] = useState(false)
   const [showCompletionDialog, setShowCompletionDialog] = useState(false)
   const [completedWorkout, setCompletedWorkout] = useState<WorkoutSession | null>(null)
   const [workoutNotes, setWorkoutNotes] = useState("")
+  const [endWorkoutConfirmation, setEndWorkoutConfirmation] = useState("")
   const [endProgramConfirmation, setEndProgramConfirmation] = useState("")
   const [showCalendar, setShowCalendar] = useState(false)
   const [showMuscleGroupStats, setShowMuscleGroupStats] = useState(false)
@@ -384,7 +386,7 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
   }
 
   const handleEndWorkout = () => {
-    if (!workout) return
+    if (!workout || endWorkoutConfirmation !== "End Workout") return
 
     // Mark all uncompleted sets as skipped (blue tick)
     const updatedWorkout = { ...workout }
@@ -406,6 +408,7 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
     const completedWorkout = WorkoutLogger.completeWorkout(updatedWorkout.id)
     if (completedWorkout) {
       setCompletedWorkout(completedWorkout)
+      setShowEndWorkoutDialog(false)
       setShowCompletionDialog(true)
     }
   }
@@ -735,7 +738,7 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
-                      onClick={handleEndWorkout}
+                      onClick={() => setShowEndWorkoutDialog(true)}
                       className="text-orange-600 focus:text-orange-600"
                     >
                       <Check className="h-4 w-4 mr-2" />
@@ -871,6 +874,50 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
           </DialogContent>
         </Dialog>
 
+        <Dialog open={showEndWorkoutDialog} onOpenChange={setShowEndWorkoutDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 text-orange-600">
+                <Check className="h-5 w-5" />
+                End Workout
+              </DialogTitle>
+              <DialogDescription>
+                This will mark all remaining sets as skipped and complete your current workout. You'll be able to start the next workout.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg">
+                <p className="text-sm text-orange-800 font-medium">
+                  To confirm, please type "End Workout" in the field below:
+                </p>
+              </div>
+              <Input
+                placeholder="Type 'End Workout' to confirm"
+                value={endWorkoutConfirmation}
+                onChange={(e) => setEndWorkoutConfirmation(e.target.value)}
+              />
+            </div>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowEndWorkoutDialog(false)
+                  setEndWorkoutConfirmation("")
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                className="bg-orange-600 hover:bg-orange-700"
+                onClick={handleEndWorkout}
+                disabled={endWorkoutConfirmation !== "End Workout"}
+              >
+                End Workout
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
         <Dialog open={showEndProgramDialog} onOpenChange={setShowEndProgramDialog}>
           <DialogContent>
             <DialogHeader>
@@ -937,7 +984,7 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
                     )}
 
                     {/* Exercise Card - Flat list style */}
-                    <div className="border-b border-border/30 relative overflow-hidden bg-background hover:bg-muted/20 transition-colors">
+                    <div className="border-b border-border/30 relative bg-background hover:bg-muted/20 transition-colors">
                       <div className="py-4 px-2">
                         <div className="flex items-center justify-between pb-3">
                           <div className="flex-1">
