@@ -890,77 +890,35 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
                 </Badge>
               </div>
 
-              {exercises.map((exercise) => (
-                <Card key={exercise.id} className="border border-border/50 relative overflow-hidden">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <CardTitle className="text-lg font-medium">{exercise.exerciseName}</CardTitle>
-                        <CardDescription className="text-muted-foreground uppercase text-xs font-medium mt-1">
-                          {exercise.equipmentType || "MACHINE"}
-                        </CardDescription>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-muted-foreground">
-                              <MoreVertical className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="start">
-                            <DropdownMenuItem
-                              onClick={() => handleAddSet(exercise.id, exercise.sets[exercise.sets.length - 1].id)}
-                            >
-                              <Plus className="h-4 w-4 mr-2" />
-                              Add set
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => handleSkipSet(exercise.id, exercise.sets[exercise.sets.length - 1].id)}
-                            >
-                              <SkipForward className="h-4 w-4 mr-2" />
-                              Skip set
-                            </DropdownMenuItem>
-                            {exercise.sets.length > 1 && (
-                              <DropdownMenuItem
-                                onClick={() => handleDeleteSet(exercise.id, exercise.sets[exercise.sets.length - 1].id)}
-                                className="text-red-600"
-                              >
-                                <Trash2 className="h-4 w-4 mr-2" />
-                                Delete set
-                              </DropdownMenuItem>
-                            )}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="pt-0 relative">
-                    {isWorkoutBlocked && (
-                      <div className="absolute inset-0 bg-background/95 backdrop-blur-sm z-10 flex items-center justify-center p-3">
-                        <div className="text-center px-2 max-w-full">
-                          <Lock className="h-7 w-7 mx-auto mb-2 text-destructive" />
-                          <p className="text-xs font-medium text-destructive leading-tight">
-                            {blockedMessage || "Complete previous week before accessing this workout"}
-                          </p>
-                          <p className="text-xs text-muted-foreground mt-2">
-                            You can preview the workout structure below
-                          </p>
+              {exercises.map((exercise, index) => {
+                // Get muscle group for current and previous exercise
+                const currentMuscleGroup = getExerciseMuscleGroup(exercise.exerciseName)
+                const previousMuscleGroup = index > 0 ? getExerciseMuscleGroup(exercises[index - 1].exerciseName) : null
+                const isNewMuscleGroup = currentMuscleGroup !== previousMuscleGroup
+
+                return (
+                  <div key={exercise.id}>
+                    {/* Muscle Group Header - only show when muscle group changes */}
+                    {isNewMuscleGroup && (
+                      <div className="flex items-center gap-2 py-3 px-1 mt-4">
+                        <div className="flex items-center gap-2 flex-1">
+                          <div className="w-1 h-5 bg-primary rounded-full" />
+                          <h3 className="text-xs font-bold uppercase tracking-wide text-primary">{currentMuscleGroup}</h3>
                         </div>
                       </div>
                     )}
 
-                    <div className="grid grid-cols-12 gap-2 text-xs font-medium text-muted-foreground uppercase mb-3">
-                      <div className="col-span-1"></div>
-                      <div className="col-span-4 text-center">WEIGHT</div>
-                      <div className="col-span-3 text-center">REPS</div>
-                      <div className="col-span-3 text-center">LOG</div>
-                      <div className="col-span-1"></div>
-                    </div>
-
-                    <div className="space-y-2">
-                      {exercise.sets.map((set, setIndex) => (
-                        <div key={set.id} className="grid grid-cols-12 gap-2 items-center">
-                          <div className="col-span-1">
+                    {/* Exercise Card - Flat list style */}
+                    <div className="border-b border-border/30 relative overflow-hidden bg-background hover:bg-muted/20 transition-colors">
+                      <div className="py-4 px-2">
+                        <div className="flex items-center justify-between pb-3">
+                          <div className="flex-1">
+                            <h4 className="text-base font-medium">{exercise.exerciseName}</h4>
+                            <p className="text-muted-foreground uppercase text-xs font-medium mt-0.5">
+                              {exercise.equipmentType || "MACHINE"}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-2">
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-muted-foreground">
@@ -968,17 +926,21 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="start">
-                                <DropdownMenuItem onClick={() => handleAddSet(exercise.id, set.id)}>
+                                <DropdownMenuItem
+                                  onClick={() => handleAddSet(exercise.id, exercise.sets[exercise.sets.length - 1].id)}
+                                >
                                   <Plus className="h-4 w-4 mr-2" />
-                                  Add set below
+                                  Add set
                                 </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => handleSkipSet(exercise.id, set.id)}>
+                                <DropdownMenuItem
+                                  onClick={() => handleSkipSet(exercise.id, exercise.sets[exercise.sets.length - 1].id)}
+                                >
                                   <SkipForward className="h-4 w-4 mr-2" />
                                   Skip set
                                 </DropdownMenuItem>
                                 {exercise.sets.length > 1 && (
                                   <DropdownMenuItem
-                                    onClick={() => handleDeleteSet(exercise.id, set.id)}
+                                    onClick={() => handleDeleteSet(exercise.id, exercise.sets[exercise.sets.length - 1].id)}
                                     className="text-red-600"
                                   >
                                     <Trash2 className="h-4 w-4 mr-2" />
@@ -988,66 +950,124 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
                               </DropdownMenuContent>
                             </DropdownMenu>
                           </div>
-
-                          <div className="col-span-4">
-                            <Input
-                              type="number"
-                              value={set.weight || ""}
-                              onChange={(e) =>
-                                handleSetUpdate(exercise.id, set.id, "weight", Number.parseFloat(e.target.value) || 0)
-                              }
-                              className="text-center h-10 bg-muted/30 border-border/50"
-                              placeholder=""
-                              step="2.5"
-                            />
-                          </div>
-
-                          <div className="col-span-3">
-                            <Input
-                              type="number"
-                              value={set.reps || ""}
-                              onChange={(e) =>
-                                handleSetUpdate(exercise.id, set.id, "reps", Number.parseInt(e.target.value) || 0)
-                              }
-                              className="text-center h-10 bg-muted/30 border-border/50"
-                              placeholder=""
-                            />
-                          </div>
-
-                          <div className="col-span-3">
-                            <Button
-                              size="sm"
-                              onClick={() => handleCompleteSet(exercise.id, set.id)}
-                              variant="ghost"
-                              className={`w-full h-10 border-2 ${
-                                set.completed
-                                  ? set.reps === 0 && set.weight === 0
-                                    ? "bg-blue-50 border-blue-500 text-blue-700"
-                                    : "bg-green-50 border-green-500 text-green-700"
-                                  : "border-border/50 hover:border-primary"
-                              }`}
-                            >
-                              {set.completed ? (
-                                set.reps === 0 && set.weight === 0 ? (
-                                  <Minus className="h-5 w-5 text-blue-600" />
-                                ) : (
-                                  <Check className="h-5 w-5 text-green-600" />
-                                )
-                              ) : (
-                                <div className="w-5 h-5 border-2 border-border rounded" />
-                              )}
-                            </Button>
-                          </div>
-
-                          <div className="col-span-1 text-center">
-                            <span className="text-sm font-medium text-muted-foreground">{setIndex + 1}</span>
-                          </div>
                         </div>
-                      ))}
+                      </div>
+                      <div className="px-2 pb-2 relative">
+                        {isWorkoutBlocked && (
+                          <div className="absolute inset-0 bg-background/95 backdrop-blur-sm z-10 flex items-center justify-center p-3">
+                            <div className="text-center px-2 max-w-full">
+                              <Lock className="h-7 w-7 mx-auto mb-2 text-destructive" />
+                              <p className="text-xs font-medium text-destructive leading-tight">
+                                {blockedMessage || "Complete previous week before accessing this workout"}
+                              </p>
+                              <p className="text-xs text-muted-foreground mt-2">
+                                You can preview the workout structure below
+                              </p>
+                            </div>
+                          </div>
+                        )}
+
+                        <div className="grid grid-cols-12 gap-2 text-xs font-medium text-muted-foreground uppercase mb-3">
+                          <div className="col-span-1"></div>
+                          <div className="col-span-4 text-center">WEIGHT</div>
+                          <div className="col-span-3 text-center">REPS</div>
+                          <div className="col-span-3 text-center">LOG</div>
+                          <div className="col-span-1"></div>
+                        </div>
+
+                        <div className="space-y-2">
+                          {exercise.sets.map((set, setIndex) => (
+                            <div key={set.id} className="grid grid-cols-12 gap-2 items-center">
+                              <div className="col-span-1">
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-muted-foreground">
+                                      <MoreVertical className="h-4 w-4" />
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="start">
+                                    <DropdownMenuItem onClick={() => handleAddSet(exercise.id, set.id)}>
+                                      <Plus className="h-4 w-4 mr-2" />
+                                      Add set below
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => handleSkipSet(exercise.id, set.id)}>
+                                      <SkipForward className="h-4 w-4 mr-2" />
+                                      Skip set
+                                    </DropdownMenuItem>
+                                    {exercise.sets.length > 1 && (
+                                      <DropdownMenuItem
+                                        onClick={() => handleDeleteSet(exercise.id, set.id)}
+                                        className="text-red-600"
+                                      >
+                                        <Trash2 className="h-4 w-4 mr-2" />
+                                        Delete set
+                                      </DropdownMenuItem>
+                                    )}
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+                              </div>
+
+                              <div className="col-span-4">
+                                <Input
+                                  type="number"
+                                  value={set.weight || ""}
+                                  onChange={(e) =>
+                                    handleSetUpdate(exercise.id, set.id, "weight", Number.parseFloat(e.target.value) || 0)
+                                  }
+                                  className="text-center h-10 bg-muted/30 border-border/50"
+                                  placeholder=""
+                                  step="2.5"
+                                />
+                              </div>
+
+                              <div className="col-span-3">
+                                <Input
+                                  type="number"
+                                  value={set.reps || ""}
+                                  onChange={(e) =>
+                                    handleSetUpdate(exercise.id, set.id, "reps", Number.parseInt(e.target.value) || 0)
+                                  }
+                                  className="text-center h-10 bg-muted/30 border-border/50"
+                                  placeholder=""
+                                />
+                              </div>
+
+                              <div className="col-span-3">
+                                <Button
+                                  size="sm"
+                                  onClick={() => handleCompleteSet(exercise.id, set.id)}
+                                  variant="ghost"
+                                  className={`w-full h-10 border-2 ${
+                                    set.completed
+                                      ? set.reps === 0 && set.weight === 0
+                                        ? "bg-blue-50 border-blue-500 text-blue-700"
+                                        : "bg-green-50 border-green-500 text-green-700"
+                                      : "border-border/50 hover:border-primary"
+                                  }`}
+                                >
+                                  {set.completed ? (
+                                    set.reps === 0 && set.weight === 0 ? (
+                                      <Minus className="h-5 w-5 text-blue-600" />
+                                    ) : (
+                                      <Check className="h-5 w-5 text-green-600" />
+                                    )
+                                  ) : (
+                                    <div className="w-5 h-5 border-2 border-border rounded" />
+                                  )}
+                                </Button>
+                              </div>
+
+                              <div className="col-span-1 text-center">
+                                <span className="text-sm font-medium text-muted-foreground">{setIndex + 1}</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
                     </div>
-                  </CardContent>
-                </Card>
-              ))}
+                  </div>
+                )
+              })}
             </div>
           ))}
 
