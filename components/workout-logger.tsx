@@ -881,15 +881,9 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
           </DialogContent>
         </Dialog>
 
-        <div className="container mx-auto px-4 pb-8 space-y-6">
+        <div className="container mx-auto px-4 pb-8">
           {Object.entries(groupedExercises).map(([muscleGroup, exercises]) => (
-            <div key={muscleGroup} className="space-y-4">
-              <div className="flex items-center gap-2 pt-4">
-                <Badge className={`${getMuscleGroupColor(muscleGroup)} font-medium text-xs px-2 py-1`}>
-                  {muscleGroup}
-                </Badge>
-              </div>
-
+            <div key={muscleGroup}>
               {exercises.map((exercise, index) => {
                 // Get muscle group for current and previous exercise
                 const currentMuscleGroup = getExerciseMuscleGroup(exercise.exerciseName)
