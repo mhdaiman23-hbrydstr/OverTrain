@@ -13,7 +13,6 @@ import { ProgramsSection } from "@/components/programs-section"
 import { WorkoutLoggerComponent } from "@/components/workout-logger"
 import { SidebarNavigation } from "@/components/sidebar-navigation"
 import { BottomNavigation } from "@/components/bottom-navigation"
-import { TrainSection } from "@/components/train-section"
 import { AnalyticsSection } from "@/components/analytics-section"
 import { ProfileSection } from "@/components/profile-section"
 import { ProgramStateManager } from "@/lib/program-state"
@@ -36,9 +35,16 @@ export default function HomePage() {
 
   useEffect(() => {
     if (user && user.gender) {
-      // Always start on train view
-      // Train view will handle whether to show program selection or active workout
-      setCurrentView("train")
+      // Check if user has an active program
+      const activeProgram = ProgramStateManager.getActiveProgram()
+
+      if (activeProgram) {
+        // Go directly to workout if program exists
+        setCurrentView("workout")
+      } else {
+        // Go to programs to select one
+        setCurrentView("programs")
+      }
     }
   }, [user])
 
@@ -89,7 +95,13 @@ export default function HomePage() {
   }
 
   const handleViewChange = (view: string) => {
-    setCurrentView(view as any)
+    // Redirect train view to workout if program exists, otherwise programs
+    if (view === "train") {
+      const activeProgram = ProgramStateManager.getActiveProgram()
+      setCurrentView(activeProgram ? "workout" : "programs")
+    } else {
+      setCurrentView(view as any)
+    }
   }
 
   const handleProgramStarted = () => {
@@ -100,7 +112,8 @@ export default function HomePage() {
   const handleWorkoutComplete = () => {
     console.log("[v0] handleWorkoutComplete called - updating program state")
     ProgramStateManager.completeWorkout()
-    setCurrentView("train")
+    // Stay on workout view to show next workout
+    setProgramKey((prev) => prev + 1) // Force refresh to load next workout
   }
 
   if (authLoading) {
@@ -116,19 +129,6 @@ export default function HomePage() {
 
   if (user && !user.gender) {
     return <IntakeForm />
-  }
-
-  if (user && currentView === "train") {
-    return (
-      <div className="flex h-screen bg-background overflow-x-hidden">
-        <SidebarNavigation currentView="train" onViewChange={setCurrentView} />
-
-        <div className="flex-1 lg:ml-64 overflow-x-hidden">
-          <TrainSection onStartWorkout={handleStartWorkout} onAddProgram={() => setCurrentView("programs")} />
-        </div>
-        <BottomNavigation currentView={currentView} onViewChange={handleViewChange} />
-      </div>
-    )
   }
 
   if (user && currentView === "profile") {
