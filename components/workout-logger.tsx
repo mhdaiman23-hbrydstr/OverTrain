@@ -719,7 +719,7 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
                 </Button>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm">
+                    <Button variant="ghost" size="sm" className="min-h-[44px] min-w-[44px]">
                       <MoreVertical className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
@@ -996,7 +996,7 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
                           <div className="flex items-center gap-2">
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-muted-foreground">
+                                <Button variant="ghost" size="sm" className="h-10 w-10 p-0 text-muted-foreground min-h-[40px] min-w-[40px]">
                                   <MoreVertical className="h-4 w-4" />
                                 </Button>
                               </DropdownMenuTrigger>
@@ -1056,7 +1056,7 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
                               <div className="col-span-1">
                                 <DropdownMenu>
                                   <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-muted-foreground">
+                                    <Button variant="ghost" size="sm" className="h-10 w-10 p-0 text-muted-foreground min-h-[40px] min-w-[40px]">
                                       <MoreVertical className="h-4 w-4" />
                                     </Button>
                                   </DropdownMenuTrigger>
