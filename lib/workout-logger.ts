@@ -321,21 +321,25 @@ export class WorkoutLogger {
 
       // Sync to database
       if (userId && supabase) {
-        await supabase
-          .from("workouts")
-          .insert({
-            id: workout.id,
-            user_id: userId,
-            program_id: workout.programId || null,
-            workout_name: workout.workoutName,
-            start_time: workout.startTime,
-            end_time: workout.endTime || null,
-            exercises: workout.exercises,
-            notes: workout.notes || null,
-            completed: workout.completed,
-            week: workout.week || null,
-            day: workout.day || null,
-          })
+        try {
+          await supabase
+            .from("workouts")
+            .insert({
+              id: workout.id,
+              user_id: userId,
+              program_id: workout.programId || null,
+              workout_name: workout.workoutName,
+              start_time: workout.startTime,
+              end_time: workout.endTime || null,
+              exercises: workout.exercises,
+              notes: workout.notes || null,
+              completed: workout.completed,
+              week: workout.week || null,
+              day: workout.day || null,
+            })
+        } catch (error) {
+          console.error("Failed to sync completed workout to database:", error)
+        }
       }
     } catch (error) {
       console.error("Failed to save workout to history:", error)
