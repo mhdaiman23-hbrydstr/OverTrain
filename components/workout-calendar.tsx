@@ -104,7 +104,7 @@ export function WorkoutCalendar({ onWorkoutClick, selectedWeek, selectedDay }: W
 
   return (
     <Card className="mb-0 border-0 shadow-none bg-transparent">
-      <CardContent className="p-4">
+      <CardContent className="p-3 sm:p-4">
         {/* Week controls */}
         <div className="flex items-center justify-between mb-4">
           <span className="text-sm font-medium text-muted-foreground">WEEKS</span>
@@ -118,14 +118,14 @@ export function WorkoutCalendar({ onWorkoutClick, selectedWeek, selectedDay }: W
           </div>
         </div>
 
-        <div className="overflow-x-auto">
-          <div className="flex gap-2 pb-2 pl-2 w-max">
+        <div className="overflow-x-auto -mx-3 sm:-mx-4 px-3 sm:px-4">
+          <div className="flex gap-1.5 sm:gap-2 pb-2 w-max">
             {Array.from({ length: totalWeeks }, (_, weekIndex) => {
               const week = weekIndex + 1
               const isDeloadWeek = week === 5 && totalWeeks >= 5
 
               return (
-                <div key={week} className="flex flex-col gap-2 min-w-[65px] sm:min-w-[75px] flex-shrink-0">
+                <div key={week} className="flex flex-col gap-1.5 sm:gap-2 min-w-[60px] sm:min-w-[75px] flex-shrink-0">
                   {/* Week header */}
                   <div className="text-center border-b pb-2">
                     <div className="text-xs font-medium text-muted-foreground mb-1">{isDeloadWeek ? "DL" : week}</div>
@@ -146,7 +146,7 @@ export function WorkoutCalendar({ onWorkoutClick, selectedWeek, selectedDay }: W
                           key={`${week}-${day}`}
                           variant="outline"
                           size="sm"
-                          className={`h-9 text-xs font-medium transition-colors cursor-pointer ${
+                          className={`h-8 sm:h-9 text-xs font-medium transition-colors cursor-pointer ${
                             status === "completed"
                               ? "bg-green-100 text-green-800 border-green-200 hover:bg-green-200"
                               : status === "current"
