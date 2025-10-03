@@ -26,6 +26,7 @@ import { type WorkoutSession, WorkoutLogger } from "@/lib/workout-logger"
 import { WorkoutCompletionDialog } from "@/components/workout-completion-dialog"
 import { MuscleGroupStats } from "@/components/muscle-group-stats"
 import { WorkoutCalendar } from "@/components/workout-calendar"
+import { ExerciseLibrary } from "@/components/exercise-library"
 import { ProgramStateManager } from "@/lib/program-state"
 import { getTemplateById } from "@/lib/gym-templates"
 import { getExerciseMuscleGroup } from "@/lib/exercise-muscle-groups"
@@ -44,6 +45,9 @@ import {
   Calendar,
   Minus,
   Lock,
+  ArrowUp,
+  ArrowDown,
+  Replace,
 } from "lucide-react"
 
 interface Exercise {
@@ -85,6 +89,11 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
   const [isWorkoutBlocked, setIsWorkoutBlocked] = useState(false)
   const [blockedMessage, setBlockedMessage] = useState("")
   const [programName, setProgramName] = useState<string>("")
+  const [showExerciseNotesDialog, setShowExerciseNotesDialog] = useState(false)
+  const [selectedExerciseId, setSelectedExerciseId] = useState<string | null>(null)
+  const [exerciseNotes, setExerciseNotes] = useState("")
+  const [showExerciseLibrary, setShowExerciseLibrary] = useState(false)
+  const [replaceExerciseId, setReplaceExerciseId] = useState<string | null>(null)
 
   useEffect(() => {
     console.log("[v0] ===== STORAGE DEBUG =====")
@@ -529,6 +538,109 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
     }
   }
 
+  const handleExerciseNotes = (exerciseId: string) => {
+    if (!workout) return
+    const exercise = workout.exercises.find((ex) => ex.id === exerciseId)
+    if (!exercise) return
+
+    setSelectedExerciseId(exerciseId)
+    setExerciseNotes(exercise.notes || "")
+    setShowExerciseNotesDialog(true)
+  }
+
+  const handleSaveExerciseNotes = () => {
+    if (!workout || !selectedExerciseId) return
+
+    const exercise = workout.exercises.find((ex) => ex.id === selectedExerciseId)
+    if (!exercise) return
+
+    exercise.notes = exerciseNotes
+    setWorkout({ ...workout })
+    WorkoutLogger.saveCurrentWorkout(workout)
+    setShowExerciseNotesDialog(false)
+    setSelectedExerciseId(null)
+    setExerciseNotes("")
+  }
+
+  const handleReplaceExercise = (exerciseId: string) => {
+    setReplaceExerciseId(exerciseId)
+    setShowExerciseLibrary(true)
+  }
+
+  const handleMoveExerciseUp = (exerciseId: string) => {
+    if (!workout) return
+
+    const exercises = [...workout.exercises]
+    const index = exercises.findIndex((ex) => ex.id === exerciseId)
+
+    if (index <= 0) return // Already at top or not found
+
+    // Swap with previous exercise
+    ;[exercises[index - 1], exercises[index]] = [exercises[index], exercises[index - 1]]
+
+    setWorkout({ ...workout, exercises })
+    WorkoutLogger.saveCurrentWorkout({ ...workout, exercises })
+  }
+
+  const handleMoveExerciseDown = (exerciseId: string) => {
+    if (!workout) return
+
+    const exercises = [...workout.exercises]
+    const index = exercises.findIndex((ex) => ex.id === exerciseId)
+
+    if (index < 0 || index >= exercises.length - 1) return // Already at bottom or not found
+
+    // Swap with next exercise
+    ;[exercises[index], exercises[index + 1]] = [exercises[index + 1], exercises[index]]
+
+    setWorkout({ ...workout, exercises })
+    WorkoutLogger.saveCurrentWorkout({ ...workout, exercises })
+  }
+
+  const handleSkipAllSets = (exerciseId: string) => {
+    if (!workout) return
+
+    const exercise = workout.exercises.find((ex) => ex.id === exerciseId)
+    if (!exercise) return
+
+    exercise.sets.forEach((set) => {
+      set.completed = true
+      set.reps = 0
+      set.weight = 0
+    })
+
+    setWorkout({ ...workout })
+    WorkoutLogger.saveCurrentWorkout(workout)
+  }
+
+  const handleDeleteExercise = (exerciseId: string) => {
+    if (!workout) return
+
+    const exercises = workout.exercises.filter((ex) => ex.id !== exerciseId)
+    setWorkout({ ...workout, exercises })
+    WorkoutLogger.saveCurrentWorkout({ ...workout, exercises })
+  }
+
+  const handleSelectExerciseFromLibrary = (selectedExercise: any) => {
+    if (!workout || !replaceExerciseId) return
+
+    const exerciseIndex = workout.exercises.findIndex((ex) => ex.id === replaceExerciseId)
+    if (exerciseIndex === -1) return
+
+    const oldExercise = workout.exercises[exerciseIndex]
+
+    // Replace with new exercise, keeping the same sets structure
+    workout.exercises[exerciseIndex] = {
+      ...oldExercise,
+      exerciseId: selectedExercise.id,
+      exerciseName: selectedExercise.name,
+    }
+
+    setWorkout({ ...workout })
+    WorkoutLogger.saveCurrentWorkout(workout)
+    setReplaceExerciseId(null)
+  }
+
   const handleStartNextWorkout = () => {
     setShowCompletionDialog(false)
     setCompletedWorkout(null)
@@ -719,9 +831,9 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
                 </Button>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm" className="min-h-[44px] min-w-[44px]">
+                    <button className="inline-flex items-center justify-center min-h-[44px] min-w-[44px] rounded-md hover:bg-accent hover:text-accent-foreground">
                       <MoreVertical className="h-4 w-4" />
-                    </Button>
+                    </button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="z-[100]">
                     <DropdownMenuItem onClick={() => setShowNotesDialog(true)}>
@@ -807,6 +919,31 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
                 Cancel
               </Button>
               <Button onClick={handleSaveNotes}>Save Notes</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={showExerciseNotesDialog} onOpenChange={setShowExerciseNotesDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Exercise Notes</DialogTitle>
+              <DialogDescription>
+                Add notes about this exercise, technique cues, or form observations.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <Textarea
+                placeholder="Enter your exercise notes here..."
+                value={exerciseNotes}
+                onChange={(e) => setExerciseNotes(e.target.value)}
+                rows={4}
+              />
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowExerciseNotesDialog(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleSaveExerciseNotes}>Save Notes</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -996,32 +1133,44 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
                           <div className="flex items-center gap-2">
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="sm" className="h-10 w-10 p-0 text-muted-foreground min-h-[40px] min-w-[40px]">
+                                <button className="inline-flex items-center justify-center min-h-[44px] min-w-[44px] rounded-md hover:bg-accent hover:text-accent-foreground text-muted-foreground">
                                   <MoreVertical className="h-4 w-4" />
-                                </Button>
+                                </button>
                               </DropdownMenuTrigger>
-                              <DropdownMenuContent align="start" className="z-[100]">
-                                <DropdownMenuItem
-                                  onClick={() => handleAddSet(exercise.id, exercise.sets[exercise.sets.length - 1].id)}
-                                >
-                                  <Plus className="h-4 w-4 mr-2" />
-                                  Add set
+                              <DropdownMenuContent align="end" className="z-[100]">
+                                <DropdownMenuItem onClick={() => handleExerciseNotes(exercise.id)}>
+                                  <FileText className="h-4 w-4 mr-2" />
+                                  Exercise notes
                                 </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  onClick={() => handleSkipSet(exercise.id, exercise.sets[exercise.sets.length - 1].id)}
-                                >
-                                  <SkipForward className="h-4 w-4 mr-2" />
-                                  Skip set
+                                <DropdownMenuItem onClick={() => handleReplaceExercise(exercise.id)}>
+                                  <Replace className="h-4 w-4 mr-2" />
+                                  Replace
                                 </DropdownMenuItem>
-                                {exercise.sets.length > 1 && (
-                                  <DropdownMenuItem
-                                    onClick={() => handleDeleteSet(exercise.id, exercise.sets[exercise.sets.length - 1].id)}
-                                    className="text-red-600"
-                                  >
-                                    <Trash2 className="h-4 w-4 mr-2" />
-                                    Delete set
+                                <DropdownMenuSeparator />
+                                {workout && workout.exercises.findIndex((ex) => ex.id === exercise.id) > 0 && (
+                                  <DropdownMenuItem onClick={() => handleMoveExerciseUp(exercise.id)}>
+                                    <ArrowUp className="h-4 w-4 mr-2" />
+                                    Move up
                                   </DropdownMenuItem>
                                 )}
+                                {workout && workout.exercises.findIndex((ex) => ex.id === exercise.id) < workout.exercises.length - 1 && (
+                                  <DropdownMenuItem onClick={() => handleMoveExerciseDown(exercise.id)}>
+                                    <ArrowDown className="h-4 w-4 mr-2" />
+                                    Move down
+                                  </DropdownMenuItem>
+                                )}
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem onClick={() => handleSkipAllSets(exercise.id)}>
+                                  <SkipForward className="h-4 w-4 mr-2" />
+                                  Skip all sets
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => handleDeleteExercise(exercise.id)}
+                                  className="text-red-600"
+                                >
+                                  <Trash2 className="h-4 w-4 mr-2" />
+                                  Delete exercise
+                                </DropdownMenuItem>
                               </DropdownMenuContent>
                             </DropdownMenu>
                           </div>
@@ -1056,9 +1205,9 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
                               <div className="col-span-1">
                                 <DropdownMenu>
                                   <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" size="sm" className="h-10 w-10 p-0 text-muted-foreground min-h-[40px] min-w-[40px]">
+                                    <button className="inline-flex items-center justify-center min-h-[44px] min-w-[44px] rounded-md hover:bg-accent hover:text-accent-foreground text-muted-foreground">
                                       <MoreVertical className="h-4 w-4" />
-                                    </Button>
+                                    </button>
                                   </DropdownMenuTrigger>
                                   <DropdownMenuContent align="start" className="z-[100]">
                                     <DropdownMenuItem onClick={() => handleAddSet(exercise.id, set.id)}>
@@ -1182,6 +1331,15 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
       />
 
       <MuscleGroupStats open={showMuscleGroupStats} onClose={handleMuscleGroupStatsClose} />
+
+      <ExerciseLibrary
+        open={showExerciseLibrary}
+        onOpenChange={setShowExerciseLibrary}
+        onSelectExercise={handleSelectExerciseFromLibrary}
+        currentExerciseName={
+          replaceExerciseId ? workout?.exercises.find((ex) => ex.id === replaceExerciseId)?.exerciseName : undefined
+        }
+      />
     </>
   )
 }

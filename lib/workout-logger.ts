@@ -20,6 +20,7 @@ export interface WorkoutExercise {
   completed: boolean
   startTime?: number
   endTime?: number
+  notes?: string
 }
 
 export interface WorkoutSession {

@@ -28,6 +28,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Load user data from database
         if (oauthUser.id) {
           await AuthService.loadUserData(oauthUser.id)
+          // Trigger program state update
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(new Event("programChanged"))
+          }
         }
       } else {
         const localUser = AuthService.getUser()
@@ -35,6 +39,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Load user data from database if user exists
         if (localUser && localUser.id) {
           await AuthService.loadUserData(localUser.id)
+          // Trigger program state update
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(new Event("programChanged"))
+          }
         }
       }
     }
@@ -51,6 +59,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Load user data from database
       if (user && user.id) {
         await AuthService.loadUserData(user.id)
+        // Trigger program state update
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new Event("programChanged"))
+        }
       }
     } catch (error) {
       setState((prev) => ({ ...prev, isLoading: false }))

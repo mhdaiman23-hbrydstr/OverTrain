@@ -42,11 +42,26 @@ export default function HomePage() {
         // Go directly to workout if program exists
         setCurrentView("workout")
       } else {
-        // Go to programs to select one
-        setCurrentView("programs")
+        // Go to train screen to select a program
+        setCurrentView("train")
       }
     }
   }, [user])
+
+  // Listen for program state changes (e.g., after loading from database)
+  useEffect(() => {
+    const handleProgramChange = () => {
+      if (user && user.gender) {
+        const activeProgram = ProgramStateManager.getActiveProgram()
+        if (activeProgram && currentView === "train") {
+          setCurrentView("workout")
+        }
+      }
+    }
+
+    window.addEventListener("programChanged", handleProgramChange)
+    return () => window.removeEventListener("programChanged", handleProgramChange)
+  }, [user, currentView])
 
   const handleAuth = async (type: "login" | "signup") => {
     setIsLoading(true)
@@ -95,10 +110,10 @@ export default function HomePage() {
   }
 
   const handleViewChange = (view: string) => {
-    // Redirect train view to workout if program exists, otherwise programs
+    // Redirect train view to workout if program exists, otherwise show train screen
     if (view === "train") {
       const activeProgram = ProgramStateManager.getActiveProgram()
-      setCurrentView(activeProgram ? "workout" : "programs")
+      setCurrentView(activeProgram ? "workout" : "train")
     } else {
       setCurrentView(view as any)
     }
@@ -160,7 +175,7 @@ export default function HomePage() {
   if (user && currentView === "workout") {
     const currentWorkout = ProgramStateManager.getCurrentWorkout()
 
-    // If no workout available, redirect to train view
+    // If no workout available, redirect to train screen
     if (!currentWorkout) {
       setCurrentView("train")
       return null
@@ -197,80 +212,44 @@ export default function HomePage() {
     )
   }
 
-  if (user) {
+  if (user && currentView === "train") {
     return (
       <div className="flex h-screen bg-background overflow-x-hidden">
-        <SidebarNavigation currentView="dashboard" onViewChange={setCurrentView} />
+        <SidebarNavigation currentView="train" onViewChange={setCurrentView} />
 
         <div className="flex-1 lg:ml-64 overflow-x-hidden">
           <div className="min-h-screen bg-background">
-          <header className="border-b border-border/50">
-            <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-              <h1 className="text-2xl font-bold text-gradient">LiftLog</h1>
-              <div className="flex items-center gap-4">
-                <span className="text-sm text-muted-foreground">Welcome, {user.name || user.email}</span>
-                <Button variant="outline" size="sm" onClick={signOut}>
-                  <LogOut className="h-4 w-4 mr-2" />
-                  Sign Out
-                </Button>
+            <header className="border-b border-border/50">
+              <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+                <h1 className="text-2xl font-bold text-gradient">LiftLog</h1>
+                <div className="flex items-center gap-4">
+                  <span className="text-sm text-muted-foreground">Welcome, {user.name || user.email}</span>
+                  <Button variant="outline" size="sm" onClick={signOut}>
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Sign Out
+                  </Button>
+                </div>
               </div>
-            </div>
-          </header>
+            </header>
 
-          <main className="container mx-auto px-4 py-8 pb-20">
-            <div className="text-center space-y-6">
-              <div className="space-y-2">
-                <h2 className="text-3xl font-bold">Welcome back, {user.name}!</h2>
-                <p className="text-muted-foreground">Ready to crush your fitness goals?</p>
+            <main className="container mx-auto px-4 py-8 pb-20">
+              <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-6">
+                <div className="text-center space-y-4 max-w-md">
+                  <Dumbbell className="h-16 w-16 text-primary mx-auto" />
+                  <h2 className="text-3xl font-bold">Ready to Start Training?</h2>
+                  <p className="text-muted-foreground">
+                    Choose a workout program tailored to your goals and start your fitness journey today.
+                  </p>
+                  <Button
+                    className="w-full gradient-primary text-primary-foreground mt-6"
+                    onClick={() => setCurrentView("programs")}
+                    size="lg"
+                  >
+                    Browse Programs
+                  </Button>
+                </div>
               </div>
-
-              <div className="grid md:grid-cols-3 gap-6 mt-8">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Today's Workout</CardTitle>
-                    <CardDescription>Your personalized program awaits</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <Button className="w-full gradient-primary text-primary-foreground" onClick={handleStartWorkout}>
-                      Start Workout
-                    </Button>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Progress</CardTitle>
-                    <CardDescription>Track your improvements</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <Button
-                      variant="outline"
-                      className="w-full bg-transparent"
-                      onClick={() => setCurrentView("analytics")}
-                    >
-                      View Analytics
-                    </Button>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Programs</CardTitle>
-                    <CardDescription>Explore workout plans</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <Button
-                      variant="outline"
-                      className="w-full bg-transparent"
-                      onClick={() => setCurrentView("programs")}
-                    >
-                      Browse Programs
-                    </Button>
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
-          </main>
+            </main>
           </div>
         </div>
         <BottomNavigation currentView={currentView} onViewChange={handleViewChange} />

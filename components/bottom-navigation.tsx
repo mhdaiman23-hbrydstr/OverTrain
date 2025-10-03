@@ -43,7 +43,7 @@ export function BottomNavigation({ currentView, onViewChange }: BottomNavigation
               key={item.id}
               onClick={() => onViewChange(item.id)}
               className={cn(
-                "flex flex-col items-center justify-center py-2 px-4 rounded-lg transition-colors",
+                "flex flex-col items-center justify-center py-2 px-4 rounded-lg transition-colors min-h-[48px] min-w-[48px]",
                 isActive ? "text-primary bg-primary/10" : "text-muted-foreground hover:text-foreground",
               )}
             >
