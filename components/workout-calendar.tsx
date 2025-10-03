@@ -103,8 +103,8 @@ export function WorkoutCalendar({ onWorkoutClick, selectedWeek, selectedDay }: W
   }
 
   return (
-    <Card className="mb-0 border-0 shadow-none bg-transparent">
-      <CardContent className="p-3 sm:p-4">
+    <Card className="mb-0 border-0 shadow-none bg-transparent overflow-visible">
+      <CardContent className="p-3 sm:p-4 overflow-visible">
         {/* Week controls */}
         <div className="flex items-center justify-between mb-4">
           <span className="text-sm font-medium text-muted-foreground">WEEKS</span>

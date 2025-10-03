@@ -760,7 +760,7 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
             </div>
           </div>
           {showCalendar && (
-            <div className="border-t border-border/50 bg-muted/30 w-full">
+            <div className="border-t border-border/50 bg-muted/30 w-full overflow-x-hidden">
               <WorkoutCalendar
                 onWorkoutClick={handleWorkoutClick}
                 selectedWeek={workout?.week}
