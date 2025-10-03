@@ -692,9 +692,9 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
 
   return (
     <>
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-background overflow-x-hidden">
         <div className="sticky top-0 bg-background border-b border-border/50 z-50 shadow-sm">
-          <div className="w-full max-w-full px-4 py-4">
+          <div className="w-full max-w-full px-4 py-4 overflow-x-hidden">
             <div className="flex items-center justify-between">
               <div className="space-y-1">
                 {programName && (
@@ -962,7 +962,7 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
           </DialogContent>
         </Dialog>
 
-        <div className="container mx-auto px-4 pb-8 relative">
+        <div className="w-full max-w-full mx-auto px-3 sm:px-4 pb-8 overflow-x-hidden">
           {Object.entries(groupedExercises).map(([muscleGroup, exercises]) => (
             <div key={muscleGroup}>
               {exercises.map((exercise, index) => {
@@ -985,7 +985,7 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
 
                     {/* Exercise Card - Flat list style */}
                     <div className="border-b border-border/30 relative bg-background hover:bg-muted/20 transition-colors">
-                      <div className="py-4 px-2">
+                      <div className="py-3 px-1 sm:py-4 sm:px-2">
                         <div className="flex items-center justify-between pb-3">
                           <div className="flex-1">
                             <h4 className="text-base font-medium">{exercise.exerciseName}</h4>
@@ -1027,7 +1027,7 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
                           </div>
                         </div>
                       </div>
-                      <div className="px-2 pb-2 relative">
+                      <div className="px-1 pb-2 sm:px-2 relative">
                         {isWorkoutBlocked && (
                           <div className="absolute inset-0 bg-background/95 backdrop-blur-sm z-10 flex items-center justify-center p-3">
                             <div className="text-center px-2 max-w-full">
@@ -1052,7 +1052,7 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
 
                         <div className="space-y-2">
                           {exercise.sets.map((set, setIndex) => (
-                            <div key={set.id} className="grid grid-cols-12 gap-2 items-center">
+                            <div key={set.id} className="grid grid-cols-12 gap-1 sm:gap-2 items-center">
                               <div className="col-span-1">
                                 <DropdownMenu>
                                   <DropdownMenuTrigger asChild>
