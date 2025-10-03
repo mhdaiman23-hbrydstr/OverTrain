@@ -31,6 +31,7 @@ import { ProgramStateManager } from "@/lib/program-state"
 import { getTemplateById } from "@/lib/gym-templates"
 import { getExerciseMuscleGroup } from "@/lib/exercise-muscle-groups"
 import { ProgressionCalculator } from "@/lib/progression-calculator"
+import { useAuth } from "@/contexts/auth-context"
 import {
   Clock,
   Save,
@@ -71,6 +72,7 @@ interface WorkoutLoggerProps {
 }
 
 export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, onViewAnalytics }: WorkoutLoggerProps) {
+  const { user } = useAuth()
   const [workout, setWorkout] = useState<WorkoutSession | null>(null)
   const [restTimer, setRestTimer] = useState<number | null>(null)
   const [restTimeLeft, setRestTimeLeft] = useState(0)
@@ -87,6 +89,7 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
   const [showCalendar, setShowCalendar] = useState(false)
   const [showMuscleGroupStats, setShowMuscleGroupStats] = useState(false)
   const [isWorkoutBlocked, setIsWorkoutBlocked] = useState(false)
+  const [isFullyBlocked, setIsFullyBlocked] = useState(false)
   const [blockedMessage, setBlockedMessage] = useState("")
   const [programName, setProgramName] = useState<string>("")
   const [showExerciseNotesDialog, setShowExerciseNotesDialog] = useState(false)
@@ -219,20 +222,22 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
         const scheduleKeys = Object.keys(activeProgram.template.schedule)
         const daysPerWeek = scheduleKeys.length
         const isCurrentWeekCompleted = WorkoutLogger.isWeekCompleted(week, daysPerWeek)
+        const weeksAhead = existingWorkout.week - week
 
         if (!isCurrentWeekCompleted) {
           setIsWorkoutBlocked(true)
-          setBlockedMessage(
-            `Complete all workouts in Week ${week} before accessing Week ${existingWorkout.week}`,
-          )
-          console.log("[v0] Workout blocked - current week not completed")
+          setIsFullyBlocked(weeksAhead >= 2)
+          setBlockedMessage("No data from previous week")
+          console.log("[v0] Workout blocked - current week not completed, weeksAhead:", weeksAhead)
         } else {
           setIsWorkoutBlocked(false)
+          setIsFullyBlocked(false)
           setBlockedMessage("")
           console.log("[v0] Workout not blocked - current week completed")
         }
       } else {
         setIsWorkoutBlocked(false)
+        setIsFullyBlocked(false)
         setBlockedMessage("")
         console.log("[v0] Workout not blocked - current or past week")
       }
@@ -245,6 +250,7 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
       console.log("[v0] Component created new workout from initialWorkout")
       setWorkout(newWorkout)
       setIsWorkoutBlocked(false)
+      setIsFullyBlocked(false)
       setBlockedMessage("")
     }
   }, [initialWorkout])
@@ -348,7 +354,7 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
 
     const workoutWithNotes = { ...workout, notes: workoutNotes }
     setWorkout(workoutWithNotes)
-    WorkoutLogger.saveCurrentWorkout(workoutWithNotes)
+    WorkoutLogger.saveCurrentWorkout(workoutWithNotes, user?.id)
 
     const wasAlreadyCompleted = WorkoutLogger.hasCompletedWorkout(workout.week || 1, workout.day || 1)
 
@@ -363,7 +369,7 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
 
       setCompletedWorkout(completedWorkout)
       setShowCompletionDialog(true)
-      onComplete?.()
+      // Don't call onComplete here - wait for dialog to close
     }
   }
 
@@ -390,7 +396,7 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
 
     const updatedWorkout = { ...workout, notes: workoutNotes }
     setWorkout(updatedWorkout)
-    WorkoutLogger.saveCurrentWorkout(updatedWorkout)
+    WorkoutLogger.saveCurrentWorkout(updatedWorkout, user?.id)
     setShowNotesDialog(false)
   }
 
@@ -411,7 +417,7 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
     })
 
     setWorkout(updatedWorkout)
-    WorkoutLogger.saveCurrentWorkout(updatedWorkout)
+    WorkoutLogger.saveCurrentWorkout(updatedWorkout, user?.id)
 
     // Complete the workout
     const completedWorkout = WorkoutLogger.completeWorkout(updatedWorkout.id)
@@ -438,7 +444,7 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
     })
 
     setWorkout(updatedWorkout)
-    WorkoutLogger.saveCurrentWorkout(updatedWorkout)
+    WorkoutLogger.saveCurrentWorkout(updatedWorkout, user?.id)
 
     const completedWorkout = WorkoutLogger.completeWorkout(updatedWorkout.id)
     if (completedWorkout) {
@@ -511,7 +517,7 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
 
     exercise.sets.splice(setIndex + 1, 0, newSet)
     setWorkout({ ...workout })
-    WorkoutLogger.saveCurrentWorkout(workout)
+    WorkoutLogger.saveCurrentWorkout(workout, user?.id)
   }
 
   const handleDeleteSet = (exerciseId: string, setId: string) => {
@@ -522,7 +528,7 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
 
     exercise.sets = exercise.sets.filter((s) => s.id !== setId)
     setWorkout({ ...workout })
-    WorkoutLogger.saveCurrentWorkout(workout)
+    WorkoutLogger.saveCurrentWorkout(workout, user?.id)
   }
 
   const handleSkipSet = (exerciseId: string, setId: string) => {
@@ -556,7 +562,7 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
 
     exercise.notes = exerciseNotes
     setWorkout({ ...workout })
-    WorkoutLogger.saveCurrentWorkout(workout)
+    WorkoutLogger.saveCurrentWorkout(workout, user?.id)
     setShowExerciseNotesDialog(false)
     setSelectedExerciseId(null)
     setExerciseNotes("")
@@ -579,7 +585,7 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
     ;[exercises[index - 1], exercises[index]] = [exercises[index], exercises[index - 1]]
 
     setWorkout({ ...workout, exercises })
-    WorkoutLogger.saveCurrentWorkout({ ...workout, exercises })
+    WorkoutLogger.saveCurrentWorkout({ ...workout, exercises }, user?.id)
   }
 
   const handleMoveExerciseDown = (exerciseId: string) => {
@@ -594,7 +600,7 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
     ;[exercises[index], exercises[index + 1]] = [exercises[index + 1], exercises[index]]
 
     setWorkout({ ...workout, exercises })
-    WorkoutLogger.saveCurrentWorkout({ ...workout, exercises })
+    WorkoutLogger.saveCurrentWorkout({ ...workout, exercises }, user?.id)
   }
 
   const handleSkipAllSets = (exerciseId: string) => {
@@ -610,7 +616,7 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
     })
 
     setWorkout({ ...workout })
-    WorkoutLogger.saveCurrentWorkout(workout)
+    WorkoutLogger.saveCurrentWorkout(workout, user?.id)
   }
 
   const handleDeleteExercise = (exerciseId: string) => {
@@ -618,7 +624,7 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
 
     const exercises = workout.exercises.filter((ex) => ex.id !== exerciseId)
     setWorkout({ ...workout, exercises })
-    WorkoutLogger.saveCurrentWorkout({ ...workout, exercises })
+    WorkoutLogger.saveCurrentWorkout({ ...workout, exercises }, user?.id)
   }
 
   const handleSelectExerciseFromLibrary = (selectedExercise: any) => {
@@ -637,7 +643,7 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
     }
 
     setWorkout({ ...workout })
-    WorkoutLogger.saveCurrentWorkout(workout)
+    WorkoutLogger.saveCurrentWorkout(workout, user?.id)
     setReplaceExerciseId(null)
   }
 
@@ -646,7 +652,7 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
     setCompletedWorkout(null)
 
     if (completedWorkout?.week && completedWorkout?.day) {
-      WorkoutLogger.clearCurrentWorkout(completedWorkout.week, completedWorkout.day)
+      WorkoutLogger.clearCurrentWorkout(completedWorkout.week, completedWorkout.day, user?.id)
     }
     window.location.reload()
   }
@@ -667,7 +673,7 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
     if (!workoutDay) return
 
     if (workout) {
-      WorkoutLogger.saveCurrentWorkout(workout)
+      WorkoutLogger.saveCurrentWorkout(workout, user?.id)
       console.log("[v0] Saved current workout before switching")
     }
 
@@ -727,22 +733,26 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
     const daysPerWeek = scheduleKeys.length
 
     // New blocking logic: Allow current week (any day order) + completed weeks
-    // Block future weeks until current week is fully completed
+    // Preview next week (blocked but visible), fully block weeks 2+ ahead
     if (week > activeProgram.currentWeek) {
       // Trying to access a future week - check if current week is complete
       const isCurrentWeekCompleted = WorkoutLogger.isWeekCompleted(activeProgram.currentWeek, daysPerWeek)
+      const weeksAhead = week - activeProgram.currentWeek
 
       if (!isCurrentWeekCompleted) {
         setIsWorkoutBlocked(true)
-        setBlockedMessage(`Complete all workouts in Week ${activeProgram.currentWeek} before accessing Week ${week}`)
-        console.log("[v0] Workout blocked - current week not completed")
+        setIsFullyBlocked(weeksAhead >= 2)
+        setBlockedMessage(weeksAhead >= 2 ? "No data from previous week" : "No data from previous week")
+        console.log("[v0] Workout blocked - current week not completed, weeksAhead:", weeksAhead)
       } else {
         setIsWorkoutBlocked(false)
+        setIsFullyBlocked(false)
         setBlockedMessage("")
       }
     } else {
       // Current week or past weeks - always allow access
       setIsWorkoutBlocked(false)
+      setIsFullyBlocked(false)
       setBlockedMessage("")
     }
 
@@ -883,7 +893,7 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
         </div>
 
         {/* Progression Notes Banner */}
-        {workout?.week && workout?.week > 1 && workout?.notes && (
+        {workout?.week && workout?.week > 1 && workout?.notes && !isWorkoutBlocked && (
           <div className="bg-blue-50 border-b border-blue-200 p-3 text-center">
             <p className="text-sm text-blue-900">
               <span className="font-semibold">Week {workout.week}, Day {workout.day}:</span> {workout.notes}
@@ -1099,7 +1109,7 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
           </DialogContent>
         </Dialog>
 
-        <div className="w-full max-w-full mx-auto px-3 sm:px-4 pb-8 overflow-x-hidden">
+        <div className="w-full max-w-full mx-auto px-3 sm:px-4 pb-20 overflow-x-hidden">
           {Object.entries(groupedExercises).map(([muscleGroup, exercises]) => (
             <div key={muscleGroup}>
               {exercises.map((exercise, index) => {
@@ -1177,18 +1187,24 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
                         </div>
                       </div>
                       <div className="px-1 pb-2 sm:px-2 relative">
-                        {isWorkoutBlocked && (
+                        {isFullyBlocked ? (
                           <div className="absolute inset-0 bg-background/95 backdrop-blur-sm z-10 flex items-center justify-center p-3">
                             <div className="text-center px-2 max-w-full">
                               <Lock className="h-7 w-7 mx-auto mb-2 text-destructive" />
                               <p className="text-xs font-medium text-destructive leading-tight">
-                                {blockedMessage || "Complete previous week before accessing this workout"}
-                              </p>
-                              <p className="text-xs text-muted-foreground mt-2">
-                                You can preview the workout structure below
+                                {blockedMessage || "Complete previous weeks before accessing this workout"}
                               </p>
                             </div>
                           </div>
+                        ) : (
+                          isWorkoutBlocked && (
+                            <div className="bg-orange-50 border border-orange-200 rounded-md p-2 mb-3 flex items-center gap-2">
+                              <Lock className="h-4 w-4 text-orange-600 flex-shrink-0" />
+                              <p className="text-xs text-orange-800 leading-tight">
+                                {blockedMessage || "Complete previous week before accessing this workout"}
+                              </p>
+                            </div>
+                          )
                         )}
 
                         <div className="grid grid-cols-12 gap-2 text-xs font-medium text-muted-foreground uppercase mb-3">
@@ -1241,6 +1257,7 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
                                   className="text-center h-10 bg-muted/30 border-border/50"
                                   placeholder=""
                                   step="2.5"
+                                  disabled={isWorkoutBlocked}
                                 />
                               </div>
 
@@ -1253,6 +1270,7 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
                                   }
                                   className="text-center h-10 bg-muted/30 border-border/50"
                                   placeholder=""
+                                  disabled={isWorkoutBlocked}
                                 />
                               </div>
 
@@ -1260,6 +1278,7 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
                                 <Button
                                   size="sm"
                                   onClick={() => handleCompleteSet(exercise.id, set.id)}
+                                  disabled={isWorkoutBlocked}
                                   variant="ghost"
                                   className={`w-full h-10 border-2 ${
                                     set.completed
@@ -1295,7 +1314,7 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
             </div>
           ))}
 
-          <div className="lg:hidden pt-8 pb-24">
+          <div className="lg:hidden pt-2 pb-4">
             {!isWorkoutBlocked && (
               <>
                 {workout.completed ? (

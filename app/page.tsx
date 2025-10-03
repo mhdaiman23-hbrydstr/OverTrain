@@ -125,10 +125,9 @@ export default function HomePage() {
   }
 
   const handleWorkoutComplete = () => {
-    console.log("[v0] handleWorkoutComplete called - updating program state")
-    ProgramStateManager.completeWorkout()
-    // Stay on workout view to show next workout
-    setProgramKey((prev) => prev + 1) // Force refresh to load next workout
+    // Program state is already updated in workout-logger component
+    // Just refresh the key to allow showing summary dialog
+    console.log("[v0] handleWorkoutComplete called - workout completed")
   }
 
   if (authLoading) {

@@ -223,7 +223,7 @@ export class WorkoutLogger {
         completed: false,
       })),
       completed: false,
-      notes: exercises.find((e) => e.progressionNote)?.progressionNote || "",
+      notes: "",
     }
 
     console.log("[v0] Created workout structure:", {

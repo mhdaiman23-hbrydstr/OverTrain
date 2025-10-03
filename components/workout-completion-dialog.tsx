@@ -13,9 +13,11 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Trophy, Clock, Target, TrendingUp, Calendar } from "lucide-react"
+import { Separator } from "@/components/ui/separator"
+import { Trophy, Clock, Target, TrendingUp, Calendar, Zap } from "lucide-react"
 import type { WorkoutSession } from "@/lib/workout-logger"
 import { ProgramStateManager } from "@/lib/program-state"
+import { getExerciseMuscleGroup } from "@/lib/exercise-muscle-groups"
 
 interface WorkoutCompletionDialogProps {
   workout: WorkoutSession | null
@@ -42,7 +44,7 @@ export function WorkoutCompletionDialog({
     }
   }, [open, workout])
 
-  if (!workout) return null
+  if (!workout || !workout.exercises) return null
 
   const getWorkoutStats = () => {
     let totalSets = 0
@@ -50,8 +52,11 @@ export function WorkoutCompletionDialog({
     let skippedSets = 0
     let totalVolume = 0
     let totalReps = 0
+    const volumeByMuscleGroup: Record<string, number> = {}
 
     workout.exercises.forEach((exercise) => {
+      const muscleGroup = getExerciseMuscleGroup(exercise.exerciseName)
+
       exercise.sets.forEach((set) => {
         totalSets++
         if (set.completed) {
@@ -59,8 +64,15 @@ export function WorkoutCompletionDialog({
             skippedSets++
           } else {
             completedSets++
-            totalVolume += set.weight * set.reps
+            const setVolume = set.weight * set.reps
+            totalVolume += setVolume
             totalReps += set.reps
+
+            // Track volume by muscle group
+            if (!volumeByMuscleGroup[muscleGroup]) {
+              volumeByMuscleGroup[muscleGroup] = 0
+            }
+            volumeByMuscleGroup[muscleGroup] += setVolume
           }
         }
       })
@@ -78,6 +90,7 @@ export function WorkoutCompletionDialog({
       duration,
       completionRate,
       exercises: workout.exercises.length,
+      volumeByMuscleGroup,
     }
   }
 
@@ -158,10 +171,6 @@ export function WorkoutCompletionDialog({
                 <h4 className="font-semibold mb-3">Workout Summary</h4>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span>Exercises</span>
-                    <span className="font-medium">{stats.exercises}</span>
-                  </div>
-                  <div className="flex justify-between">
                     <span>Sets Completed</span>
                     <span className="font-medium text-green-600">{stats.completedSets}</span>
                   </div>
@@ -171,18 +180,22 @@ export function WorkoutCompletionDialog({
                       <span className="font-medium text-orange-600">{stats.skippedSets}</span>
                     </div>
                   )}
-                  <div className="flex justify-between">
-                    <span>Total Sets</span>
-                    <span className="font-medium">{stats.totalSets}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Volume (kg)</span>
-                    <span className="font-medium">{Math.round(stats.totalVolume / 1000)}k</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Total Reps</span>
-                    <span className="font-medium">{stats.totalReps}</span>
-                  </div>
+                </div>
+
+                <Separator className="my-4" />
+
+                <h4 className="font-semibold mb-3">Volume by Muscle Group</h4>
+                <div className="space-y-2 text-sm">
+                  {Object.entries(stats.volumeByMuscleGroup)
+                    .sort(([, a], [, b]) => b - a)
+                    .map(([muscleGroup, volume]) => (
+                      <div key={muscleGroup} className="flex justify-between">
+                        <span className="capitalize">{muscleGroup.toLowerCase()}</span>
+                        <span className="font-medium">
+                          {volume >= 1000 ? `${(volume / 1000).toFixed(1)}k` : Math.round(volume)} kg
+                        </span>
+                      </div>
+                    ))}
                 </div>
               </CardContent>
             </Card>
@@ -210,17 +223,22 @@ export function WorkoutCompletionDialog({
             <TrendingUp className="h-4 w-4 mr-2" />
             View Muscle Group Stats
           </Button>
-          {/* Show next workout button instead of back to dashboard */}
           {hasNextWorkout() ? (
             <Button onClick={handleNextWorkout} className="w-full gradient-primary text-primary-foreground">
               <Calendar className="h-4 w-4 mr-2" />
               Start Next Workout
             </Button>
           ) : (
-            <Button onClick={onClose} className="w-full gradient-primary text-primary-foreground">
-              <Calendar className="h-4 w-4 mr-2" />
-              Back to Dashboard
-            </Button>
+            <>
+              <Button onClick={onClose} className="w-full gradient-primary text-primary-foreground">
+                <Trophy className="h-4 w-4 mr-2" />
+                View Program Summary
+              </Button>
+              <Button onClick={onClose} variant="outline" className="w-full">
+                <Zap className="h-4 w-4 mr-2" />
+                Start New Program
+              </Button>
+            </>
           )}
         </DialogFooter>
       </DialogContent>
