@@ -148,7 +148,7 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
   const filteredTemplates = getFilteredTemplates()
 
   return (
-    <div className="min-h-screen bg-background pb-20">
+    <div className="min-h-screen bg-background">
       <AlertDialog open={showSwitchDialog} onOpenChange={setShowSwitchDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -182,10 +182,12 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
           onStartProgram={handleStartProgram}
         />
       ) : (
-        <div className="w-full">
-          <div className="flex items-center justify-between p-4 pt-6 border-b border-border">
-            <h1 className="text-2xl font-bold">Programs</h1>
-            <div className="flex items-center gap-2">
+        <div className="w-full min-h-screen pb-20 lg:pb-4">
+          {/* Sticky Header */}
+          <div className="sticky top-0 bg-background/95 backdrop-blur-sm border-b border-border/50 z-[60] shadow-sm">
+            <div className="flex items-center justify-between px-4 py-3 sm:py-4">
+              <h1 className="text-xl sm:text-2xl font-bold">Programs</h1>
+              <div className="flex items-center gap-2">
               <Sheet open={filterOpen} onOpenChange={setFilterOpen}>
                 <SheetTrigger asChild>
                   <Button variant="outline" size="sm" className="relative bg-transparent">
@@ -274,10 +276,11 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
                 </SheetContent>
               </Sheet>
 
-              <Button size="sm" className="bg-red-500 hover:bg-red-600 text-white" onClick={onAddProgram}>
+              <Button size="sm" className="bg-red-500 hover:bg-red-600 text-white h-9 sm:h-10" onClick={onAddProgram}>
                 <Plus className="h-4 w-4 mr-1" />
                 NEW
               </Button>
+              </div>
             </div>
           </div>
 

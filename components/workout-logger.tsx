@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -32,6 +32,7 @@ import { getTemplateById } from "@/lib/gym-templates"
 import { getExerciseMuscleGroup } from "@/lib/exercise-muscle-groups"
 import { ProgressionCalculator } from "@/lib/progression-calculator"
 import { useAuth } from "@/contexts/auth-context"
+import { ConnectionMonitor, type ConnectionStatus } from "@/lib/connection-monitor"
 import {
   Clock,
   Save,
@@ -49,6 +50,11 @@ import {
   ArrowUp,
   ArrowDown,
   Replace,
+  Wifi,
+  WifiOff,
+  Loader2,
+  CheckCircle2,
+  XCircle,
 } from "lucide-react"
 
 interface Exercise {
@@ -97,6 +103,15 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
   const [exerciseNotes, setExerciseNotes] = useState("")
   const [showExerciseLibrary, setShowExerciseLibrary] = useState(false)
   const [replaceExerciseId, setReplaceExerciseId] = useState<string | null>(null)
+
+  // Debounce timer for set updates
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null)
+
+  // Connection status
+  const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('online')
+
+  // Loading state for finish workout
+  const [isCompletingWorkout, setIsCompletingWorkout] = useState(false)
 
   useEffect(() => {
     console.log("[v0] ===== STORAGE DEBUG =====")
@@ -270,6 +285,27 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
     }
   }, [restTimer, restTimeLeft])
 
+  // Cleanup debounce timer on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current)
+      }
+    }
+  }, [])
+
+  // Initialize ConnectionMonitor
+  useEffect(() => {
+    ConnectionMonitor.initialize()
+
+    // Subscribe to connection status changes
+    const unsubscribe = ConnectionMonitor.subscribe(setConnectionStatus)
+
+    return () => {
+      unsubscribe()
+    }
+  }, [])
+
   const handleSetUpdate = (exerciseId: string, setId: string, field: "reps" | "weight", value: number) => {
     if (!workout) return
 
@@ -280,9 +316,10 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
       exerciseCount: workout.exercises.length,
     })
 
+    // Update with skipDbSync=true to only save to localStorage
     const updatedWorkout = WorkoutLogger.updateSet(workout, exerciseId, setId, {
       [field]: value,
-    })
+    }, user?.id, true) // Skip DB sync initially
 
     console.log("[v0] updatedWorkout returned:", updatedWorkout ? "exists" : "null")
 
@@ -299,6 +336,23 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
 
       setWorkout(updatedWorkout)
       console.log("[v0] setWorkout called with updated workout")
+
+      // Debounce database sync for 500ms
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current)
+      }
+
+      debounceTimerRef.current = setTimeout(() => {
+        console.log("[v0] Debounced sync triggered for weight/reps update")
+        if (ConnectionMonitor.isOnline()) {
+          WorkoutLogger.saveCurrentWorkout(updatedWorkout, user?.id)
+        } else {
+          // Queue sync for when connection is restored
+          ConnectionMonitor.addToQueue(async () => {
+            await WorkoutLogger.saveCurrentWorkout(updatedWorkout, user?.id)
+          })
+        }
+      }, 500)
     } else {
       console.log("[v0] ERROR: updatedWorkout is null, not updating state")
     }
@@ -319,7 +373,7 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
 
     const updatedWorkout = WorkoutLogger.updateSet(workout, exerciseId, setId, {
       completed: !set.completed,
-    })
+    }, user?.id)
     if (updatedWorkout) {
       setWorkout(updatedWorkout)
     }
@@ -345,31 +399,64 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
     return workout.exercises.every((exercise) => exercise.sets.every((set) => set.completed))
   }
 
-  const handleCompleteWorkout = () => {
-    if (!workout) return
+  const handleCompleteWorkout = async () => {
+    if (!workout || isCompletingWorkout) return
 
     if (!canFinishWorkout()) {
       return
     }
 
-    const workoutWithNotes = { ...workout, notes: workoutNotes }
-    setWorkout(workoutWithNotes)
-    WorkoutLogger.saveCurrentWorkout(workoutWithNotes, user?.id)
+    try {
+      setIsCompletingWorkout(true)
+      console.log("[v0] Starting workout completion...")
 
-    const wasAlreadyCompleted = WorkoutLogger.hasCompletedWorkout(workout.week || 1, workout.day || 1)
-
-    const completedWorkout = WorkoutLogger.completeWorkout(workoutWithNotes.id)
-    if (completedWorkout) {
-      if (!wasAlreadyCompleted) {
-        console.log("[v0] handleWorkoutComplete called - updating program state")
-        ProgramStateManager.completeWorkout()
-      } else {
-        console.log("[v0] Workout was already completed, not updating program state")
+      // Clear any pending debounced syncs
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current)
+        debounceTimerRef.current = null
       }
 
-      setCompletedWorkout(completedWorkout)
-      setShowCompletionDialog(true)
-      // Don't call onComplete here - wait for dialog to close
+      const workoutWithNotes = { ...workout, notes: workoutNotes }
+      setWorkout(workoutWithNotes)
+
+      // Immediately sync current state before completing
+      console.log("[v0] Syncing current workout state...")
+      await WorkoutLogger.saveCurrentWorkout(workoutWithNotes, user?.id)
+
+      const wasAlreadyCompleted = WorkoutLogger.hasCompletedWorkout(workout.week || 1, workout.day || 1)
+
+      console.log("[v0] Completing workout...")
+      const completedWorkout = WorkoutLogger.completeWorkout(workoutWithNotes.id)
+
+      if (completedWorkout) {
+        if (!wasAlreadyCompleted) {
+          console.log("[v0] Updating program state...")
+          ProgramStateManager.completeWorkout()
+        } else {
+          console.log("[v0] Workout was already completed, not updating program state")
+        }
+
+        // Sync completed workout to database
+        if (user?.id) {
+          try {
+            console.log("[v0] Syncing completed workout to database...")
+            await WorkoutLogger.syncToDatabase(user.id)
+            console.log("[v0] Completed workout synced to database successfully")
+          } catch (error) {
+            console.error("[v0] Failed to sync to database, but workout is saved locally:", error)
+            // Continue anyway - data is saved locally
+          }
+        }
+
+        console.log("[v0] Setting completion dialog to show")
+        setCompletedWorkout(completedWorkout)
+        setShowCompletionDialog(true)
+        // Don't call onComplete here - wait for dialog to close
+      }
+    } catch (error) {
+      console.error("[v0] Error completing workout:", error)
+    } finally {
+      setIsCompletingWorkout(false)
     }
   }
 
@@ -400,7 +487,7 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
     setShowNotesDialog(false)
   }
 
-  const handleEndWorkout = () => {
+  const handleEndWorkout = async () => {
     if (!workout || endWorkoutConfirmation !== "End Workout") return
 
     // Mark all uncompleted sets as skipped (blue tick)
@@ -417,18 +504,27 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
     })
 
     setWorkout(updatedWorkout)
-    WorkoutLogger.saveCurrentWorkout(updatedWorkout, user?.id)
+    await WorkoutLogger.saveCurrentWorkout(updatedWorkout, user?.id)
 
     // Complete the workout
     const completedWorkout = WorkoutLogger.completeWorkout(updatedWorkout.id)
     if (completedWorkout) {
+      // Sync to database
+      if (user?.id) {
+        try {
+          await WorkoutLogger.syncToDatabase(user.id)
+        } catch (error) {
+          console.error("[v0] Failed to sync to database, but workout is saved locally:", error)
+        }
+      }
+
       setCompletedWorkout(completedWorkout)
       setShowEndWorkoutDialog(false)
       setShowCompletionDialog(true)
     }
   }
 
-  const handleEndProgram = () => {
+  const handleEndProgram = async () => {
     if (!workout || endProgramConfirmation !== "End Program") return
 
     const updatedWorkout = { ...workout }
@@ -444,10 +540,19 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
     })
 
     setWorkout(updatedWorkout)
-    WorkoutLogger.saveCurrentWorkout(updatedWorkout, user?.id)
+    await WorkoutLogger.saveCurrentWorkout(updatedWorkout, user?.id)
 
     const completedWorkout = WorkoutLogger.completeWorkout(updatedWorkout.id)
     if (completedWorkout) {
+      // Sync to database
+      if (user?.id) {
+        try {
+          await WorkoutLogger.syncToDatabase(user.id)
+        } catch (error) {
+          console.error("[v0] Failed to sync to database, but workout is saved locally:", error)
+        }
+      }
+
       setCompletedWorkout(completedWorkout)
       setShowEndProgramDialog(false)
       setShowCompletionDialog(true)
@@ -538,7 +643,7 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
       completed: true,
       reps: 0,
       weight: 0,
-    })
+    }, user?.id)
     if (updatedWorkout) {
       setWorkout(updatedWorkout)
     }
@@ -883,6 +988,40 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
           </div>
         </div>
 
+        {/* Connection Status Banner */}
+        {connectionStatus === 'offline' && (
+          <div className="bg-red-50 border-b border-red-200 p-2 text-center">
+            <div className="flex items-center justify-center gap-2 text-sm text-red-900">
+              <WifiOff className="h-4 w-4" />
+              <span className="font-medium">Offline - Changes saved locally</span>
+            </div>
+          </div>
+        )}
+        {connectionStatus === 'syncing' && (
+          <div className="bg-blue-50 border-b border-blue-200 p-2 text-center">
+            <div className="flex items-center justify-center gap-2 text-sm text-blue-900">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <span className="font-medium">Syncing to database...</span>
+            </div>
+          </div>
+        )}
+        {connectionStatus === 'synced' && (
+          <div className="bg-green-50 border-b border-green-200 p-2 text-center">
+            <div className="flex items-center justify-center gap-2 text-sm text-green-900">
+              <CheckCircle2 className="h-4 w-4" />
+              <span className="font-medium">All changes synced</span>
+            </div>
+          </div>
+        )}
+        {connectionStatus === 'error' && (
+          <div className="bg-orange-50 border-b border-orange-200 p-2 text-center">
+            <div className="flex items-center justify-center gap-2 text-sm text-orange-900">
+              <XCircle className="h-4 w-4" />
+              <span className="font-medium">Sync error - Will retry automatically</span>
+            </div>
+          </div>
+        )}
+
         {/* Calendar Section - Sticky below header */}
         {showCalendar && (
           <div className="border-b border-border/50 bg-background/95 backdrop-blur-sm w-full sticky top-[100px] sm:top-[120px] z-50 shadow-sm">
@@ -894,8 +1033,12 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
           </div>
         )}
 
-        {/* Progression Notes Banner */}
-        {workout?.week && workout?.week > 1 && workout?.notes && !isWorkoutBlocked && (
+        {/* Progression Notes Banner - Only show if previous week/day is incomplete */}
+        {workout?.week &&
+         workout?.week > 1 &&
+         workout?.notes &&
+         !isWorkoutBlocked &&
+         !WorkoutLogger.hasCompletedWorkout(workout.week - 1, workout.day) && (
           <div className="bg-blue-50 border-b border-blue-200 p-3 text-center">
             <p className="text-sm text-blue-900">
               <span className="font-semibold">Week {workout.week}, Day {workout.day}:</span> {workout.notes}
@@ -1111,7 +1254,7 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
           </DialogContent>
         </Dialog>
 
-        <div className="w-full max-w-full mx-auto px-3 sm:px-4 pb-20 overflow-x-hidden">
+        <div className="w-full max-w-full mx-auto px-3 sm:px-4 overflow-x-hidden">
           {Object.entries(groupedExercises).map(([muscleGroup, exercises]) => (
             <div key={muscleGroup}>
               {exercises.map((exercise, index) => {
@@ -1316,7 +1459,7 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
             </div>
           ))}
 
-          <div className="lg:hidden pt-2 pb-4">
+          <div className="lg:hidden pt-4 pb-2">
             {!isWorkoutBlocked && (
               <>
                 {workout.completed ? (
@@ -1331,10 +1474,19 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
                   <Button
                     onClick={handleCompleteWorkout}
                     className="w-full gradient-primary text-primary-foreground"
-                    disabled={!canFinishWorkout()}
+                    disabled={!canFinishWorkout() || isCompletingWorkout}
                   >
-                    <Save className="h-4 w-4 mr-2" />
-                    {canFinishWorkout() ? "Finish Workout" : "Complete exercises to finish"}
+                    {isCompletingWorkout ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Completing...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="h-4 w-4 mr-2" />
+                        {canFinishWorkout() ? "Finish Workout" : "Complete exercises to finish"}
+                      </>
+                    )}
                   </Button>
                 )}
               </>

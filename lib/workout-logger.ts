@@ -245,6 +245,8 @@ export class WorkoutLogger {
     exerciseId: string,
     setId: string,
     updates: Partial<WorkoutSet>,
+    userId?: string,
+    skipDbSync: boolean = false, // New parameter to control database sync
   ): WorkoutSession | null {
     const updatedWorkout = JSON.parse(JSON.stringify(workout)) as WorkoutSession
 
@@ -262,7 +264,14 @@ export class WorkoutLogger {
       exercise.endTime = Date.now()
     }
 
-    this.saveCurrentWorkout(updatedWorkout)
+    // Save to localStorage (always) and optionally sync to database
+    if (skipDbSync) {
+      // Only save to localStorage without database sync
+      this.saveCurrentWorkout(updatedWorkout)
+    } else {
+      // Save with userId to trigger database sync
+      this.saveCurrentWorkout(updatedWorkout, userId)
+    }
     return updatedWorkout
   }
 
@@ -316,15 +325,18 @@ export class WorkoutLogger {
     try {
       const existing = localStorage.getItem(this.STORAGE_KEY)
       const workouts: WorkoutSession[] = existing ? JSON.parse(existing) : []
-      workouts.push(workout)
-      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(workouts))
+
+      // Remove existing workout with same ID to prevent duplicates
+      const filteredWorkouts = workouts.filter(w => w.id !== workout.id)
+      filteredWorkouts.push(workout)
+      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(filteredWorkouts))
 
       // Sync to database
       if (userId && supabase) {
         try {
           await supabase
             .from("workouts")
-            .insert({
+            .upsert({  // Changed from insert to upsert
               id: workout.id,
               user_id: userId,
               program_id: workout.programId || null,
@@ -336,7 +348,8 @@ export class WorkoutLogger {
               completed: workout.completed,
               week: workout.week || null,
               day: workout.day || null,
-            })
+            },
+            { onConflict: 'id' })
         } catch (error) {
           console.error("Failed to sync completed workout to database:", error)
         }
@@ -399,10 +412,15 @@ export class WorkoutLogger {
       // Sync completed workouts
       const workouts = this.getWorkoutHistory()
       if (workouts.length > 0) {
+        // Remove duplicates by ID (keep latest)
+        const uniqueWorkouts = Array.from(
+          new Map(workouts.map(w => [w.id, w])).values()
+        )
+
         const { error } = await supabase
           .from("workouts")
           .upsert(
-            workouts.map((w) => ({
+            uniqueWorkouts.map((w) => ({
               id: w.id,
               user_id: userId,
               program_id: w.programId || null,
@@ -414,13 +432,14 @@ export class WorkoutLogger {
               completed: w.completed,
               week: w.week || null,
               day: w.day || null,
-            }))
+            })),
+            { onConflict: 'id' }
           )
 
         if (error) {
           console.error("[WorkoutLogger] Failed to sync workouts:", error)
         } else {
-          console.log("[WorkoutLogger] Synced", workouts.length, "workouts to database")
+          console.log("[WorkoutLogger] Synced", uniqueWorkouts.length, "workouts to database")
         }
       }
 
@@ -429,10 +448,15 @@ export class WorkoutLogger {
       if (stored) {
         const inProgressWorkouts: WorkoutSession[] = JSON.parse(stored)
         if (inProgressWorkouts.length > 0) {
+          // Remove duplicates by ID (keep latest)
+          const uniqueInProgress = Array.from(
+            new Map(inProgressWorkouts.map(w => [w.id, w])).values()
+          )
+
           const { error } = await supabase
             .from("in_progress_workouts")
             .upsert(
-              inProgressWorkouts.map((w) => ({
+              uniqueInProgress.map((w) => ({
                 id: w.id,
                 user_id: userId,
                 program_id: w.programId || null,
@@ -442,13 +466,14 @@ export class WorkoutLogger {
                 day: w.day || null,
                 exercises: w.exercises,
                 notes: w.notes || null,
-              }))
+              })),
+              { onConflict: 'id' }
             )
 
           if (error) {
             console.error("[WorkoutLogger] Failed to sync in-progress workouts:", error)
           } else {
-            console.log("[WorkoutLogger] Synced", inProgressWorkouts.length, "in-progress workouts to database")
+            console.log("[WorkoutLogger] Synced", uniqueInProgress.length, "in-progress workouts to database")
           }
         }
       }

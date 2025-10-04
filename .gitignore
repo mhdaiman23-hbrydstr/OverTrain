@@ -28,3 +28,6 @@ next-env.d.ts
 
 # OS files
 .DS_Store
+
+# Claude Code settings (exclude local config with API keys)
+.claude/settings.local.json

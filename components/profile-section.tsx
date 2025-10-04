@@ -88,14 +88,16 @@ export function ProfileSection() {
   const availableGoals = formData.gender === "male" ? MALE_GOALS : FEMALE_GOALS
 
   return (
-    <div className="min-h-screen bg-background p-4 pb-20">
-      <div className="space-y-6 pt-4">
-        {/* Header */}
-        <div className="text-center space-y-2">
-          <h1 className="text-2xl font-bold">Profile</h1>
-          <p className="text-muted-foreground text-sm">Manage your account and preferences</p>
+    <div className="min-h-screen bg-background pb-20 lg:pb-4">
+      {/* Sticky Header */}
+      <div className="sticky top-0 bg-background/95 backdrop-blur-sm border-b border-border/50 z-[60] shadow-sm">
+        <div className="text-center space-y-1 px-4 py-3 sm:py-4">
+          <h1 className="text-xl sm:text-2xl font-bold">Profile</h1>
+          <p className="text-muted-foreground text-xs sm:text-sm">Manage your account and preferences</p>
         </div>
+      </div>
 
+      <div className="space-y-6 p-4 pt-6">
         {/* Profile Card */}
         <Card>
           <CardHeader>

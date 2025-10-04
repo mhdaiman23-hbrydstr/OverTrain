@@ -147,10 +147,10 @@ export default function HomePage() {
 
   if (user && currentView === "profile") {
     return (
-      <div className="flex h-screen bg-background overflow-x-hidden">
+      <div className="flex h-screen bg-background overflow-hidden">
         <SidebarNavigation currentView="profile" onViewChange={setCurrentView} />
 
-        <div className="flex-1 lg:ml-64 overflow-x-hidden">
+        <div className="flex-1 lg:ml-64 overflow-y-auto overflow-x-hidden h-screen">
           <ProfileSection />
         </div>
         <BottomNavigation currentView={currentView} onViewChange={handleViewChange} />
@@ -160,10 +160,10 @@ export default function HomePage() {
 
   if (user && currentView === "programs") {
     return (
-      <div className="flex h-screen bg-background overflow-x-hidden">
+      <div className="flex h-screen bg-background overflow-hidden">
         <SidebarNavigation currentView="programs" onViewChange={setCurrentView} />
 
-        <div className="flex-1 lg:ml-64 overflow-x-hidden">
+        <div className="flex-1 lg:ml-64 overflow-y-auto overflow-x-hidden h-screen">
           <ProgramsSection
             onAddProgram={() => setCurrentView("programs")}
             onProgramStarted={handleProgramStarted}
@@ -204,10 +204,10 @@ export default function HomePage() {
 
   if (user && currentView === "analytics") {
     return (
-      <div className="flex h-screen bg-background overflow-x-hidden">
+      <div className="flex h-screen bg-background overflow-hidden">
         <SidebarNavigation currentView="analytics" onViewChange={setCurrentView} />
 
-        <div className="flex-1 lg:ml-64 overflow-x-hidden">
+        <div className="flex-1 lg:ml-64 overflow-y-auto overflow-x-hidden h-screen">
           <AnalyticsSection />
         </div>
         <BottomNavigation currentView={currentView} onViewChange={handleViewChange} />
