@@ -7,10 +7,7 @@
     "build": "next build",
     "dev": "next dev",
     "lint": "next lint",
-    "start": "next start",
-    "glm:review": "node scripts/glm-review.js",
-    "glm:test": "node scripts/glm-test-gen.js",
-    "glm:verify": "node scripts/glm-verify.js"
+    "start": "next start"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",

@@ -1,7 +1,7 @@
 {
   "env": {
-    "ANTHROPIC_DEFAULT_SONNET_MODEL": "glm-4.6",
-    "PROJECT_CONTEXT": "LiftLog - Next.js 14 fitness tracking app with Supabase authentication, gender-specific workout programs, and analytics"
+    "PROJECT_CONTEXT": "LiftLog - Next.js 14 fitness tracking app with Supabase authentication, gender-specific workout programs, and analytics",
+    "ANTHROPIC_DEFAULT_SONNET_MODEL": "glm-4.6"
   },
   "permissions": {
     "allow": [

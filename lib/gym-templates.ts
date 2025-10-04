@@ -2,6 +2,7 @@ export interface ExerciseTemplate {
   id: string
   exerciseName: string
   category: "compound" | "isolation"
+  equipmentType?: string
   progressionTemplate: {
     [week: string]: {
       sets: number
@@ -135,6 +136,7 @@ export const GYM_TEMPLATES: GymTemplate[] = [
             id: "squat-1",
             exerciseName: "Barbell Back Squat",
             category: "compound",
+            equipmentType: "BARBELL",
             progressionTemplate: {
               week1: { sets: 3, repRange: "8-10" },
               week2: { sets: 3, repRange: "8-10" },
@@ -157,6 +159,7 @@ export const GYM_TEMPLATES: GymTemplate[] = [
             id: "bench-1",
             exerciseName: "Barbell Bench Press",
             category: "compound",
+            equipmentType: "BARBELL",
             progressionTemplate: {
               week1: { sets: 3, repRange: "8-10" },
               week2: { sets: 3, repRange: "8-10" },
@@ -201,6 +204,7 @@ export const GYM_TEMPLATES: GymTemplate[] = [
             id: "ohp-1",
             exerciseName: "Overhead Press",
             category: "compound",
+            equipmentType: "BARBELL",
             progressionTemplate: {
               week1: { sets: 3, repRange: "8-10" },
               week2: { sets: 3, repRange: "8-10" },
@@ -223,6 +227,7 @@ export const GYM_TEMPLATES: GymTemplate[] = [
             id: "curls-1",
             exerciseName: "Barbell Curls",
             category: "isolation",
+            equipmentType: "BARBELL",
             progressionTemplate: {
               week1: { sets: 3, repRange: "10-12" },
               week2: { sets: 3, repRange: "10-12" },
@@ -294,6 +299,7 @@ export const GYM_TEMPLATES: GymTemplate[] = [
             id: "pullups-1",
             exerciseName: "Pull-ups",
             category: "compound",
+            equipmentType: "BODYWEIGHT",
             progressionTemplate: {
               week1: { sets: 3, repRange: "5-8" },
               week2: { sets: 3, repRange: "5-8" },
@@ -316,6 +322,7 @@ export const GYM_TEMPLATES: GymTemplate[] = [
             id: "dips-1",
             exerciseName: "Dips",
             category: "compound",
+            equipmentType: "BODYWEIGHT",
             progressionTemplate: {
               week1: { sets: 3, repRange: "6-10" },
               week2: { sets: 3, repRange: "6-10" },
@@ -338,6 +345,7 @@ export const GYM_TEMPLATES: GymTemplate[] = [
             id: "lateral-raises-1",
             exerciseName: "Lateral Raises",
             category: "isolation",
+            equipmentType: "DUMBBELL",
             progressionTemplate: {
               week1: { sets: 3, repRange: "12-15" },
               week2: { sets: 3, repRange: "12-15" },

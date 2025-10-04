@@ -126,8 +126,10 @@ export default function HomePage() {
 
   const handleWorkoutComplete = () => {
     // Program state is already updated in workout-logger component
-    // Just refresh the key to allow showing summary dialog
+    // Force a re-render by incrementing the programKey
+    // This will cause the WorkoutLoggerComponent to remount with the new workout data
     console.log("[v0] handleWorkoutComplete called - workout completed")
+    setProgramKey((prev) => prev + 1)
   }
 
   if (authLoading) {
