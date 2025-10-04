@@ -164,7 +164,11 @@ export default function HomePage() {
         <SidebarNavigation currentView="programs" onViewChange={setCurrentView} />
 
         <div className="flex-1 lg:ml-64 overflow-x-hidden">
-          <ProgramsSection onAddProgram={() => setCurrentView("programs")} onProgramStarted={handleProgramStarted} />
+          <ProgramsSection
+            onAddProgram={() => setCurrentView("programs")}
+            onProgramStarted={handleProgramStarted}
+            onNavigateToTrain={() => handleViewChange("train")}
+          />
         </div>
         <BottomNavigation currentView={currentView} onViewChange={handleViewChange} />
       </div>
@@ -181,10 +185,10 @@ export default function HomePage() {
     }
 
     return (
-      <div className="flex h-screen bg-background overflow-x-hidden">
+      <div className="flex h-screen bg-background overflow-hidden">
         <SidebarNavigation currentView="workout" onViewChange={setCurrentView} />
 
-        <div className="flex-1 lg:ml-64 overflow-x-hidden">
+        <div className="flex-1 lg:ml-64 overflow-y-auto overflow-x-hidden h-screen">
           <WorkoutLoggerComponent
             key={programKey}
             initialWorkout={currentWorkout}

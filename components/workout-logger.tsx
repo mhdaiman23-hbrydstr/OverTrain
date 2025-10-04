@@ -814,34 +814,34 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
 
   return (
     <>
-      <div className="min-h-screen bg-background overflow-x-hidden">
-        <div className="sticky top-0 bg-background border-b border-border/50 z-50 shadow-sm">
-          <div className="w-full max-w-full px-4 py-4 overflow-x-hidden">
-            <div className="flex items-center justify-between">
-              <div className="space-y-1">
+      <div className="min-h-screen bg-background pb-20 lg:pb-4">
+        <div className="sticky top-0 bg-background border-b border-border/50 z-[60] shadow-sm backdrop-blur-sm bg-background/95">
+          <div className="w-full px-4 py-3 sm:py-4">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex-1 min-w-0 space-y-0.5 sm:space-y-1">
                 {programName && (
-                  <div className="text-xs text-muted-foreground uppercase tracking-wide">{programName}</div>
+                  <div className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wide truncate">{programName}</div>
                 )}
-                <h1 className="text-xl font-bold">{workout?.workoutName}</h1>
-                <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                <h1 className="text-lg sm:text-xl font-bold truncate leading-tight">{workout?.workoutName}</h1>
+                <div className="flex items-center gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground">
                   <div className="flex items-center gap-1">
-                    <Clock className="h-4 w-4" />
+                    <Clock className="h-3 w-3 sm:h-4 sm:w-4" />
                     <span>{getWorkoutDuration()}</span>
                   </div>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => setShowCalendar(!showCalendar)}
-                  className={showCalendar ? "bg-muted" : ""}
+                  className={`h-9 w-9 sm:h-10 sm:w-10 p-0 ${showCalendar ? "bg-muted" : ""}`}
                 >
                   <Calendar className="h-4 w-4" />
                 </Button>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <button className="inline-flex items-center justify-center min-h-[44px] min-w-[44px] rounded-md hover:bg-accent hover:text-accent-foreground">
+                    <button className="inline-flex items-center justify-center h-9 w-9 sm:h-10 sm:w-10 rounded-md hover:bg-accent hover:text-accent-foreground">
                       <MoreVertical className="h-4 w-4" />
                     </button>
                   </DropdownMenuTrigger>
@@ -877,20 +877,22 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
                 </DropdownMenu>
               </div>
             </div>
-            <div className="mt-3">
-              <Progress value={getWorkoutProgress()} className="w-full" />
+            <div className="mt-2 sm:mt-3">
+              <Progress value={getWorkoutProgress()} className="w-full h-1.5 sm:h-2" />
             </div>
           </div>
-          {showCalendar && (
-            <div className="border-t border-border/50 bg-muted/30 w-full overflow-x-hidden">
-              <WorkoutCalendar
-                onWorkoutClick={handleWorkoutClick}
-                selectedWeek={workout?.week}
-                selectedDay={workout?.day}
-              />
-            </div>
-          )}
         </div>
+
+        {/* Calendar Section - Sticky below header */}
+        {showCalendar && (
+          <div className="border-b border-border/50 bg-background/95 backdrop-blur-sm w-full sticky top-[100px] sm:top-[120px] z-50 shadow-sm">
+            <WorkoutCalendar
+              onWorkoutClick={handleWorkoutClick}
+              selectedWeek={workout?.week}
+              selectedDay={workout?.day}
+            />
+          </div>
+        )}
 
         {/* Progression Notes Banner */}
         {workout?.week && workout?.week > 1 && workout?.notes && !isWorkoutBlocked && (

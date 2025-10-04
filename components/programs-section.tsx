@@ -26,9 +26,10 @@ import {
 interface ProgramsSectionProps {
   onAddProgram: () => void
   onProgramStarted?: () => void
+  onNavigateToTrain?: () => void
 }
 
-export function ProgramsSection({ onAddProgram, onProgramStarted }: ProgramsSectionProps) {
+export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTrain }: ProgramsSectionProps) {
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null)
   const [showSwitchDialog, setShowSwitchDialog] = useState(false)
   const [pendingProgramId, setPendingProgramId] = useState<string | null>(null)
@@ -76,8 +77,16 @@ export function ProgramsSection({ onAddProgram, onProgramStarted }: ProgramsSect
     return templates
   }
 
-  const handleTemplateClick = (templateId: string) => {
-    console.log("[v0] Template clicked:", templateId)
+  const handleTemplateClick = (templateId: string, isActive: boolean) => {
+    console.log("[v0] Template clicked:", templateId, "isActive:", isActive)
+
+    // If this is the current active program, navigate to train/workout instead of showing details
+    if (isActive && onNavigateToTrain) {
+      console.log("[v0] Navigating to train for active program")
+      onNavigateToTrain()
+      return
+    }
+
     setSelectedTemplate(templateId)
   }
 
@@ -313,7 +322,7 @@ export function ProgramsSection({ onAddProgram, onProgramStarted }: ProgramsSect
                       <div
                         key={template.id}
                         className="px-4 py-4 hover:bg-muted/30 transition-colors cursor-pointer flex items-center justify-between gap-3"
-                        onClick={() => handleTemplateClick(template.id)}
+                        onClick={() => handleTemplateClick(template.id, isActive)}
                       >
                         <div className="flex-1 min-w-0">
                           <h3 className="font-semibold text-base leading-tight mb-1">{template.name}</h3>

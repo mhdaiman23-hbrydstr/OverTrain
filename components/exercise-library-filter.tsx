@@ -26,10 +26,11 @@ const MUSCLE_GROUPS = [
   { name: "Traps", color: "bg-violet-500" },
   { name: "Forearms", color: "bg-violet-500" },
   { name: "Abs", color: "bg-violet-500" },
+  { name: "Olympic Lifts", color: "bg-orange-500" },
 ]
 
 const AUTHORS = [
-  { name: "RP Strength" },
+  { name: "HybridStrengthCoach" },
   { name: "Custom" },
 ]
 

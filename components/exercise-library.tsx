@@ -7,14 +7,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { Checkbox } from "@/components/ui/checkbox"
 import { Search, SlidersHorizontal } from "lucide-react"
 import { ExerciseLibraryFilter } from "@/components/exercise-library-filter"
-
-interface Exercise {
-  id: string
-  name: string
-  category: string
-  muscleGroup: string
-  lastPerformed?: string
-}
+import { EXERCISES, type Exercise } from "@/lib/exercise-data"
 
 interface ExerciseLibraryProps {
   open: boolean
@@ -22,17 +15,6 @@ interface ExerciseLibraryProps {
   onSelectExercise: (exercise: Exercise) => void
   currentExerciseName?: string
 }
-
-// Placeholder exercise data - will be replaced with comprehensive library
-const PLACEHOLDER_EXERCISES: Exercise[] = [
-  { id: "1", name: "Lying Cable Curl", category: "BICEPS - CABLE", muscleGroup: "Biceps" },
-  { id: "2", name: "Lying Down Curl", category: "BICEPS - CABLE", muscleGroup: "Biceps" },
-  { id: "3", name: "Lying Dumbbell Curl", category: "BICEPS - DUMBBELL", muscleGroup: "Biceps" },
-  { id: "4", name: "Lying Leg Curl", category: "HAMSTRINGS - MACHINE", muscleGroup: "Hamstrings", lastPerformed: "9/30/2025" },
-  { id: "5", name: "Machine Chest Press", category: "CHEST - MACHINE", muscleGroup: "Chest", lastPerformed: "9/29/2025" },
-  { id: "6", name: "Machine Chest Press (Incline)", category: "CHEST - MACHINE", muscleGroup: "Chest", lastPerformed: "4/19/2024" },
-  { id: "7", name: "Machine Chest Supported Row", category: "BACK - MACHINE", muscleGroup: "Back", lastPerformed: "12/16/2024" },
-]
 
 export function ExerciseLibrary({ open, onOpenChange, onSelectExercise, currentExerciseName }: ExerciseLibraryProps) {
   const [searchQuery, setSearchQuery] = useState("")
@@ -54,7 +36,7 @@ export function ExerciseLibrary({ open, onOpenChange, onSelectExercise, currentE
     setShowFilters(false)
   }
 
-  const filteredExercises = PLACEHOLDER_EXERCISES.filter((exercise) => {
+  const filteredExercises = EXERCISES.filter((exercise) => {
     // Search filter
     if (searchQuery && !exercise.name.toLowerCase().includes(searchQuery.toLowerCase())) {
       return false
@@ -119,20 +101,9 @@ export function ExerciseLibrary({ open, onOpenChange, onSelectExercise, currentE
                   selectedExercise?.id === exercise.id ? "bg-primary/10" : ""
                 }`}
               >
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <p className="font-medium">{exercise.name}</p>
-                    <p className="text-sm text-muted-foreground">{exercise.category}</p>
-                  </div>
-                  {exercise.lastPerformed && (
-                    <div className="flex items-center gap-2 text-sm text-primary">
-                      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                        <circle cx="12" cy="12" r="10" strokeWidth="2" />
-                        <path d="M12 6v6l4 2" strokeWidth="2" strokeLinecap="round" />
-                      </svg>
-                      <span>Last performed {exercise.lastPerformed}</span>
-                    </div>
-                  )}
+                <div className="flex-1">
+                  <p className="font-medium">{exercise.name}</p>
+                  <p className="text-sm text-muted-foreground">{exercise.category}</p>
                 </div>
               </button>
             ))}
