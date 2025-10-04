@@ -3,7 +3,21 @@
  * Shared functions for calling GLM-4.6 API directly
  */
 
-import 'dotenv/config';
+import { config } from 'dotenv';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+
+// Load .env.local explicitly
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+// Load .env.local from project root (scripts folder is one level down)
+config({ path: join(__dirname, '..', '.env.local') });
+
+// Debug: Add this temporarily to verify
+console.log('Looking for .env.local at:', join(__dirname, '..', '.env.local'));
+console.log('GLM_API_KEY loaded:', process.env.GLM_API_KEY ? '✓ Yes' : '✗ No');
+console.log('GLM_API_URL loaded:', process.env.GLM_API_URL ? '✓ Yes' : '✗ No');
 
 const GLM_API_URL = process.env.GLM_API_URL || 'https://api.z.ai/api/paas/v4/chat/completions';
 const GLM_API_KEY = process.env.GLM_API_KEY;
@@ -27,6 +41,39 @@ export async function callGLM(messages, options = {}) {
     stream: options.stream || false,
     ...options
   };
+
+    // Add timeout controller
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+  
+    try {
+      const response = await fetch(GLM_API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${GLM_API_KEY}`
+        },
+        body: JSON.stringify(payload),
+        signal: controller.signal // Add abort signal
+      });
+  
+      clearTimeout(timeout);
+  
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(`GLM API Error: ${response.status} - ${error}`);
+      }
+  
+      const data = await response.json();
+      return data.choices[0]?.message?.content || '';
+    } catch (error) {
+      clearTimeout(timeout);
+      if (error.name === 'AbortError') {
+        throw new Error('GLM API request timed out after 30 seconds');
+      }
+      throw error;
+    }
+  
 
   const response = await fetch(GLM_API_URL, {
     method: 'POST',
