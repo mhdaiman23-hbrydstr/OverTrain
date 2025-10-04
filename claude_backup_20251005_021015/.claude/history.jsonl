@@ -1,0 +1,42 @@
+{"display":"create a util logging.py","pastedContents":{},"timestamp":1759089657135,"project":"S:\\Program Files\\KnowMyLabs  (Front End)"}
+{"display":"Help me understand what my project is about. Get me up to date on the lastest","pastedContents":{},"timestamp":1759150924999,"project":"S:\\Program Files\\KnowMyLabs  (Front End)"}
+{"display":"Ive been having inconsistencies latetly with the way it works. When an auth user logs in and goes through the workflow, the results are saved to their profile, they can access the dashboard and view all previous results. \\\n\\\nHowever in guest mode, that workflow seems inconsistent when I reach the results page. When Im in the results page as a guest, instead of asking me to go dashboard, it encourages me to sign up to save my results, and be able to view it later. A plus side of having a dashboard is you get AI powered analysis that combines your onboarding information or profile information along with the latest lab results. \\\n\\\nCan you confirm if thats the workflow. Can you also confirm if it works for me","pastedContents":{},"timestamp":1759151194265,"project":"S:\\Program Files\\KnowMyLabs  (Front End)"}
+{"display":"yes","pastedContents":{},"timestamp":1759151364807,"project":"S:\\Program Files\\KnowMyLabs  (Front End)"}
+{"display":"/init ","pastedContents":{},"timestamp":1759224713450,"project":"S:\\Program Files\\KnowMyLabs  (Front End)"}
+{"display":"/init ","pastedContents":{},"timestamp":1759224713459,"project":"S:\\Program Files\\KnowMyLabs  (Front End)"}
+{"display":"/init ","pastedContents":{},"timestamp":1759353948339,"project":"S:\\Program Files\\LiftLog"}
+{"display":"/init ","pastedContents":{},"timestamp":1759353948348,"project":"S:\\Program Files\\LiftLog"}
+{"display":"init","pastedContents":{},"timestamp":1759354193407,"project":"S:\\Program Files\\LiftLog"}
+{"display":"I want you to examine the project and tell me what you understand from. Explain to me if some logic seems broken","pastedContents":{},"timestamp":1759354213702,"project":"S:\\Program Files\\LiftLog"}
+{"display":"We had to revert back to the recent git update because there was an api error","pastedContents":{},"timestamp":1759431924798,"project":"S:\\Program Files\\LiftLog"}
+{"display":"API Error: 400 {\"type\":\"error\",\"error\":{\"type\":\"invalid_request_error\",\"message\":\"messages.235: tool_use ids were found without tool_result blocks immediately after: toolu_01U8vYFU4fvBTusxGFu9RX71. Each tool_use block must have a corresponding tool_result block in the next message.\"},\"request_id\":\"req_011CTitaA6BzCBcDrtwRDE3f\"}\n","pastedContents":{},"timestamp":1759431987044,"project":"S:\\Program Files\\LiftLog"}
+{"display":"3","pastedContents":{},"timestamp":1759432009954,"project":"S:\\Program Files\\LiftLog"}
+{"display":"We tried to implement an overlay popup with a dimmed background to replace the \"Start Next Workout\" screen. ","pastedContents":{},"timestamp":1759432040279,"project":"S:\\Program Files\\LiftLog"}
+{"display":"open chat","pastedContents":{},"timestamp":1759603943056,"project":"S:\\Program Files\\LiftLog"}
+{"display":"what model are you using","pastedContents":{},"timestamp":1759605564754,"project":"S:\\Program Files\\LiftLog"}
+{"display":"Scan the project","pastedContents":{},"timestamp":1759608219289,"project":"S:\\Program Files\\LiftLog"}
+{"display":"what model are you using","pastedContents":{},"timestamp":1759608594389,"project":"S:\\Program Files\\LiftLog"}
+{"display":"claude /logout","pastedContents":{},"timestamp":1759608799597,"project":"S:\\Program Files\\LiftLog"}
+{"display":"Test","pastedContents":{},"timestamp":1759609481521,"project":"S:\\Program Files\\LiftLog"}
+{"display":"Test","pastedContents":{},"timestamp":1759612389567,"project":"S:\\Program Files\\LiftLog"}
+{"display":"Remove glm 4.6","pastedContents":{},"timestamp":1759612504619,"project":"S:\\Program Files\\LiftLog"}
+{"display":"Remove-Item Env:OPENAI_BASE_URL -ErrorAction SilentlyContinue\nRemove-Item Env:OPENAI_API_KEY -ErrorAction SilentlyContinue\n","pastedContents":{},"timestamp":1759613353076,"project":"S:\\Program Files\\LiftLog"}
+{"display":"Hello","pastedContents":{},"timestamp":1759613722520,"project":"S:\\Program Files\\LiftLog"}
+{"display":"/login ","pastedContents":{},"timestamp":1759614097167,"project":"S:\\Program Files\\LiftLog"}
+{"display":"/login ","pastedContents":{},"timestamp":1759614097175,"project":"S:\\Program Files\\LiftLog"}
+{"display":"/login ","pastedContents":{},"timestamp":1759614097213,"project":"S:\\Program Files\\LiftLog"}
+{"display":"Hi","pastedContents":{},"timestamp":1759614099720,"project":"S:\\Program Files\\LiftLog"}
+{"display":"/login ","pastedContents":{},"timestamp":1759614276416,"project":"S:\\Program Files\\LiftLog"}
+{"display":"/login ","pastedContents":{},"timestamp":1759614276423,"project":"S:\\Program Files\\LiftLog"}
+{"display":"/login ","pastedContents":{},"timestamp":1759614276461,"project":"S:\\Program Files\\LiftLog"}
+{"display":"Hi","pastedContents":{},"timestamp":1759614300723,"project":"S:\\Program Files\\LiftLog"}
+{"display":"Test","pastedContents":{},"timestamp":1759614384632,"project":"S:\\Program Files\\LiftLog"}
+{"display":"# clear conflicting vars for this session\nRemove-Item Env:OPENAI_BASE_URL -ErrorAction SilentlyContinue\nRemove-Item Env:OPENAI_API_KEY  -ErrorAction SilentlyContinue\nRemove-Item Env:GLM_API_KEY     -ErrorAction SilentlyContinue\nRemove-Item Env:ANTHROPIC_DEFAULT_SONNET_MODEL -ErrorAction SilentlyContinue\n\n# ensure your Anthropic key exists\nsetx ANTHROPIC_API_KEY \"sk-ant-REPLACE_ME\"\n","pastedContents":{},"timestamp":1759614443857,"project":"S:\\Program Files\\LiftLog"}
+{"display":"How are we doing","pastedContents":{},"timestamp":1759614984267,"project":"S:\\Program Files\\LiftLog"}
+{"display":"Test","pastedContents":{},"timestamp":1759615238914,"project":"S:\\Program Files\\LiftLog"}
+{"display":"Test","pastedContents":{},"timestamp":1759615259687,"project":"S:\\Program Files\\LiftLog"}
+{"display":"Hello","pastedContents":{},"timestamp":1759615498760,"project":"S:\\Program Files\\LiftLog"}
+{"display":"Test","pastedContents":{},"timestamp":1759615607022,"project":"S:\\Program Files\\LiftLog"}
+{"display":"bash claude_code_prod_zai.sh","pastedContents":{},"timestamp":1759615682994,"project":"S:\\Program Files\\LiftLog"}
+{"display":"what does that script file do?","pastedContents":{},"timestamp":1759615737241,"project":"S:\\Program Files\\LiftLog"}
+{"display":"sure lets go ahead. But also create a backup for yourself incase I need to revert","pastedContents":{},"timestamp":1759615786753,"project":"S:\\Program Files\\LiftLog"}

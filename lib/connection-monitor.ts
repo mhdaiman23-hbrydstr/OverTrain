@@ -4,11 +4,17 @@
 
 export type ConnectionStatus = 'online' | 'offline' | 'syncing' | 'synced' | 'error'
 
+export interface SetSyncProvider {
+  getSetSyncStatus(): { queueSize: number; lastSync?: number }
+  syncQueuedSets(): Promise<void>
+}
+
 export class ConnectionMonitor {
   private static listeners: Set<(status: ConnectionStatus) => void> = new Set()
   private static currentStatus: ConnectionStatus = 'online'
   private static syncQueue: Array<() => Promise<void>> = []
   private static isProcessingQueue = false
+  private static setSyncProvider?: SetSyncProvider
 
   static initialize() {
     if (typeof window === 'undefined') return
@@ -156,6 +162,44 @@ export class ConnectionMonitor {
 
   static getQueueSize(): number {
     return this.syncQueue.length
+  }
+
+  static registerSetSyncProvider(provider: SetSyncProvider) {
+    this.setSyncProvider = provider
+  }
+
+  static getSetSyncStatus(): {
+    queueSize: number;
+    isOnline: boolean;
+    status: ConnectionStatus;
+    lastSync?: number;
+  } {
+    let setSyncStatus = { queueSize: 0, lastSync: undefined }
+
+    if (this.setSyncProvider) {
+      try {
+        setSyncStatus = this.setSyncProvider.getSetSyncStatus()
+      } catch (error) {
+        console.error('[ConnectionMonitor] Failed to get set sync status:', error)
+      }
+    }
+
+    return {
+      queueSize: this.syncQueue.length + setSyncStatus.queueSize,
+      isOnline: this.isOnline(),
+      status: this.currentStatus,
+      lastSync: setSyncStatus.lastSync
+    }
+  }
+
+  static async forceSyncSets(): Promise<void> {
+    if (this.setSyncProvider) {
+      try {
+        await this.setSyncProvider.syncQueuedSets()
+      } catch (error) {
+        console.error('[ConnectionMonitor] Failed to force sync sets:', error)
+      }
+    }
   }
 }
 

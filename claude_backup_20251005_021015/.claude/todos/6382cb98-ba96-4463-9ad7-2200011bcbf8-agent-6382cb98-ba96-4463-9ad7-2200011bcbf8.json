@@ -1,0 +1,12 @@
+[
+  {
+    "content": "Create backup of current Claude Code configuration",
+    "status": "in_progress",
+    "activeForm": "Creating backup of current Claude Code configuration"
+  },
+  {
+    "content": "Execute the installation script",
+    "status": "pending",
+    "activeForm": "Executing the installation script"
+  }
+]

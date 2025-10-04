@@ -103,12 +103,15 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
   const [exerciseNotes, setExerciseNotes] = useState("")
   const [showExerciseLibrary, setShowExerciseLibrary] = useState(false)
   const [replaceExerciseId, setReplaceExerciseId] = useState<string | null>(null)
+  const [showProgressionBanner, setShowProgressionBanner] = useState(false)
+  const [progressionBannerMessage, setProgressionBannerMessage] = useState("")
 
   // Debounce timer for set updates
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null)
 
   // Connection status
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('online')
+  const [setSyncInfo, setSetSyncInfo] = useState<{ queueSize: number; lastSync?: number }>({ queueSize: 0 })
 
   // Loading state for finish workout
   const [isCompletingWorkout, setIsCompletingWorkout] = useState(false)
@@ -226,6 +229,15 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
       const week = activeProgram?.currentWeek
       const day = activeProgram?.currentDay
 
+      // Initialize progression banner state
+      if (existingWorkout.week && existingWorkout.day) {
+        const shouldShowBanner = existingWorkout.week > 1 && !WorkoutLogger.hasCompletedWorkout(existingWorkout.week - 1, existingWorkout.day)
+        setShowProgressionBanner(shouldShowBanner)
+        if (shouldShowBanner) {
+          setProgressionBannerMessage(`Complete Week ${existingWorkout.week - 1} Day ${existingWorkout.day} to see progression targets`)
+        }
+      }
+
       console.log("[v0] Checking if workout should be blocked:", {
         existingWorkoutWeek: existingWorkout.week,
         activeProgramWeek: week,
@@ -335,10 +347,36 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
     ConnectionMonitor.initialize()
 
     // Subscribe to connection status changes
-    const unsubscribe = ConnectionMonitor.subscribe(setConnectionStatus)
+    const unsubscribe = ConnectionMonitor.subscribe((status) => {
+      setConnectionStatus(status)
+
+      // Update set sync info when status changes
+      const syncStatus = ConnectionMonitor.getSetSyncStatus()
+      setSetSyncInfo({
+        queueSize: syncStatus.queueSize,
+        lastSync: syncStatus.lastSync
+      })
+    })
+
+    // Initial sync info
+    const syncStatus = ConnectionMonitor.getSetSyncStatus()
+    setSetSyncInfo({
+      queueSize: syncStatus.queueSize,
+      lastSync: syncStatus.lastSync
+    })
+
+    // Set up interval to update sync info
+    const interval = setInterval(() => {
+      const syncStatus = ConnectionMonitor.getSetSyncStatus()
+      setSetSyncInfo({
+        queueSize: syncStatus.queueSize,
+        lastSync: syncStatus.lastSync
+      })
+    }, 2000)
 
     return () => {
       unsubscribe()
+      clearInterval(interval)
     }
   }, [])
 
@@ -353,48 +391,52 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
     })
 
     // Update with skipDbSync=true to only save to localStorage
-    const updatedWorkout = WorkoutLogger.updateSet(workout, exerciseId, setId, {
-      [field]: value,
-    }, user?.id, true) // Skip DB sync initially
+    const updateSetAsync = async () => {
+      const updatedWorkout = await WorkoutLogger.updateSet(workout, exerciseId, setId, {
+        [field]: value,
+      }, user?.id, true) // Skip DB sync initially
 
-    console.log("[v0] updatedWorkout returned:", updatedWorkout ? "exists" : "null")
+      console.log("[v0] updatedWorkout returned:", updatedWorkout ? "exists" : "null")
 
-    if (updatedWorkout) {
-      const exercise = updatedWorkout.exercises.find((ex) => ex.id === exerciseId)
-      const set = exercise?.sets.find((s) => s.id === setId)
-      console.log("[v0] Updated set value:", {
-        exerciseId,
-        setId,
-        field,
-        newValue: set?.[field],
-        setObject: set,
-      })
+      if (updatedWorkout) {
+        const exercise = updatedWorkout.exercises.find((ex) => ex.id === exerciseId)
+        const set = exercise?.sets.find((s) => s.id === setId)
+        console.log("[v0] Updated set value:", {
+          exerciseId,
+          setId,
+          field,
+          newValue: set?.[field],
+          setObject: set,
+        })
 
-      setWorkout(updatedWorkout)
-      console.log("[v0] setWorkout called with updated workout")
+        setWorkout(updatedWorkout)
+        console.log("[v0] setWorkout called with updated workout")
 
-      // Debounce database sync for 500ms
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current)
-      }
-
-      debounceTimerRef.current = setTimeout(() => {
-        console.log("[v0] Debounced sync triggered for weight/reps update")
-        if (ConnectionMonitor.isOnline()) {
-          WorkoutLogger.saveCurrentWorkout(updatedWorkout, user?.id)
-        } else {
-          // Queue sync for when connection is restored
-          ConnectionMonitor.addToQueue(async () => {
-            await WorkoutLogger.saveCurrentWorkout(updatedWorkout, user?.id)
-          })
+        // Debounce database sync for 500ms
+        if (debounceTimerRef.current) {
+          clearTimeout(debounceTimerRef.current)
         }
-      }, 500)
-    } else {
-      console.log("[v0] ERROR: updatedWorkout is null, not updating state")
+
+        debounceTimerRef.current = setTimeout(() => {
+          console.log("[v0] Debounced sync triggered for weight/reps update")
+          if (ConnectionMonitor.isOnline()) {
+            WorkoutLogger.saveCurrentWorkout(updatedWorkout, user?.id)
+          } else {
+            // Queue sync for when connection is restored
+            ConnectionMonitor.addToQueue(async () => {
+              await WorkoutLogger.saveCurrentWorkout(updatedWorkout, user?.id)
+            })
+          }
+        }, 500)
+      } else {
+        console.log("[v0] ERROR: updatedWorkout is null, not updating state")
+      }
     }
+
+    updateSetAsync()
   }
 
-  const handleCompleteSet = (exerciseId: string, setId: string) => {
+  const handleCompleteSet = async (exerciseId: string, setId: string) => {
     if (!workout) return
 
     const exercise = workout.exercises.find((ex) => ex.id === exerciseId)
@@ -407,7 +449,7 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
       }
     }
 
-    const updatedWorkout = WorkoutLogger.updateSet(workout, exerciseId, setId, {
+    const updatedWorkout = await WorkoutLogger.updateSet(workout, exerciseId, setId, {
       completed: !set.completed,
     }, user?.id)
     if (updatedWorkout) {
@@ -673,10 +715,10 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
     WorkoutLogger.saveCurrentWorkout(workout, user?.id)
   }
 
-  const handleSkipSet = (exerciseId: string, setId: string) => {
+  const handleSkipSet = async (exerciseId: string, setId: string) => {
     if (!workout) return
 
-    const updatedWorkout = WorkoutLogger.updateSet(workout, exerciseId, setId, {
+    const updatedWorkout = await WorkoutLogger.updateSet(workout, exerciseId, setId, {
       completed: true,
       reps: 0,
       weight: 0,
@@ -917,6 +959,15 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
       setBlockedMessage("")
     }
 
+    // Check if we should show progression banner
+    const shouldShowBanner = week > 1 && !WorkoutLogger.hasCompletedWorkout(week - 1, day)
+    setShowProgressionBanner(shouldShowBanner)
+    if (shouldShowBanner) {
+      setProgressionBannerMessage(`Complete Week ${week - 1} Day ${day} to see progression targets`)
+    } else {
+      setProgressionBannerMessage("")
+    }
+
     setWorkout(loadedWorkout)
     setWorkoutNotes(loadedWorkout.notes || "")
     setShowCalendar(false)
@@ -1046,7 +1097,10 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
           <div className="bg-red-50 border-b border-red-200 p-2 text-center">
             <div className="flex items-center justify-center gap-2 text-sm text-red-900">
               <WifiOff className="h-4 w-4" />
-              <span className="font-medium">Offline - Changes saved locally</span>
+              <span className="font-medium">
+                Offline - Changes saved locally
+                {setSyncInfo.queueSize > 0 && ` (${setSyncInfo.queueSize} sets queued)`}
+              </span>
             </div>
           </div>
         )}
@@ -1054,7 +1108,10 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
           <div className="bg-blue-50 border-b border-blue-200 p-2 text-center">
             <div className="flex items-center justify-center gap-2 text-sm text-blue-900">
               <Loader2 className="h-4 w-4 animate-spin" />
-              <span className="font-medium">Syncing to database...</span>
+              <span className="font-medium">
+                Syncing to database...
+                {setSyncInfo.queueSize > 0 && ` (${setSyncInfo.queueSize} sets remaining)`}
+              </span>
             </div>
           </div>
         )}
@@ -1062,7 +1119,10 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
           <div className="bg-green-50 border-b border-green-200 p-2 text-center">
             <div className="flex items-center justify-center gap-2 text-sm text-green-900">
               <CheckCircle2 className="h-4 w-4" />
-              <span className="font-medium">All changes synced</span>
+              <span className="font-medium">
+                All changes synced
+                {setSyncInfo.queueSize > 0 && ` (${setSyncInfo.queueSize} sets queued)`}
+              </span>
             </div>
           </div>
         )}
@@ -1070,7 +1130,26 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
           <div className="bg-orange-50 border-b border-orange-200 p-2 text-center">
             <div className="flex items-center justify-center gap-2 text-sm text-orange-900">
               <XCircle className="h-4 w-4" />
-              <span className="font-medium">Sync error - Will retry automatically</span>
+              <span className="font-medium">
+                Sync error - Will retry automatically
+                {setSyncInfo.queueSize > 0 && ` (${setSyncInfo.queueSize} sets pending)`}
+              </span>
+            </div>
+          </div>
+        )}
+        {connectionStatus === 'online' && setSyncInfo.queueSize > 0 && (
+          <div className="bg-yellow-50 border-b border-yellow-200 p-2 text-center">
+            <div className="flex items-center justify-center gap-2 text-sm text-yellow-900">
+              <Clock className="h-4 w-4" />
+              <span className="font-medium">
+                {setSyncInfo.queueSize} sets waiting to sync
+              </span>
+              <button
+                onClick={() => ConnectionMonitor.forceSyncSets()}
+                className="ml-2 px-2 py-1 text-xs bg-yellow-100 hover:bg-yellow-200 rounded"
+              >
+                Sync Now
+              </button>
             </div>
           </div>
         )}
@@ -1095,6 +1174,15 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
           <div className="bg-blue-50 border-b border-blue-200 p-3 text-center">
             <p className="text-sm text-blue-900">
               <span className="font-semibold">Week {workout.week}, Day {workout.day}:</span> {workout.notes}
+            </p>
+          </div>
+        )}
+
+        {/* Progression Targets Banner - Show when previous week's same day is not completed */}
+        {showProgressionBanner && progressionBannerMessage && (
+          <div className="bg-amber-50 border-b border-amber-200 p-3 text-center">
+            <p className="text-sm text-amber-900">
+              <span className="font-semibold">{progressionBannerMessage}</span>
             </p>
           </div>
         )}
@@ -1157,7 +1245,7 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
         </Dialog>
 
         <Dialog open={showSummaryDialog} onOpenChange={setShowSummaryDialog}>
-          <DialogContent>
+          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Workout Summary</DialogTitle>
               <DialogDescription>Overview of your current workout progress.</DialogDescription>
@@ -1453,9 +1541,19 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
                                     handleSetUpdate(exercise.id, set.id, "weight", Number.parseFloat(e.target.value) || 0)
                                   }
                                   className="text-center h-10 bg-muted/30 border-border/50"
-                                  placeholder=""
+                                  placeholder={
+                                    (exercise as any).suggestedWeight && (exercise as any).suggestedWeight > 0
+                                      ? `${(exercise as any).suggestedWeight} lbs`
+                                      : ""
+                                  }
                                   step="2.5"
                                   disabled={isWorkoutBlocked}
+                                  title={
+                                    (exercise as any).progressionNote ||
+                                    ((exercise as any).suggestedWeight && (exercise as any).suggestedWeight > 0
+                                      ? `Suggested: ${(exercise as any).suggestedWeight} lbs`
+                                      : "")
+                                  }
                                 />
                               </div>
 

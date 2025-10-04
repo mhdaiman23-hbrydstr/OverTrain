@@ -203,8 +203,90 @@ CREATE TRIGGER program_history_updated_at
   EXECUTE FUNCTION public.handle_updated_at();
 
 -- ============================================================================
--- 6. VERIFY TABLES
+-- 5. WORKOUT SETS TABLE (for real-time set logging)
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS public.workout_sets (
+  id TEXT PRIMARY KEY,
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  workout_id TEXT NOT NULL,
+  exercise_id TEXT NOT NULL,
+  exercise_name TEXT NOT NULL,
+  set_number INTEGER NOT NULL,
+  reps INTEGER NOT NULL,
+  weight DECIMAL(10,2) NOT NULL DEFAULT 0,
+  completed BOOLEAN NOT NULL DEFAULT true,
+  completed_at BIGINT NOT NULL,
+  notes TEXT,
+  week INTEGER,
+  day INTEGER,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Enable RLS
+ALTER TABLE public.workout_sets ENABLE ROW LEVEL SECURITY;
+
+-- RLS Policies
+CREATE POLICY "Users can read own workout sets"
+  ON public.workout_sets FOR SELECT
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert own workout sets"
+  ON public.workout_sets FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update own workout sets"
+  ON public.workout_sets FOR UPDATE
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete own workout sets"
+  ON public.workout_sets FOR DELETE
+  USING (auth.uid() = user_id);
+
+-- Indexes
+CREATE INDEX IF NOT EXISTS idx_workout_sets_user_id ON public.workout_sets(user_id);
+CREATE INDEX IF NOT EXISTS idx_workout_sets_workout_id ON public.workout_sets(workout_id);
+CREATE INDEX IF NOT EXISTS idx_workout_sets_week_day ON public.workout_sets(user_id, week, day);
+CREATE INDEX IF NOT EXISTS idx_workout_sets_completed_at ON public.workout_sets(completed_at);
+
+-- Function to update updated_at timestamp
+CREATE OR REPLACE FUNCTION public.handle_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Triggers
+CREATE TRIGGER workouts_updated_at
+  BEFORE UPDATE ON public.workouts
+  FOR EACH ROW
+  EXECUTE FUNCTION public.handle_updated_at();
+
+CREATE TRIGGER in_progress_workouts_updated_at
+  BEFORE UPDATE ON public.in_progress_workouts
+  FOR EACH ROW
+  EXECUTE FUNCTION public.handle_updated_at();
+
+CREATE TRIGGER active_programs_updated_at
+  BEFORE UPDATE ON public.active_programs
+  FOR EACH ROW
+  EXECUTE FUNCTION public.handle_updated_at();
+
+CREATE TRIGGER program_history_updated_at
+  BEFORE UPDATE ON public.program_history
+  FOR EACH ROW
+  EXECUTE FUNCTION public.handle_updated_at();
+
+CREATE TRIGGER workout_sets_updated_at
+  BEFORE UPDATE ON public.workout_sets
+  FOR EACH ROW
+  EXECUTE FUNCTION public.handle_updated_at();
+
+-- ============================================================================
+-- 7. VERIFY TABLES
 -- ============================================================================
 -- Run this to verify all tables were created successfully:
 -- SELECT table_name FROM information_schema.tables
--- WHERE table_schema = 'public' AND table_name IN ('workouts', 'in_progress_workouts', 'active_programs', 'program_history');
+-- WHERE table_schema = 'public' AND table_name IN ('workouts', 'in_progress_workouts', 'active_programs', 'program_history', 'workout_sets');
