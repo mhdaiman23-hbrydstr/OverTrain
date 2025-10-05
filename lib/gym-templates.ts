@@ -1,8 +1,11 @@
+import { getExerciseTier, type ProgressionTier } from "./progression-tiers"
+
 export interface ExerciseTemplate {
   id: string
   exerciseName: string
   category: "compound" | "isolation"
   equipmentType?: string
+  tier?: ProgressionTier
   progressionTemplate: {
     [week: string]: {
       sets: number
@@ -20,6 +23,14 @@ export interface ExerciseTemplate {
     }
   }
   restTime: number // seconds
+}
+
+// Helper function to add tier to exercise templates
+function addTierToExercise(exercise: Omit<ExerciseTemplate, 'tier'>): ExerciseTemplate {
+  return {
+    ...exercise,
+    tier: getExerciseTier(exercise.exerciseName, exercise.category)
+  }
 }
 
 export interface WorkoutDay {
@@ -109,12 +120,12 @@ export const GYM_TEMPLATES: GymTemplate[] = [
     id: "fullbody-3day-beginner-male",
     name: "3-Day Full Body Beginner",
     days: 3,
-    weeks: 8,
+    weeks: 6,
     gender: ["male"],
     experience: ["beginner"],
     progressionScheme: {
       type: "linear",
-      deloadWeek: 4,
+      deloadWeek: 6,
       progressionRules: {
         compound: {
           successThreshold: "all_sets_completed",
@@ -132,17 +143,18 @@ export const GYM_TEMPLATES: GymTemplate[] = [
       day1: {
         name: "Full Body A",
         exercises: [
-          {
+          addTierToExercise({
             id: "squat-1",
             exerciseName: "Barbell Back Squat",
             category: "compound",
             equipmentType: "BARBELL",
             progressionTemplate: {
-              week1: { sets: 3, repRange: "8-10" },
-              week2: { sets: 3, repRange: "8-10" },
+              week1: { sets: 3, repRange: "10-12" },
+              week2: { sets: 3, repRange: "9-11" },
               week3: { sets: 3, repRange: "8-10" },
-              week4: { sets: 2, repRange: "6-8", intensity: "deload" },
-              week5: { sets: 4, repRange: "8-10" },
+              week4: { sets: 4, repRange: "8-10" },
+              week5: { sets: 4, repRange: "7-9" },
+              week6: { sets: 2, repRange: "6-8", intensity: "deload" },
             },
             autoProgression: {
               enabled: true,
@@ -154,7 +166,7 @@ export const GYM_TEMPLATES: GymTemplate[] = [
               },
             },
             restTime: 180,
-          },
+          }),
           {
             id: "bench-1",
             exerciseName: "Barbell Bench Press",

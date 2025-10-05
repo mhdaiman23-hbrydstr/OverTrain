@@ -79,7 +79,7 @@ export class ProgramStateManager {
 
     // Calculate total workouts in the program
     const daysInSchedule = Object.keys(template.schedule).length
-    const totalWorkouts = daysInSchedule * 12 // Assuming 12 weeks for now
+    const totalWorkouts = daysInSchedule * template.weeks
 
     const activeProgram: ActiveProgram = {
       templateId,
@@ -259,7 +259,8 @@ export class ProgramStateManager {
 
     // Debug: Check what workouts are completed
     const completedWorkouts: { week: number; day: number }[] = []
-    for (let week = 1; week <= 6; week++) {
+    const debugWeeks = activeProgram.template.weeks || 6 // Use template weeks or fallback
+    for (let week = 1; week <= debugWeeks; week++) {
       for (let day = 1; day <= daysPerWeek; day++) {
         if (WorkoutLogger.hasCompletedWorkout(week, day, userId)) {
           completedWorkouts.push({ week, day })
@@ -270,7 +271,8 @@ export class ProgramStateManager {
 
     // Find the first incomplete workout (start from week 1)
     let foundIncomplete = false
-    for (let week = 1; week <= 12; week++) {
+    const maxWeeks = activeProgram.template.weeks || 12 // Fallback to 12 if not set
+    for (let week = 1; week <= maxWeeks; week++) {
       for (let day = 1; day <= daysPerWeek; day++) {
         const isCompleted = WorkoutLogger.hasCompletedWorkout(week, day, userId)
         console.log(`[ProgramState] Week ${week}, Day ${day}: ${isCompleted ? 'COMPLETED' : 'INCOMPLETE'}`)
