@@ -20,8 +20,14 @@ export function ProgramRecommendations({ onBack }: ProgramRecommendationsProps) 
 
   useEffect(() => {
     if (user && user.gender && user.experience && user.goals) {
+      // Only provide recommendations if user has selected a specific gender
+      if (user.gender === "Prefer not say") {
+        setRecommendations([])
+        return
+      }
+
       const userProfile = {
-        gender: user.gender,
+        gender: user.gender as "male" | "female",
         experience: user.experience,
         goals: user.goals,
         equipment: ["Full gym access"], // This should come from user profile
