@@ -203,7 +203,3 @@ export class ConnectionMonitor {
   }
 }
 
-// Auto-initialize on import
-if (typeof window !== 'undefined') {
-  ConnectionMonitor.initialize()
-}

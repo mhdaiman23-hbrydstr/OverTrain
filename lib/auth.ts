@@ -227,21 +227,74 @@ export class AuthService {
     }
   }
 
-  static async loadUserData(userId: string): Promise<void> {
-    // Load all user data from database to localStorage
+  static async loadUserData(userId: string, forceRefresh: boolean = false): Promise<void> {
+    // Load all user data from database to localStorage with smart strategy
     const { ProgramStateManager } = await import('./program-state')
     const { WorkoutLogger } = await import('./workout-logger')
+    const { DevDataRecovery } = await import('./dev-data-recovery')
 
-    console.log('[Auth] Loading user data from database...')
+    console.log('[Auth] Loading user data from database (forceRefresh:', forceRefresh, ')...')
 
     try {
-      await Promise.all([
-        ProgramStateManager.loadFromDatabase(userId),
-        WorkoutLogger.loadFromDatabase(userId),
-      ])
+      // Check for port change scenario first (development only)
+      if (process.env.NODE_ENV === "development") {
+        const isPortChangeScenario = await DevDataRecovery.detectPortChangeScenario(userId)
+        if (isPortChangeScenario) {
+          console.log('[Auth] Port change detected, initiating data recovery...')
+          const recoverySuccessful = await DevDataRecovery.recoverUserData(userId)
+          if (recoverySuccessful) {
+            console.log('[Auth] Data recovery successful')
+            return // Recovery already loaded all the data we need
+          } else {
+            console.log('[Auth] Data recovery failed, falling back to normal loading')
+          }
+        }
+      }
+
+      if (forceRefresh) {
+        // Use database-first strategy when forcing refresh
+        console.log('[Auth] Using database-first loading (force refresh)')
+        await Promise.all([
+          ProgramStateManager.loadFromDatabase(userId),
+          WorkoutLogger.loadFromDatabase(userId, true),
+        ])
+      } else {
+        // Use regular loading (preserves local data, syncs to database)
+        console.log('[Auth] Using safe loading (preserves local data)')
+        // Check if localStorage has any data
+        const storageKeys = WorkoutLogger.getUserStorageKeys(userId)
+        const hasLocalWorkouts = localStorage.getItem(storageKeys.workouts)
+        const hasLocalProgress = localStorage.getItem(storageKeys.inProgress)
+        const hasActiveProgram = localStorage.getItem("liftlog_active_program")
+
+        // Check if any data exists locally
+        const hasLocalData = hasLocalWorkouts || hasLocalProgress || hasActiveProgram
+
+        if (!hasLocalData) {
+          console.log('[Auth] No local data found, loading from database')
+          await Promise.all([
+            ProgramStateManager.loadFromDatabase(userId),
+            WorkoutLogger.loadFromDatabase(userId, true), // Force refresh when no local data
+          ])
+        } else {
+          console.log('[Auth] Local data exists, preserving and syncing to database')
+          // Sync local data to database first, then load fresh data
+          await WorkoutLogger.syncToDatabase(userId)
+          await ProgramStateManager.syncToDatabase(userId)
+
+          // Also load fresh data from database to merge with local data
+          console.log('[Auth] Loading fresh data from database to merge with local data')
+          await Promise.all([
+            ProgramStateManager.loadFromDatabase(userId),
+            WorkoutLogger.loadFromDatabase(userId, false), // Don't force refresh
+          ])
+        }
+      }
+
       console.log('[Auth] User data loaded successfully')
     } catch (error) {
       console.error('[Auth] Failed to load user data:', error)
+      // Don't throw error, just log it so the app can continue with local data
     }
   }
 

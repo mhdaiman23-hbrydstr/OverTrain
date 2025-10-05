@@ -180,16 +180,25 @@ export class ProgramStateManager {
     const activeProgram = this.getActiveProgram()
     if (!activeProgram) return
 
+    // Get current user ID if not provided
+    if (!userId) {
+      try {
+        const storedUser = localStorage.getItem("liftlog_user")
+        const currentUser = storedUser ? JSON.parse(storedUser) : null
+        userId = currentUser?.id
+      } catch {
+        // Fallback to anonymous if localStorage is not available
+      }
+    }
+
     activeProgram.completedWorkouts += 1
     activeProgram.progress = (activeProgram.completedWorkouts / activeProgram.totalWorkouts) * 100
 
     const scheduleKeys = Object.keys(activeProgram.template.schedule)
     const daysPerWeek = scheduleKeys.length
 
-    // Import WorkoutLogger to check completion status
-
     // Check if all days in the current week are now completed
-    const isCurrentWeekComplete = WorkoutLogger.isWeekCompleted(activeProgram.currentWeek, daysPerWeek)
+    const isCurrentWeekComplete = WorkoutLogger.isWeekCompleted(activeProgram.currentWeek, daysPerWeek, userId)
 
     if (isCurrentWeekComplete) {
       // All days in current week are done, advance to next week
@@ -200,7 +209,7 @@ export class ProgramStateManager {
       // Find the next incomplete day in the current week
       let nextDay = activeProgram.currentDay
       for (let day = 1; day <= daysPerWeek; day++) {
-        if (!WorkoutLogger.hasCompletedWorkout(activeProgram.currentWeek, day)) {
+        if (!WorkoutLogger.hasCompletedWorkout(activeProgram.currentWeek, day, userId)) {
           nextDay = day
           break
         }
@@ -232,22 +241,54 @@ export class ProgramStateManager {
     const activeProgram = this.getActiveProgram()
     if (!activeProgram) return
 
+    // Get current user ID
+    let userId: string | undefined
+    try {
+      const storedUser = localStorage.getItem("liftlog_user")
+      const currentUser = storedUser ? JSON.parse(storedUser) : null
+      userId = currentUser?.id
+    } catch {
+      // Fallback to anonymous if localStorage is not available
+    }
+
     const scheduleKeys = Object.keys(activeProgram.template.schedule)
     const daysPerWeek = scheduleKeys.length
 
-    // Find the first incomplete workout
+    console.log("[ProgramState] Recalculating progress for user:", userId)
+    console.log("[ProgramState] Days per week:", daysPerWeek)
+
+    // Debug: Check what workouts are completed
+    const completedWorkouts: { week: number; day: number }[] = []
+    for (let week = 1; week <= 6; week++) {
+      for (let day = 1; day <= daysPerWeek; day++) {
+        if (WorkoutLogger.hasCompletedWorkout(week, day, userId)) {
+          completedWorkouts.push({ week, day })
+        }
+      }
+    }
+    console.log("[ProgramState] Completed workouts found:", completedWorkouts)
+
+    // Find the first incomplete workout (start from week 1)
     let foundIncomplete = false
     for (let week = 1; week <= 12; week++) {
       for (let day = 1; day <= daysPerWeek; day++) {
-        if (!WorkoutLogger.hasCompletedWorkout(week, day)) {
+        const isCompleted = WorkoutLogger.hasCompletedWorkout(week, day, userId)
+        console.log(`[ProgramState] Week ${week}, Day ${day}: ${isCompleted ? 'COMPLETED' : 'INCOMPLETE'}`)
+
+        if (!isCompleted) {
           activeProgram.currentWeek = week
           activeProgram.currentDay = day
           foundIncomplete = true
-          console.log("[v0] Recalculated progress to week", week, "day", day)
+          console.log("[ProgramState] Recalculated progress to week", week, "day", day)
           break
         }
       }
       if (foundIncomplete) break
+    }
+
+    // If all workouts are completed (unlikely in practice), stay at current position
+    if (!foundIncomplete) {
+      console.log("[ProgramState] All workouts appear to be completed, staying at current position")
     }
 
     this.saveActiveProgram(activeProgram)

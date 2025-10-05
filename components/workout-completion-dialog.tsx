@@ -14,7 +14,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
-import { Trophy, Clock, Target, TrendingUp, Calendar, Zap } from "lucide-react"
+import { Trophy, Target, TrendingUp, Calendar, Zap } from "lucide-react"
 import type { WorkoutSession } from "@/lib/workout-logger"
 import { ProgramStateManager } from "@/lib/program-state"
 import { getExerciseMuscleGroup } from "@/lib/exercise-muscle-groups"
@@ -78,7 +78,6 @@ export function WorkoutCompletionDialog({
       })
     })
 
-    const duration = workout.endTime ? Math.floor((workout.endTime - workout.startTime) / 1000 / 60) : 0
     const completionRate = totalSets > 0 ? Math.round((completedSets / totalSets) * 100) : 0
 
     return {
@@ -87,7 +86,6 @@ export function WorkoutCompletionDialog({
       skippedSets,
       totalVolume,
       totalReps,
-      duration,
       completionRate,
       exercises: workout.exercises.length,
       volumeByMuscleGroup,
@@ -128,70 +126,71 @@ export function WorkoutCompletionDialog({
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-md">
-        <DialogHeader className="text-center">
-          <div className="mx-auto mb-4">
+      <DialogContent className="w-full max-w-[calc(100vw-1rem)] left-2 right-2 bottom-2 top-auto translate-x-0 translate-y-0 sm:left-[50%] sm:top-[50%] sm:translate-x-[-50%] sm:translate-y-[-50%] sm:right-auto sm:bottom-auto max-h-[85vh] sm:max-h-[90vh] sm:max-w-md flex flex-col p-3 sm:p-6">
+        <DialogHeader className="dialog-header text-center flex-shrink-0 pb-1 sm:pb-2 md:pb-4">
+          <div className="mx-auto mb-1 sm:mb-2 md:mb-4">
             {showCelebration ? (
               <div className="animate-bounce">
-                <Trophy className="h-16 w-16 text-yellow-500 mx-auto" />
+                <Trophy className="trophy-icon h-8 w-8 sm:h-10 sm:w-10 md:h-16 md:w-16 text-yellow-500 mx-auto" />
               </div>
             ) : (
-              <Trophy className="h-16 w-16 text-yellow-500 mx-auto" />
+              <Trophy className="trophy-icon h-8 w-8 sm:h-10 sm:w-10 md:h-16 md:w-16 text-yellow-500 mx-auto" />
             )}
           </div>
-          <DialogTitle className="text-2xl">Workout Complete!</DialogTitle>
-          <DialogDescription className={`text-lg font-medium ${getCompletionColor()}`}>
+          <DialogTitle className="dialog-title text-base sm:text-lg md:text-2xl">Workout Complete!</DialogTitle>
+          <DialogDescription className={`dialog-description text-xs sm:text-sm md:text-lg font-medium ${getCompletionColor()}`}>
             {getCompletionMessage()}
           </DialogDescription>
         </DialogHeader>
 
-        <ScrollArea className="max-h-[60vh] pr-4">
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-3">
-              <Card>
-                <CardContent className="p-4 text-center">
-                  <Clock className="h-6 w-6 text-primary mx-auto mb-2" />
-                  <div className="text-xl font-bold">{stats.duration}m</div>
-                  <div className="text-xs text-muted-foreground">Duration</div>
+        <ScrollArea className="dialog-content flex-1 min-h-0 pr-1 sm:pr-2 md:pr-4">
+          <div className="space-y-1.5 sm:space-y-2 md:space-y-4">
+            {/* Responsive summary cards - stack on very small screens */}
+            <div className="summary-cards grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-1 md:gap-3">
+              <Card className="w-full">
+                <CardContent className="card-content p-1.5 sm:p-2 md:p-4 text-center">
+                  <div className="h-3 w-3 sm:h-4 sm:w-4 md:h-6 md:w-6 text-primary mx-auto mb-1 sm:mb-1 md:mb-2 flex items-center justify-center font-bold">#</div>
+                  <div className="stats-value text-xs sm:text-sm md:text-xl font-bold">{stats.totalSets}</div>
+                  <div className="stats-label text-[10px] sm:text-xs md:text-sm text-muted-foreground">Total Sets</div>
                 </CardContent>
               </Card>
 
-              <Card>
-                <CardContent className="p-4 text-center">
-                  <Target className="h-6 w-6 text-primary mx-auto mb-2" />
-                  <div className="text-xl font-bold">{stats.completionRate}%</div>
-                  <div className="text-xs text-muted-foreground">Completed</div>
+              <Card className="w-full">
+                <CardContent className="card-content p-1.5 sm:p-2 md:p-4 text-center">
+                  <Target className="h-3 w-3 sm:h-4 sm:w-4 md:h-6 md:w-6 text-primary mx-auto mb-1 sm:mb-1 md:mb-2" />
+                  <div className="stats-value text-xs sm:text-sm md:text-xl font-bold">{stats.completionRate}%</div>
+                  <div className="stats-label text-[10px] sm:text-xs md:text-sm text-muted-foreground">Completed</div>
                 </CardContent>
               </Card>
             </div>
 
             {/* Detailed Breakdown */}
             <Card>
-              <CardContent className="p-4">
-                <h4 className="font-semibold mb-3">Workout Summary</h4>
-                <div className="space-y-2 text-sm">
+              <CardContent className="p-2 sm:p-3 md:p-4">
+                <h4 className="section-title font-semibold mb-1.5 sm:mb-2 md:mb-3 text-xs sm:text-sm md:text-base">Workout Summary</h4>
+                <div className="workout-summary space-y-0.5 sm:space-y-1 md:space-y-2 text-[10px] sm:text-xs md:text-sm">
                   <div className="flex justify-between">
-                    <span>Sets Completed</span>
-                    <span className="font-medium text-green-600">{stats.completedSets}</span>
+                    <span className="text-xs sm:text-sm md:text-sm">Sets Completed</span>
+                    <span className="font-medium text-green-600 text-xs sm:text-sm md:text-sm">{stats.completedSets}</span>
                   </div>
                   {stats.skippedSets > 0 && (
                     <div className="flex justify-between">
-                      <span>Sets Skipped</span>
-                      <span className="font-medium text-orange-600">{stats.skippedSets}</span>
+                      <span className="text-xs sm:text-sm md:text-sm">Sets Skipped</span>
+                      <span className="font-medium text-orange-600 text-xs sm:text-sm md:text-sm">{stats.skippedSets}</span>
                     </div>
                   )}
                 </div>
 
-                <Separator className="my-4" />
+                <Separator className="my-2 sm:my-3 md:my-4" />
 
-                <h4 className="font-semibold mb-3">Volume by Muscle Group</h4>
-                <div className="space-y-2 text-sm">
+                <h4 className="section-title font-semibold mb-1.5 sm:mb-2 md:mb-3 text-xs sm:text-sm md:text-base">Volume by Muscle Group</h4>
+                <div className="workout-summary space-y-0.5 sm:space-y-1 md:space-y-2 text-[10px] sm:text-xs md:text-sm">
                   {Object.entries(stats.volumeByMuscleGroup)
                     .sort(([, a], [, b]) => b - a)
                     .map(([muscleGroup, volume]) => (
                       <div key={muscleGroup} className="flex justify-between">
-                        <span className="capitalize">{muscleGroup.toLowerCase()}</span>
-                        <span className="font-medium">
+                        <span className="capitalize text-xs sm:text-sm md:text-sm">{muscleGroup.toLowerCase()}</span>
+                        <span className="font-medium text-xs sm:text-sm md:text-sm">
                           {volume >= 1000 ? `${(volume / 1000).toFixed(1)}k` : Math.round(volume)} kg
                         </span>
                       </div>
@@ -201,42 +200,42 @@ export function WorkoutCompletionDialog({
             </Card>
 
             {/* Achievement Badges */}
-            <div className="flex flex-wrap gap-2 justify-center">
+            <div className="flex flex-wrap gap-1 sm:gap-1.5 md:gap-2 justify-center">
               {stats.completionRate === 100 && (
-                <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200">Perfect Workout</Badge>
-              )}
-              {stats.duration >= 60 && (
-                <Badge className="bg-blue-100 text-blue-800 border-blue-200">Endurance Beast</Badge>
+                <Badge className="achievement-badge bg-yellow-100 text-yellow-800 border-yellow-200 text-[10px] sm:text-xs md:text-sm px-1.5 sm:px-2 md:px-3 py-0.5 sm:py-1">Perfect Workout</Badge>
               )}
               {stats.totalVolume >= 5000 && (
-                <Badge className="bg-purple-100 text-purple-800 border-purple-200">Volume King</Badge>
+                <Badge className="achievement-badge bg-purple-100 text-purple-800 border-purple-200 text-[10px] sm:text-xs md:text-sm px-1.5 sm:px-2 md:px-3 py-0.5 sm:py-1">Volume King</Badge>
               )}
               {stats.exercises >= 7 && (
-                <Badge className="bg-green-100 text-green-800 border-green-200">Exercise Variety</Badge>
+                <Badge className="achievement-badge bg-green-100 text-green-800 border-green-200 text-[10px] sm:text-xs md:text-sm px-1.5 sm:px-2 md:px-3 py-0.5 sm:py-1">Exercise Variety</Badge>
+              )}
+              {stats.completedSets >= 20 && (
+                <Badge className="achievement-badge bg-orange-100 text-orange-800 border-orange-200 text-[10px] sm:text-xs md:text-sm px-1.5 sm:px-2 md:px-3 py-0.5 sm:py-1">Set Master</Badge>
               )}
             </div>
           </div>
         </ScrollArea>
 
-        <DialogFooter className="flex-col space-y-2">
-          <Button variant="outline" onClick={onViewMuscleGroupStats} className="w-full bg-transparent">
-            <TrendingUp className="h-4 w-4 mr-2" />
-            View Muscle Group Stats
+        <DialogFooter className="dialog-footer flex-col space-y-1.5 sm:space-y-2 flex-shrink-0 pt-1.5 sm:pt-2 md:pt-4">
+          <Button variant="outline" onClick={onViewMuscleGroupStats} className="dialog-button w-full bg-transparent text-xs sm:text-sm md:text-base py-1.5 sm:py-2 md:py-3 h-auto min-h-[32px] sm:min-h-[36px] md:min-h-[44px]">
+            <TrendingUp className="button-icon h-3 w-3 sm:h-4 sm:w-4 md:h-4 md:w-4 mr-1 sm:mr-2" />
+            <span className="truncate">View Muscle Group Stats</span>
           </Button>
           {hasNextWorkout() ? (
-            <Button onClick={handleNextWorkout} className="w-full gradient-primary text-primary-foreground">
-              <Calendar className="h-4 w-4 mr-2" />
-              Start Next Workout
+            <Button onClick={handleNextWorkout} className="dialog-button w-full gradient-primary text-primary-foreground text-xs sm:text-sm md:text-base py-1.5 sm:py-2 md:py-3 h-auto min-h-[32px] sm:min-h-[36px] md:min-h-[44px]">
+              <Calendar className="button-icon h-3 w-3 sm:h-4 sm:w-4 md:h-4 md:w-4 mr-1 sm:mr-2" />
+              <span className="truncate">Start Next Workout</span>
             </Button>
           ) : (
             <>
-              <Button onClick={onClose} className="w-full gradient-primary text-primary-foreground">
-                <Trophy className="h-4 w-4 mr-2" />
-                View Program Summary
+              <Button onClick={onClose} className="dialog-button w-full gradient-primary text-primary-foreground text-xs sm:text-sm md:text-base py-1.5 sm:py-2 md:py-3 h-auto min-h-[32px] sm:min-h-[36px] md:min-h-[44px]">
+                <Trophy className="button-icon h-3 w-3 sm:h-4 sm:w-4 md:h-4 md:w-4 mr-1 sm:mr-2" />
+                <span className="truncate">View Program Summary</span>
               </Button>
-              <Button onClick={onClose} variant="outline" className="w-full">
-                <Zap className="h-4 w-4 mr-2" />
-                Start New Program
+              <Button onClick={onClose} variant="outline" className="dialog-button w-full text-xs sm:text-sm md:text-base py-1.5 sm:py-2 md:py-3 h-auto min-h-[32px] sm:min-h-[36px] md:min-h-[44px]">
+                <Zap className="button-icon h-3 w-3 sm:h-4 sm:w-4 md:h-4 md:w-4 mr-1 sm:mr-2" />
+                <span className="truncate">Start New Program</span>
               </Button>
             </>
           )}

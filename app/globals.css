@@ -194,4 +194,81 @@
     background: oklch(0.6 0.2 140);
     color: white;
   }
+
+  /* Responsive fixes for ultra-small screens (iPhone SE, 12 mini, etc.) */
+  @media (max-width: 390px) {
+    .workout-completion-dialog {
+      max-width: 98vw !important;
+      margin: 1vw !important;
+      padding: 8px !important;
+    }
+
+    .workout-completion-dialog .dialog-header {
+      padding-bottom: 4px !important;
+    }
+
+    .workout-completion-dialog .dialog-content {
+      font-size: 10px !important;
+    }
+
+    .workout-completion-dialog .summary-cards {
+      grid-template-columns: 1fr !important;
+      gap: 8px !important;
+    }
+
+    .workout-completion-dialog .card-content {
+      padding: 6px !important;
+    }
+
+    .workout-completion-dialog .trophy-icon {
+      width: 28px !important;
+      height: 28px !important;
+    }
+
+    .workout-completion-dialog .dialog-title {
+      font-size: 14px !important;
+    }
+
+    .workout-completion-dialog .dialog-description {
+      font-size: 11px !important;
+    }
+
+    .workout-completion-dialog .stats-value {
+      font-size: 12px !important;
+    }
+
+    .workout-completion-dialog .stats-label {
+      font-size: 9px !important;
+    }
+
+    .workout-completion-dialog .section-title {
+      font-size: 10px !important;
+      margin-bottom: 4px !important;
+    }
+
+    .workout-completion-dialog .workout-summary {
+      font-size: 10px !important;
+    }
+
+    .workout-completion-dialog .achievement-badge {
+      font-size: 8px !important;
+      padding: 2px 4px !important;
+    }
+
+    .workout-completion-dialog .dialog-button {
+      font-size: 10px !important;
+      padding: 6px 8px !important;
+      min-height: 28px !important;
+    }
+
+    .workout-completion-dialog .button-icon {
+      width: 12px !important;
+      height: 12px !important;
+    }
+
+    .workout-completion-dialog .dialog-footer {
+      gap: 4px !important;
+      padding-top: 4px !important;
+    }
+  }
 }

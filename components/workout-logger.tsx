@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef, useCallback } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -34,7 +34,6 @@ import { ProgressionCalculator } from "@/lib/progression-calculator"
 import { useAuth } from "@/contexts/auth-context"
 import { ConnectionMonitor, type ConnectionStatus } from "@/lib/connection-monitor"
 import {
-  Clock,
   Save,
   MoreVertical,
   FileText,
@@ -80,8 +79,6 @@ interface WorkoutLoggerProps {
 export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, onViewAnalytics }: WorkoutLoggerProps) {
   const { user } = useAuth()
   const [workout, setWorkout] = useState<WorkoutSession | null>(null)
-  const [restTimer, setRestTimer] = useState<number | null>(null)
-  const [restTimeLeft, setRestTimeLeft] = useState(0)
   const [showNotesDialog, setShowNotesDialog] = useState(false)
   const [showSummaryDialog, setShowSummaryDialog] = useState(false)
   const [showAddExerciseDialog, setShowAddExerciseDialog] = useState(false)
@@ -231,7 +228,7 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
 
       // Initialize progression banner state
       if (existingWorkout.week && existingWorkout.day) {
-        const shouldShowBanner = existingWorkout.week > 1 && !WorkoutLogger.hasCompletedWorkout(existingWorkout.week - 1, existingWorkout.day)
+        const shouldShowBanner = existingWorkout.week > 1 && !WorkoutLogger.hasCompletedWorkout(existingWorkout.week - 1, existingWorkout.day, user?.id)
         setShowProgressionBanner(shouldShowBanner)
         if (shouldShowBanner) {
           setProgressionBannerMessage(`Complete Week ${existingWorkout.week - 1} Day ${existingWorkout.day} to see progression targets`)
@@ -248,7 +245,7 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
         // Workout from a future week - check if current week is complete
         const scheduleKeys = Object.keys(activeProgram.template.schedule)
         const daysPerWeek = scheduleKeys.length
-        const isCurrentWeekCompleted = WorkoutLogger.isWeekCompleted(week, daysPerWeek)
+        const isCurrentWeekCompleted = WorkoutLogger.isWeekCompleted(week, daysPerWeek, user?.id)
         const weeksAhead = existingWorkout.week - week
 
         if (!isCurrentWeekCompleted) {
@@ -273,7 +270,7 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
       const week = activeProgram?.currentWeek
       const day = activeProgram?.currentDay
 
-      const newWorkout = WorkoutLogger.startWorkout(initialWorkout.name, initialWorkout.exercises, week, day)
+      const newWorkout = WorkoutLogger.startWorkout(initialWorkout.name, initialWorkout.exercises, week, day, user?.id)
       console.log("[v0] Component created new workout from initialWorkout")
       setWorkout(newWorkout)
       setIsWorkoutBlocked(false)
@@ -300,7 +297,7 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
           const week = activeProgram?.currentWeek
           const day = activeProgram?.currentDay
           
-          const newWorkout = WorkoutLogger.startWorkout(currentWorkout.name, currentWorkout.exercises, week, day)
+          const newWorkout = WorkoutLogger.startWorkout(currentWorkout.name, currentWorkout.exercises, week, day, user?.id)
           console.log("[v0] Loaded new workout after program change:", {
             week,
             day,
@@ -318,21 +315,7 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
     return () => window.removeEventListener("programChanged", handleProgramChange)
   }, [])
 
-  useEffect(() => {
-    if (restTimer && restTimeLeft > 0) {
-      const interval = setInterval(() => {
-        setRestTimeLeft((prev) => {
-          if (prev <= 1) {
-            setRestTimer(null)
-            return 0
-          }
-          return prev - 1
-        })
-      }, 1000)
-      return () => clearInterval(interval)
-    }
-  }, [restTimer, restTimeLeft])
-
+  
   // Cleanup debounce timer on unmount
   useEffect(() => {
     return () => {
@@ -457,20 +440,7 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
     }
   }
 
-  const handleStartRest = (exerciseId: string, setId: string, restDuration: string) => {
-    if (!workout) return
-
-    const restSeconds = parseRestDuration(restDuration)
-    WorkoutLogger.startRest(workout.id, exerciseId, setId)
-    setRestTimer(Date.now())
-    setRestTimeLeft(restSeconds)
-  }
-
-  const parseRestDuration = (duration: string): number => {
-    const match = duration.match(/(\d+)/)
-    return match ? Number.parseInt(match[1]) * 60 : 120
-  }
-
+  
   const canFinishWorkout = (): boolean => {
     if (!workout) return false
 
@@ -483,44 +453,46 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
     setIsCompletingWorkout(true)
 
     try {
-      // Add workout notes if provided
       const workoutWithNotes = { ...workout, notes: workoutNotes }
-
       setWorkout(workoutWithNotes)
 
-      // Immediately sync current state before completing
-      console.log("[v0] Syncing current workout state...")
       await WorkoutLogger.saveCurrentWorkout(workoutWithNotes, user?.id)
+      const wasAlreadyCompleted = WorkoutLogger.hasCompletedWorkout(workout.week || 1, workout.day || 1, user?.id)
 
-      const wasAlreadyCompleted = WorkoutLogger.hasCompletedWorkout(workout.week || 1, workout.day || 1)
-
-      console.log("[v0] Completing workout...")
       const completedWorkout = await WorkoutLogger.completeWorkout(workoutWithNotes.id)
 
       if (completedWorkout) {
-        if (!wasAlreadyCompleted) {
-          console.log("[v0] Updating program state...")
-          await ProgramStateManager.completeWorkout()
-        } else {
-          console.log("[v0] Workout was already completed, not updating program state")
+        // Validate that the completed workout has proper data
+        const hasValidData = completedWorkout.exercises &&
+                           completedWorkout.exercises.length > 0 &&
+                           completedWorkout.exercises.every(ex => ex.sets && ex.sets.length > 0)
+
+        if (!hasValidData) {
+          console.error("[v0] Completed workout has invalid data, not proceeding with program advancement")
+          setIsCompletingWorkout(false)
+          return
         }
 
-        // Sync completed workout to database
+        if (!wasAlreadyCompleted) {
+          await ProgramStateManager.completeWorkout()
+        }
+
+        // Sync to database
         if (user?.id) {
           try {
-            console.log("[v0] Syncing completed workout to database...")
             await WorkoutLogger.syncToDatabase(user.id)
-            console.log("[v0] Completed workout synced to database successfully")
+
+            // Notify calendar that data has changed
+            window.dispatchEvent(new Event("programChanged"))
+
           } catch (error) {
-            console.error("[v0] Failed to sync to database, but workout is saved locally:", error)
-            // Continue anyway - data is saved locally
+            console.error("[v0] Failed to sync to database:", error)
+            // Still show completion dialog even if sync fails
           }
         }
 
-        console.log("[v0] Setting completion dialog to show")
         setCompletedWorkout(completedWorkout)
         setShowCompletionDialog(true)
-        // Don't call onComplete here - wait for dialog to close
       }
     } catch (error) {
       console.error("[v0] Error completing workout:", error)
@@ -542,7 +514,7 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
 
   const handleCancelWorkout = () => {
     if (workout) {
-      WorkoutLogger.clearCurrentWorkout()
+      WorkoutLogger.clearCurrentWorkout(undefined, undefined, user?.id)
     }
     onCancel?.()
   }
@@ -583,10 +555,24 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
     // Complete the workout
     const completedWorkout = await WorkoutLogger.completeWorkout(updatedWorkout.id)
     if (completedWorkout) {
+      // Validate that the completed workout has proper data
+      const hasValidData = completedWorkout.exercises &&
+                         completedWorkout.exercises.length > 0 &&
+                         completedWorkout.exercises.every(ex => ex.sets && ex.sets.length > 0)
+
+      if (!hasValidData) {
+        console.error("[v0] Completed workout has invalid data, not proceeding with program advancement")
+        return
+      }
+
       // Sync to database
       if (user?.id) {
         try {
           await WorkoutLogger.syncToDatabase(user.id)
+
+          // Notify calendar that data has changed
+          window.dispatchEvent(new Event("programChanged"))
+
         } catch (error) {
           console.error("[v0] Failed to sync to database, but workout is saved locally:", error)
         }
@@ -623,10 +609,24 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
 
     const completedWorkout = await WorkoutLogger.completeWorkout(updatedWorkout.id)
     if (completedWorkout) {
+      // Validate that the completed workout has proper data
+      const hasValidData = completedWorkout.exercises &&
+                         completedWorkout.exercises.length > 0 &&
+                         completedWorkout.exercises.every(ex => ex.sets && ex.sets.length > 0)
+
+      if (!hasValidData) {
+        console.error("[v0] Completed workout has invalid data, not proceeding with program advancement")
+        return
+      }
+
       // Sync to database
       if (user?.id) {
         try {
           await WorkoutLogger.syncToDatabase(user.id)
+
+          // Notify calendar that data has changed
+          window.dispatchEvent(new Event("programChanged"))
+
         } catch (error) {
           console.error("[v0] Failed to sync to database, but workout is saved locally:", error)
         }
@@ -666,12 +666,7 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
     }
   }
 
-  const formatTime = (seconds: number): string => {
-    const mins = Math.floor((seconds || 0) / 60)
-    const secs = (seconds || 0) % 60
-    return `${mins}:${secs.toString().padStart(2, "0")}`
-  }
-
+  
   const getWorkoutProgress = (): number => {
     if (!workout) return 0
     const totalSets = workout.exercises.reduce((sum, ex) => sum + ex.sets.length, 0)
@@ -679,12 +674,7 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
     return totalSets > 0 ? (completedSets / totalSets) * 100 : 0
   }
 
-  const getWorkoutDuration = (): string => {
-    if (!workout) return "0:00"
-    const duration = Math.floor((Date.now() - workout.startTime) / 1000)
-    return formatTime(duration)
-  }
-
+  
   const handleAddSet = (exerciseId: string, afterSetId: string) => {
     if (!workout) return
 
@@ -914,7 +904,7 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
         }
       })
 
-      loadedWorkout = WorkoutLogger.startWorkout(workoutDay.name, transformedExercises, week, day)
+      loadedWorkout = WorkoutLogger.startWorkout(workoutDay.name, transformedExercises, week, day, user?.id)
 
       console.log("[v0] Created new workout:", {
         id: loadedWorkout.id,
@@ -929,7 +919,7 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
     // Preview next week (blocked but visible with suggested weights), fully block weeks 2+ ahead
     if (week > activeProgram.currentWeek) {
       // Trying to access a future week - check if current week is complete
-      const isCurrentWeekCompleted = WorkoutLogger.isWeekCompleted(activeProgram.currentWeek, daysPerWeek)
+      const isCurrentWeekCompleted = WorkoutLogger.isWeekCompleted(activeProgram.currentWeek, daysPerWeek, user?.id)
       const weeksAhead = week - activeProgram.currentWeek
 
       if (!isCurrentWeekCompleted) {
@@ -960,7 +950,7 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
     }
 
     // Check if we should show progression banner
-    const shouldShowBanner = week > 1 && !WorkoutLogger.hasCompletedWorkout(week - 1, day)
+    const shouldShowBanner = week > 1 && !WorkoutLogger.hasCompletedWorkout(week - 1, day, user?.id)
     setShowProgressionBanner(shouldShowBanner)
     if (shouldShowBanner) {
       setProgressionBannerMessage(`Complete Week ${week - 1} Day ${day} to see progression targets`)
@@ -1034,8 +1024,8 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
                 <h1 className="text-lg sm:text-xl font-bold truncate leading-tight">{workout?.workoutName}</h1>
                 <div className="flex items-center gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground">
                   <div className="flex items-center gap-1">
-                    <Clock className="h-3 w-3 sm:h-4 sm:w-4" />
-                    <span>{getWorkoutDuration()}</span>
+                    <Calendar className="h-3 w-3 sm:h-4 sm:w-4" />
+                    <span>Week {workout?.week || 1}</span>
                   </div>
                 </div>
               </div>
@@ -1137,23 +1127,7 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
             </div>
           </div>
         )}
-        {connectionStatus === 'online' && setSyncInfo.queueSize > 0 && (
-          <div className="bg-yellow-50 border-b border-yellow-200 p-2 text-center">
-            <div className="flex items-center justify-center gap-2 text-sm text-yellow-900">
-              <Clock className="h-4 w-4" />
-              <span className="font-medium">
-                {setSyncInfo.queueSize} sets waiting to sync
-              </span>
-              <button
-                onClick={() => ConnectionMonitor.forceSyncSets()}
-                className="ml-2 px-2 py-1 text-xs bg-yellow-100 hover:bg-yellow-200 rounded"
-              >
-                Sync Now
-              </button>
-            </div>
-          </div>
-        )}
-
+        
         {/* Calendar Section - Sticky below header */}
         {showCalendar && (
           <div className="border-b border-border/50 bg-background/95 backdrop-blur-sm w-full sticky top-[100px] sm:top-[120px] z-50 shadow-sm">
@@ -1170,11 +1144,23 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
          workout?.week > 1 &&
          workout?.notes &&
          !isWorkoutBlocked &&
-         !WorkoutLogger.hasCompletedWorkout(workout.week - 1, workout.day || 1) && (
+         !WorkoutLogger.hasCompletedWorkout(workout.week - 1, workout.day || 1, user?.id) && (
           <div className="bg-blue-50 border-b border-blue-200 p-3 text-center">
             <p className="text-sm text-blue-900">
               <span className="font-semibold">Week {workout.week}, Day {workout.day}:</span> {workout.notes}
             </p>
+          </div>
+        )}
+
+        {/* Week Access Banner - Show when accessing Current Week + 1 before current week is completed */}
+        {isWorkoutBlocked && !isFullyBlocked && (
+          <div className="bg-blue-50 border-b border-blue-200 p-3 text-center">
+            <div className="flex items-center justify-center gap-2">
+              <Lock className="h-4 w-4 text-blue-600" />
+              <p className="text-sm text-blue-900 font-medium">
+                Complete Current Week to Start Logging
+              </p>
+            </div>
           </div>
         )}
 
@@ -1187,15 +1173,7 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
           </div>
         )}
 
-        {restTimer && restTimeLeft > 0 && (
-          <div className="bg-primary text-primary-foreground p-4 text-center">
-            <div className="flex items-center justify-center gap-2">
-              <Clock className="h-5 w-5" />
-              <span className="text-lg font-bold">Rest: {formatTime(restTimeLeft)}</span>
-            </div>
-          </div>
-        )}
-
+        
         <Dialog open={showNotesDialog} onOpenChange={setShowNotesDialog}>
           <DialogContent>
             <DialogHeader>
@@ -1274,10 +1252,6 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
                   </div>
                 )
               })()}
-              <div className="text-center p-4 bg-primary/10 rounded-lg">
-                <div className="text-lg font-semibold">Workout Duration</div>
-                <div className="text-2xl font-bold text-primary">{getWorkoutDuration()}</div>
-              </div>
             </div>
             <DialogFooter>
               <Button onClick={() => setShowSummaryDialog(false)}>Close</Button>
@@ -1611,6 +1585,41 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
           ))}
 
           <div className="lg:hidden pt-4 pb-2">
+            {!isWorkoutBlocked && (
+              <>
+                {workout.completed ? (
+                  <div className="w-full p-4 bg-green-50 border-2 border-green-500 rounded-lg text-center">
+                    <Check className="h-6 w-6 mx-auto mb-2 text-green-600" />
+                    <p className="font-semibold text-green-700">Workout Completed</p>
+                    <p className="text-sm text-green-600 mt-1">
+                      {new Date(workout.endTime || workout.startTime).toLocaleDateString()}
+                    </p>
+                  </div>
+                ) : (
+                  <Button
+                    onClick={handleCompleteWorkout}
+                    className="w-full gradient-primary text-primary-foreground"
+                    disabled={!canFinishWorkout() || isCompletingWorkout}
+                  >
+                    {isCompletingWorkout ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Completing...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="h-4 w-4 mr-2" />
+                        {canFinishWorkout() ? "Finish Workout" : "Complete exercises to finish"}
+                      </>
+                    )}
+                  </Button>
+                )}
+              </>
+            )}
+          </div>
+
+          {/* Desktop Finish Workout Bar Inline */}
+          <div className="hidden lg:block lg:mt-8 lg:ml-64 lg:mr-0 lg:px-4 lg:pr-8">
             {!isWorkoutBlocked && (
               <>
                 {workout.completed ? (

@@ -39,24 +39,21 @@ export class ProgressionCalculator {
       }
     }
 
-    // Try to get previous week's workout for the same day
+    // Try to get the most recent completed workout from previous week (any day)
     const previousWeek = currentWeek - 1
-    let previousWorkout = WorkoutLogger.getCompletedWorkout(previousWeek, currentDay)
-    console.log("[ProgressionCalculator] Previous workout for same day:", previousWorkout ? "found" : "not found")
+    const history = WorkoutLogger.getWorkoutHistory()
+    const previousWeekWorkouts = history
+      .filter(w => w.week === previousWeek && w.completed)
+      .sort((a, b) => (b.day || 0) - (a.day || 0)) // Sort by day descending to get most recent
 
-    // If same day doesn't exist, try to get the most recent completed workout from previous week
-    if (!previousWorkout) {
-      const history = WorkoutLogger.getWorkoutHistory()
-      const previousWeekWorkouts = history
-        .filter(w => w.week === previousWeek && w.completed)
-        .sort((a, b) => (b.day || 0) - (a.day || 0)) // Sort by day descending to get most recent
-      
-      previousWorkout = previousWeekWorkouts.length > 0 ? previousWeekWorkouts[0] : null
-      console.log("[ProgressionCalculator] Previous week workouts:", {
-        total: history.filter(w => w.week === previousWeek && w.completed).length,
-        mostRecent: previousWorkout ? `Week ${previousWorkout.week} Day ${previousWorkout.day}` : "none",
-      })
-    }
+    let previousWorkout = previousWeekWorkouts.length > 0 ? previousWeekWorkouts[0] : null
+
+    console.log("[ProgressionCalculator] Previous week workouts:", {
+      week: previousWeek,
+      total: history.filter(w => w.week === previousWeek && w.completed).length,
+      mostRecent: previousWorkout ? `Week ${previousWorkout.week} Day ${previousWorkout.day}` : "none",
+      workouts: previousWeekWorkouts.map(w => `Day ${w.day}: ${w.exercises.length} exercises`)
+    })
 
     // For current week + 1, always try to calculate progression if there's any completed workout from previous week
     // This allows users to see suggested weights even if current week isn't complete

@@ -22,6 +22,7 @@ export default function HomePage() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
   const [programKey, setProgramKey] = useState(0)
+  const [dataLoadingStatus, setDataLoadingStatus] = useState<string>("")
 
   const [currentView, setCurrentView] = useState<
     "dashboard" | "programs" | "workout" | "analytics" | "train" | "profile"
@@ -35,18 +36,61 @@ export default function HomePage() {
 
   useEffect(() => {
     if (user && user.gender) {
-      // Check if user has an active program
-      const activeProgram = ProgramStateManager.getActiveProgram()
+      setDataLoadingStatus("Loading your workout data...")
 
-      if (activeProgram) {
-        // Go directly to workout if program exists
-        setCurrentView("workout")
-      } else {
-        // Go to train screen to select a program
-        setCurrentView("train")
+      // Add a small delay to ensure all data loading is complete
+      const timer = setTimeout(() => {
+        // Check if user has an active program
+        const activeProgram = ProgramStateManager.getActiveProgram()
+
+        if (activeProgram) {
+          // Go directly to workout if program exists
+          setCurrentView("workout")
+        } else {
+          // Go to train screen to select a program
+          setCurrentView("train")
+        }
+
+        setDataLoadingStatus("") // Clear loading status
+        console.log('[HomePage] Initial loading completed')
+      }, 500)
+
+      // Safety net: Force clear loading status after maximum 10 seconds
+      const safetyTimer = setTimeout(() => {
+        console.log('[HomePage] Safety timeout triggered, forcing loading complete')
+        setDataLoadingStatus("")
+      }, 10000)
+
+      return () => {
+        clearTimeout(timer)
+        clearTimeout(safetyTimer)
       }
     }
   }, [user])
+
+  // Listen for data loading status updates
+  useEffect(() => {
+    const handleDataLoadingStatus = (event: any) => {
+      if (event.detail && event.detail.status !== undefined) {
+        const status = event.detail.status
+        console.log('[HomePage] Data loading status:', status)
+        setDataLoadingStatus(status)
+
+        // If status is empty or "Ready!", clear it after a short delay
+        if (!status || status === 'Ready!') {
+          setTimeout(() => {
+            setDataLoadingStatus('')
+            console.log('[HomePage] Loading completed, clearing status')
+          }, 500)
+        }
+      }
+    }
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('dataLoadingStatus', handleDataLoadingStatus)
+      return () => window.removeEventListener('dataLoadingStatus', handleDataLoadingStatus)
+    }
+  }, [])
 
   // Listen for program state changes (e.g., after loading from database)
   useEffect(() => {
@@ -135,9 +179,45 @@ export default function HomePage() {
   if (authLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <div className="text-2xl font-bold text-gradient">LiftLog</div>
-          <div className="text-muted-foreground">Loading...</div>
+        <div className="text-center space-y-6">
+          <div className="text-3xl font-bold text-gradient">LiftLog</div>
+          <div className="space-y-2">
+            <div className="text-muted-foreground">Authenticating...</div>
+            {dataLoadingStatus && (
+              <div className="text-sm text-muted-foreground animate-pulse">
+                {dataLoadingStatus}
+              </div>
+            )}
+          </div>
+          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
+        </div>
+      </div>
+    )
+  }
+
+  // Show data loading screen after authentication is complete but data is still loading
+  if (dataLoadingStatus && dataLoadingStatus.trim() !== '') {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center space-y-6">
+          <div className="text-3xl font-bold text-gradient">LiftLog</div>
+          <div className="space-y-2">
+            <div className="text-muted-foreground">Preparing your workout space...</div>
+            <div className="text-sm text-muted-foreground animate-pulse">
+              {dataLoadingStatus}
+            </div>
+          </div>
+          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
+          {/* Add manual clear button for debugging */}
+          <button
+            onClick={() => {
+              console.log('[HomePage] Manual clear loading status')
+              setDataLoadingStatus('')
+            }}
+            className="mt-4 px-4 py-2 text-xs text-muted-foreground hover:text-foreground transition-colors"
+          >
+            Force Continue
+          </button>
         </div>
       </div>
     )

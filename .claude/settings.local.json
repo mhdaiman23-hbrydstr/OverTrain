@@ -1,14 +1,15 @@
 {
   "env": {
-    "PROJECT_CONTEXT": "LiftLog - Next.js 14 fitness tracking app with Supabase authentication, gender-specific workout programs, and analytics",
-    "ANTHROPIC_DEFAULT_HAIKU_MODEL": "glm-4.5-air",
-    "ANTHROPIC_DEFAULT_SONNET_MODEL": "glm-4.6",
-    "ANTHROPIC_DEFAULT_OPUS_MODEL": "glm-4.6"
-
+    "PROJECT_CONTEXT": "LiftLog - Next.js 14 fitness tracking app with Supabase authentication, gender-specific workout programs, and analytics"
   },
   "permissions": {
     "allow": [
-      "Read(S:/Program Files/**)"
+      "Read(S:/Program Files/**)",
+      "Bash(npm run dev:*)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(taskkill:*)",
+      "Bash(git add:*)"
     ]
   }
 }
