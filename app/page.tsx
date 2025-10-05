@@ -150,7 +150,7 @@ export default function HomePage() {
   if (user && currentView === "profile") {
     return (
       <div className="flex h-screen bg-background overflow-hidden">
-        <SidebarNavigation currentView="profile" onViewChange={setCurrentView} />
+        <SidebarNavigation currentView="profile" onViewChange={handleViewChange} />
 
         <div className="flex-1 lg:ml-64 overflow-y-auto overflow-x-hidden h-screen">
           <ProfileSection />
@@ -163,7 +163,7 @@ export default function HomePage() {
   if (user && currentView === "programs") {
     return (
       <div className="flex h-screen bg-background overflow-hidden">
-        <SidebarNavigation currentView="programs" onViewChange={setCurrentView} />
+        <SidebarNavigation currentView="programs" onViewChange={handleViewChange} />
 
         <div className="flex-1 lg:ml-64 overflow-y-auto overflow-x-hidden h-screen">
           <ProgramsSection
@@ -188,7 +188,7 @@ export default function HomePage() {
 
     return (
       <div className="flex h-screen bg-background overflow-hidden">
-        <SidebarNavigation currentView="workout" onViewChange={setCurrentView} />
+        <SidebarNavigation currentView="workout" onViewChange={handleViewChange} />
 
         <div className="flex-1 lg:ml-64 overflow-y-auto overflow-x-hidden h-screen">
           <WorkoutLoggerComponent
@@ -207,7 +207,7 @@ export default function HomePage() {
   if (user && currentView === "analytics") {
     return (
       <div className="flex h-screen bg-background overflow-hidden">
-        <SidebarNavigation currentView="analytics" onViewChange={setCurrentView} />
+        <SidebarNavigation currentView="analytics" onViewChange={handleViewChange} />
 
         <div className="flex-1 lg:ml-64 overflow-y-auto overflow-x-hidden h-screen">
           <AnalyticsSection />
@@ -220,7 +220,7 @@ export default function HomePage() {
   if (user && currentView === "train") {
     return (
       <div className="flex h-screen bg-background overflow-x-hidden">
-        <SidebarNavigation currentView="train" onViewChange={setCurrentView} />
+        <SidebarNavigation currentView="train" onViewChange={handleViewChange} />
 
         <div className="flex-1 lg:ml-64 overflow-x-hidden">
           <div className="min-h-screen bg-background">

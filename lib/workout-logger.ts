@@ -40,13 +40,16 @@ export interface WorkoutSession {
   day?: number
 }
 
-export class WorkoutLogger implements SetSyncProvider {
+export class WorkoutLogger {
   private static readonly STORAGE_KEY = "liftlog_workouts"
   private static readonly IN_PROGRESS_KEY = "liftlog_in_progress_workouts"
 
   // Register as set sync provider when module loads
   static {
-    ConnectionMonitor.registerSetSyncProvider(WorkoutLogger)
+    ConnectionMonitor.registerSetSyncProvider({
+      getSetSyncStatus: () => WorkoutLogger.getSetSyncStatus(),
+      syncQueuedSets: () => WorkoutLogger.syncQueuedSets()
+    })
 
     // Attach testing methods to window object in development
     if (typeof window !== "undefined" && process.env.NODE_ENV === "development") {

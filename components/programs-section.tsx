@@ -368,7 +368,7 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
                     <div
                       key={template.id}
                       className="px-4 py-4 hover:bg-muted/30 transition-colors cursor-pointer flex items-center justify-between gap-3"
-                      onClick={() => handleTemplateClick(template.id)}
+                      onClick={() => handleTemplateClick(template.id, false)}
                     >
                       <div className="flex-1 min-w-0">
                         <h3 className="font-semibold text-base leading-tight mb-1">{template.name}</h3>
