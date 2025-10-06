@@ -120,6 +120,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Step 4: Ensure data integrity and run cleanup
       emitStatus('Validating workout data...')
       WorkoutLogger.migrateGlobalToUserSpecific(userId)
+      WorkoutLogger.migrateCompletedWorkoutsToHistory(userId)
+      WorkoutLogger.cleanupSkippedWorkoutsFromHistory(userId) // Remove old skipped workouts
       WorkoutLogger.cleanupCorruptedWorkouts(userId)
       WorkoutLogger.validateAndRepairWorkoutIntegrity(userId)
 

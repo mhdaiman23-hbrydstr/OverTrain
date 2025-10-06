@@ -9,6 +9,8 @@ import {
   determineProgressionStrategy,
   type ProgressionTier
 } from "./progression-tiers"
+import { ProgressionRouter, type ProgressionInput, type ProgressionResult } from "./progression-router"
+import type { ActiveProgram } from "./program-state"
 
 export interface ProgressedExerciseData {
   targetWeight: number
@@ -443,5 +445,124 @@ export class ProgressionCalculator {
       return `↓ -${decrease}lbs`
     }
     return "→ Same weight"
+  }
+
+  /**
+   * Calculate adaptive progression using the new ProgressionRouter system
+   * This is the recommended method for new implementations
+   */
+  static calculateAdaptiveProgressionWithRouter(
+    exerciseId: string,
+    exerciseName: string,
+    currentWeek: number,
+    currentDay: number,
+    exerciseTemplate: ExerciseTemplate,
+    activeProgram: ActiveProgram,
+    userProfile: { experience: "beginner" | "intermediate" | "advanced"; gender: "male" | "female" },
+    userWeightAdjustment?: number,
+    oneRepMaxes?: any[]
+  ): AdaptiveProgressionResult {
+    console.log("[ProgressionCalculator] calculateAdaptiveProgressionWithRouter called:", {
+      exerciseId,
+      exerciseName,
+      currentWeek,
+      currentDay,
+      templateProgressionType: activeProgram.template.progressionConfig?.type || activeProgram.template.progressionScheme?.type,
+      hasOverride: !!activeProgram.progressionOverride?.enabled,
+      userWeightAdjustment
+    })
+
+    // Get previous performance data
+    const previousPerformance = ProgressionRouter.getPreviousPerformance(exerciseId, exerciseName, currentWeek)
+
+    // Prepare progression input
+    const progressionInput: ProgressionInput = {
+      exercise: exerciseTemplate,
+      activeProgram,
+      currentWeek,
+      userProfile,
+      previousPerformance: previousPerformance || undefined,
+      userWeightAdjustment,
+      oneRepMaxes
+    }
+
+    // Route to appropriate engine
+    const progressionResult: ProgressionResult = ProgressionRouter.calculateProgression(progressionInput)
+
+    console.log("[ProgressionCalculator] Router result:", {
+      engineUsed: progressionResult.engineUsed,
+      strategy: progressionResult.strategy,
+      targetWeight: progressionResult.targetWeight,
+      targetReps: progressionResult.targetReps,
+      note: progressionResult.progressionNote
+    })
+
+    // Convert to AdaptiveProgressionResult format for backward compatibility
+    const adaptiveResult: AdaptiveProgressionResult = {
+      targetWeight: progressionResult.targetWeight,
+      targetSets: progressionResult.targetSets || this.getCurrentWeekSets(exerciseTemplate, currentWeek),
+      targetReps: this.formatRepRange(progressionResult.targetReps),
+      progressionNote: progressionResult.progressionNote,
+      hasPreviousData: !!previousPerformance,
+      tier: getExerciseTier(exerciseName, exerciseTemplate.category),
+      strategy: this.mapStrategy(progressionResult.strategy),
+      adjustedReps: progressionResult.additionalData?.adjustedReps,
+      bounds: progressionResult.additionalData?.bounds,
+      targetVolume: progressionResult.targetWeight * progressionResult.targetReps,
+      userWeightAdjustment
+    }
+
+    // Add percentage-specific data if available
+    if (progressionResult.engineUsed === "percentage" && progressionResult.additionalData) {
+      adaptiveResult.targetVolume = progressionResult.additionalData.percentage ?
+        (progressionResult.additionalData.oneRepMaxUsed || 0) * (progressionResult.additionalData.percentage / 100) * progressionResult.targetReps :
+        adaptiveResult.targetVolume
+    }
+
+    return adaptiveResult
+  }
+
+  /**
+   * Get current week sets from template
+   */
+  private static getCurrentWeekSets(exerciseTemplate: ExerciseTemplate, currentWeek: number): number {
+    const weekKey = `week${currentWeek}`
+    const weekData = exerciseTemplate.progressionTemplate[weekKey] || exerciseTemplate.progressionTemplate.week1
+    return weekData?.sets || 3
+  }
+
+  /**
+   * Format rep number to range string for backward compatibility
+   */
+  private static formatRepRange(reps: number | string): string {
+    if (typeof reps === "number") {
+      return `${reps}-${reps + 2}` // Convert single number to range
+    }
+    return reps
+  }
+
+  /**
+   * Map router strategy to legacy strategy format
+   */
+  private static mapStrategy(strategy: ProgressionResult["strategy"]): AdaptiveProgressionResult["strategy"] {
+    switch (strategy) {
+      case "linear":
+      case "percentage":
+      case "hybrid":
+        return "standard"
+      case "deload":
+        return "standard"
+      case "out_of_bounds":
+        return "out_of_bounds"
+      case "volume_compensated":
+        return "volume_compensated"
+      case "multi_week":
+        return "multi_week"
+      case "estimated_1rm":
+      case "no_1rm_data":
+        return "standard"
+      default:
+        return "standard"
+    }
   }
 }

@@ -38,6 +38,22 @@ export interface WorkoutDay {
   exercises: ExerciseTemplate[]
 }
 
+export interface ProgressionConfig {
+  type: "linear" | "percentage" | "hybrid"
+  deloadWeek: number
+  compoundProgression?: "linear" | "percentage"
+  accessoryProgression?: "linear" | "percentage"
+  compoundExercises?: string[]
+  linearRules?: {
+    weeklyIncrease: number
+    deloadWeek: number
+  }
+  percentageRules?: {
+    requiresOneRM: boolean
+    percentageProgression: Record<string, { working: number[]; deload?: number[] }>
+  }
+}
+
 export interface GymTemplate {
   id: string
   name: string
@@ -45,7 +61,8 @@ export interface GymTemplate {
   weeks: number
   gender: ("male" | "female")[]
   experience: ("beginner" | "intermediate" | "advanced")[]
-  progressionScheme: {
+  progressionConfig?: ProgressionConfig
+  progressionScheme?: {
     type: "linear" | "periodized"
     deloadWeek: number
     progressionRules: {
@@ -123,6 +140,14 @@ export const GYM_TEMPLATES: GymTemplate[] = [
     weeks: 6,
     gender: ["male"],
     experience: ["beginner"],
+    progressionConfig: {
+      type: "linear",
+      deloadWeek: 6,
+      linearRules: {
+        weeklyIncrease: 0.025,
+        deloadWeek: 6
+      }
+    },
     progressionScheme: {
       type: "linear",
       deloadWeek: 6,
@@ -496,12 +521,86 @@ export const GYM_TEMPLATES: GymTemplate[] = [
     },
   },
 
+  // 4-Day Intermediate Percentage-Based Template
+  {
+    id: "percentage-4day-intermediate-male",
+    name: "4-Day Percentage-Based Intermediate",
+    days: 4,
+    weeks: 6,
+    gender: ["male"],
+    experience: ["intermediate", "advanced"],
+    progressionConfig: {
+      type: "percentage",
+      deloadWeek: 4,
+      percentageRules: {
+        requiresOneRM: true,
+        percentageProgression: {
+          week1: { working: [75, 80, 85] },
+          week2: { working: [77.5, 82.5, 87.5] },
+          week3: { working: [80, 85, 90] },
+          week4: { working: [70, 75, 80], deload: [60, 65, 70] },
+          week5: { working: [82.5, 87.5, 92.5] },
+          week6: { working: [85, 90, 95] }
+        }
+      }
+    },
+    progressionScheme: {
+      type: "periodized",
+      deloadWeek: 4,
+      progressionRules: {
+        compound: {
+          successThreshold: "all_sets_completed",
+          weightIncrease: 5,
+          failureResponse: "repeat_week",
+        },
+        isolation: {
+          successThreshold: "all_sets_completed",
+          weightIncrease: 2.5,
+          failureResponse: "repeat_week",
+        },
+      },
+    },
+    schedule: {
+      day1: {
+        name: "Upper Body Strength",
+        exercises: [
+          addTierToExercise({
+            id: "bench-perc1",
+            exerciseName: "Barbell Bench Press",
+            category: "compound",
+            equipmentType: "BARBELL",
+            progressionTemplate: {
+              week1: { sets: 4, repRange: "6-8" },
+              week2: { sets: 4, repRange: "5-7" },
+              week3: { sets: 4, repRange: "4-6" },
+              week4: { sets: 3, repRange: "8-10", intensity: "deload" },
+              week5: { sets: 4, repRange: "3-5" },
+              week6: { sets: 3, repRange: "2-4" },
+            },
+            autoProgression: {
+              enabled: true,
+              progressionType: "weight_based",
+              rules: {
+                if_all_sets_completed: "percentage_based",
+                if_failed_reps: "repeat_percentage",
+                if_failed_twice: "reduce_percentage_5",
+              },
+            },
+            restTime: 240,
+          }),
+          // ... more exercises
+        ],
+      },
+      // ... more days
+    },
+  },
+
   // 3-Day Full Body Beginner Female
   {
     id: "fullbody-3day-beginner-female",
     name: "3-Day Full Body Beginner",
     days: 3,
-    weeks: 8,
+    weeks: 6,
     gender: ["female"],
     experience: ["beginner"],
     progressionScheme: {
@@ -742,7 +841,7 @@ export const GYM_TEMPLATES: GymTemplate[] = [
     id: "upperlower-4day-intermediate-male",
     name: "4-Day Upper/Lower Split",
     days: 4,
-    weeks: 12,
+    weeks: 6,
     gender: ["male"],
     experience: ["intermediate"],
     progressionScheme: {
@@ -1147,7 +1246,7 @@ export const GYM_TEMPLATES: GymTemplate[] = [
     id: "ppl-6day-intermediate-male",
     name: "6-Day Push/Pull/Legs",
     days: 6,
-    weeks: 12,
+    weeks: 6,
     gender: ["male"],
     experience: ["intermediate", "advanced"],
     progressionScheme: {

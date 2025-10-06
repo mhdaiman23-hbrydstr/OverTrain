@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Plus, MoreVertical, Check, Filter } from "lucide-react"
+import { Plus, MoreVertical, AlertTriangle, Filter, Check } from "lucide-react"
 import { GYM_TEMPLATES, getTemplatesByFilter } from "@/lib/gym-templates"
 import { ProgramStateManager } from "@/lib/program-state"
 import { TemplateStorageManager } from "@/lib/template-storage"
@@ -27,15 +27,20 @@ interface ProgramsSectionProps {
   onAddProgram: () => void
   onProgramStarted?: () => void
   onNavigateToTrain?: () => void
+  userProfile?: {
+    experience: "beginner" | "intermediate" | "advanced"
+    gender: "male" | "female"
+  }
 }
 
-export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTrain }: ProgramsSectionProps) {
+export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTrain, userProfile }: ProgramsSectionProps) {
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null)
   const [showSwitchDialog, setShowSwitchDialog] = useState(false)
-  const [pendingProgramId, setPendingProgramId] = useState<string | null>(null)
+  const [pendingProgramId, setPendingProgramId] = useState<{ templateId: string; progressionOverride?: any } | null>(null)
   const [programHistory, setProgramHistory] = useState<any[]>([])
   const [activeProgram, setActiveProgram] = useState<any>(null)
   const [savedTemplates, setSavedTemplates] = useState<any[]>([])
+  const [workoutHistory, setWorkoutHistory] = useState<any[]>([])
   const [filterOpen, setFilterOpen] = useState(false)
 
   const [experienceFilter, setExperienceFilter] = useState<string>("all")
@@ -44,14 +49,31 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
   const [durationFilter, setDurationFilter] = useState<string>("all")
 
   useEffect(() => {
-    const history = TemplateStorageManager.getProgramHistory()
-    setProgramHistory(history)
+    const loadData = () => {
+      const history = TemplateStorageManager.getProgramHistory()
+      setProgramHistory(history)
 
-    const active = ProgramStateManager.getActiveProgram()
-    setActiveProgram(active)
+      const active = ProgramStateManager.getActiveProgram()
+      setActiveProgram(active)
 
-    const saved = TemplateStorageManager.getSavedTemplates()
-    setSavedTemplates(saved)
+      const saved = TemplateStorageManager.getSavedTemplates()
+      setSavedTemplates(saved)
+
+      const workouts = WorkoutLogger.getWorkoutHistory()
+      setWorkoutHistory(workouts)
+    }
+
+    loadData()
+
+    if (typeof window !== "undefined") {
+      window.addEventListener("programChanged", loadData)
+    }
+
+    return () => {
+      if (typeof window !== "undefined") {
+        window.removeEventListener("programChanged", loadData)
+      }
+    }
   }, [])
 
   const getFilteredTemplates = () => {
@@ -90,23 +112,23 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
     setSelectedTemplate(templateId)
   }
 
-  const handleStartProgram = (templateId: string) => {
-    console.log("[v0] Start Program clicked for:", templateId)
+  const handleStartProgram = (templateId: string, progressionOverride?: any) => {
+    console.log("[v0] Start Program clicked for:", templateId, "with override:", !!progressionOverride)
 
     const activeProgram = ProgramStateManager.getActiveProgram()
 
     if (activeProgram) {
       console.log("[v0] Active program exists, showing confirmation dialog")
-      setPendingProgramId(templateId)
+      setPendingProgramId({ templateId, progressionOverride })
       setShowSwitchDialog(true)
       return
     }
 
-    startNewProgram(templateId)
+    startNewProgram(templateId, progressionOverride)
   }
 
-  const startNewProgram = (templateId: string) => {
-    console.log("[v0] Starting program:", templateId)
+  const startNewProgram = (templateId: string, progressionOverride?: any) => {
+    console.log("[v0] Starting program:", templateId, "with override:", !!progressionOverride)
 
     const template = GYM_TEMPLATES.find((t) => t.id === templateId)
     if (!template) {
@@ -114,9 +136,14 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
       return
     }
 
+    // Clear all in-progress workouts to start fresh
     WorkoutLogger.clearCurrentWorkout()
+    WorkoutLogger.cleanupFalseSkippedSets()
+    
+    // Also clear any corrupted workout data
+    WorkoutLogger.cleanupCorruptedWorkouts()
 
-    const activeProgram = ProgramStateManager.setActiveProgram(templateId)
+    const activeProgram = ProgramStateManager.setActiveProgram(templateId, progressionOverride)
 
     if (activeProgram) {
       console.log("[v0] Program activated successfully:", activeProgram)
@@ -135,7 +162,7 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
   const handleConfirmSwitch = () => {
     if (!pendingProgramId) return
 
-    startNewProgram(pendingProgramId)
+    startNewProgram(pendingProgramId.templateId, pendingProgramId.progressionOverride)
     setShowSwitchDialog(false)
 
     const updatedHistory = TemplateStorageManager.getProgramHistory()
@@ -180,6 +207,7 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
           templateId={selectedTemplate}
           onClose={() => setSelectedTemplate(null)}
           onStartProgram={handleStartProgram}
+          userProfile={userProfile}
         />
       ) : (
         <div className="w-full min-h-screen pb-20 lg:pb-4">
@@ -316,10 +344,6 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
                 ) : (
                   filteredTemplates.map((template) => {
                     const isActive = activeProgram?.template.id === template.id
-                    const historyEntry = programHistory.find(
-                      (p) => p.templateId === template.id && p.completionRate === 100,
-                    )
-                    const isCompleted = !!historyEntry
 
                     return (
                       <div
@@ -339,11 +363,6 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
                             <Badge variant="secondary" className="text-xs font-medium px-2 py-1">
                               CURRENT
                             </Badge>
-                          )}
-                          {isCompleted && !isActive && (
-                            <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center">
-                              <Check className="h-4 w-4 text-white" />
-                            </div>
                           )}
                           <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                             <MoreVertical className="h-4 w-4 text-muted-foreground" />
@@ -368,7 +387,7 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
                     <div
                       key={template.id}
                       className="px-4 py-4 hover:bg-muted/30 transition-colors cursor-pointer flex items-center justify-between gap-3"
-                      onClick={() => handleTemplateClick(template.id)}
+                      onClick={() => handleTemplateClick(template.id, false)}
                     >
                       <div className="flex-1 min-w-0">
                         <h3 className="font-semibold text-base leading-tight mb-1">{template.name}</h3>
@@ -397,6 +416,8 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
                     const template = GYM_TEMPLATES.find((t) => t.id === entry.templateId)
                     if (!template) return null
 
+                    const endedEarly = (entry.endedEarly ?? false) || (entry.completionRate < 100 && entry.endDate)
+
                     return (
                       <div key={index} className="px-4 py-4 hover:bg-muted/30 transition-colors">
                         <div className="flex items-start justify-between gap-3">
@@ -410,11 +431,21 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
                               {entry.endDate ? new Date(entry.endDate).toLocaleDateString() : "In Progress"}
                             </p>
                           </div>
-                          {entry.completionRate === 100 && (
-                            <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center">
-                              <Check className="h-4 w-4 text-white" />
-                            </div>
-                          )}
+                          <div className="flex items-center gap-2">
+                            {entry.completionRate === 100 && (
+                              <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center">
+                                <Check className="h-4 w-4 text-white" />
+                              </div>
+                            )}
+                            {endedEarly && (
+                              <div
+                                className="w-6 h-6 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center"
+                                title="Program ended early"
+                              >
+                                <AlertTriangle className="h-4 w-4" />
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
                     )

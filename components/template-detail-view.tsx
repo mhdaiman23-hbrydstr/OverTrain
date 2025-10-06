@@ -1,12 +1,19 @@
 "use client"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { X, Play } from "lucide-react"
 import { GYM_TEMPLATES } from "@/lib/gym-templates"
+import { AdvancedProgramSettings } from "@/components/advanced-program-settings"
+import type { ProgressionOverride } from "@/lib/program-state"
 
 interface TemplateDetailViewProps {
   templateId: string
   onClose: () => void
-  onStartProgram: (templateId: string) => void
+  onStartProgram: (templateId: string, progressionOverride?: ProgressionOverride) => void
+  userProfile?: {
+    experience: "beginner" | "intermediate" | "advanced"
+    gender: "male" | "female"
+  }
 }
 
 const MUSCLE_GROUP_COLORS = {
@@ -34,8 +41,16 @@ const getMuscleGroupFromExercise = (exerciseName: string): string => {
   return "CHEST" // default
 }
 
-export function TemplateDetailView({ templateId, onClose, onStartProgram }: TemplateDetailViewProps) {
+export function TemplateDetailView({ templateId, onClose, onStartProgram, userProfile }: TemplateDetailViewProps) {
   console.log("[v0] TemplateDetailView rendered with templateId:", templateId)
+  const [progressionOverride, setProgressionOverride] = useState<ProgressionOverride | undefined>()
+
+  // Default user profile if not provided
+  const defaultUserProfile = {
+    experience: "beginner" as const,
+    gender: "male" as const
+  }
+  const currentUserProfile = userProfile || defaultUserProfile
 
   const template = GYM_TEMPLATES.find((t) => t.id === templateId)
 
@@ -70,17 +85,17 @@ export function TemplateDetailView({ templateId, onClose, onStartProgram }: Temp
   console.log("[v0] Workout days:", workoutDays.length)
 
   return (
-    <div className="h-screen bg-background">
-      <div className="max-w-md mx-auto w-full h-full flex flex-col">
+    <div className="min-h-screen bg-background pb-20">
+      <div className="max-w-4xl mx-auto w-full min-h-screen flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 pt-6 border-b bg-background z-10">
-          <div className="flex-1">
-            <h1 className="text-xl font-bold text-balance">{template.name}</h1>
-            <p className="text-sm text-muted-foreground mt-1 uppercase">
+        <div className="flex items-center justify-between p-4 sm:p-6 lg:p-8 pt-6 sm:pt-8 border-b bg-background z-10 sticky top-0">
+          <div className="flex-1 min-w-0">
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-balance leading-tight">{template.name}</h1>
+            <p className="text-sm sm:text-base text-muted-foreground mt-1 uppercase tracking-wide">
               {template.weeks} WEEKS - {template.days} DAYS/WEEK
             </p>
           </div>
-          <Button variant="ghost" size="sm" onClick={onClose}>
+          <Button variant="ghost" size="sm" onClick={onClose} className="ml-4 shrink-0">
             <X className="h-5 w-5" />
           </Button>
         </div>
@@ -89,19 +104,19 @@ export function TemplateDetailView({ templateId, onClose, onStartProgram }: Temp
         <div className="flex-1 overflow-y-auto">
           <div className="divide-y divide-border">
             {workoutDays.map((day, dayIndex) => (
-              <div key={dayIndex} className="px-4 py-4">
-                <h3 className="font-semibold text-base mb-3">
+              <div key={dayIndex} className="px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+                <h3 className="font-semibold text-base sm:text-lg lg:text-xl mb-4 sm:mb-6 leading-tight">
                   {day.day} - {day.workout.name}
                 </h3>
 
-                <div className="space-y-2">
+                <div className="space-y-3 sm:space-y-4">
                   {day.workout.exercises.map((exercise, exerciseIndex) => (
-                    <div key={exerciseIndex} className="flex items-start gap-3 py-2">
+                    <div key={exerciseIndex} className="flex items-start gap-3 sm:gap-4 py-2 sm:py-3">
                       {/* Exercise number and muscle indicator */}
-                      <div className="flex flex-col items-center gap-1 min-w-[32px] pt-0.5">
-                        <div className="text-xs font-medium text-muted-foreground">{exerciseIndex + 1}</div>
+                      <div className="flex flex-col items-center gap-1 min-w-[32px] sm:min-w-[40px] pt-0.5 sm:pt-1">
+                        <div className="text-xs sm:text-sm font-medium text-muted-foreground">{exerciseIndex + 1}</div>
                         <div
-                          className={`w-2.5 h-2.5 rounded-full ${
+                          className={`w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full ${
                             MUSCLE_GROUP_COLORS[exercise.muscleGroup as keyof typeof MUSCLE_GROUP_COLORS] ||
                             "bg-gray-400"
                           }`}
@@ -110,8 +125,8 @@ export function TemplateDetailView({ templateId, onClose, onStartProgram }: Temp
 
                       {/* Exercise details */}
                       <div className="flex-1 min-w-0">
-                        <div className="font-medium text-sm leading-tight mb-0.5">{exercise.name}</div>
-                        <div className="text-xs text-muted-foreground">
+                        <div className="font-medium text-sm sm:text-base lg:text-lg leading-tight mb-1 sm:mb-2">{exercise.name}</div>
+                        <div className="text-xs sm:text-sm text-muted-foreground">
                           {exercise.sets} sets × {exercise.reps} reps • {exercise.rest} rest
                         </div>
                       </div>
@@ -123,17 +138,31 @@ export function TemplateDetailView({ templateId, onClose, onStartProgram }: Temp
           </div>
         </div>
 
+        {/* Advanced Settings */}
+        <div className="px-4 sm:px-6 lg:px-8 pb-4 sm:pb-6 flex-shrink-0">
+          <AdvancedProgramSettings
+            template={template}
+            userProfile={currentUserProfile}
+            onOverrideChange={setProgressionOverride}
+          />
+        </div>
+
         {/* Start button */}
-        <div className="p-4 bg-background border-t mb-16">
+        <div className="p-4 sm:p-6 lg:p-8 bg-background border-t sticky bottom-0 z-50 flex-shrink-0 mb-20">
           <Button
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+            className="w-full sm:w-auto sm:min-w-[200px] bg-blue-600 hover:bg-blue-700 text-white text-base sm:text-lg py-3 sm:py-4"
             onClick={() => {
-              console.log("[v0] Start Program clicked for:", templateId)
-              onStartProgram(templateId)
+              console.log("[v0] Start Program clicked for:", templateId, "with override:", !!progressionOverride)
+              onStartProgram(templateId, progressionOverride)
             }}
           >
-            <Play className="h-4 w-4 mr-2" />
+            <Play className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
             Start Program
+            {progressionOverride && (
+              <span className="ml-2 text-xs sm:text-sm bg-white/20 px-2 py-1 rounded">
+                ⚙️ Custom
+              </span>
+            )}
           </Button>
         </div>
       </div>

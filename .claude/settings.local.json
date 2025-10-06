@@ -10,7 +10,14 @@
       "Bash(findstr:*)",
       "Bash(taskkill:*)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(npm audit:*)",
+      "Bash(npm install:*)",
+      "Bash(npm view:*)",
+      "Bash(npm run build:*)",
+      "Bash(npm run lint)",
+      "Bash(mkdir:*)",
+      "Bash(git -C \"S:/Program Files/LiftLog\" status --short lib/workout-logger.ts)"
     ]
   }
 }

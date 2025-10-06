@@ -30,9 +30,11 @@ import { ExerciseLibrary } from "@/components/exercise-library"
 import { ProgramStateManager } from "@/lib/program-state"
 import { getTemplateById } from "@/lib/gym-templates"
 import { getExerciseMuscleGroup } from "@/lib/exercise-muscle-groups"
-import { ProgressionCalculator } from "@/lib/progression-calculator"
+import { ProgressionRouter, type ProgressionInput } from "@/lib/progression-router"
+import { getTierRules, isWeightWithinBounds, calculateVolumeCompensation } from "@/lib/progression-tiers"
 import { useAuth } from "@/contexts/auth-context"
 import { ConnectionMonitor, type ConnectionStatus } from "@/lib/connection-monitor"
+import { useToast } from "@/hooks/use-toast"
 import {
   Save,
   MoreVertical,
@@ -78,6 +80,7 @@ interface WorkoutLoggerProps {
 
 export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, onViewAnalytics }: WorkoutLoggerProps) {
   const { user } = useAuth()
+  const { toast } = useToast()
   const [workout, setWorkout] = useState<WorkoutSession | null>(null)
   const [showNotesDialog, setShowNotesDialog] = useState(false)
   const [showSummaryDialog, setShowSummaryDialog] = useState(false)
@@ -108,10 +111,17 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
 
   // Connection status
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('online')
-  const [setSyncInfo, setSetSyncInfo] = useState<{ queueSize: number; lastSync?: number }>({ queueSize: 0 })
 
   // Loading state for finish workout
   const [isCompletingWorkout, setIsCompletingWorkout] = useState(false)
+
+  // Progression tracking for volume compensation
+  const [userOverrides, setUserOverrides] = useState<Record<string, boolean>>({})
+  const [volumeCompensation, setVolumeCompensation] = useState<Record<string, {
+    adjustedReps: number
+    strategy: string
+    message?: string
+  }>>({})
 
   useEffect(() => {
     console.log("[v0] ===== STORAGE DEBUG =====")
@@ -202,6 +212,20 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
   }, [])
 
   useEffect(() => {
+    // First, check raw localStorage data
+    console.log("[v0] 💾 RAW LOCALSTORAGE CHECK:", {
+      inProgressKey: 'liftlog_in_progress_workouts',
+      rawValue: localStorage.getItem('liftlog_in_progress_workouts'),
+      parsed: (() => {
+        try {
+          const raw = localStorage.getItem('liftlog_in_progress_workouts')
+          return raw ? JSON.parse(raw) : null
+        } catch (e) {
+          return { error: (e as Error).message }
+        }
+      })()
+    })
+
     const activeProgram = ProgramStateManager.getActiveProgram()
     if (activeProgram) {
       setProgramName(activeProgram.template.name)
@@ -209,7 +233,7 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
 
     const existingWorkout = WorkoutLogger.getCurrentWorkout()
     if (existingWorkout) {
-      console.log("[v0] Component loaded existing workout:", {
+      console.log("[v0] 📥 COMPONENT LOAD - Existing workout from localStorage:", {
         id: existingWorkout.id,
         week: existingWorkout.week,
         day: existingWorkout.day,
@@ -218,22 +242,152 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
           name: ex.exerciseName,
           setsCount: ex.sets?.length || 0,
           hasSets: !!ex.sets,
+          firstSetState: ex.sets?.[0] ? {
+            reps: ex.sets[0].reps,
+            weight: ex.sets[0].weight,
+            completed: ex.sets[0].completed,
+            skipped: ex.sets[0].skipped
+          } : null
         })),
+        fullWorkout: JSON.parse(JSON.stringify(existingWorkout))
       })
       setWorkout(existingWorkout)
       setWorkoutNotes(existingWorkout.notes || "")
 
+      // CRITICAL: Only refresh progression for IN-PROGRESS workouts, not completed ones
+      // Completed workouts should remain read-only and not be saved back to in-progress storage
+      if (
+        !existingWorkout.completed && // Only refresh in-progress workouts
+        activeProgram &&
+        existingWorkout.week &&
+        existingWorkout.week >= activeProgram.currentWeek &&
+        existingWorkout.week > 1 &&
+        existingWorkout.exercises.some(
+          (ex) =>
+            !ex.suggestedWeight ||
+            ex.suggestedWeight === 0 ||
+            (ex.progressionNote &&
+              ex.progressionNote.includes("Complete any workout from Week"))
+        )
+      ) {
+        console.log(
+          "[v0] 🔄 MOUNT - In-progress workout needs progression refresh, recalculating..."
+        )
+
+        const scheduleKeys = Object.keys(activeProgram.template.schedule)
+        const inferredDayKey =
+          typeof existingWorkout.day === "number" && existingWorkout.day > 0
+            ? `day${existingWorkout.day}`
+            : undefined
+        const dayKey =
+          inferredDayKey && activeProgram.template.schedule[inferredDayKey]
+            ? inferredDayKey
+            : scheduleKeys[existingWorkout.day ? existingWorkout.day - 1 : 0]
+
+        const workoutDay = dayKey
+          ? activeProgram.template.schedule[dayKey]
+          : undefined
+
+        if (workoutDay?.exercises?.length) {
+          const refreshedExercises = existingWorkout.exercises.map((exercise) => {
+            const templateExercise = workoutDay.exercises.find(
+              (te) =>
+                te.exerciseName === exercise.exerciseName ||
+                te.id === exercise.exerciseId
+            )
+
+            if (!templateExercise) {
+              console.log(
+                "[v0] MOUNT - Template exercise not found for:",
+                exercise.exerciseName
+              )
+              return exercise
+            }
+
+            const previousPerformance = ProgressionRouter.getPreviousPerformance(
+              templateExercise.id,
+              templateExercise.exerciseName,
+              existingWorkout.week!,
+              existingWorkout.day
+            )
+
+            if (!previousPerformance) {
+              console.log(
+                "[v0] MOUNT - No previous performance for:",
+                exercise.exerciseName
+              )
+              return exercise
+            }
+
+            const progressionInput: ProgressionInput = {
+              exercise: templateExercise,
+              activeProgram,
+              currentWeek: existingWorkout.week!,
+              userProfile: {
+                experience:
+                  (user?.experience as "beginner" | "intermediate" | "advanced") ||
+                  "beginner",
+                gender: (user?.gender as "male" | "female") || "male",
+              },
+              previousPerformance,
+            }
+
+            const result = ProgressionRouter.calculateProgression(progressionInput)
+
+            console.log("[v0] MOUNT - Refreshed progression for", exercise.exerciseName, {
+              suggestedWeight: result.targetWeight,
+              progressionNote: result.progressionNote,
+            })
+
+            const suggestedWeight = result.targetWeight ?? 0
+
+            const updatedSets = exercise.sets?.map((set) => ({
+              ...set,
+              weight:
+                !set.completed && !set.skipped && suggestedWeight > 0
+                  ? suggestedWeight
+                  : set.weight,
+            }))
+
+            return {
+              ...exercise,
+              suggestedWeight,
+              progressionNote: result.progressionNote,
+              baseVolume:
+                typeof result.targetWeight === "number" &&
+                typeof result.targetReps === "number"
+                  ? result.targetWeight * result.targetReps
+                  : exercise.baseVolume,
+              userOverridden: false,
+              sets: updatedSets ?? exercise.sets,
+            }
+          })
+
+          const refreshedWorkout = {
+            ...existingWorkout,
+            exercises: refreshedExercises,
+          }
+
+          WorkoutLogger.saveCurrentWorkout(refreshedWorkout, user?.id)
+            .then(() => {
+              console.log(
+                "[v0] MOUNT - Saved refreshed workout with updated progression"
+              )
+            })
+            .catch((error) => {
+              console.error("[v0] MOUNT - Failed to save refreshed workout:", error)
+            })
+
+          setWorkout(refreshedWorkout)
+        }
+      }
+
       const week = activeProgram?.currentWeek
       const day = activeProgram?.currentDay
 
-      // Initialize progression banner state
-      if (existingWorkout.week && existingWorkout.day) {
-        const shouldShowBanner = existingWorkout.week > 1 && !WorkoutLogger.hasCompletedWorkout(existingWorkout.week - 1, existingWorkout.day, user?.id)
-        setShowProgressionBanner(shouldShowBanner)
-        if (shouldShowBanner) {
-          setProgressionBannerMessage(`Complete Week ${existingWorkout.week - 1} Day ${existingWorkout.day} to see progression targets`)
-        }
-      }
+      // Progression banner disabled - using pre-filled weights instead
+      setShowProgressionBanner(false)
+      setProgressionBannerMessage("")
 
       console.log("[v0] Checking if workout should be blocked:", {
         existingWorkoutWeek: existingWorkout.week,
@@ -271,7 +425,19 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
       const day = activeProgram?.currentDay
 
       const newWorkout = WorkoutLogger.startWorkout(initialWorkout.name, initialWorkout.exercises, week, day, user?.id)
-      console.log("[v0] Component created new workout from initialWorkout")
+      console.log("[v0] 🆕 COMPONENT NEW WORKOUT - Created from initialWorkout:", {
+        id: newWorkout.id,
+        week: newWorkout.week,
+        day: newWorkout.day,
+        exerciseCount: newWorkout.exercises.length,
+        firstExerciseFirstSet: newWorkout.exercises[0]?.sets[0] ? {
+          reps: newWorkout.exercises[0].sets[0].reps,
+          weight: newWorkout.exercises[0].sets[0].weight,
+          completed: newWorkout.exercises[0].sets[0].completed,
+          skipped: newWorkout.exercises[0].sets[0].skipped
+        } : null,
+        fullWorkout: JSON.parse(JSON.stringify(newWorkout))
+      })
       setWorkout(newWorkout)
       setIsWorkoutBlocked(false)
       setIsFullyBlocked(false)
@@ -329,37 +495,12 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
   useEffect(() => {
     ConnectionMonitor.initialize()
 
-    // Subscribe to connection status changes
     const unsubscribe = ConnectionMonitor.subscribe((status) => {
       setConnectionStatus(status)
-
-      // Update set sync info when status changes
-      const syncStatus = ConnectionMonitor.getSetSyncStatus()
-      setSetSyncInfo({
-        queueSize: syncStatus.queueSize,
-        lastSync: syncStatus.lastSync
-      })
     })
-
-    // Initial sync info
-    const syncStatus = ConnectionMonitor.getSetSyncStatus()
-    setSetSyncInfo({
-      queueSize: syncStatus.queueSize,
-      lastSync: syncStatus.lastSync
-    })
-
-    // Set up interval to update sync info
-    const interval = setInterval(() => {
-      const syncStatus = ConnectionMonitor.getSetSyncStatus()
-      setSetSyncInfo({
-        queueSize: syncStatus.queueSize,
-        lastSync: syncStatus.lastSync
-      })
-    }, 2000)
 
     return () => {
       unsubscribe()
-      clearInterval(interval)
     }
   }, [])
 
@@ -367,6 +508,71 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
     if (!workout) return
 
     console.log("[v0] handleSetUpdate called:", { exerciseId, setId, field, value, isWorkoutBlocked })
+
+    const exercise = workout.exercises.find((ex) => ex.id === exerciseId)
+    if (!exercise) return
+
+    // Handle weight changes with volume compensation
+    if (field === "weight" && exercise.suggestedWeight && exercise.bounds) {
+      const tierRules = getTierRules(exercise.exerciseName, exercise.tier === "compound" ? "compound" : "isolation")
+      
+      // Check if weight is within bounds
+      const withinBounds = isWeightWithinBounds(
+        value,
+        exercise.suggestedWeight,
+        tierRules.adjustmentBounds
+      )
+      
+      if (!withinBounds) {
+        // OUT OF BOUNDS: Mark as overridden, reset reps to blank
+        console.log("[v0] Weight out of bounds, marking as override")
+        setUserOverrides(prev => ({ ...prev, [exerciseId]: true }))
+        setVolumeCompensation(prev => {
+          const updated = { ...prev }
+          delete updated[exerciseId]
+          return updated
+        })
+        
+        // Show warning toast
+        toast({
+          title: 'Weight out of range',
+          description: `Suggested range: ${Math.round(exercise.bounds.min)}-${Math.round(exercise.bounds.max)} lbs. Fill reps manually.`,
+          variant: 'destructive'
+        })
+      } else {
+        // WITHIN BOUNDS: Calculate volume compensation
+        const baseReps = parseInt(exercise.targetReps.split("-")[0]) || 10
+        const targetVolume = exercise.baseVolume || (exercise.suggestedWeight * baseReps)
+        
+        const compensation = calculateVolumeCompensation(
+          targetVolume,
+          value,
+          tierRules.maxRepAdjustment
+        )
+        
+        setVolumeCompensation(prev => ({
+          ...prev,
+          [exerciseId]: {
+            adjustedReps: compensation.adjustedReps,
+            strategy: compensation.strategy,
+            message: compensation.message
+          }
+        }))
+        
+        // Keep progression note visible
+        setUserOverrides(prev => ({ ...prev, [exerciseId]: false }))
+      }
+    }
+
+    // Handle manual reps changes (detect override)
+    if (field === "reps") {
+      const compensation = volumeCompensation[exerciseId]
+      if (compensation && value !== compensation.adjustedReps) {
+        // User manually overrode the volume-compensated reps
+        console.log("[v0] Manual reps override detected")
+        setUserOverrides(prev => ({ ...prev, [exerciseId]: true }))
+      }
+    }
 
     console.log("[v0] Current workout before update:", {
       id: workout.id,
@@ -426,17 +632,39 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
     const set = exercise?.sets.find((s) => s.id === setId)
     if (!set) return
 
-    if (!set.completed) {
+    const willMarkComplete = !set.completed
+
+    if (willMarkComplete) {
       if (!set.weight || set.weight <= 0 || !set.reps || set.reps <= 0) {
+        return
+      }
+
+      if (!ConnectionMonitor.isOnline()) {
+        toast({
+          title: 'No connection',
+          description: 'Reconnect before logging sets.',
+          variant: 'destructive',
+        })
+        ConnectionMonitor.updateStatus('offline')
         return
       }
     }
 
-    const updatedWorkout = await WorkoutLogger.updateSet(workout, exerciseId, setId, {
-      completed: !set.completed,
-    }, user?.id)
-    if (updatedWorkout) {
-      setWorkout(updatedWorkout)
+    try {
+      const updatedWorkout = await WorkoutLogger.updateSet(workout, exerciseId, setId, {
+        completed: !set.completed,
+      }, user?.id)
+
+      if (updatedWorkout) {
+        setWorkout(updatedWorkout)
+      }
+    } catch (error) {
+      console.error('[WorkoutLogger] Failed to log set:', error)
+      toast({
+        title: 'Failed to log set',
+        description: error instanceof Error ? error.message : 'Please try again.',
+        variant: 'destructive',
+      })
     }
   }
 
@@ -532,22 +760,19 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
     if (!workout || endWorkoutConfirmation !== "End Workout") return
 
     // Mark all uncompleted sets as skipped (blue tick)
-    const updatedWorkout = { ...workout }
-    updatedWorkout.exercises.forEach((exercise) => {
-      exercise.sets.forEach((set) => {
-        if (!set.completed) {
-          set.completed = true
-          set.reps = 0
-          set.weight = 0
-          // Add skipped property if it doesn't exist
-          if (!('skipped' in set)) {
-            (set as any).skipped = true
-          } else {
-            (set as any).skipped = true
+    const updatedWorkout: WorkoutSession = {
+      ...workout,
+      exercises: workout.exercises.map((exercise) => ({
+        ...exercise,
+        completed: true,
+        sets: exercise.sets.map((set) => {
+          if (!set.completed) {
+            return { ...set, completed: true, reps: 0, weight: 0, skipped: true }
           }
-        }
-      })
-    })
+          return set
+        }),
+      })),
+    }
 
     setWorkout(updatedWorkout)
     await WorkoutLogger.saveCurrentWorkout(updatedWorkout, user?.id)
@@ -585,56 +810,133 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
   }
 
   const handleEndProgram = async () => {
-    if (!workout || endProgramConfirmation !== "End Program") return
+    if (endProgramConfirmation !== "End Program") return
 
-    const updatedWorkout = { ...workout }
-    updatedWorkout.exercises.forEach((exercise) => {
-      exercise.sets.forEach((set) => {
-        if (!set.completed) {
-          set.completed = true
-          set.reps = 0
-          set.weight = 0
-          // Add skipped property if it doesn't exist
-          if (!('skipped' in set)) {
-            (set as any).skipped = true
-          } else {
-            (set as any).skipped = true
-          }
-        }
-      })
-    })
+    if (!workout) {
+      setShowEndProgramDialog(false)
+      return
+    }
 
-    setWorkout(updatedWorkout)
-    await WorkoutLogger.saveCurrentWorkout(updatedWorkout, user?.id)
+    const activeProgram = ProgramStateManager.getActiveProgram()
+    if (!activeProgram) {
+      setShowEndProgramDialog(false)
+      return
+    }
 
-    const completedWorkout = await WorkoutLogger.completeWorkout(updatedWorkout.id)
-    if (completedWorkout) {
-      // Validate that the completed workout has proper data
-      const hasValidData = completedWorkout.exercises &&
-                         completedWorkout.exercises.length > 0 &&
-                         completedWorkout.exercises.every(ex => ex.sets && ex.sets.length > 0)
+    try {
+      const wasAlreadyCompleted = WorkoutLogger.hasCompletedWorkout(
+        activeProgram.currentWeek,
+        activeProgram.currentDay,
+        user?.id
+      )
 
-      if (!hasValidData) {
-        console.error("[v0] Completed workout has invalid data, not proceeding with program advancement")
+      const updatedWorkout: WorkoutSession = {
+        ...workout,
+        skipped: true,
+        exercises: workout.exercises.map((exercise) => ({
+          ...exercise,
+          completed: true,
+          skipped: true,
+          sets: exercise.sets.map((set) => {
+            const updatedSet = { ...set }
+            if (!updatedSet.completed) {
+              updatedSet.completed = true
+              updatedSet.reps = 0
+              updatedSet.weight = 0
+            }
+            updatedSet.skipped = true
+            return updatedSet
+          }),
+        })),
+      }
+
+      setWorkout(updatedWorkout)
+      await WorkoutLogger.saveCurrentWorkout(updatedWorkout, user?.id)
+
+      const completedWorkout = await WorkoutLogger.completeWorkout(updatedWorkout.id)
+      if (!completedWorkout) {
         return
       }
 
-      // Sync to database
-      if (user?.id) {
-        try {
-          await WorkoutLogger.syncToDatabase(user.id)
+      completedWorkout.skipped = true
+      completedWorkout.exercises?.forEach((exercise) => {
+        exercise.skipped = true
+        exercise.sets?.forEach((set) => {
+          set.skipped = true
+        })
+      })
+      if (!completedWorkout.notes) {
+        completedWorkout.notes = "Program ended early"
+      }
 
-          // Notify calendar that data has changed
-          window.dispatchEvent(new Event("programChanged"))
+      if (!wasAlreadyCompleted) {
+        await ProgramStateManager.completeWorkout(user?.id)
+      }
 
-        } catch (error) {
-          console.error("[v0] Failed to sync to database, but workout is saved locally:", error)
+      let programForSkipping = ProgramStateManager.getActiveProgram()
+      const templateSource = programForSkipping ?? activeProgram
+      const template = templateSource.template
+      const templateWeekCount = template.weeks || 6
+      const scheduleKeys = Object.keys(template.schedule).sort((a, b) => {
+        const numA = Number.parseInt(a.replace(/[^0-9]/g, ""), 10)
+        const numB = Number.parseInt(b.replace(/[^0-9]/g, ""), 10)
+        return numA - numB
+      })
+      const daysPerWeek = scheduleKeys.length
+
+      const startWeek = programForSkipping ? programForSkipping.currentWeek : activeProgram.currentWeek
+
+      for (let week = startWeek; week <= templateWeekCount; week++) {
+        let dayStart: number
+        if (programForSkipping) {
+          dayStart = week === startWeek ? programForSkipping.currentDay : 1
+        } else if (week === activeProgram.currentWeek) {
+          dayStart = activeProgram.currentDay + 1
+        } else {
+          dayStart = 1
+        }
+
+        if (dayStart > daysPerWeek) {
+          continue
+        }
+
+        for (let dayNumber = dayStart; dayNumber <= daysPerWeek; dayNumber++) {
+          if (WorkoutLogger.hasCompletedWorkout(week, dayNumber, user?.id)) {
+            continue
+          }
+
+          const dayKey = scheduleKeys[dayNumber - 1]
+          const templateDay = template.schedule[dayKey]
+          if (!templateDay) {
+            continue
+          }
+
+          await WorkoutLogger.skipWorkout({
+            templateDay,
+            week,
+            day: dayNumber,
+            userId: user?.id ?? undefined,
+            templateId: templateSource.templateId,
+            workoutName: templateDay.name,
+          })
         }
       }
 
+      if (user?.id) {
+        await WorkoutLogger.syncToDatabase(user.id)
+      }
+
+      await ProgramStateManager.finalizeActiveProgram(user?.id, { endedEarly: true })
+
+      setProgramName("")
       setCompletedWorkout(completedWorkout)
-      setShowEndProgramDialog(false)
       setShowCompletionDialog(true)
+      setWorkout(null)
+    } catch (error) {
+      console.error("[v0] Failed to end program:", error)
+    } finally {
+      setEndProgramConfirmation("")
+      setShowEndProgramDialog(false)
     }
   }
 
@@ -855,12 +1157,18 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
     const workoutDay = template.schedule[dayKey]
     if (!workoutDay) return
 
-    if (workout) {
+    // Only save if it's an in-progress workout, not a completed one
+    if (workout && !workout.completed) {
       WorkoutLogger.saveCurrentWorkout(workout, user?.id)
-      console.log("[v0] Saved current workout before switching")
+      console.log("[v0] Saved in-progress workout before switching")
+    } else if (workout && workout.completed) {
+      console.log("[v0] Skipping save - this is a completed workout (read-only)")
     }
 
-    const existingWorkout = WorkoutLogger.getWorkout(week, day)
+    // Check completed history first, then in-progress workouts
+    const completedWorkout = WorkoutLogger.getCompletedWorkout(week, day, user?.id)
+    const inProgressWorkout = WorkoutLogger.getInProgressWorkout(week, day, user?.id)
+    const existingWorkout = completedWorkout || inProgressWorkout
 
     let loadedWorkout: WorkoutSession
 
@@ -868,43 +1176,166 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
       console.log("[v0] Found existing workout for week", week, "day", day, ":", {
         id: existingWorkout.id,
         completed: existingWorkout.completed,
+        source: completedWorkout ? 'COMPLETED_HISTORY' : 'IN_PROGRESS',
         exerciseCount: existingWorkout.exercises.length,
         exercises: existingWorkout.exercises.map((ex) => ({
           name: ex.exerciseName,
           setsCount: ex.sets.length,
           firstSetWeight: ex.sets[0]?.weight || 0,
           firstSetReps: ex.sets[0]?.reps || 0,
+          hasProgressionData: !!(ex.progressionNote || ex.suggestedWeight)
         })),
       })
+      
+      // If this is a completed workout, make it read-only
+      if (completedWorkout) {
+        console.log("[v0] ⚠️ Loading COMPLETED workout - this should be READ-ONLY")
+      }
+
+      // Check if we need to refresh progression data
+      // CRITICAL: Only refresh for IN-PROGRESS workouts, not completed ones
+      const needsProgressionRefresh = !existingWorkout.completed && // Don't modify completed workouts
+        week >= activeProgram.currentWeek && 
+        week > 1 && // Not Week 1 (baseline)
+        existingWorkout.exercises.some(ex => 
+          !ex.suggestedWeight || 
+          ex.suggestedWeight === 0 ||
+          (ex.progressionNote && ex.progressionNote.includes("Complete any workout from Week"))
+        )
+
+      if (needsProgressionRefresh) {
+        console.log("[v0] In-progress workout needs progression refresh - recalculating...")
+        
+        // Recalculate progression for each exercise
+        const refreshedExercises = existingWorkout.exercises.map((exercise) => {
+          // Find the template exercise to get progression data
+          const templateExercise = workoutDay.exercises.find(te => 
+            te.exerciseName === exercise.exerciseName || 
+            te.id === exercise.exerciseId
+          )
+          
+          if (!templateExercise) {
+            console.log("[v0] Template exercise not found for:", exercise.exerciseName)
+            return exercise // Keep original if template not found
+          }
+
+          // Use ProgressionRouter to recalculate
+          const previousPerformance = ProgressionRouter.getPreviousPerformance(
+            templateExercise.id,
+            templateExercise.exerciseName,
+            week,
+            day
+          )
+          
+          if (!previousPerformance) {
+            console.log("[v0] No previous performance found for:", exercise.exerciseName)
+            return exercise // Keep original if no previous data
+          }
+          
+          const progressionInput: ProgressionInput = {
+            exercise: templateExercise,
+            activeProgram,
+            currentWeek: week,
+            userProfile: {
+              experience: (user?.experience as "beginner" | "intermediate" | "advanced") || "beginner",
+              gender: (user?.gender as "male" | "female") || "male"
+            },
+            previousPerformance
+          }
+          
+          const result = ProgressionRouter.calculateProgression(progressionInput)
+          
+          console.log("[v0] Refreshed progression for", exercise.exerciseName, ":", {
+            oldNote: exercise.progressionNote,
+            newNote: result.progressionNote,
+            oldWeight: exercise.suggestedWeight,
+            newWeight: result.targetWeight
+          })
+
+          // Update exercise with new progression data
+          return {
+            ...exercise,
+            suggestedWeight: result.targetWeight,
+            progressionNote: result.progressionNote,
+            bounds: result.additionalData?.bounds,
+            strategy: result.strategy,
+            tier: result.additionalData?.tier,
+            baseVolume: result.targetWeight * result.targetReps,
+            userOverridden: false
+          }
+        })
+
+        // Update the existing workout with refreshed progression
+        existingWorkout.exercises = refreshedExercises
+        
+        // Save the updated workout (async but don't await to avoid blocking UI)
+        WorkoutLogger.saveCurrentWorkout(existingWorkout, user?.id).then(() => {
+          console.log("[v0] Saved workout with refreshed progression data")
+        }).catch((error) => {
+          console.error("[v0] Failed to save refreshed workout:", error)
+        })
+      }
+
       loadedWorkout = existingWorkout
     } else {
       console.log("[v0] No existing workout found, creating new one for week", week, "day", day)
 
       const weekKey = `week${week}`
       const transformedExercises = workoutDay.exercises.map((exercise) => {
-        // Use progression calculator to get smart targets based on previous week
-        const progressedData = ProgressionCalculator.calculateProgressedTargets(
+        // Use ProgressionRouter for advanced progression calculation with volume compensation
+        const previousPerformance = ProgressionRouter.getPreviousPerformance(
           exercise.id,
           exercise.exerciseName,
           week,
-          day,
-          exercise,
+          day
         )
+        
+        const progressionInput: ProgressionInput = {
+          exercise,
+          activeProgram,
+          currentWeek: week,
+          userProfile: {
+            experience: (user?.experience as "beginner" | "intermediate" | "advanced") || "beginner",
+            gender: (user?.gender as "male" | "female") || "male"
+          },
+          previousPerformance: previousPerformance || undefined
+        }
+        
+        const result = ProgressionRouter.calculateProgression(progressionInput)
 
         return {
           exerciseId: exercise.id,
           exerciseName: exercise.exerciseName,
-          targetSets: progressedData.targetSets,
-          targetReps: progressedData.targetReps,
+          targetSets: result.targetSets || 3,
+          targetReps: result.targetReps.toString(),
           targetRest: `${Math.floor(exercise.restTime / 60)} min`,
           muscleGroup: getExerciseMuscleGroup(exercise.exerciseName),
           equipmentType: exercise.equipmentType || "BARBELL",
-          suggestedWeight: progressedData.targetWeight,
-          progressionNote: progressedData.progressionNote,
+          suggestedWeight: result.targetWeight,
+          progressionNote: result.progressionNote,
+          // Add progression metadata for volume compensation
+          bounds: result.additionalData?.bounds,
+          strategy: result.strategy,
+          tier: result.additionalData?.tier,
+          baseVolume: result.targetWeight * result.targetReps,
+          userOverridden: false
         }
       })
 
-      loadedWorkout = WorkoutLogger.startWorkout(workoutDay.name, transformedExercises, week, day, user?.id)
+      const scheduleKeys = Object.keys(template.schedule)
+      const daysPerWeek = scheduleKeys.length
+
+      // Preview mode check: Don't sync to database if viewing future week
+      const isCurrentWeekCompleted = WorkoutLogger.isWeekCompleted(activeProgram.currentWeek, daysPerWeek, user?.id)
+      const isPreviewMode = week > activeProgram.currentWeek && !isCurrentWeekCompleted
+      
+      loadedWorkout = WorkoutLogger.startWorkout(
+        workoutDay.name, 
+        transformedExercises, 
+        week, 
+        day, 
+        isPreviewMode ? undefined : user?.id  // Don't pass userId in preview mode to prevent DB sync
+      )
 
       console.log("[v0] Created new workout:", {
         id: loadedWorkout.id,
@@ -949,14 +1380,9 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
       setBlockedMessage("")
     }
 
-    // Check if we should show progression banner
-    const shouldShowBanner = week > 1 && !WorkoutLogger.hasCompletedWorkout(week - 1, day, user?.id)
-    setShowProgressionBanner(shouldShowBanner)
-    if (shouldShowBanner) {
-      setProgressionBannerMessage(`Complete Week ${week - 1} Day ${day} to see progression targets`)
-    } else {
-      setProgressionBannerMessage("")
-    }
+    // Progression banner disabled - using pre-filled weights instead
+    setShowProgressionBanner(false)
+    setProgressionBannerMessage("")
 
     setWorkout(loadedWorkout)
     setWorkoutNotes(loadedWorkout.notes || "")
@@ -1087,10 +1513,7 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
           <div className="bg-red-50 border-b border-red-200 p-2 text-center">
             <div className="flex items-center justify-center gap-2 text-sm text-red-900">
               <WifiOff className="h-4 w-4" />
-              <span className="font-medium">
-                Offline - Changes saved locally
-                {setSyncInfo.queueSize > 0 && ` (${setSyncInfo.queueSize} sets queued)`}
-              </span>
+              <span className="font-medium">Offline - Reconnect to log sets</span>
             </div>
           </div>
         )}
@@ -1098,36 +1521,20 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
           <div className="bg-blue-50 border-b border-blue-200 p-2 text-center">
             <div className="flex items-center justify-center gap-2 text-sm text-blue-900">
               <Loader2 className="h-4 w-4 animate-spin" />
-              <span className="font-medium">
-                Syncing to database...
-                {setSyncInfo.queueSize > 0 && ` (${setSyncInfo.queueSize} sets remaining)`}
-              </span>
+              <span className="font-medium">Logging set...</span>
             </div>
           </div>
         )}
-        {connectionStatus === 'synced' && (
-          <div className="bg-green-50 border-b border-green-200 p-2 text-center">
-            <div className="flex items-center justify-center gap-2 text-sm text-green-900">
-              <CheckCircle2 className="h-4 w-4" />
-              <span className="font-medium">
-                All changes synced
-                {setSyncInfo.queueSize > 0 && ` (${setSyncInfo.queueSize} sets queued)`}
-              </span>
-            </div>
-          </div>
-        )}
+        {/* Removed 'synced' banner for better UX - success is logged to console only */}
         {connectionStatus === 'error' && (
           <div className="bg-orange-50 border-b border-orange-200 p-2 text-center">
             <div className="flex items-center justify-center gap-2 text-sm text-orange-900">
               <XCircle className="h-4 w-4" />
-              <span className="font-medium">
-                Sync error - Will retry automatically
-                {setSyncInfo.queueSize > 0 && ` (${setSyncInfo.queueSize} sets pending)`}
-              </span>
+              <span className="font-medium">Sync error - Please try again</span>
             </div>
           </div>
         )}
-        
+
         {/* Calendar Section - Sticky below header */}
         {showCalendar && (
           <div className="border-b border-border/50 bg-background/95 backdrop-blur-sm w-full sticky top-[100px] sm:top-[120px] z-50 shadow-sm">
@@ -1164,14 +1571,7 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
           </div>
         )}
 
-        {/* Progression Targets Banner - Show when previous week's same day is not completed */}
-        {showProgressionBanner && progressionBannerMessage && (
-          <div className="bg-amber-50 border-b border-amber-200 p-3 text-center">
-            <p className="text-sm text-amber-900">
-              <span className="font-semibold">{progressionBannerMessage}</span>
-            </p>
-          </div>
-        )}
+        {/* Progression banner removed - using pre-filled weights instead */}
 
         
         <Dialog open={showNotesDialog} onOpenChange={setShowNotesDialog}>
@@ -1393,6 +1793,32 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
                     {/* Exercise Card - Flat list style */}
                     <div className="border-b border-border/30 relative bg-background hover:bg-muted/20 transition-colors">
                       <div className="py-3 px-1 sm:py-4 sm:px-2">
+                        {/* Progression note banner removed - weight now pre-filled in inputs */}
+                        
+                        {/* Volume Compensation Display */}
+                        {volumeCompensation[exercise.id] && !userOverrides[exercise.id] && exercise.suggestedWeight && (
+                          <div className="bg-blue-50 border border-blue-200 rounded px-2 py-1 mb-2">
+                            <div className="text-xs text-blue-700">
+                              Volume compensation: {volumeCompensation[exercise.id].adjustedReps} reps for {exercise.suggestedWeight} lbs
+                              {volumeCompensation[exercise.id].message && (
+                                <div className="text-xs italic mt-0.5">
+                                  {volumeCompensation[exercise.id].message}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                        
+                        {/* Out of Bounds Warning */}
+                        {userOverrides[exercise.id] && exercise.bounds && (
+                          <div className="bg-orange-50 border border-orange-200 rounded px-2 py-1 mb-2">
+                            <div className="text-xs text-orange-700">
+                              Weight outside suggested range ({Math.round(exercise.bounds.min)}-{Math.round(exercise.bounds.max)} lbs). 
+                              Fill reps manually.
+                            </div>
+                          </div>
+                        )}
+                        
                         <div className="flex items-center justify-between pb-3">
                           <div className="flex-1">
                             <h4 className="text-base font-medium">{exercise.exerciseName}</h4>
@@ -1547,26 +1973,55 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
                               <div className="col-span-3">
                                 <Button
                                   size="sm"
-                                  onClick={() => handleCompleteSet(exercise.id, set.id)}
+                                  onClick={() => {
+                                    console.log("[v0] 🎯 SET CLICK - Before handleCompleteSet:", {
+                                      exerciseId: exercise.id,
+                                      exerciseName: exercise.exerciseName,
+                                      setId: set.id,
+                                      setIndex,
+                                      currentState: {
+                                        reps: set.reps,
+                                        weight: set.weight,
+                                        completed: set.completed,
+                                        skipped: set.skipped
+                                      }
+                                    })
+                                    handleCompleteSet(exercise.id, set.id)
+                                  }}
                                   disabled={isWorkoutBlocked}
                                   variant="ghost"
                                   className={`w-full h-10 border-2 ${
                                     set.completed
-                                      ? set.reps === 0 && set.weight === 0
+                                      ? (set.reps === 0 && set.weight === 0) || set.skipped
                                         ? "bg-blue-50 border-blue-500 text-blue-700"
                                         : "bg-green-50 border-green-500 text-green-700"
                                       : "border-border/50 hover:border-primary"
                                   }`}
                                 >
-                                  {set.completed ? (
-                                    set.reps === 0 && set.weight === 0 ? (
-                                      <Minus className="h-5 w-5 text-blue-600" />
-                                    ) : (
-                                      <Check className="h-5 w-5 text-green-600" />
-                                    )
-                                  ) : (
-                                    <div className="w-5 h-5 border-2 border-border rounded" />
-                                  )}
+                                  {(() => {
+                                    const showingMinus = set.completed && ((set.reps === 0 && set.weight === 0) || set.skipped)
+                                    if (showingMinus) {
+                                      console.log("[v0] 🔵 RENDERING MINUS (—) for set:", {
+                                        exerciseName: exercise.exerciseName,
+                                        setIndex,
+                                        setId: set.id,
+                                        reps: set.reps,
+                                        weight: set.weight,
+                                        completed: set.completed,
+                                        skipped: set.skipped,
+                                        reason: set.skipped ? "skipped=true" : "reps=0 AND weight=0"
+                                      })
+                                    }
+                                    if (set.completed) {
+                                      if ((set.reps === 0 && set.weight === 0) || set.skipped) {
+                                        return <Minus className="h-5 w-5 text-blue-600" />
+                                      } else {
+                                        return <Check className="h-5 w-5 text-green-600" />
+                                      }
+                                    } else {
+                                      return <div className="w-5 h-5 border-2 border-border rounded" />
+                                    }
+                                  })()}
                                 </Button>
                               </div>
 

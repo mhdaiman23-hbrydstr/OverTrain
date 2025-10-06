@@ -18,6 +18,7 @@ export interface ProgramHistory {
   totalWorkouts: number
   completedWorkouts: number
   isActive: boolean
+  endedEarly?: boolean
 }
 
 export class TemplateStorageManager {
@@ -107,6 +108,7 @@ export class TemplateStorageManager {
       totalWorkouts: 0,
       completedWorkouts: 0,
       isActive: true,
+      endedEarly: false,
     }
 
     const history = this.getProgramHistory()

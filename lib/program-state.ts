@@ -2,6 +2,26 @@ import { GYM_TEMPLATES, type GymTemplate } from "./gym-templates"
 import { WorkoutLogger } from "./workout-logger"
 import { supabase } from "./supabase"
 
+export interface ProgressionOverride {
+  enabled: boolean
+  overrideType: "linear" | "percentage" | "hybrid"
+  customRules?: {
+    linear?: {
+      weeklyIncrease: number
+      minIncrement: number
+    }
+    percentage?: {
+      requiresOneRM: boolean
+      percentageProgression: Record<string, { working: number[]; deload?: number[] }>
+    }
+    hybrid?: {
+      compoundProgression: "linear" | "percentage"
+      accessoryProgression: "linear" | "percentage"
+      compoundExercises: string[]
+    }
+  }
+}
+
 export interface ActiveProgram {
   templateId: string
   template: GymTemplate
@@ -11,6 +31,7 @@ export interface ActiveProgram {
   completedWorkouts: number
   totalWorkouts: number
   progress: number
+  progressionOverride?: ProgressionOverride
 }
 
 export interface ProgramProgress {
@@ -37,6 +58,7 @@ export interface ProgramHistoryEntry {
   completedWorkouts: number
   isActive: boolean
   endDate?: string
+  endedEarly?: boolean
 }
 
 export class ProgramStateManager {
@@ -71,7 +93,7 @@ export class ProgramStateManager {
     }
   }
 
-  static async setActiveProgram(templateId: string, userId?: string): Promise<ActiveProgram | null> {
+  static async setActiveProgram(templateId: string, progressionOverride?: ProgressionOverride, userId?: string): Promise<ActiveProgram | null> {
     if (typeof window === "undefined") return null
 
     const template = GYM_TEMPLATES.find((t) => t.id === templateId)
@@ -90,6 +112,7 @@ export class ProgramStateManager {
       completedWorkouts: 0,
       totalWorkouts,
       progress: 0,
+      progressionOverride,
     }
 
     localStorage.setItem(this.ACTIVE_PROGRAM_KEY, JSON.stringify(activeProgram))
@@ -107,13 +130,16 @@ export class ProgramStateManager {
       totalWorkouts,
       completedWorkouts: 0,
       isActive: true,
+      endedEarly: false,
     }
 
     // End any currently active program in history
     history.forEach((p) => {
       if (p.isActive) {
+        const wasCompleted = Number(p.completionRate ?? 0) >= 100
         p.isActive = false
         p.endDate = new Date().toISOString()
+        p.endedEarly = !wasCompleted
       }
     })
 
@@ -237,6 +263,71 @@ export class ProgramStateManager {
     }
   }
 
+
+  static async finalizeActiveProgram(userId?: string, options?: { endedEarly?: boolean }): Promise<void> {
+    const activeProgram = this.getActiveProgram()
+    if (!activeProgram) return
+
+    activeProgram.completedWorkouts = activeProgram.totalWorkouts
+    activeProgram.progress = 100
+
+    const history = this.getProgramHistory()
+    let historyUpdated = false
+
+    history.forEach((entry) => {
+      if (entry.isActive) {
+        entry.completedWorkouts = activeProgram.totalWorkouts
+        entry.totalWorkouts = activeProgram.totalWorkouts
+        entry.completionRate = 100
+        entry.isActive = false
+        entry.endDate = new Date().toISOString()
+        entry.endedEarly = options?.endedEarly ?? false
+        historyUpdated = true
+      }
+    })
+
+    if (historyUpdated) {
+      localStorage.setItem(this.PROGRAM_HISTORY_KEY, JSON.stringify(history))
+    }
+
+    localStorage.removeItem(this.ACTIVE_PROGRAM_KEY)
+    localStorage.removeItem(this.PROGRAM_PROGRESS_KEY)
+
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new Event("programChanged"))
+    }
+
+    if (userId && supabase) {
+      try {
+        await supabase.from("active_programs").delete().eq("user_id", userId)
+      } catch (error) {
+        console.error("[ProgramState] Failed to remove active program from database:", error)
+      }
+
+      if (history.length > 0) {
+        try {
+          await supabase
+            .from("program_history")
+            .upsert(
+              history.map((h) => ({
+                id: h.id,
+                user_id: userId,
+                template_id: h.templateId,
+                name: h.name,
+                start_date: h.startDate,
+                end_date: h.endDate || null,
+                completion_rate: h.completionRate,
+                total_workouts: h.totalWorkouts,
+                completed_workouts: h.completedWorkouts,
+                is_active: h.isActive,
+              }))
+            )
+        } catch (error) {
+          console.error("[ProgramState] Failed to sync program history:", error)
+        }
+      }
+    }
+  }
   static recalculateProgress(): void {
     const activeProgram = this.getActiveProgram()
     if (!activeProgram) return
@@ -271,7 +362,7 @@ export class ProgramStateManager {
 
     // Find the first incomplete workout (start from week 1)
     let foundIncomplete = false
-    const maxWeeks = activeProgram.template.weeks || 12 // Fallback to 12 if not set
+    const maxWeeks = activeProgram.template.weeks || 6 // Fallback to 6 weeks if not set
     for (let week = 1; week <= maxWeeks; week++) {
       for (let day = 1; day <= daysPerWeek; day++) {
         const isCompleted = WorkoutLogger.hasCompletedWorkout(week, day, userId)
@@ -451,6 +542,7 @@ export class ProgramStateManager {
           totalWorkouts: h.total_workouts,
           completedWorkouts: h.completed_workouts,
           isActive: h.is_active,
+          endedEarly: (h as any).ended_early ?? (h as any).endedEarly ?? false,
         }))
 
         localStorage.setItem(this.PROGRAM_HISTORY_KEY, JSON.stringify(history))
