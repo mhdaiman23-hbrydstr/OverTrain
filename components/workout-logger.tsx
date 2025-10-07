@@ -108,6 +108,7 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
 
   // Debounce timer for set updates
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null)
+  const boundsCheckTimerRef = useRef<NodeJS.Timeout | null>(null)
 
   // Connection status
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('online')
@@ -122,6 +123,8 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
     strategy: string
     message?: string
   }>>({})
+  const [pendingOutOfBoundsWarnings, setPendingOutOfBoundsWarnings] = useState<Record<string, boolean>>({})
+  const [outOfBoundsExercises, setOutOfBoundsExercises] = useState<Record<string, { min: number; max: number; setNumber: number }>>({})
 
   useEffect(() => {
     console.log("[v0] ===== STORAGE DEBUG =====")
@@ -266,6 +269,8 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
           (ex) =>
             !ex.suggestedWeight ||
             ex.suggestedWeight === 0 ||
+            !ex.perSetSuggestions || // Need to refresh if per-set suggestions are missing
+            ex.sets.some(set => !set.completed && !set.skipped && (!set.reps || set.reps === 0)) || // Need to refresh if reps are missing
             (ex.progressionNote &&
               ex.progressionNote.includes("Complete any workout from Week"))
         )
@@ -337,17 +342,37 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
             console.log("[v0] MOUNT - Refreshed progression for", exercise.exerciseName, {
               suggestedWeight: result.targetWeight,
               progressionNote: result.progressionNote,
+              hasPerSetSuggestions: !!result.perSetSuggestions,
+              perSetCount: result.perSetSuggestions?.length || 0,
             })
 
             const suggestedWeight = result.targetWeight ?? 0
 
-            const updatedSets = exercise.sets?.map((set) => ({
-              ...set,
-              weight:
-                !set.completed && !set.skipped && suggestedWeight > 0
-                  ? suggestedWeight
-                  : set.weight,
-            }))
+            const updatedSets = exercise.sets?.map((set, setIndex) => {
+              // Pre-fill from per-set suggestions if available
+              if (result.perSetSuggestions && result.perSetSuggestions[setIndex]) {
+                const suggestion = result.perSetSuggestions[setIndex]
+                return {
+                  ...set,
+                  weight:
+                    !set.completed && !set.skipped && suggestion.weight > 0
+                      ? suggestion.weight
+                      : set.weight,
+                  reps:
+                    !set.completed && !set.skipped && suggestion.reps > 0
+                      ? suggestion.reps
+                      : set.reps,
+                }
+              }
+              // Fallback to exercise-level suggestion
+              return {
+                ...set,
+                weight:
+                  !set.completed && !set.skipped && suggestedWeight > 0
+                    ? suggestedWeight
+                    : set.weight,
+              }
+            })
 
             return {
               ...exercise,
@@ -360,6 +385,7 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
                   : exercise.baseVolume,
               userOverridden: false,
               sets: updatedSets ?? exercise.sets,
+              perSetSuggestions: result.perSetSuggestions,
             }
           })
 
@@ -512,8 +538,63 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
     const exercise = workout.exercises.find((ex) => ex.id === exerciseId)
     if (!exercise) return
 
-    // Handle weight changes with volume compensation
-    if (field === "weight" && exercise.suggestedWeight && exercise.bounds) {
+    // NEW: Check if this exercise uses per-set suggestions
+    if (field === "weight" && exercise.perSetSuggestions && exercise.perSetSuggestions.length > 0) {
+      // Find which set index we're editing
+      const setIndex = exercise.sets.findIndex(s => s.id === setId)
+      const suggestion = exercise.perSetSuggestions[setIndex]
+      
+      if (suggestion && suggestion.bounds) {
+        const { min, max } = suggestion.bounds
+        const withinBounds = value >= min && value <= max
+        
+        if (!withinBounds) {
+          // OUT OF BOUNDS: Set flag for warning (will show on blur)
+          console.log("[v0] Per-set weight out of bounds:", { setIndex, value, min, max })
+          setPendingOutOfBoundsWarnings(prev => ({ ...prev, [`${exerciseId}_${setId}`]: true }))
+        } else if (value !== suggestion.weight) {
+          // WITHIN BOUNDS but different from suggestion: Show dynamic rep adjustment
+          const adjustedReps = Math.round(suggestion.reps * (suggestion.weight / value))
+          console.log("[v0] Dynamic rep adjustment:", { 
+            baseWeight: suggestion.weight, 
+            newWeight: value, 
+            baseReps: suggestion.reps, 
+            adjustedReps 
+          })
+          
+          // Show green banner with adjusted reps
+          setVolumeCompensation(prev => ({
+            ...prev,
+            [`${exerciseId}_${setId}`]: {
+              adjustedReps,
+              strategy: "per_set_adjusted",
+              message: `Adjusted to ${adjustedReps} reps based on weight change`
+            }
+          }))
+          // Clear any pending warning since we're within bounds
+          setPendingOutOfBoundsWarnings(prev => {
+            const updated = { ...prev }
+            delete updated[`${exerciseId}_${setId}`]
+            return updated
+          })
+        } else {
+          // Weight matches suggestion exactly - clear any compensation
+          setVolumeCompensation(prev => {
+            const updated = { ...prev }
+            delete updated[`${exerciseId}_${setId}`]
+            return updated
+          })
+          // Clear any pending warning since we're back to suggested weight
+          setPendingOutOfBoundsWarnings(prev => {
+            const updated = { ...prev }
+            delete updated[`${exerciseId}_${setId}`]
+            return updated
+          })
+        }
+      }
+    }
+    // LEGACY: Fall back to exercise-level bounds for old workouts
+    else if (field === "weight" && exercise.suggestedWeight && exercise.bounds) {
       const tierRules = getTierRules(exercise.exerciseName, exercise.tier === "compound" ? "compound" : "isolation")
       
       // Check if weight is within bounds
@@ -524,7 +605,7 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
       )
       
       if (!withinBounds) {
-        // OUT OF BOUNDS: Mark as overridden, reset reps to blank
+        // OUT OF BOUNDS: Mark as overridden, set flag for warning (will show on blur) and track for banner display
         console.log("[v0] Weight out of bounds, marking as override")
         setUserOverrides(prev => ({ ...prev, [exerciseId]: true }))
         setVolumeCompensation(prev => {
@@ -532,13 +613,7 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
           delete updated[exerciseId]
           return updated
         })
-        
-        // Show warning toast
-        toast({
-          title: 'Weight out of range',
-          description: `Suggested range: ${Math.round(exercise.bounds.min)}-${Math.round(exercise.bounds.max)} lbs. Fill reps manually.`,
-          variant: 'destructive'
-        })
+        setPendingOutOfBoundsWarnings(prev => ({ ...prev, [`${exerciseId}_${setId}`]: true }))
       } else {
         // WITHIN BOUNDS: Calculate volume compensation
         const baseReps = parseInt(exercise.targetReps.split("-")[0]) || 10
@@ -561,12 +636,40 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
         
         // Keep progression note visible
         setUserOverrides(prev => ({ ...prev, [exerciseId]: false }))
+        
+        // Clear any pending warning since we're within bounds
+        setPendingOutOfBoundsWarnings(prev => {
+          const updated = { ...prev }
+          delete updated[`${exerciseId}_${setId}`]
+          return updated
+        })
+      }
+    }
+
+    // Calculate rep adjustment BEFORE async update (so we have the value immediately, not after state updates)
+    let calculatedAdjustedReps: number | undefined = undefined
+    let shouldClearReps = false
+    if (field === "weight" && exercise.perSetSuggestions && exercise.perSetSuggestions.length > 0) {
+      const setIndex = exercise.sets.findIndex(s => s.id === setId)
+      const suggestion = exercise.perSetSuggestions[setIndex]
+      if (suggestion && suggestion.bounds) {
+        const withinBounds = value >= suggestion.bounds.min && value <= suggestion.bounds.max
+        if (!withinBounds) {
+          // OUT OF BOUNDS: Clear reps
+          shouldClearReps = true
+        } else if (value !== suggestion.weight) {
+          // WITHIN BOUNDS but different from suggestion: Calculate adjusted reps
+          calculatedAdjustedReps = Math.round(suggestion.reps * (suggestion.weight / value))
+        } else {
+          // WITHIN BOUNDS and matches suggestion: Use suggestion reps
+          calculatedAdjustedReps = suggestion.reps
+        }
       }
     }
 
     // Handle manual reps changes (detect override)
     if (field === "reps") {
-      const compensation = volumeCompensation[exerciseId]
+      const compensation = volumeCompensation[exerciseId] || volumeCompensation[`${exerciseId}_${setId}`]
       if (compensation && value !== compensation.adjustedReps) {
         // User manually overrode the volume-compensated reps
         console.log("[v0] Manual reps override detected")
@@ -581,9 +684,20 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
 
     // Update with skipDbSync=true to only save to localStorage
     const updateSetAsync = async () => {
-      const updatedWorkout = await WorkoutLogger.updateSet(workout, exerciseId, setId, {
-        [field]: value,
-      }, user?.id, true) // Skip DB sync initially
+      const updates: any = { [field]: value }
+      
+      // Handle rep updates based on weight changes
+      if (field === "weight") {
+        if (shouldClearReps) {
+          // OUT OF BOUNDS: Clear reps to 0
+          updates.reps = 0
+        } else if (calculatedAdjustedReps !== undefined) {
+          // WITHIN BOUNDS: Apply calculated adjusted reps
+          updates.reps = calculatedAdjustedReps
+        }
+      }
+      
+      const updatedWorkout = await WorkoutLogger.updateSet(workout, exerciseId, setId, updates, user?.id, true) // Skip DB sync initially
 
       console.log("[v0] updatedWorkout returned:", updatedWorkout ? "exists" : "null")
 
@@ -623,6 +737,114 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
     }
 
     updateSetAsync()
+
+    // Debounced bounds check for banner (500ms delay for typing)
+    if (field === "weight") {
+      if (boundsCheckTimerRef.current) {
+        clearTimeout(boundsCheckTimerRef.current)
+      }
+      boundsCheckTimerRef.current = setTimeout(() => {
+        checkExerciseBoundsStatus(exerciseId)
+      }, 500)
+    }
+  }
+
+  const handleWeightInputBlur = (exerciseId: string, setId: string) => {
+    // Check bounds immediately on blur
+    checkExerciseBoundsStatus(exerciseId)
+    
+    // Show toast if pending warning
+    const key = `${exerciseId}_${setId}`
+    if (pendingOutOfBoundsWarnings[key]) {
+      const exercise = workout?.exercises.find((ex) => ex.id === exerciseId)
+      if (exercise?.perSetSuggestions) {
+        const setIndex = exercise.sets.findIndex(s => s.id === setId)
+        const suggestion = exercise.perSetSuggestions[setIndex]
+        if (suggestion?.bounds) {
+          toast({
+            title: 'Weight out of range',
+            description: `Suggested range for this set: ${Math.round(suggestion.bounds.min)}-${Math.round(suggestion.bounds.max)} lbs.`,
+            variant: 'destructive'
+          })
+        }
+      } else if (exercise?.bounds) {
+        // Legacy bounds
+        toast({
+          title: 'Weight out of range',
+          description: `Suggested range: ${Math.round(exercise.bounds.min)}-${Math.round(exercise.bounds.max)} lbs. Fill reps manually.`,
+          variant: 'destructive'
+        })
+      }
+      // Clear the flag after showing toast
+      setPendingOutOfBoundsWarnings(prev => {
+        const updated = { ...prev }
+        delete updated[key]
+        return updated
+      })
+    }
+  }
+
+  // Check if current active set of an exercise is out of bounds and update banner
+  const checkExerciseBoundsStatus = (exerciseId: string) => {
+    if (!workout) return
+
+    const exercise = workout.exercises.find((ex) => ex.id === exerciseId)
+    if (!exercise) return
+
+    // Find the first incomplete set (current active set)
+    const activeSetIndex = exercise.sets.findIndex(s => !s.completed && !s.skipped)
+    if (activeSetIndex === -1) {
+      // All sets completed, clear banner
+      setOutOfBoundsExercises(prev => {
+        const updated = { ...prev }
+        delete updated[exerciseId]
+        return updated
+      })
+      return
+    }
+
+    const activeSet = exercise.sets[activeSetIndex]
+    const setNumber = activeSetIndex + 1
+
+    // Check bounds for per-set suggestions
+    if (exercise.perSetSuggestions && exercise.perSetSuggestions[activeSetIndex]) {
+      const suggestion = exercise.perSetSuggestions[activeSetIndex]
+      if (suggestion.bounds && activeSet.weight > 0) {
+        const { min, max } = suggestion.bounds
+        const withinBounds = activeSet.weight >= min && activeSet.weight <= max
+
+        if (!withinBounds) {
+          setOutOfBoundsExercises(prev => ({
+            ...prev,
+            [exerciseId]: { min, max, setNumber }
+          }))
+        } else {
+          setOutOfBoundsExercises(prev => {
+            const updated = { ...prev }
+            delete updated[exerciseId]
+            return updated
+          })
+        }
+      }
+    }
+    // Check legacy bounds
+    else if (exercise.bounds && activeSet.weight > 0) {
+      const { min, max } = exercise.bounds
+      const withinBounds = activeSet.weight >= min && activeSet.weight <= max
+
+      if (!withinBounds) {
+        setOutOfBoundsExercises(prev => ({
+          ...prev,
+          [exerciseId]: { min, max, setNumber }
+        }))
+      } else {
+        setOutOfBoundsExercises(prev => {
+          const updated = { ...prev }
+          delete updated[exerciseId]
+          return updated
+        })
+      }
+    }
   }
 
   const handleCompleteSet = async (exerciseId: string, setId: string) => {
@@ -657,6 +879,9 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
 
       if (updatedWorkout) {
         setWorkout(updatedWorkout)
+        
+        // Check bounds for next set immediately after completing a set
+        checkExerciseBoundsStatus(exerciseId)
       }
     } catch (error) {
       console.error('[WorkoutLogger] Failed to log set:', error)
@@ -1790,34 +2015,18 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
                       </div>
                     )}
 
+                    {/* Out of Bounds Warning Banner - Per Exercise */}
+                    {outOfBoundsExercises[exercise.id] && (
+                      <div className="bg-yellow-50 border border-yellow-200 rounded px-3 py-2 mb-2 mt-2">
+                        <div className="text-xs text-yellow-800">
+                          ⚠️ Set {outOfBoundsExercises[exercise.id].setNumber}: Weight out of range ({Math.round(outOfBoundsExercises[exercise.id].min)}-{Math.round(outOfBoundsExercises[exercise.id].max)} lbs). Enter reps manually.
+                        </div>
+                      </div>
+                    )}
+
                     {/* Exercise Card - Flat list style */}
                     <div className="border-b border-border/30 relative bg-background hover:bg-muted/20 transition-colors">
                       <div className="py-3 px-1 sm:py-4 sm:px-2">
-                        {/* Progression note banner removed - weight now pre-filled in inputs */}
-                        
-                        {/* Volume Compensation Display */}
-                        {volumeCompensation[exercise.id] && !userOverrides[exercise.id] && exercise.suggestedWeight && (
-                          <div className="bg-blue-50 border border-blue-200 rounded px-2 py-1 mb-2">
-                            <div className="text-xs text-blue-700">
-                              Volume compensation: {volumeCompensation[exercise.id].adjustedReps} reps for {exercise.suggestedWeight} lbs
-                              {volumeCompensation[exercise.id].message && (
-                                <div className="text-xs italic mt-0.5">
-                                  {volumeCompensation[exercise.id].message}
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        )}
-                        
-                        {/* Out of Bounds Warning */}
-                        {userOverrides[exercise.id] && exercise.bounds && (
-                          <div className="bg-orange-50 border border-orange-200 rounded px-2 py-1 mb-2">
-                            <div className="text-xs text-orange-700">
-                              Weight outside suggested range ({Math.round(exercise.bounds.min)}-{Math.round(exercise.bounds.max)} lbs). 
-                              Fill reps manually.
-                            </div>
-                          </div>
-                        )}
                         
                         <div className="flex items-center justify-between pb-3">
                           <div className="flex-1">
@@ -1903,7 +2112,8 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
 
                         <div className="space-y-2">
                           {exercise.sets.map((set, setIndex) => (
-                            <div key={set.id} className="grid grid-cols-12 gap-1 sm:gap-2 items-center">
+                            <div key={set.id} className="space-y-0">
+                              <div className="grid grid-cols-12 gap-1 sm:gap-2 items-center">
                               <div className="col-span-1">
                                 <DropdownMenu>
                                   <DropdownMenuTrigger asChild>
@@ -1940,6 +2150,7 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
                                   onChange={(e) =>
                                     handleSetUpdate(exercise.id, set.id, "weight", Number.parseFloat(e.target.value) || 0)
                                   }
+                                  onBlur={() => handleWeightInputBlur(exercise.id, set.id)}
                                   className="text-center h-10 bg-muted/30 border-border/50"
                                   placeholder={
                                     (exercise as any).suggestedWeight && (exercise as any).suggestedWeight > 0
@@ -2025,8 +2236,9 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
                                 </Button>
                               </div>
 
-                              <div className="col-span-1 text-center">
-                                <span className="text-sm font-medium text-muted-foreground">{setIndex + 1}</span>
+                                <div className="col-span-1 text-center">
+                                  <span className="text-sm font-medium text-muted-foreground">{setIndex + 1}</span>
+                                </div>
                               </div>
                             </div>
                           ))}

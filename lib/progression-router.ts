@@ -14,11 +14,16 @@ export interface ProgressionInput {
     gender: "male" | "female"
   }
   previousPerformance?: {
-    lastWeight: number
+    lastWeight: number // Legacy - keep for backward compatibility
     actualReps: number
     completedSets: number
     targetSets: number
     allSetsCompleted: boolean
+    setsData?: Array<{  // New: per-set weight and rep tracking
+      weight: number
+      reps: number
+      completed: boolean
+    }>
   }
   userWeightAdjustment?: number
   oneRepMaxes?: OneRepMax[]
@@ -40,6 +45,13 @@ export interface ProgressionResult {
     weeklyIncrease?: number
     tier?: string
   }
+  perSetSuggestions?: Array<{  // NEW: per-set weight and rep suggestions
+    weight: number
+    reps: number
+    baseWeight: number
+    baseReps: number
+    bounds: { min: number; max: number }
+  }>
 }
 
 export interface ProgressionOverride {
@@ -168,7 +180,8 @@ export class ProgressionRouter {
         bounds: result.bounds,
         weeklyIncrease: result.weeklyIncrease,
         tier: exercise.tier
-      }
+      },
+      perSetSuggestions: result.perSetSuggestions  // NEW: pass through per-set suggestions
     }
   }
 
@@ -439,12 +452,20 @@ export class ProgressionRouter {
     const totalSetsAssigned = previousExercise.targetSets || 3
     const allSetsCompleted = completedSets.length >= totalSetsAssigned
 
+    // NEW: Collect per-set data for percentage-based progression
+    const setsData = completedSets.map(set => ({
+      weight: set.weight,
+      reps: set.reps,
+      completed: set.completed
+    }))
+
     const result = {
       lastWeight,
       actualReps, // Use actual user reps, not averaged
       completedSets: completedSets.length,
       targetSets: totalSetsAssigned,
-      allSetsCompleted // Based on set completion, not rep targets
+      allSetsCompleted, // Based on set completion, not rep targets
+      setsData // NEW: per-set tracking
     }
     
     console.log(`[ProgressionRouter] ✅ Returning previous performance:`, result)

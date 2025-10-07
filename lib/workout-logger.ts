@@ -33,6 +33,14 @@ export interface WorkoutExercise {
   tier?: string
   baseVolume?: number
   userOverridden?: boolean
+  // NEW: Per-set suggestions for percentage-based progression
+  perSetSuggestions?: Array<{
+    weight: number
+    reps: number
+    baseWeight: number  // Weight from previous week (for UI reference)
+    baseReps: number    // Reps from previous week (for UI reference)
+    bounds: { min: number; max: number }  // Acceptable weight range for this set
+  }>
 }
 
 export interface WorkoutSession {
@@ -989,6 +997,13 @@ export class WorkoutLogger implements SetSyncProvider {
       targetRest: string
       suggestedWeight?: number
       progressionNote?: string
+      perSetSuggestions?: Array<{  // NEW: per-set weight and rep suggestions
+        weight: number
+        reps: number
+        baseWeight: number
+        baseReps: number
+        bounds: { min: number; max: number }
+      }>
     }[],
     week?: number,
     day?: number,
@@ -1036,25 +1051,39 @@ export class WorkoutLogger implements SetSyncProvider {
       startTime: Date.now(),
       week,
       day,
-      exercises: exercises.map((ex) => ({
-        id: Math.random().toString(36).substr(2, 9),
-        exerciseId: ex.exerciseId,
-        exerciseName: ex.exerciseName,
-        targetSets: ex.targetSets,
-        targetReps: ex.targetReps,
-        targetRest: ex.targetRest,
-        suggestedWeight: ex.suggestedWeight,
-        progressionNote: ex.progressionNote,
-        sets: Array.from({ length: ex.targetSets }, (_, i) => ({
+      exercises: exercises.map((ex) => {
+        // NEW: Use per-set suggestions if available, otherwise use single suggested weight
+        const sets = ex.perSetSuggestions && ex.perSetSuggestions.length > 0
+          ? ex.perSetSuggestions.map((suggestion) => ({
+              id: Math.random().toString(36).substr(2, 9),
+              reps: suggestion.reps, // Pre-fill with reps from previous week
+              weight: suggestion.weight, // Pre-fill with per-set suggested weight
+              completed: false,
+              skipped: false,
+            }))
+          : Array.from({ length: ex.targetSets }, (_, i) => ({
+              id: Math.random().toString(36).substr(2, 9),
+              reps: 0,
+              weight: ex.suggestedWeight || 0, // Fallback to single suggested weight
+              completed: false,
+              skipped: false,
+            }))
+
+        return {
           id: Math.random().toString(36).substr(2, 9),
-          reps: 0,
-          weight: ex.suggestedWeight || 0, // Pre-fill with suggested weight from progression
+          exerciseId: ex.exerciseId,
+          exerciseName: ex.exerciseName,
+          targetSets: ex.targetSets,
+          targetReps: ex.targetReps,
+          targetRest: ex.targetRest,
+          suggestedWeight: ex.suggestedWeight,
+          progressionNote: ex.progressionNote,
+          perSetSuggestions: ex.perSetSuggestions, // NEW: Store per-set suggestions
+          sets,
           completed: false,
-          skipped: false, // Explicitly set skipped to false
-        })),
-        completed: false,
-        skipped: false, // Explicitly set skipped to false
-      })),
+          skipped: false,
+        }
+      }),
       completed: false,
       skipped: false, // Explicitly set skipped to false
       notes: "",

@@ -11,6 +11,11 @@ export interface LinearProgressionInput {
     completedSets: number
     targetSets: number
     allSetsCompleted: boolean
+    setsData?: Array<{
+      weight: number
+      reps: number
+      completed: boolean
+    }>
   }
   tierRules: TierRules
   userWeightAdjustment?: number
@@ -24,6 +29,13 @@ export interface LinearProgressionResult {
   strategy: "standard" | "volume_compensated" | "multi_week" | "out_of_bounds" | "deload"
   progressionNote: string
   weeklyIncrease: number
+  perSetSuggestions?: Array<{  // NEW: per-set weight and rep suggestions
+    weight: number
+    reps: number
+    baseWeight: number  // Original weight from previous week (for UI reference)
+    baseReps: number    // Original reps from previous week (for UI reference)
+    bounds: { min: number; max: number }  // Acceptable weight range for this set
+  }>
 }
 
 export class LinearProgressionEngine {
@@ -96,14 +108,14 @@ export class LinearProgressionEngine {
         progressionNote += ` (${compensationResult.note})`
       }
     } else {
-      // Simple user-driven progression system:
-      // 1. +2.5 lbs if completed all assigned sets (ignore rep targets)
+      // NEW: Percentage-based progression system (2.5% per set)
+      // 1. +2.5% per set if completed all assigned sets
       // 2. Same weight if partial completion
       
       if (allSetsCompleted) {
-        // User completed all assigned sets - increase weight by 2.5 lbs
-        targetWeight = roundToIncrement(lastWeight + 2.5, 2.5)
-        progressionNote = `+2.5lbs (all sets completed)`
+        // User completed all assigned sets - increase weight by 2.5%
+        targetWeight = roundToIncrement(lastWeight * 1.025, 2.5)
+        progressionNote = `+2.5% (all sets completed)`
         strategy = "standard"
       } else {
         // User didn't complete all assigned sets - maintain weight
@@ -128,6 +140,31 @@ export class LinearProgressionEngine {
       }
     }
 
+    // NEW: Generate per-set suggestions if we have per-set data from previous performance
+    let perSetSuggestions: LinearProgressionResult["perSetSuggestions"]
+    
+    if (previousPerformance?.setsData && previousPerformance.setsData.length > 0) {
+      perSetSuggestions = previousPerformance.setsData.map(setData => {
+        // Apply 2.5% increase to each set's weight if all sets were completed
+        const suggestedWeight = allSetsCompleted 
+          ? roundToIncrement(setData.weight * 1.025, 2.5)
+          : setData.weight
+        
+        // Calculate bounds for this specific set
+        const setBounds = calculateWeightBounds(suggestedWeight, tierRules.adjustmentBounds)
+        
+        return {
+          weight: suggestedWeight,
+          reps: setData.reps, // Copy reps from previous week
+          baseWeight: setData.weight,
+          baseReps: setData.reps,
+          bounds: setBounds
+        }
+      })
+      
+      console.log("[LinearProgressionEngine] Generated per-set suggestions with bounds:", perSetSuggestions)
+    }
+
     return {
       targetWeight,
       targetReps,
@@ -135,25 +172,76 @@ export class LinearProgressionEngine {
       bounds,
       strategy,
       progressionNote,
-      weeklyIncrease: tierRules.weeklyIncrease
+      weeklyIncrease: tierRules.weeklyIncrease,
+      perSetSuggestions
     }
   }
 
   /**
    * Calculate deload week progression
+   * Reduces weight to 65% of previous week's heaviest weights per set
    */
   private static calculateDeload(input: LinearProgressionInput): LinearProgressionResult {
     const { exercise, currentWeek, previousPerformance, tierRules } = input
 
-    const referenceWeight = previousPerformance?.lastWeight || 0
-    const deloadWeight = referenceWeight > 0 ? Math.round(referenceWeight * 0.8 / tierRules.minIncrement) * tierRules.minIncrement : 0
+    console.log("[LinearProgressionEngine] Calculating DELOAD week:", {
+      exerciseName: exercise.exerciseName,
+      currentWeek,
+      hasPreviousData: !!previousPerformance,
+      previousSetsData: previousPerformance?.setsData?.length || 0
+    })
+
+    // Get current week template data for rep range
+    const weekKey = `week${currentWeek}`
+    const weekData = exercise.progressionTemplate[weekKey]
+    const targetRepRange = weekData?.repRange || "8-10"
+    const targetReps = this.parseRepRange(targetRepRange)
+
+    if (!previousPerformance) {
+      return {
+        targetWeight: 0,
+        targetReps,
+        strategy: "deload",
+        progressionNote: "Deload week - use lighter weight",
+        weeklyIncrease: 0
+      }
+    }
+
+    // Generate per-set deload suggestions (65% of each set's weight)
+    let perSetSuggestions: LinearProgressionResult["perSetSuggestions"]
+    let deloadWeight = 0
+
+    if (previousPerformance.setsData && previousPerformance.setsData.length > 0) {
+      // Per-set deload: 65% of each set's weight from previous week
+      perSetSuggestions = previousPerformance.setsData.map(setData => {
+        const deloadSetWeight = roundToIncrement(setData.weight * 0.65, 2.5)
+        const setBounds = calculateWeightBounds(deloadSetWeight, tierRules.adjustmentBounds)
+        return {
+          weight: deloadSetWeight,
+          reps: targetReps, // Use deload week rep range
+          baseWeight: setData.weight,
+          baseReps: setData.reps,
+          bounds: setBounds
+        }
+      })
+      
+      // Calculate average deload weight for display
+      const totalDeloadWeight = perSetSuggestions.reduce((sum, set) => sum + set.weight, 0)
+      deloadWeight = Math.round(totalDeloadWeight / perSetSuggestions.length)
+      
+      console.log("[LinearProgressionEngine] Generated per-set deload suggestions:", perSetSuggestions)
+    } else {
+      // Fallback: 65% of last weight
+      deloadWeight = roundToIncrement(previousPerformance.lastWeight * 0.65, 2.5)
+    }
 
     return {
       targetWeight: deloadWeight,
-      targetReps: 8, // Lighter reps for deload
+      targetReps,
       strategy: "deload",
-      progressionNote: referenceWeight > 0 ? `Deload week (20% reduction from ${referenceWeight}lbs)` : "Deload week - use lighter weight",
-      weeklyIncrease: tierRules.weeklyIncrease
+      progressionNote: `Deload week (65% reduction for recovery)`,
+      weeklyIncrease: 0,
+      perSetSuggestions
     }
   }
 
@@ -214,11 +302,42 @@ export class LinearProgressionEngine {
 
   /**
    * Check if current week is a deload week
+   * Now properly checks the template's intensity flag
    */
   private static isDeloadWeek(currentWeek: number, exercise: ExerciseTemplate): boolean {
-    // Check template-specific deload week
-    const templateWeeks = 6 // Default to 6 weeks
-    return currentWeek === templateWeeks
+    // Check if the current week has intensity: "deload" in the template
+    const weekKey = `week${currentWeek}`
+    const weekData = exercise.progressionTemplate[weekKey]
+    return weekData?.intensity === "deload"
+  }
+
+  /**
+   * Calculate adjusted reps when user manually changes weight from suggested value
+   * Uses linear relationship: if weight increases by X%, reps decrease by X%
+   * 
+   * @param baseWeight - The suggested weight (from progression calculation)
+   * @param newWeight - The weight user manually selected
+   * @param baseReps - The suggested reps (from previous week)
+   * @returns Adjusted rep count (minimum 1)
+   */
+  static calculateAdjustedReps(
+    baseWeight: number,
+    newWeight: number,
+    baseReps: number
+  ): number {
+    if (baseWeight === 0 || baseWeight === newWeight) {
+      return baseReps
+    }
+
+    // Calculate percentage change in weight
+    const percentChange = ((newWeight - baseWeight) / baseWeight) * 100
+    
+    // Apply inverse percentage to reps (if weight goes up, reps go down)
+    const repAdjustment = Math.round((baseReps * percentChange) / 100)
+    const adjustedReps = baseReps - repAdjustment
+    
+    // Ensure minimum 1 rep
+    return Math.max(1, adjustedReps)
   }
 
   /**

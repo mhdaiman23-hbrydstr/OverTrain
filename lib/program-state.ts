@@ -1,4 +1,4 @@
-import { GYM_TEMPLATES, type GymTemplate } from "./gym-templates"
+import { GYM_TEMPLATES, type GymTemplate, processTemplateWithDeload } from "./gym-templates"
 import { WorkoutLogger } from "./workout-logger"
 import { supabase } from "./supabase"
 
@@ -96,8 +96,12 @@ export class ProgramStateManager {
   static async setActiveProgram(templateId: string, progressionOverride?: ProgressionOverride, userId?: string): Promise<ActiveProgram | null> {
     if (typeof window === "undefined") return null
 
-    const template = GYM_TEMPLATES.find((t) => t.id === templateId)
+    let template = GYM_TEMPLATES.find((t) => t.id === templateId)
     if (!template) return null
+
+    // Process template to add automatic deload weeks
+    template = processTemplateWithDeload(template)
+    console.log("[ProgramState] Processed template with automatic deload weeks")
 
     // Calculate total workouts in the program
     const daysInSchedule = Object.keys(template.schedule).length
@@ -159,6 +163,24 @@ export class ProgramStateManager {
     localStorage.removeItem(this.ACTIVE_PROGRAM_KEY)
     localStorage.removeItem(this.PROGRAM_PROGRESS_KEY)
     localStorage.removeItem(this.PROGRAM_HISTORY_KEY)
+  }
+
+  /**
+   * Clear all program history
+   * Useful for testing and starting fresh
+   */
+  static clearProgramHistory(): void {
+    if (typeof window === "undefined") return
+    
+    console.log("[ProgramState] Clearing all program history")
+    localStorage.removeItem(this.PROGRAM_HISTORY_KEY)
+    
+    // Also clear the active program
+    localStorage.removeItem(this.ACTIVE_PROGRAM_KEY)
+    
+    window.dispatchEvent(new Event("programChanged"))
+    
+    console.log("[ProgramState] Program history cleared successfully")
   }
 
   static getCurrentWorkout(): { name: string; exercises: any[] } | null {

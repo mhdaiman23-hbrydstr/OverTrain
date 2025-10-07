@@ -406,13 +406,37 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
 
             <TabsContent value="history" className="mt-0">
               <div className="divide-y divide-border">
-                {programHistory.length === 0 ? (
+                {programHistory.filter(entry => !entry.isActive).length === 0 ? (
                   <div className="px-4 py-12 text-center text-muted-foreground">
                     <p>No program history yet</p>
                     <p className="text-sm mt-2">Start a program to see your history</p>
                   </div>
                 ) : (
-                  programHistory.map((entry, index) => {
+                  <>
+                    <div className="px-4 py-3 bg-muted/30 flex items-center justify-between">
+                      <p className="text-sm text-muted-foreground">
+                        {programHistory.filter(entry => !entry.isActive).length} completed program{programHistory.filter(entry => !entry.isActive).length !== 1 ? 's' : ''}
+                      </p>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          if (confirm('Clear all program history? This cannot be undone.')) {
+                            // Keep only active programs
+                            const activeOnly = programHistory.filter(entry => entry.isActive)
+                            localStorage.setItem('liftlog_program_history', JSON.stringify(activeOnly))
+                            setProgramHistory(activeOnly)
+                            if (typeof window !== "undefined") {
+                              window.dispatchEvent(new Event("programChanged"))
+                            }
+                          }
+                        }}
+                        className="text-destructive hover:text-destructive"
+                      >
+                        Clear History
+                      </Button>
+                    </div>
+                    {programHistory.filter(entry => !entry.isActive).map((entry, index) => {
                     const template = GYM_TEMPLATES.find((t) => t.id === entry.templateId)
                     if (!template) return null
 
@@ -449,7 +473,8 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
                         </div>
                       </div>
                     )
-                  })
+                  })}
+                  </>
                 )}
               </div>
             </TabsContent>

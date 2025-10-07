@@ -27,6 +27,13 @@ export interface AdaptiveProgressionResult extends ProgressedExerciseData {
   tier?: ProgressionTier
   targetVolume?: number
   userWeightAdjustment?: number
+  perSetSuggestions?: Array<{  // NEW: per-set weight and rep suggestions
+    weight: number
+    reps: number
+    baseWeight: number
+    baseReps: number
+    bounds: { min: number; max: number }
+  }>
 }
 
 export class ProgressionCalculator {
@@ -509,7 +516,8 @@ export class ProgressionCalculator {
       adjustedReps: progressionResult.additionalData?.adjustedReps,
       bounds: progressionResult.additionalData?.bounds,
       targetVolume: progressionResult.targetWeight * progressionResult.targetReps,
-      userWeightAdjustment
+      userWeightAdjustment,
+      perSetSuggestions: progressionResult.perSetSuggestions  // NEW: pass through per-set suggestions
     }
 
     // Add percentage-specific data if available

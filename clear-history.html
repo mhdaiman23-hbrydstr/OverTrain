@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Clear Program History</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-top: 0;
+        }
+        button {
+            background: #dc2626;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        button:hover {
+            background: #b91c1c;
+        }
+        button.secondary {
+            background: #6b7280;
+        }
+        button.secondary:hover {
+            background: #4b5563;
+        }
+        .status {
+            margin-top: 20px;
+            padding: 12px;
+            border-radius: 6px;
+            display: none;
+        }
+        .status.success {
+            background: #d1fae5;
+            color: #065f46;
+            display: block;
+        }
+        .status.error {
+            background: #fee2e2;
+            color: #991b1b;
+            display: block;
+        }
+        .warning {
+            background: #fef3c7;
+            color: #92400e;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+        .code {
+            background: #f3f4f6;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-family: monospace;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🗑️ Clear Program History</h1>
+        
+        <div class="warning">
+            <strong>⚠️ Warning:</strong> This will clear ALL program history and the current active program. This action cannot be undone.
+        </div>
+
+        <div class="code">
+            Items to be cleared:
+            <ul style="margin: 8px 0;">
+                <li>liftlog_program_history</li>
+                <li>liftlog_active_program</li>
+                <li>liftlog_workouts (optional)</li>
+                <li>liftlog_in_progress_workouts (optional)</li>
+            </ul>
+        </div>
+
+        <button onclick="clearHistory()">Clear Program History</button>
+        <button class="secondary" onclick="clearEverything()">Clear Everything</button>
+        
+        <div id="status" class="status"></div>
+        
+        <hr style="margin: 30px 0; border: none; border-top: 1px solid #e5e7eb;">
+        
+        <h3>Current Data:</h3>
+        <div class="code" style="max-height: 200px; overflow: auto;">
+            <pre id="current-data">Loading...</pre>
+        </div>
+    </div>
+
+    <script>
+        // Display current data
+        function displayCurrentData() {
+            const data = {
+                programHistory: localStorage.getItem('liftlog_program_history'),
+                activeProgram: localStorage.getItem('liftlog_active_program'),
+                workouts: localStorage.getItem('liftlog_workouts'),
+                inProgressWorkouts: localStorage.getItem('liftlog_in_progress_workouts')
+            };
+            
+            const display = {
+                'Program History Entries': data.programHistory ? JSON.parse(data.programHistory).length : 0,
+                'Active Program': data.activeProgram ? 'Yes' : 'No',
+                'Completed Workouts': data.workouts ? JSON.parse(data.workouts).length : 0,
+                'In-Progress Workouts': data.inProgressWorkouts ? JSON.parse(data.inProgressWorkouts).length : 0
+            };
+            
+            document.getElementById('current-data').textContent = JSON.stringify(display, null, 2);
+        }
+
+        // Clear program history only
+        function clearHistory() {
+            if (!confirm('Are you sure you want to clear all program history?')) {
+                return;
+            }
+            
+            try {
+                localStorage.removeItem('liftlog_program_history');
+                localStorage.removeItem('liftlog_active_program');
+                
+                showStatus('✅ Program history cleared successfully!', 'success');
+                displayCurrentData();
+                
+                setTimeout(() => {
+                    window.close();
+                }, 2000);
+            } catch (error) {
+                showStatus('❌ Error: ' + error.message, 'error');
+            }
+        }
+
+        // Clear everything including workouts
+        function clearEverything() {
+            if (!confirm('Are you sure you want to clear ALL data including workout history? This cannot be undone!')) {
+                return;
+            }
+            
+            try {
+                localStorage.removeItem('liftlog_program_history');
+                localStorage.removeItem('liftlog_active_program');
+                localStorage.removeItem('liftlog_workouts');
+                localStorage.removeItem('liftlog_in_progress_workouts');
+                
+                showStatus('✅ All data cleared successfully!', 'success');
+                displayCurrentData();
+                
+                setTimeout(() => {
+                    window.close();
+                }, 2000);
+            } catch (error) {
+                showStatus('❌ Error: ' + error.message, 'error');
+            }
+        }
+
+        function showStatus(message, type) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = 'status ' + type;
+        }
+
+        // Display data on load
+        displayCurrentData();
+    </script>
+</body>
+</html>
+
