@@ -156,8 +156,8 @@ export class WorkoutCache {
       .from('workouts')
       .select(`
         *,
-        exercises:workout_exercises(*),
-        sets:workout_sets(*)
+        exercises,  -- JSONB field, not separate table
+        workout_sets(*)  -- Separate table for individual sets
       `)
       .eq('user_id', userId)
       .eq('week', week)
