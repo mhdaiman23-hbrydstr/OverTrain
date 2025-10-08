@@ -18,12 +18,15 @@ export function CompletionBar({ workout, isWorkoutBlocked, isCompletingWorkout, 
   }
 
   const renderCompletedState = () => (
-    <div className="w-full p-4 bg-green-50 border-2 border-green-500 rounded-lg text-center">
-      <Check className="h-6 w-6 mx-auto mb-2 text-green-600" />
-      <p className="font-semibold text-green-700">Workout Completed</p>
-      <p className="text-sm text-green-600 mt-1">
-        {new Date(workout.endTime || workout.startTime).toLocaleDateString()}
-      </p>
+    <div className="w-full px-4 py-3 bg-green-50 border-2 border-green-500 rounded-lg">
+      <div className="flex items-center justify-center gap-2">
+        <Check className="h-5 w-5 text-green-600 flex-shrink-0" />
+        <span className="font-semibold text-green-700">Workout Completed</span>
+        <span className="text-sm text-green-600">•</span>
+        <span className="text-sm text-green-600">
+          {new Date(workout.endTime || workout.startTime).toLocaleDateString()}
+        </span>
+      </div>
     </div>
   )
 
