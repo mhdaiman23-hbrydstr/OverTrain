@@ -13,9 +13,34 @@ npm run dev          # Start development server on localhost:3000
 npm run build        # Build for production
 npm run start        # Run production build
 npm run lint         # Run ESLint
+npm run test         # Run all tests with Vitest
+npm run test -- --run # Run tests once (no watch mode)
 ```
 
 Note: TypeScript and ESLint errors are ignored during builds (see next.config.mjs).
+
+## Testing
+
+**Test Structure**:
+```
+tests/
+├── workout-logger.smoke.test.tsx        # Integration smoke test for workout logger
+├── one-rm-context.test.tsx              # Unit tests for OneRmProvider
+├── workout-logger-components.test.tsx   # Component unit tests
+└── progression-router.registry.test.ts  # Progression router logic tests
+```
+
+**Test Coverage**:
+- Workout logger component rendering and interactions
+- OneRmProvider context with lookup logic
+- Connection status banners
+- Week access and progression note banners
+- Progression strategy routing and registry
+
+**Running Tests**:
+- All tests: `npm run test -- --run`
+- Specific file: `npm run test -- --run tests/one-rm-context.test.tsx`
+- Watch mode: `npm run test` (interactive)
 
 ## Architecture
 
@@ -73,6 +98,43 @@ Note: TypeScript and ESLint errors are ignored during builds (see next.config.mj
 - No user → Landing page with sign-in/sign-up
 - User without gender → IntakeForm (collects gender, experience, goals)
 - User with gender → Main app views
+
+**Workout Logger Refactored Architecture** (as of 2025-10-08):
+
+The WorkoutLogger has been refactored into a modular component architecture:
+
+```
+components/workout-logger/
+├── workout-logger.tsx              # Main orchestrator (wraps with OneRmProvider)
+├── components/                     # UI components (extracted from monolith)
+│   ├── WorkoutHeader.tsx          # Header with program info, calendar, menu
+│   ├── ConnectionStatusBanner.tsx  # Network status indicator
+│   ├── WeekAccessBanner.tsx       # Week blocking messages
+│   ├── ProgressionNoteBanner.tsx  # Progression guidance display
+│   ├── ExerciseGroups.tsx         # Exercise list renderer
+│   ├── CompletionBar.tsx          # Workout completion actions
+│   └── WorkoutDialogs.tsx         # All dialog components
+├── hooks/                          # Business logic hooks
+│   ├── use-workout-session.ts     # Core workout state & event handlers
+│   ├── use-connection-status.ts   # Network status monitoring
+│   └── use-one-rm-persistence.ts  # 1RM data persistence
+├── contexts/                       # React contexts
+│   └── one-rm-context.tsx         # OneRmProvider for 1RM data
+└── types.ts                        # Shared TypeScript types
+```
+
+**Provider Pattern for 1RM Data**:
+The `OneRmProvider` context manages one-rep-max values across the workout logger:
+- Provides `getOneRepMax(exerciseId, fallbackName)` for lookups
+- Auto-sorts by `dateTested` to always return most recent entry
+- Persistence hook (`use-one-rm-persistence`) syncs with localStorage
+- Consumed by progression engines for percentage-based calculations
+
+**Progression Router Architecture**:
+- `lib/progression-router.ts` contains `resolveProgressionStrategy()` helper
+- Registry-based routing with template overrides and fallbacks
+- Detailed telemetry logging for debugging progression decisions
+- Progression engines can consume 1RM data via router payloads
 
 ### Database Schema (Supabase)
 

@@ -29,10 +29,13 @@ export function OneRmProvider({ children, initialData }: { children: ReactNode; 
       .slice()
       .sort((a, b) => b.dateTested - a.dateTested)
       .forEach((entry) => {
-        if (entry.exerciseId) {
+        if (entry.exerciseId && !lookupByExercise.has(entry.exerciseId)) {
           lookupByExercise.set(entry.exerciseId, entry)
         }
-        lookupByName.set(entry.exerciseName.toLowerCase(), entry)
+        const nameLower = entry.exerciseName.toLowerCase()
+        if (!lookupByName.has(nameLower)) {
+          lookupByName.set(nameLower, entry)
+        }
       })
 
     return {

@@ -19,7 +19,8 @@
       "Bash(mkdir:*)",
       "Bash(git -C \"S:/Program Files/LiftLog\" status --short lib/workout-logger.ts)",
       "Read(//c/Users/mhdai/Desktop/**)",
-      "Bash(git log:*)"
+      "Bash(git log:*)",
+      "Bash(npm run test:*)"
     ]
   }
 }
