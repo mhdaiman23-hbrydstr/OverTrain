@@ -204,12 +204,12 @@ export function ExerciseGroups({
                                   onChange={(e) => onSetUpdate(exercise.id, set.id, "weight", Number.parseFloat(e.target.value) || 0)}
                                   onBlur={() => onWeightBlur(exercise.id, set.id)}
                                   className="text-center h-10 bg-muted/30 border-border/50"
-                                  placeholder={(exercise as any).suggestedWeight && (exercise as any).suggestedWeight > 0 ? `${(exercise as any).suggestedWeight} lbs` : ""}
+                                  placeholder={(exercise as any).suggestedWeight && (exercise as any).suggestedWeight > 0 ? `${(exercise as any).suggestedWeight}` : ""}
                                   step="2.5"
                                   disabled={isWorkoutBlocked}
                                   title={(exercise as any).progressionNote ||
                                     ((exercise as any).suggestedWeight && (exercise as any).suggestedWeight > 0
-                                      ? `Suggested: ${(exercise as any).suggestedWeight} lbs`
+                                      ? `Suggested: ${(exercise as any).suggestedWeight}`
                                       : "")}
                                 />
                               </div>

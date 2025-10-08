@@ -485,7 +485,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
             [`${exerciseId}_${setId}`]: {
               adjustedReps: 0,
               strategy: "out_of_bounds",
-              message: `Weight out of bounds: ${Math.round(min)}-${Math.round(max)} lbs. Enter reps manually.`
+              message: `Weight out of bounds: ${Math.round(min)}-${Math.round(max)}. Enter reps manually.`
             }
           }))
           setPendingOutOfBoundsWarnings(prev => ({ ...prev, [`${exerciseId}_${setId}`]: true }))
@@ -700,7 +700,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
         if (suggestion?.bounds) {
           toast({
             title: 'Weight out of range',
-            description: `Suggested range for this set: ${Math.round(suggestion.bounds.min)}-${Math.round(suggestion.bounds.max)} lbs.`,
+            description: `Suggested range for this set: ${Math.round(suggestion.bounds.min)}-${Math.round(suggestion.bounds.max)}.`,
             variant: 'destructive',
             duration: 4000
           })
@@ -709,7 +709,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
         // Legacy bounds
         toast({
           title: 'Weight out of range',
-          description: `Suggested range: ${Math.round(exercise.bounds.min)}-${Math.round(exercise.bounds.max)} lbs. Fill reps manually.`,
+          description: `Suggested range: ${Math.round(exercise.bounds.min)}-${Math.round(exercise.bounds.max)}. Fill reps manually.`,
           variant: 'destructive',
           duration: 4000
         })

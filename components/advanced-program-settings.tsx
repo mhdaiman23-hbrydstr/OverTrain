@@ -221,9 +221,9 @@ export function AdvancedProgramSettings({ template, userProfile, onOverrideChang
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="1">1 lb</SelectItem>
-                            <SelectItem value="2.5">2.5 lbs</SelectItem>
-                            <SelectItem value="5">5 lbs</SelectItem>
+                            <SelectItem value="1">1</SelectItem>
+                            <SelectItem value="2.5">2.5</SelectItem>
+                            <SelectItem value="5">5</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
