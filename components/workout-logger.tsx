@@ -16,9 +16,10 @@ import { CompletionBar } from "@/components/workout-logger/components/Completion
 import { WorkoutDialogs } from "@/components/workout-logger/components/WorkoutDialogs"
 import { useConnectionStatus } from "@/components/workout-logger/hooks/use-connection-status"
 import { useWorkoutSession } from "@/components/workout-logger/hooks/use-workout-session"
+import { OneRmProvider } from "@/components/workout-logger/contexts/one-rm-context"
 
 
-export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, onViewAnalytics }: WorkoutLoggerProps) {
+function WorkoutLoggerView({ initialWorkout, onComplete, onCancel, onViewAnalytics }: WorkoutLoggerProps) {
   const {
     workout,
     showNotesDialog,
@@ -219,4 +220,14 @@ export function WorkoutLoggerComponent({ initialWorkout, onComplete, onCancel, o
   )
 }
 
+
+
+
+export function WorkoutLoggerComponent(props: WorkoutLoggerProps) {
+  return (
+    <OneRmProvider>
+      <WorkoutLoggerView {...props} />
+    </OneRmProvider>
+  )
+}
 

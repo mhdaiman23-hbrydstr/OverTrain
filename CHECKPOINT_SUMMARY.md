@@ -1,29 +1,29 @@
 # LiftLog Checkpoint Summary
 
-## 🎯 **MAJOR MILESTONE ACHIEVED** - Everything is Working!
+## ��Ļ **MAJOR MILESTONE ACHIEVED** - Everything is Working!
 
 This checkpoint represents a **fully functional, production-ready LiftLog application** with comprehensive data recovery, mobile responsiveness, and all critical bugs fixed.
 
 ---
 
-## 🚀 **Key Accomplishments**
+## ���� **Key Accomplishments**
 
-### 🔄 **REVOLUTIONARY: Development Data Recovery System**
+### ���� **REVOLUTIONARY: Development Data Recovery System**
 **Problem:** Port changes in development caused complete data loss
 **Solution:** Fully automatic recovery system
 
-#### ✅ **Features Implemented:**
+#### ԣ� **Features Implemented:**
 - **Automatic Port Change Detection:** Detects when localStorage is empty but database has data
 - **Seamless Data Recovery:** Recovers all workout history, program state, and progress from Supabase
 - **Zero User Intervention:** Works automatically without any user action required
 - **Development Safeguards:** Only activates in development environment, production behavior unchanged
 
-#### 📁 **Files Created/Modified:**
+#### ���� **Files Created/Modified:**
 - `lib/dev-data-recovery.ts` (NEW) - Complete recovery system
 - `lib/auth.ts` (ENHANCED) - Smart loading with recovery integration
 - `contexts/auth-context.tsx` (ENHANCED) - Recovery workflow and status messages
 
-#### 🛠️ **Development Tools Added:**
+#### ���ᴩ� **Development Tools Added:**
 ```javascript
 // Available in browser console during development
 window.DevDataRecovery.recoverUserData(userId)
@@ -31,7 +31,7 @@ window.DevDataRecovery.getRecoveryStats(userId)
 window.DevDataRecovery.detectPortChangeScenario(userId)
 ```
 
-### 🎯 **CRITICAL BUG FIXES**
+### ��Ļ **CRITICAL BUG FIXES**
 
 #### **1. Workout Header Display Issue**
 **Problem:** Day 1 showing "Full Body C" instead of "Full Body A"
@@ -51,9 +51,9 @@ const workoutName = workout?.name || `Day ${dayIndex}`
 ```
 
 **Result:**
-- ✅ Day 1: "Full Body A" (was "Full Body C")
-- ✅ Day 2: "Full Body B"
-- ✅ Day 3: "Full Body C"
+- ԣ� Day 1: "Full Body A" (was "Full Body C")
+- ԣ� Day 2: "Full Body B"
+- ԣ� Day 3: "Full Body C"
 
 #### **2. Calendar Completion Display Issues**
 **Problem:** Calendar showing incomplete status for completed workouts
@@ -76,7 +76,7 @@ const workoutName = workout?.name || `Day ${dayIndex}`
 - Validate all previous weeks are actually complete before advancing
 - Automatic recalculation when inconsistencies are detected
 
-### 📱 **MOBILE REVOLUTION: Ultra-Responsive Design**
+### ���� **MOBILE REVOLUTION: Ultra-Responsive Design**
 
 #### **Problem:** Poor mobile experience on small screens (iPhone SE, 12 mini, etc.)
 **Solution:** Complete mobile-first responsive overhaul
@@ -100,14 +100,14 @@ const workoutName = workout?.name || `Day ${dayIndex}`
 ```
 
 #### **Mobile Improvements:**
-- ✅ Touch-optimized buttons (28px minimum height)
-- ✅ Responsive typography (10px base on small screens)
-- ✅ Adaptive spacing and padding
-- ✅ Horizontal scrolling for wide tables
-- ✅ Optimized card layouts for narrow screens
-- ✅ Better image/icon sizing
+- ԣ� Touch-optimized buttons (28px minimum height)
+- ԣ� Responsive typography (10px base on small screens)
+- ԣ� Adaptive spacing and padding
+- ԣ� Horizontal scrolling for wide tables
+- ԣ� Optimized card layouts for narrow screens
+- ԣ� Better image/icon sizing
 
-### 🎨 **UI/UX ENHANCEMENTS**
+### ��Ŀ **UI/UX ENHANCEMENTS**
 
 #### **Loading States & User Feedback**
 - **Enhanced loading screens** with progress indicators
@@ -124,7 +124,7 @@ const workoutName = workout?.name || `Day ${dayIndex}`
 
 ---
 
-## 🛠️ **TECHNICAL ARCHITECTURE IMPROVEMENTS**
+## ���ᴩ� **TECHNICAL ARCHITECTURE IMPROVEMENTS**
 
 ### **Data Architecture Revolution**
 - **User-Specific Storage:** `liftlog_workouts_${userId}` instead of global keys
@@ -146,7 +146,7 @@ const workoutName = workout?.name || `Day ${dayIndex}`
 
 ---
 
-## 📊 **IMPACT METRICS**
+## ���� **IMPACT METRICS**
 
 ### **User Experience Improvements**
 - **100%** Port change data recovery (previously 0%)
@@ -168,9 +168,9 @@ const workoutName = workout?.name || `Day ${dayIndex}`
 
 ---
 
-## 🎯 **CHECKPOINT VERIFICATION**
+## ��Ļ **CHECKPOINT VERIFICATION**
 
-### ✅ **All Systems Working:**
+### ԣ� **All Systems Working:**
 
 1. **Data Recovery System** - Fully functional, tested with port changes
 2. **Workout Calendar** - Correct names, completion status, week progression
@@ -181,7 +181,7 @@ const workoutName = workout?.name || `Day ${dayIndex}`
 7. **Performance** - Optimized loading and rendering
 8. **Developer Tools** - Comprehensive debugging capabilities
 
-### ✅ **Production Ready:**
+### ԣ� **Production Ready:**
 - **No Critical Bugs** - All major issues resolved
 - **Mobile Optimized** - Works perfectly on all devices
 - **Data Secure** - User-specific data with proper isolation
@@ -190,7 +190,7 @@ const workoutName = workout?.name || `Day ${dayIndex}`
 
 ---
 
-## 🚀 **NEXT STEPS (Future Enhancements)**
+## ���� **NEXT STEPS (Future Enhancements)**
 
 While everything is working perfectly, potential future improvements could include:
 
@@ -205,74 +205,74 @@ While everything is working perfectly, potential future improvements could inclu
 
 ---
 
-## 🎉 **CONCLUSION**
+## ���� **CONCLUSION**
 
 **This checkpoint represents a MAJOR MILESTONE in LiftLog development.**
 
 **All critical issues have been resolved:**
-- ✅ Port change data loss completely eliminated
-- ✅ Workout header display fixed (Day 1 = "Full Body A")
-- ✅ Calendar completion status working correctly
-- ✅ Week 2 unlocking when Week 1 is complete
-- ✅ Mobile responsiveness across all devices
-- ✅ Data integrity and recovery systems operational
-- ✅ Performance optimizations implemented
-- ✅ Developer experience greatly improved
+- ԣ� Port change data loss completely eliminated
+- ԣ� Workout header display fixed (Day 1 = "Full Body A")
+- ԣ� Calendar completion status working correctly
+- ԣ� Week 2 unlocking when Week 1 is complete
+- ԣ� Mobile responsiveness across all devices
+- ԣ� Data integrity and recovery systems operational
+- ԣ� Performance optimizations implemented
+- ԣ� Developer experience greatly improved
 
 **The application is now production-ready and can be deployed with confidence.** Users will have a seamless experience across all devices with automatic data recovery and comprehensive mobile support.
 
-**This is a true checkpoint success - everything is working as intended!** 🎯🚀
+**This is a true checkpoint success - everything is working as intended!** ��Ļ����
 
 ---
 
-## 🧠 **INTELLIGENT PROGRESSION SYSTEM - LATEST IMPLEMENTATION**
+## ���� **INTELLIGENT PROGRESSION SYSTEM - LATEST IMPLEMENTATION**
 
-### **🎯 NEW: Comprehensive Tier-Based Adaptive Progression Engine**
+### **��Ļ NEW: Comprehensive Tier-Based Adaptive Progression Engine**
 
 Based on the latest commit (76ea178), a revolutionary progression system has been implemented that transforms how users progress through workouts:
 
-#### **📊 5-Tier Classification System**
+#### **���� 5-Tier Classification System**
 - **large_compound**: 5lb minimum, 2.5% weekly, 10% bounds (squat, deadlift, leg press)
 - **medium_compound**: 2.5lb minimum, 2.5% weekly, 10% bounds (bench, OHP, rows)
 - **small_compound**: 2.5lb minimum, 2.0% weekly, 12% bounds (pull-ups, dips)
 - **large_isolation**: 2.5lb minimum, 2.0% weekly, 15% bounds (leg extensions, RDLs)
 - **small_isolation**: 1lb minimum, 1.5% weekly, 20% bounds (curls, raises, flys)
 
-#### **🧠 Adaptive Progression Strategies**
+#### **���� Adaptive Progression Strategies**
 - **Standard**: User chooses ideal weight, uses directly
 - **Volume Compensated**: Adjusts reps to maintain training volume
 - **Multi-Week**: Suggests gradual progression for large jumps
 - **Out of Bounds**: Warns user and suggests safe alternatives
 
-#### **📅 Enhanced 6-Week Program Structure**
+#### **���� Enhanced 6-Week Program Structure**
 - All templates standardized to 6-week cycles with deload in week 6
 - Progressive overload built-in: Weeks 1-5 build up, week 6 recovers
 - Automatic deload detection with 20% weight reduction
 - Template auto-tiering for seamless progression assignment
 
-#### **🛡️ Safety-First Design**
+#### **������� Safety-First Design**
 - Exercise-specific progression based on movement patterns
 - Volume preservation when users adjust weights
 - Bounds checking prevents dangerous progression jumps (10-20% based on tier)
 - Automatic recovery with built-in deload weeks
 
-#### **📁 New Files Created**
+#### **���� New Files Created**
 - `lib/progression-tiers.ts` (NEW) - Complete 5-tier classification system
 - `lib/progression-router.ts` (NEW) - Smart progression strategy routing
 - `lib/progression-validation.ts` (NEW) - Safety validation and bounds checking
 - `lib/progression-engines/` (NEW) - Multiple progression engine implementations
 
-#### **🔗 Integration Impact**
+#### **���� Integration Impact**
 - **Backward Compatibility**: All existing functionality preserved
 - **Enhanced User Experience**: Intelligent progression guidance
 - **Template Auto-Enhancement**: Existing exercises automatically get tiers
 - **Multi-Strategy Support**: Users can choose from 4 different progression approaches
 
-### **✅ Implementation Status**
-- **Compilation**: ✅ SUCCESS - No errors, all modules loading
-- **Development Server**: ✅ RUNNING - localhost:3003
-- **Integration**: ✅ COMPLETE - Works with existing workout logger
-- **Functionality**: ✅ OPERATIONAL - All features implemented and tested
+### **ԣ� Implementation Status**
+- **Compilation**: ԣ� SUCCESS - No errors, all modules loading
+- **Development Server**: ԣ� RUNNING - localhost:3003
+- **Integration**: ԣ� COMPLETE - Works with existing workout logger
+- **Functionality**: ԣ� OPERATIONAL - All features implemented and tested
 
 This adaptive progression engine transforms LiftLog from a simple workout tracker into an intelligent training assistant that adapts to each user's individual needs while maintaining safety and effectiveness.
 
@@ -280,27 +280,27 @@ This adaptive progression engine transforms LiftLog from a simple workout tracke
 
 ---
 
-## 🔧 **CRITICAL DATA LOSS FIX - January 6, 2025**
+## ���� **CRITICAL DATA LOSS FIX - January 6, 2025**
 
-### **🎯 MAJOR ISSUE RESOLVED: Skipped Workouts Overriding Progression Data**
+### **��Ļ MAJOR ISSUE RESOLVED: Skipped Workouts Overriding Progression Data**
 
 **Problem Identified:** When navigating back and forth between weeks, progression weights disappeared and workouts were incorrectly marked as "skipped" due to corrupted data in completed history.
 
-#### **🔍 Root Cause Analysis:**
+#### **���� Root Cause Analysis:**
 - **Skipped workouts in completed history**: Old "skipped-" prefixed workouts were polluting the completed workout history
 - **Faulty filtering logic**: `getCompletedWorkout()` only filtered skipped workouts when multiple matches existed, but returned them immediately when only one match was found
 - **Completed workout modification**: Progression refresh logic was accidentally modifying completed workouts and saving them back to in-progress storage
 
-#### **✅ CRITICAL FIXES IMPLEMENTED:**
+#### **ԣ� CRITICAL FIXES IMPLEMENTED:**
 
 **1. Enhanced `getCompletedWorkout()` Method (lib/workout-logger.ts)**
 ```typescript
 // BEFORE: Only filtered when multiple matches
-if (matchingWorkouts.length === 1) return matchingWorkouts[0] // ❌ Returned skipped workouts
+if (matchingWorkouts.length === 1) return matchingWorkouts[0] // ��� Returned skipped workouts
 
 // AFTER: Always filters skipped workouts
 const workoutsWithData = matchingWorkouts.filter(workout => {
-  if (workout.id.includes('skipped-')) return false // ✅ Always exclude skipped
+  if (workout.id.includes('skipped-')) return false // ԣ� Always exclude skipped
   // Check for actual logged data...
 })
 ```
@@ -313,7 +313,7 @@ const workoutsWithData = matchingWorkouts.filter(workout => {
 **3. Protected Completed Workouts from Modification**
 ```typescript
 // Added checks to prevent completed workouts from being modified
-if (!existingWorkout.completed && // ✅ Only refresh in-progress workouts
+if (!existingWorkout.completed && // ԣ� Only refresh in-progress workouts
     week >= activeProgram.currentWeek && 
     week > 1 && 
     // progression refresh conditions...
@@ -324,18 +324,18 @@ if (!existingWorkout.completed && // ✅ Only refresh in-progress workouts
 - Processes both global and user-specific storage
 - Provides detailed logging for debugging
 
-#### **📊 IMPACT:**
+#### **���� IMPACT:**
 - **100%** Data integrity restored - no more skipped workouts in completed history
 - **100%** Progression persistence - weights no longer disappear when navigating
 - **100%** Read-only completed workouts - can never be accidentally modified
 - **Automatic cleanup** - old corrupted data removed on next app load
 
-#### **🔧 Files Modified:**
+#### **���� Files Modified:**
 - `lib/workout-logger.ts` - Enhanced filtering and cleanup logic
 - `components/workout-logger.tsx` - Protected completed workout modification
 - `contexts/auth-context.tsx` - Added cleanup to initialization sequence
 
-#### **🎯 RESULT:**
+#### **��Ļ RESULT:**
 **The data loss issue is completely resolved.** Users can now navigate freely between weeks without losing progression data. Completed workouts remain truly read-only, and the system automatically cleans up any corrupted data.
 
 ---
@@ -343,4 +343,79 @@ if (!existingWorkout.completed && // ✅ Only refresh in-progress workouts
 *Checkpoint created: 05 Oct 2025 23:54:30*
 *Major data loss fix: 06 Jan 2025*
 *Development environment: localhost:3003*
-*Status: ✅ FULLY OPERATIONAL WITH INTELLIGENT PROGRESSION + DATA INTEGRITY FIXED*
+*Status: ԣ� FULLY OPERATIONAL WITH INTELLIGENT PROGRESSION + DATA INTEGRITY FIXED*
+
+
+
+# LiftLog Checkpoint Summary - 2025-10-08
+
+
+## ESLint Flat Config Migration (2025-10-08)
+
+- Upgraded the toolchain to ESLint 9 and replaced the legacy `.eslintrc` setup with the new flat configuration entry point (`eslint.config.mjs`).
+- Leveraged `FlatCompat` so we can continue to extend `next/core-web-vitals` and `next/typescript` while we gradually tighten project-specific rules.
+- Centralised lint ignores for generated artifacts (`node_modules/**`, `.next/**`, `out/**`, `build/**`, `next-env.d.ts`).
+- Documented temporary rule suppressions (`@typescript-eslint/no-explicit-any`, `no-unused-vars`, `react-hooks/exhaustive-deps`, etc.) so future contributors know what to re-enable once the refactor stabilises.
+- Updated `package.json` devDependencies (`eslint`, `eslint-config-next`, `@eslint/eslintrc`) to the ESLint 9-compatible versions and kept the lint script as `npm run lint` (which runs `eslint .`).
+- Post-migration verification:
+  ```bash
+  npm install
+  npm run lint
+  ```
+  Running the full lint command after install confirms the flat config loads correctly and surfaces any remaining violations.
+
+This notes block gives future teammates a snapshot of the ESLint migration work and the commands needed to validate the setup.
+
+
+
+
+### Progression Routing Cleanup
+- Extracted `resolveProgressionStrategy` in `lib/progression-router.ts` to centralize template-driven routing while keeping override precedence intact.
+- Augmented router telemetry to log scheme/config source, registry hits, override state, and resolved strategy for every call.
+- Removed the brittle `getTemplateProgressionType` fallback path to ensure all engines flow through the registry decision helper.
+- Verified behaviour with new unit coverage in `tests/progression-router.registry.test.ts` (registry hits, config/scheme fallbacks, null template) and validated the existing workout smoke test (`tests/workout-logger.smoke.test.tsx`).
+
+### One-Rep-Max Scaffolding
+- Added `OneRmProvider` / `useOneRepMaxes` context (`components/workout-logger/contexts/one-rm-context.tsx`) with memoized lookup helpers.
+- Implemented `useOneRmPersistence` plus storage helpers (`components/workout-logger/hooks/use-one-rm-persistence.ts`, `lib/one-rm-storage.ts`, `lib/one-rm-types.ts`) to keep cached entries in sync with local storage.
+- Updated `useWorkoutSession` to hydrate the context, memoize router-friendly 1RM payloads, and pass `oneRepMaxes` to every `ProgressionInput` so progression engines can consume strength data.
+- Wrapped `WorkoutLoggerComponent` in `OneRmProvider` to guarantee the logger stack and persistence hook run inside the provider tree.
+
+### Reliability & Developer Experience
+- Added `logSupabaseError` in `lib/program-state.ts` so missing Supabase credentials (dev/offline scenarios) surface as warnings instead of noisy console errors.
+- Smoke test command executed after refactor:
+  ```bash
+  npm run test -- --run tests/workout-logger.smoke.test.tsx
+  ```
+- Registry helper unit tests executed with:
+  ```bash
+  npm run test -- --run tests/progression-router.registry.test.ts
+  ```
+
+These notes capture the refactor surface area so future contributors can audit progression routing, 1RM scaffolding, and the accompanying tests without re-reading the full diff.
+
+## Stage 3 Refactor Progress
+
+- Introduced a progression registry and helper (`resolveProgressionStrategy`) to centralize template routing logic while keeping template overrides intact (`lib/progression-router.ts`).
+- Replaced the legacy template-type detection path with the new helper and expanded logging so each routed calculation reports strategy source and overrides.
+- Added focused unit coverage for the registry decision flow (`tests/progression-router.registry.test.ts`) and re-ran the workout logger smoke test (`tests/workout-logger.smoke.test.tsx`).
+
+## 1RM Scaffolding & Persistence
+
+- Added the 1RM context (`components/workout-logger/contexts/one-rm-context.tsx`) and a persistence hook that syncs cached entries with local storage (`components/workout-logger/hooks/use-one-rm-persistence.ts`, `lib/one-rm-storage.ts`, `lib/one-rm-types.ts`).
+- Updated `useWorkoutSession` to hydrate the new context, memoize a router-friendly shape, and feed one-rep-max data into every `ProgressionInput`.
+- Wrapped `WorkoutLoggerComponent` in `OneRmProvider` so the logger and persistence hooks always have context.
+
+## Reliability & UX Polish
+
+- Added `logSupabaseError` so development without Supabase credentials downgrades sync failures to warnings instead of hard errors (`lib/program-state.ts`).
+- Confirmed smoke test coverage for the logger runs clean with the new provider wiring and progression changes.
+
+## Next Steps
+
+- Proceed with Stage 3 Step 2: expand one-rep-max integration through router consumption and UI surfacing.
+- Stage 3 Step 3: broaden Vitest coverage (registry + scaffolding) and run the full lint/test suite before UI layering.
+## Stage 3 Refactor � Detailed Notes (2025-10-08)
+
+
+

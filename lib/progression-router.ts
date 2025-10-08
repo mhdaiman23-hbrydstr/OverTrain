@@ -2,7 +2,7 @@ import { LinearProgressionEngine, type LinearProgressionInput, type LinearProgre
 import { PercentageProgressionEngine, type PercentageProgressionInput, type PercentageProgressionResult, type OneRepMax } from "./progression-engines/percentage-engine"
 import { WorkoutLogger } from "./workout-logger"
 import { getTierRules } from "./progression-tiers"
-import type { ExerciseTemplate } from "./gym-templates"
+import type { ExerciseTemplate, GymTemplate } from "./gym-templates"
 import type { ActiveProgram } from "./program-state"
 
 export interface ProgressionInput {
@@ -54,6 +54,54 @@ export interface ProgressionResult {
   }>
 }
 
+export type ProgressionStrategy = "linear" | "percentage" | "hybrid"
+
+interface ProgressionRegistryEntry {
+  strategy: ProgressionStrategy
+  note?: string
+}
+
+export interface ProgressionRoutingDecision {
+  strategy: ProgressionStrategy
+  source: "registry" | "template_config" | "template_scheme" | "default"
+  note?: string
+}
+
+const PROGRESSION_REGISTRY: Record<string, ProgressionRegistryEntry> = {
+  // Hypertrophy templates default to linear
+  "fullbody-3day-beginner-male": { strategy: "linear" },
+  "fullbody-3day-beginner-female": { strategy: "linear" },
+  "upperlower-4day-intermediate-male": { strategy: "linear" },
+  "ppl-6day-intermediate-male": { strategy: "hybrid", note: "Hybrid target example" },
+}
+
+export function resolveProgressionStrategy(
+  template: GymTemplate | null | undefined,
+  fallback: ProgressionStrategy = "linear"
+): ProgressionRoutingDecision {
+  if (!template) {
+    return { strategy: fallback, source: "default" }
+  }
+
+  const registryEntry = PROGRESSION_REGISTRY[template.id]
+  if (registryEntry) {
+    return { strategy: registryEntry.strategy, source: "registry", note: registryEntry.note }
+  }
+
+  const configType = template.progressionConfig?.type
+  if (configType) {
+    return { strategy: configType, source: "template_config" }
+  }
+
+  const schemeType = template.progressionScheme?.type
+  if (schemeType) {
+    const normalized: ProgressionStrategy = schemeType === "periodized" ? "percentage" : "linear"
+    return { strategy: normalized, source: "template_scheme" }
+  }
+
+  return { strategy: fallback, source: "default" }
+}
+
 export interface ProgressionOverride {
   enabled: boolean
   overrideType: "linear" | "percentage" | "hybrid"
@@ -81,26 +129,26 @@ export class ProgressionRouter {
   static calculateProgression(input: ProgressionInput): ProgressionResult {
     const { exercise, activeProgram, currentWeek, userProfile, previousPerformance, userWeightAdjustment, oneRepMaxes = [] } = input
 
+    const progressionDecision = resolveProgressionStrategy(activeProgram.template)
     console.log("[ProgressionRouter] Routing progression calculation:", {
       exerciseName: exercise.exerciseName,
       category: exercise.category,
-      templateType: activeProgram.template.progressionScheme?.type || "linear",
+      templateSchemeType: activeProgram.template.progressionScheme?.type || "linear",
+      templateConfigType: activeProgram.template.progressionConfig?.type,
+      resolvedStrategy: progressionDecision.strategy,
+      strategySource: progressionDecision.source,
+      registryNote: progressionDecision.note,
       userOverride: activeProgram.progressionOverride?.enabled,
       overrideType: activeProgram.progressionOverride?.overrideType,
       currentWeek,
       userProfile
     })
-
     // Check for user override first
     if (activeProgram.progressionOverride?.enabled) {
       return this.handleOverride(input)
     }
-
-    // Get progression type from template
-    const templateProgressionType = this.getTemplateProgressionType(activeProgram.template)
-
-    // Handle different progression types
-    switch (templateProgressionType) {
+    // Handle different progression strategies
+    switch (progressionDecision.strategy) {
       case "percentage":
         return this.routeToPercentageEngine(input)
       case "hybrid":
@@ -273,26 +321,7 @@ export class ProgressionRouter {
     }
   }
 
-  /**
-   * Get progression type from template
-   */
-  private static getTemplateProgressionType(template: any): "linear" | "percentage" | "hybrid" {
-    // Check for new progressionConfig structure
-    if (template.progressionConfig) {
-      return template.progressionConfig.type || "linear"
-    }
 
-    // Check for legacy progressionScheme structure
-    if (template.progressionScheme) {
-      if (template.progressionScheme.type === "periodized") {
-        return "percentage"
-      }
-      return "linear"
-    }
-
-    // Default to linear
-    return "linear"
-  }
 
   /**
    * Validate progression override for safety

@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState, useMemo } from "react"
 import { useAuth } from "@/contexts/auth-context"
 import { useToast } from "@/hooks/use-toast"
 import { ProgramStateManager } from "@/lib/program-state"
@@ -10,11 +10,20 @@ import { ProgressionRouter, type ProgressionInput } from "@/lib/progression-rout
 import { getTierRules, isWeightWithinBounds, calculateVolumeCompensation } from "@/lib/progression-tiers"
 import { ConnectionMonitor } from "@/lib/connection-monitor"
 import { WorkoutLogger, type WorkoutSession } from "@/lib/workout-logger"
+import { useOneRepMaxes } from "@/components/workout-logger/contexts/one-rm-context"
+import { useOneRmPersistence } from "@/components/workout-logger/hooks/use-one-rm-persistence"
 import type { WorkoutLoggerProps } from "@/components/workout-logger/types"
 
 export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: WorkoutLoggerProps) {
   const { user } = useAuth()
   const { toast } = useToast()
+  const { oneRepMaxes } = useOneRepMaxes()
+  useOneRmPersistence(user?.id)
+  const routerOneRepMaxes = useMemo(() => oneRepMaxes.map((entry) => ({
+    exerciseName: entry.exerciseName,
+    maxWeight: entry.maxWeight,
+    dateTested: new Date(entry.dateTested),
+  })), [oneRepMaxes])
   const [workout, setWorkout] = useState<WorkoutSession | null>(null)
   const [showNotesDialog, setShowNotesDialog] = useState(false)
   const [showSummaryDialog, setShowSummaryDialog] = useState(false)
@@ -266,6 +275,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
                 gender: (user?.gender as "male" | "female") || "male",
               },
               previousPerformance,
+              oneRepMaxes: routerOneRepMaxes,
             }
 
             const result = ProgressionRouter.calculateProgression(progressionInput)
@@ -1384,7 +1394,8 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
               experience: (user?.experience as "beginner" | "intermediate" | "advanced") || "beginner",
               gender: (user?.gender as "male" | "female") || "male"
             },
-            previousPerformance
+            previousPerformance,
+            oneRepMaxes: routerOneRepMaxes
           }
           
           const result = ProgressionRouter.calculateProgression(progressionInput)
@@ -1442,7 +1453,8 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
             experience: (user?.experience as "beginner" | "intermediate" | "advanced") || "beginner",
             gender: (user?.gender as "male" | "female") || "male"
           },
-          previousPerformance: previousPerformance || undefined
+          previousPerformance: previousPerformance || undefined,
+          oneRepMaxes: routerOneRepMaxes
         }
         
         const result = ProgressionRouter.calculateProgression(progressionInput)

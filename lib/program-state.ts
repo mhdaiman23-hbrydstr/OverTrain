@@ -1,6 +1,15 @@
 import { GYM_TEMPLATES, type GymTemplate, processTemplateWithDeload } from "./gym-templates"
 import { WorkoutLogger } from "./workout-logger"
 import { supabase } from "./supabase"
+function logSupabaseError(label: string, error: unknown) {
+  if (!error) return
+  if (typeof error === "object" && error !== null && "message" in (error as Record<string, unknown>) && (error as { message?: unknown }).message) {
+    console.error(label, error)
+  } else {
+    console.warn(`${label} (no details; likely offline)`, error)
+  }
+}
+
 
 export interface ProgressionOverride {
   enabled: boolean
@@ -323,7 +332,7 @@ export class ProgramStateManager {
       try {
         await supabase.from("active_programs").delete().eq("user_id", userId)
       } catch (error) {
-        console.error("[ProgramState] Failed to remove active program from database:", error)
+        logSupabaseError("[ProgramState] Failed to remove active program from database:", error)
       }
 
       if (history.length > 0) {
@@ -345,7 +354,7 @@ export class ProgramStateManager {
               }))
             )
         } catch (error) {
-          console.error("[ProgramState] Failed to sync program history:", error)
+          logSupabaseError("[ProgramState] Failed to sync program history:", error)
         }
       }
     }
@@ -474,7 +483,7 @@ export class ProgramStateManager {
           })
 
         if (error) {
-          console.error("[ProgramState] Failed to sync active program:", error)
+          logSupabaseError("[ProgramState] Failed to sync active program:", error)
         } else {
           console.log("[ProgramState] Synced active program to database")
         }
@@ -501,13 +510,13 @@ export class ProgramStateManager {
           )
 
         if (error) {
-          console.error("[ProgramState] Failed to sync program history:", error)
+          logSupabaseError("[ProgramState] Failed to sync program history:", error)
         } else {
           console.log("[ProgramState] Synced program history to database")
         }
       }
     } catch (error) {
-      console.error("[ProgramState] Sync to database failed:", error)
+      logSupabaseError("[ProgramState] Sync to database failed:", error)
     }
   }
 
@@ -527,7 +536,7 @@ export class ProgramStateManager {
 
       if (activeProgramError && activeProgramError.code !== "PGRST116") {
         // PGRST116 = no rows returned
-        console.error("[ProgramState] Failed to load active program:", activeProgramError)
+        logSupabaseError("[ProgramState] Failed to load active program:", activeProgramError)
       } else if (activeProgramData) {
         const activeProgram: ActiveProgram = {
           templateId: activeProgramData.template_id,
@@ -552,7 +561,7 @@ export class ProgramStateManager {
         .order("start_date", { ascending: false })
 
       if (historyError) {
-        console.error("[ProgramState] Failed to load program history:", historyError)
+        logSupabaseError("[ProgramState] Failed to load program history:", historyError)
       } else if (historyData && historyData.length > 0) {
         const history: ProgramHistoryEntry[] = historyData.map((h) => ({
           id: h.id,
@@ -571,7 +580,7 @@ export class ProgramStateManager {
         console.log("[ProgramState] Loaded program history from database")
       }
     } catch (error) {
-      console.error("[ProgramState] Load from database failed:", error)
+      logSupabaseError("[ProgramState] Load from database failed:", error)
     }
   }
 }

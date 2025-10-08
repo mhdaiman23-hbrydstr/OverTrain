@@ -1,0 +1,2 @@
+program_id,program_name,days_per_week,total_weeks,gender,experience,progression_type,deload_week
+my-custom-program-1,My Custom Program,4,6,"male,female",intermediate,linear,6

@@ -1,0 +1,18 @@
+day_number,day_name,exercise_name,category,week1_sets,week1_reps,week1_rest,week2_sets,week2_reps,week2_rest,week3_sets,week3_reps,week3_rest,week4_sets,week4_reps,week4_rest,week5_sets,week5_reps,week5_rest,week6_sets,week6_reps,week6_rest
+1,Push Day,Barbell Bench Press,compound,4,6-8,180,,,,,,,,,,,,,3,4-6,180
+1,Push Day,Overhead Press,compound,3,8-10,120,,,,,,,,,,,,,2,6-8,120
+1,Push Day,Lateral Raises,isolation,3,12-15,60,,,,,,,,,,,,,2,10-13,60
+1,Push Day,Tricep Extensions,isolation,3,10-12,90,,,,,,,,,,,,,2,8-10,90
+2,Pull Day,Deadlift,compound,3,5,240,,,,,,,,,,,,,2,3,240
+2,Pull Day,Pull-ups,compound,3,8-10,120,,,,,,,,,,,,,2,6-8,120
+2,Pull Day,Barbell Row,compound,4,8-10,120,,,,,,,,,,,,,3,6-8,120
+2,Pull Day,Barbell Curls,isolation,3,10-12,90,,,,,,,,,,,,,2,8-10,90
+3,Legs,Barbell Back Squat,compound,4,6-8,240,,,,,,,,,,,,,3,4-6,240
+3,Legs,Romanian Deadlift,compound,3,8-10,180,,,,,,,,,,,,,2,6-8,180
+3,Legs,Leg Press,compound,3,10-12,120,,,,,,,,,,,,,2,8-10,120
+3,Legs,Leg Curls,isolation,3,12-15,90,,,,,,,,,,,,,2,10-13,90
+3,Legs,Calf Raises,isolation,4,15-20,60,,,,,,,,,,,,,3,12-17,60
+4,Push Heavy,Barbell Bench Press,compound,5,5,240,,,,,,,,,,,,,3,3,240
+4,Push Heavy,Incline Barbell Press,compound,4,6-8,180,,,,,,,,,,,,,3,4-6,180
+4,Push Heavy,Dips,compound,3,8-10,120,,,,,,,,,,,,,2,6-8,120
+4,Push Heavy,Cable Flys,isolation,3,12-15,60,,,,,,,,,,,,,2,10-13,60

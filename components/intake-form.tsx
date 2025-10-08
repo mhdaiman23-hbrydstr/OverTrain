@@ -13,8 +13,8 @@ import { useAuth } from "@/contexts/auth-context"
 
 interface IntakeFormData {
   name: string
-  gender: "male" | "female" | "Prefer not say" | ""
-  experience: "beginner" | "intermediate" | "advanced" | ""
+  gender: "Male" | "Female" | "Prefer not say" | ""
+  experience: "Beginner" | "Intermediate" | "Advanced" | ""
   goals: string[]
 }
 
@@ -119,7 +119,7 @@ export function IntakeForm() {
     }
   }
 
-  const availableGoals = formData.gender === "male" ? MALE_GOALS : FEMALE_GOALS
+  const availableGoals = formData.gender === "Male" ? MALE_GOALS : FEMALE_GOALS
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
@@ -205,7 +205,7 @@ export function IntakeForm() {
           {currentStep === 3 && (
             <div className="space-y-4">
               <h3 className="text-lg font-semibold">
-                {formData.gender === "male" ? "Your Fitness Goals" : "Your Fitness Goals"}
+                {formData.gender === "Male" ? "Your Fitness Goals" : "Your Fitness Goals"}
               </h3>
               <p className="text-sm text-muted-foreground">Select all that apply to you</p>
 
