@@ -109,12 +109,12 @@ export class PercentageProgressionEngine {
       // User provided weight adjustment
       targetWeight = userWeightAdjustment
       const actualPercentage = oneRepMax ? Math.round((targetWeight / oneRepMax.maxWeight) * 100) : 0
-      progressionNote = `User selected ${userWeightAdjustment}lbs (${actualPercentage}% of 1RM)`
+      progressionNote = `User selected ${userWeightAdjustment} (${actualPercentage}% of 1RM)`
       strategy = "percentage"
     } else if (oneRepMax) {
       // Calculate from 1RM
       targetWeight = roundToIncrement((targetPercentage / 100) * oneRepMax.maxWeight, 2.5)
-      progressionNote = `${targetPercentage}% of 1RM (${oneRepMax.maxWeight}lbs)`
+      progressionNote = `${targetPercentage}% of 1RM (${oneRepMax.maxWeight})`
       strategy = isDeloadWeek ? "deload" : "percentage"
     } else {
       // No 1RM data - estimate from previous performance or use default

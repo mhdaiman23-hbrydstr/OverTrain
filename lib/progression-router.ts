@@ -346,7 +346,7 @@ export class ProgressionRouter {
           warnings.push("Weekly increase of more than 10% may be too aggressive")
         }
         if (minIncrement > 10) {
-          warnings.push("Minimum increment of more than 10lbs may be too large")
+          warnings.push("Minimum increment of more than 10 may be too large")
         }
       }
 

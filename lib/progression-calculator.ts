@@ -170,15 +170,15 @@ export class ProgressionCalculator {
       // User completed all sets with good reps - increase weight based on tier
       const weightIncrease = tierRules.minIncrement
       progressedWeight = maxWeight + weightIncrease
-      note = `+${weightIncrease}lbs (${tier}) from ${workoutSource} (${maxWeight}lbs)`
+      note = `+${weightIncrease} (${tier}) from ${workoutSource} (${maxWeight})`
     } else if (completedSets.length < previousExercise.targetSets / 2) {
       // Completed less than half the sets - suggest reducing weight
       progressedWeight = Math.round(maxWeight * 0.9 * 10) / 10
-      note = `Reduced 10% from ${workoutSource} (${maxWeight}lbs)`
+      note = `Reduced 10% from ${workoutSource} (${maxWeight})`
     } else {
       // Completed some sets but not all - repeat weight
       progressedWeight = maxWeight
-      note = `Same as ${workoutSource} (${maxWeight}lbs)`
+      note = `Same as ${workoutSource} (${maxWeight})`
     }
 
     console.log("[ProgressionCalculator] Calculated progression:", {
@@ -305,7 +305,7 @@ export class ProgressionCalculator {
         targetWeight: idealWeight,
         targetSets,
         targetReps: targetRepRange,
-        progressionNote: `Auto-calculated +${(idealWeight - lastWeight).toFixed(1)}lbs from ${workoutSource}`,
+        progressionNote: `Auto-calculated +${(idealWeight - lastWeight).toFixed(1)} from ${workoutSource}`,
         hasPreviousData: true,
         tier,
         targetVolume,
@@ -320,7 +320,7 @@ export class ProgressionCalculator {
 
     console.log("[ProgressionCalculator] User weight adjustment strategy:", strategy)
 
-    let progressionNote = `User selected ${userWeightAdjustment}lbs from ${workoutSource}`
+    let progressionNote = `User selected ${userWeightAdjustment} from ${workoutSource}`
     if (strategy.message) {
       progressionNote += ` (${strategy.message})`
     }
@@ -364,7 +364,7 @@ export class ProgressionCalculator {
       targetWeight: deloadWeight,
       targetSets: Math.max(1, (exerciseTemplate.progressionTemplate.week1?.sets || 3) - 1), // Reduce sets by 1
       targetReps: "6-8", // Lighter rep range for deload
-      progressionNote: referenceWeight > 0 ? `Deload week (${Math.round((1 - 0.8) * 100)}% reduction from ${referenceWeight}lbs)` : "Deload week - use lighter weight",
+      progressionNote: referenceWeight > 0 ? `Deload week (${Math.round((1 - 0.8) * 100)}% reduction from ${referenceWeight})` : "Deload week - use lighter weight",
       hasPreviousData: previousData !== null,
       tier,
       strategy: "standard"
@@ -446,10 +446,10 @@ export class ProgressionCalculator {
   static getProgressionSummary(previousWeight: number, currentWeight: number): string {
     if (currentWeight > previousWeight) {
       const increase = currentWeight - previousWeight
-      return `↑ +${increase}lbs`
+      return `↑ +${increase}`
     } else if (currentWeight < previousWeight) {
       const decrease = previousWeight - currentWeight
-      return `↓ -${decrease}lbs`
+      return `↓ -${decrease}`
     }
     return "→ Same weight"
   }

@@ -119,7 +119,7 @@ export const calculateNextWeekProgression = (exerciseHistory: any[], progression
     return {
       weightIncrease: progressionRules.weightIncrease,
       action: "increase_weight",
-      note: `Add ${progressionRules.weightIncrease}lbs`,
+      note: `Add ${progressionRules.weightIncrease}`,
     }
   } else {
     return {
@@ -258,7 +258,7 @@ export const GYM_TEMPLATES: GymTemplate[] = [
               enabled: true,
               progressionType: "weight_based",
               rules: {
-                if_all_sets_completed: "increase_weight_2.5lbs",
+                if_all_sets_completed: "increase_weight_2.5",
                 if_failed_reps: "repeat_weight",
                 if_failed_twice: "reduce_weight_10_percent",
               },
@@ -276,7 +276,7 @@ export const GYM_TEMPLATES: GymTemplate[] = [
               enabled: true,
               progressionType: "weight_based",
               rules: {
-                if_all_sets_completed: "increase_weight_2.5lbs",
+                if_all_sets_completed: "increase_weight_2.5",
                 if_failed_reps: "repeat_weight",
                 if_failed_twice: "reduce_weight_10_percent",
               },
@@ -294,7 +294,7 @@ export const GYM_TEMPLATES: GymTemplate[] = [
               enabled: true,
               progressionType: "weight_based",
               rules: {
-                if_all_sets_completed: "increase_weight_2.5lbs",
+                if_all_sets_completed: "increase_weight_2.5",
                 if_failed_reps: "repeat_weight",
                 if_failed_twice: "reduce_weight_10_percent",
               },
@@ -317,7 +317,7 @@ export const GYM_TEMPLATES: GymTemplate[] = [
               enabled: true,
               progressionType: "weight_based",
               rules: {
-                if_all_sets_completed: "increase_weight_2.5lbs",
+                if_all_sets_completed: "increase_weight_2.5",
                 if_failed_reps: "repeat_weight",
                 if_failed_twice: "reduce_weight_10_percent",
               },
@@ -335,7 +335,7 @@ export const GYM_TEMPLATES: GymTemplate[] = [
               enabled: true,
               progressionType: "weight_based",
               rules: {
-                if_all_sets_completed: "increase_weight_2.5lbs",
+                if_all_sets_completed: "increase_weight_2.5",
                 if_failed_reps: "repeat_weight",
                 if_failed_twice: "reduce_weight_10_percent",
               },
@@ -353,7 +353,7 @@ export const GYM_TEMPLATES: GymTemplate[] = [
               enabled: true,
               progressionType: "weight_based",
               rules: {
-                if_all_sets_completed: "increase_weight_2.5lbs",
+                if_all_sets_completed: "increase_weight_2.5",
                 if_failed_reps: "repeat_weight",
                 if_failed_twice: "reduce_weight_10_percent",
               },
@@ -376,7 +376,7 @@ export const GYM_TEMPLATES: GymTemplate[] = [
               enabled: true,
               progressionType: "weight_based",
               rules: {
-                if_all_sets_completed: "increase_weight_2.5lbs",
+                if_all_sets_completed: "increase_weight_2.5",
                 if_failed_reps: "repeat_weight",
                 if_failed_twice: "reduce_weight_10_percent",
               },
@@ -394,7 +394,7 @@ export const GYM_TEMPLATES: GymTemplate[] = [
               enabled: true,
               progressionType: "weight_based",
               rules: {
-                if_all_sets_completed: "increase_weight_2.5lbs",
+                if_all_sets_completed: "increase_weight_2.5",
                 if_failed_reps: "repeat_weight",
                 if_failed_twice: "reduce_weight_10_percent",
               },
@@ -412,7 +412,7 @@ export const GYM_TEMPLATES: GymTemplate[] = [
               enabled: true,
               progressionType: "weight_based",
               rules: {
-                if_all_sets_completed: "increase_weight_2.5lbs",
+                if_all_sets_completed: "increase_weight_2.5",
                 if_failed_reps: "repeat_weight",
                 if_failed_twice: "reduce_weight_10_percent",
               },
@@ -463,7 +463,7 @@ export const GYM_TEMPLATES: GymTemplate[] = [
               enabled: true,
               progressionType: "weight_based",
               rules: {
-                if_all_sets_completed: "increase_weight_5lbs",
+                if_all_sets_completed: "increase_weight_5",
                 if_failed_reps: "repeat_weight",
                 if_failed_twice: "reduce_weight_10_percent",
               },
@@ -481,7 +481,7 @@ export const GYM_TEMPLATES: GymTemplate[] = [
               enabled: true,
               progressionType: "weight_based",
               rules: {
-                if_all_sets_completed: "increase_weight_5lbs",
+                if_all_sets_completed: "increase_weight_5",
                 if_failed_reps: "repeat_weight",
                 if_failed_twice: "reduce_weight_10_percent",
               },
@@ -499,7 +499,7 @@ export const GYM_TEMPLATES: GymTemplate[] = [
               enabled: true,
               progressionType: "weight_based",
               rules: {
-                if_all_sets_completed: "increase_weight_5lbs",
+                if_all_sets_completed: "increase_weight_5",
                 if_failed_reps: "repeat_weight",
                 if_failed_twice: "reduce_weight_10_percent",
               },
@@ -517,7 +517,7 @@ export const GYM_TEMPLATES: GymTemplate[] = [
               enabled: true,
               progressionType: "weight_based",
               rules: {
-                if_all_sets_completed: "increase_weight_2.5lbs",
+                if_all_sets_completed: "increase_weight_2.5",
                 if_failed_reps: "repeat_weight",
                 if_failed_twice: "reduce_weight_10_percent",
               },
@@ -535,7 +535,7 @@ export const GYM_TEMPLATES: GymTemplate[] = [
               enabled: true,
               progressionType: "weight_based",
               rules: {
-                if_all_sets_completed: "increase_weight_2.5lbs",
+                if_all_sets_completed: "increase_weight_2.5",
                 if_failed_reps: "repeat_weight",
                 if_failed_twice: "reduce_weight_10_percent",
               },
@@ -558,7 +558,7 @@ export const GYM_TEMPLATES: GymTemplate[] = [
               enabled: true,
               progressionType: "weight_based",
               rules: {
-                if_all_sets_completed: "increase_weight_5lbs",
+                if_all_sets_completed: "increase_weight_5",
                 if_failed_reps: "repeat_weight",
                 if_failed_twice: "reduce_weight_10_percent",
               },
@@ -576,7 +576,7 @@ export const GYM_TEMPLATES: GymTemplate[] = [
               enabled: true,
               progressionType: "weight_based",
               rules: {
-                if_all_sets_completed: "increase_weight_5lbs",
+                if_all_sets_completed: "increase_weight_5",
                 if_failed_reps: "repeat_weight",
                 if_failed_twice: "reduce_weight_10_percent",
               },
@@ -594,7 +594,7 @@ export const GYM_TEMPLATES: GymTemplate[] = [
               enabled: true,
               progressionType: "weight_based",
               rules: {
-                if_all_sets_completed: "increase_weight_10lbs",
+                if_all_sets_completed: "increase_weight_10",
                 if_failed_reps: "repeat_weight",
                 if_failed_twice: "reduce_weight_10_percent",
               },
@@ -612,7 +612,7 @@ export const GYM_TEMPLATES: GymTemplate[] = [
               enabled: true,
               progressionType: "weight_based",
               rules: {
-                if_all_sets_completed: "increase_weight_5lbs",
+                if_all_sets_completed: "increase_weight_5",
                 if_failed_reps: "repeat_weight",
                 if_failed_twice: "reduce_weight_10_percent",
               },
@@ -635,7 +635,7 @@ export const GYM_TEMPLATES: GymTemplate[] = [
               enabled: true,
               progressionType: "weight_based",
               rules: {
-                if_all_sets_completed: "increase_weight_5lbs",
+                if_all_sets_completed: "increase_weight_5",
                 if_failed_reps: "repeat_weight",
                 if_failed_twice: "reduce_weight_10_percent",
               },
@@ -689,7 +689,7 @@ export const GYM_TEMPLATES: GymTemplate[] = [
               enabled: true,
               progressionType: "weight_based",
               rules: {
-                if_all_sets_completed: "increase_weight_2.5lbs",
+                if_all_sets_completed: "increase_weight_2.5",
                 if_failed_reps: "repeat_weight",
                 if_failed_twice: "reduce_weight_10_percent",
               },
@@ -712,7 +712,7 @@ export const GYM_TEMPLATES: GymTemplate[] = [
               enabled: true,
               progressionType: "weight_based",
               rules: {
-                if_all_sets_completed: "increase_weight_5lbs",
+                if_all_sets_completed: "increase_weight_5",
                 if_failed_reps: "repeat_weight",
                 if_failed_twice: "reduce_weight_10_percent",
               },
@@ -730,7 +730,7 @@ export const GYM_TEMPLATES: GymTemplate[] = [
               enabled: true,
               progressionType: "weight_based",
               rules: {
-                if_all_sets_completed: "increase_weight_10lbs",
+                if_all_sets_completed: "increase_weight_10",
                 if_failed_reps: "repeat_weight",
                 if_failed_twice: "reduce_weight_10_percent",
               },
@@ -748,7 +748,7 @@ export const GYM_TEMPLATES: GymTemplate[] = [
               enabled: true,
               progressionType: "weight_based",
               rules: {
-                if_all_sets_completed: "increase_weight_5lbs",
+                if_all_sets_completed: "increase_weight_5",
                 if_failed_reps: "repeat_weight",
                 if_failed_twice: "reduce_weight_10_percent",
               },
@@ -766,7 +766,7 @@ export const GYM_TEMPLATES: GymTemplate[] = [
               enabled: true,
               progressionType: "weight_based",
               rules: {
-                if_all_sets_completed: "increase_weight_5lbs",
+                if_all_sets_completed: "increase_weight_5",
                 if_failed_reps: "repeat_weight",
                 if_failed_twice: "reduce_weight_10_percent",
               },

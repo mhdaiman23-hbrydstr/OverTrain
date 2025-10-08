@@ -228,7 +228,7 @@ export const calculateWeeklyProgression = (exerciseHistory: any[], progressionRu
     return {
       weightIncrease: progressionRules.weightIncrease,
       action: "increase_weight",
-      note: `Add ${progressionRules.weightIncrease}lbs next week`,
+      note: `Add ${progressionRules.weightIncrease} next week`,
     }
   } else {
     const failedSets = lastWorkout.sets.filter((set: any) => !set.completed || set.actualReps < set.targetReps).length

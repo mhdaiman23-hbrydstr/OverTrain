@@ -161,10 +161,10 @@ describe('Workout Logger Components', () => {
 
   describe('ProgressionNoteBanner', () => {
     it('should render note with week and day information', () => {
-      render(<ProgressionNoteBanner week={2} day={3} note="Increase weight by 5lbs" />)
+      render(<ProgressionNoteBanner week={2} day={3} note="Increase weight by 5" />)
 
       expect(screen.getByText(/week 2, day 3:/i)).toBeInTheDocument()
-      expect(screen.getByText(/increase weight by 5lbs/i)).toBeInTheDocument()
+      expect(screen.getByText(/increase weight by 5/i)).toBeInTheDocument()
     })
 
     it('should not render when week is 1 or less', () => {

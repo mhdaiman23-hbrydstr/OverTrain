@@ -91,7 +91,7 @@ export class LinearProgressionEngine {
     if (userWeightAdjustment) {
       // User provided weight adjustment
       targetWeight = userWeightAdjustment
-      progressionNote = `User selected ${userWeightAdjustment}lbs`
+      progressionNote = `User selected ${userWeightAdjustment}`
 
       // Validate user weight and calculate compensation if needed
       const compensationResult = this.validateAndAdjust(
@@ -268,7 +268,7 @@ export class LinearProgressionEngine {
         adjustedReps: targetReps,
         strategy: "out_of_bounds",
         bounds,
-        note: `Weight outside ${Math.round(tierRules.adjustmentBounds * 100)}% range. Consider ${roundToIncrement(idealWeight, tierRules.minIncrement)}lbs`
+        note: `Weight outside ${Math.round(tierRules.adjustmentBounds * 100)}% range. Consider ${roundToIncrement(idealWeight, tierRules.minIncrement)}`
       }
     }
 

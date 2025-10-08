@@ -1,7 +1,7 @@
 export type ProgressionTier = "large_compound" | "medium_compound" | "small_compound" | "large_isolation" | "small_isolation"
 
 export interface TierRules {
-  minIncrement: number // Minimum weight increase (in lbs)
+  minIncrement: number // Minimum weight increase (in )
   weeklyIncrease: number // Weekly volume increase percentage (0.025 = 2.5%)
   adjustmentBounds: number // How much weight can vary from target (0.10 = 10%)
   maxRepAdjustment: number // Maximum reps that can be adjusted for volume compensation
@@ -173,7 +173,7 @@ export function determineProgressionStrategy(
       strategy: "out_of_bounds",
       suggestedWeight: targetWeight,
       bounds: calculateWeightBounds(targetWeight, tierRules.adjustmentBounds),
-      message: `Weight is outside acceptable range (${(tierRules.adjustmentBounds * 100).toFixed(0)}% deviation). Consider using ${roundToIncrement(targetWeight, tierRules.minIncrement)} lbs.`
+      message: `Weight is outside acceptable range (${(tierRules.adjustmentBounds * 100).toFixed(0)}% deviation). Consider using ${roundToIncrement(targetWeight, tierRules.minIncrement)} .`
     }
   }
 

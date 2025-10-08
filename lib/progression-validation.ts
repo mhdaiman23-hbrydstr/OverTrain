@@ -12,7 +12,7 @@ export interface UserProfile {
   experience: "beginner" | "intermediate" | "advanced"
   gender: "male" | "female"
   age?: number
-  weight?: number // in lbs
+  weight?: number // in 
 }
 
 export class ProgressionValidator {
@@ -88,8 +88,8 @@ export class ProgressionValidator {
       }
 
       if (minIncrement > 10) {
-        errors.push("Minimum increment of more than 10lbs may be unsafe")
-        recommendations.push("Use smaller increments (2.5-5lbs) for better control")
+        errors.push("Minimum increment of more than 10 may be unsafe")
+        recommendations.push("Use smaller increments (2.5-5) for better control")
       }
 
       if (userProfile.experience === "beginner" && weeklyIncrease > 0.025) {
@@ -191,11 +191,11 @@ export class ProgressionValidator {
     }
 
     if (oneRM < 10) {
-      errors.push("1RM seems too low (less than 10lbs)")
+      errors.push("1RM seems too low (less than 10)")
     }
 
     if (oneRM > 2000) {
-      errors.push("1RM seems unrealistically high (more than 2000lbs)")
+      errors.push("1RM seems unrealistically high (more than 2000)")
     }
 
     // Exercise-specific validation
