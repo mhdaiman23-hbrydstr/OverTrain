@@ -51,8 +51,8 @@ export function CompletionBar({ workout, isWorkoutBlocked, isCompletingWorkout, 
 
   return (
     <>
-      {/* Mobile & Tablet: Fixed bottom bar with proper spacing */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-background border-t border-border p-4 pb-safe z-50 shadow-lg">
+      {/* Mobile & Tablet: Fixed bar above bottom navigation (64px height) */}
+      <div className="lg:hidden fixed bottom-16 left-0 right-0 bg-background border-t border-border p-4 z-[60] shadow-lg">
         {workout.completed ? renderCompletedState() : renderActionButton()}
       </div>
 
@@ -63,8 +63,10 @@ export function CompletionBar({ workout, isWorkoutBlocked, isCompletingWorkout, 
         </div>
       </div>
 
-      {/* Spacer to prevent content from being hidden behind fixed bar */}
-      <div className="h-24 lg:h-20" />
+      {/* Spacer to prevent content from being hidden behind fixed bars */}
+      {/* Mobile: CompletionBar (80px) + BottomNav (64px) = 144px */}
+      {/* Desktop: CompletionBar only (80px) */}
+      <div className="h-36 lg:h-20" />
     </>
   )
 }
