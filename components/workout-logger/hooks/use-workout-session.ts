@@ -478,8 +478,16 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
         const withinBounds = value >= min && value <= max
         
         if (!withinBounds) {
-          // OUT OF BOUNDS: Set flag for warning (will show on blur)
+          // OUT OF BOUNDS: Set flag for warning (will show on blur) and show yellow banner
           console.log("[v0] Per-set weight out of bounds:", { setIndex, value, min, max })
+          setVolumeCompensation(prev => ({
+            ...prev,
+            [`${exerciseId}_${setId}`]: {
+              adjustedReps: 0,
+              strategy: "out_of_bounds",
+              message: `Weight out of bounds: ${Math.round(min)}-${Math.round(max)} lbs. Enter reps manually.`
+            }
+          }))
           setPendingOutOfBoundsWarnings(prev => ({ ...prev, [`${exerciseId}_${setId}`]: true }))
         } else if (value !== suggestion.weight) {
           // WITHIN BOUNDS but different from suggestion: Show dynamic rep adjustment
@@ -693,7 +701,8 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
           toast({
             title: 'Weight out of range',
             description: `Suggested range for this set: ${Math.round(suggestion.bounds.min)}-${Math.round(suggestion.bounds.max)} lbs.`,
-            variant: 'destructive'
+            variant: 'destructive',
+            duration: 4000
           })
         }
       } else if (exercise?.bounds) {
@@ -701,7 +710,8 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
         toast({
           title: 'Weight out of range',
           description: `Suggested range: ${Math.round(exercise.bounds.min)}-${Math.round(exercise.bounds.max)} lbs. Fill reps manually.`,
-          variant: 'destructive'
+          variant: 'destructive',
+          duration: 4000
         })
       }
       // Clear the flag after showing toast

@@ -88,16 +88,6 @@ export function ExerciseGroups({
                   </div>
                 )}
 
-                {outOfBoundsExercises[exercise.id] && (
-                  <div className="bg-yellow-50 border border-yellow-200 rounded px-3 py-2 mb-2 mt-2">
-                    <div className="text-xs text-yellow-800">
-                      ?? Set {outOfBoundsExercises[exercise.id].setNumber}: Weight out of range (
-                      {Math.round(outOfBoundsExercises[exercise.id].min)}-
-                      {Math.round(outOfBoundsExercises[exercise.id].max)} lbs). Enter reps manually.
-                    </div>
-                  </div>
-                )}
-
                 <div className="border-b border-border/30 relative bg-background hover:bg-muted/20 transition-colors">
                   <div className="py-3 px-1 sm:py-4 sm:px-2">
                     <div className="flex items-center justify-between pb-3">
@@ -268,7 +258,11 @@ export function ExerciseGroups({
                             </div>
 
                             {compensation && !userOverrides[exercise.id] && (
-                              <div className="mt-2 text-xs text-green-700 bg-green-50 border border-green-200 rounded px-3 py-2">
+                              <div className={`mt-2 text-xs rounded px-3 py-2 ${
+                                compensation.strategy === 'out_of_bounds'
+                                  ? 'text-yellow-800 bg-yellow-50 border border-yellow-200'
+                                  : 'text-green-700 bg-green-50 border border-green-200'
+                              }`}>
                                 {compensation.message || `Adjusted to ${compensation.adjustedReps} reps based on weight change`}
                               </div>
                             )}
