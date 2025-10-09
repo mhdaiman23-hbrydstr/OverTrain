@@ -219,6 +219,224 @@ export function processTemplateWithDeload(template: GymTemplate): GymTemplate {
 
 // Template definitions
 export const GYM_TEMPLATES: GymTemplate[] = [
+  // ========================================
+  // TESTING TEMPLATE - FOR DEVELOPMENT ONLY
+  // ========================================
+  // 2-Week Test Program - Quick completion testing
+  // REMOVE BEFORE PRODUCTION DEPLOYMENT
+  {
+    id: "test-2week-3day-program",
+    name: "2-Week Test Program (DEV ONLY)",
+    days: 3,
+    weeks: 2,
+    gender: ["male", "female"], // Both genders for testing
+    experience: ["beginner", "intermediate", "advanced"], // All levels for testing
+    progressionScheme: {
+      type: "linear",
+      deloadWeek: 2, // Week 2 is deload for quick testing
+      progressionRules: {
+        compound: {
+          successThreshold: "all_sets_completed",
+          weightIncrease: 5,
+          failureResponse: "repeat_week",
+        },
+        isolation: {
+          successThreshold: "all_sets_completed",
+          weightIncrease: 2.5,
+          failureResponse: "repeat_week",
+        },
+      },
+    },
+    schedule: {
+      day1: {
+        name: "Test Workout A",
+        exercises: [
+          {
+            id: "test-squat-a1",
+            exerciseName: "Barbell Back Squat",
+            category: "compound",
+            progressionTemplate: {
+              week1: { sets: 3, repRange: "8-10" },
+              week2: { sets: 2, repRange: "6-8", intensity: "deload" }, // Deload week
+            },
+            autoProgression: {
+              enabled: true,
+              progressionType: "weight_based",
+              rules: {
+                if_all_sets_completed: "increase_weight_5",
+                if_failed_reps: "repeat_weight",
+                if_failed_twice: "reduce_weight_10_percent",
+              },
+            },
+            restTime: 120,
+          },
+          {
+            id: "test-bench-a1",
+            exerciseName: "Barbell Bench Press",
+            category: "compound",
+            progressionTemplate: {
+              week1: { sets: 3, repRange: "8-10" },
+              week2: { sets: 2, repRange: "6-8", intensity: "deload" }, // Deload week
+            },
+            autoProgression: {
+              enabled: true,
+              progressionType: "weight_based",
+              rules: {
+                if_all_sets_completed: "increase_weight_5",
+                if_failed_reps: "repeat_weight",
+                if_failed_twice: "reduce_weight_10_percent",
+              },
+            },
+            restTime: 120,
+          },
+          {
+            id: "test-row-a1",
+            exerciseName: "Barbell Row",
+            category: "compound",
+            progressionTemplate: {
+              week1: { sets: 3, repRange: "8-10" },
+              week2: { sets: 2, repRange: "6-8", intensity: "deload" }, // Deload week
+            },
+            autoProgression: {
+              enabled: true,
+              progressionType: "weight_based",
+              rules: {
+                if_all_sets_completed: "increase_weight_5",
+                if_failed_reps: "repeat_weight",
+                if_failed_twice: "reduce_weight_10_percent",
+              },
+            },
+            restTime: 120,
+          },
+        ],
+      },
+      day2: {
+        name: "Test Workout B",
+        exercises: [
+          {
+            id: "test-deadlift-b1",
+            exerciseName: "Deadlift",
+            category: "compound",
+            progressionTemplate: {
+              week1: { sets: 3, repRange: "5-8" },
+              week2: { sets: 2, repRange: "3-5", intensity: "deload" }, // Deload week
+            },
+            autoProgression: {
+              enabled: true,
+              progressionType: "weight_based",
+              rules: {
+                if_all_sets_completed: "increase_weight_10",
+                if_failed_reps: "repeat_weight",
+                if_failed_twice: "reduce_weight_10_percent",
+              },
+            },
+            restTime: 180,
+          },
+          {
+            id: "test-ohp-b1",
+            exerciseName: "Overhead Press",
+            category: "compound",
+            progressionTemplate: {
+              week1: { sets: 3, repRange: "8-10" },
+              week2: { sets: 2, repRange: "6-8", intensity: "deload" }, // Deload week
+            },
+            autoProgression: {
+              enabled: true,
+              progressionType: "weight_based",
+              rules: {
+                if_all_sets_completed: "increase_weight_5",
+                if_failed_reps: "repeat_weight",
+                if_failed_twice: "reduce_weight_10_percent",
+              },
+            },
+            restTime: 120,
+          },
+          {
+            id: "test-curls-b1",
+            exerciseName: "Barbell Curls",
+            category: "isolation",
+            progressionTemplate: {
+              week1: { sets: 3, repRange: "10-12" },
+              week2: { sets: 2, repRange: "8-10", intensity: "deload" }, // Deload week
+            },
+            autoProgression: {
+              enabled: true,
+              progressionType: "weight_based",
+              rules: {
+                if_all_sets_completed: "increase_weight_2.5",
+                if_failed_reps: "repeat_weight",
+                if_failed_twice: "reduce_weight_10_percent",
+              },
+            },
+            restTime: 90,
+          },
+        ],
+      },
+      day3: {
+        name: "Test Workout C",
+        exercises: [
+          {
+            id: "test-squat-c1",
+            exerciseName: "Barbell Front Squat",
+            category: "compound",
+            progressionTemplate: {
+              week1: { sets: 3, repRange: "8-10" },
+              week2: { sets: 2, repRange: "6-8", intensity: "deload" }, // Deload week
+            },
+            autoProgression: {
+              enabled: true,
+              progressionType: "weight_based",
+              rules: {
+                if_all_sets_completed: "increase_weight_5",
+                if_failed_reps: "repeat_weight",
+                if_failed_twice: "reduce_weight_10_percent",
+              },
+            },
+            restTime: 120,
+          },
+          {
+            id: "test-pullups-c1",
+            exerciseName: "Pull-ups",
+            category: "compound",
+            progressionTemplate: {
+              week1: { sets: 3, repRange: "6-10" },
+              week2: { sets: 2, repRange: "4-6", intensity: "deload" }, // Deload week
+            },
+            autoProgression: {
+              enabled: true,
+              progressionType: "rep_based",
+              rules: {
+                if_all_sets_completed: "increase_reps_1",
+                if_failed_reps: "repeat_weight",
+                if_failed_twice: "reduce_sets",
+              },
+            },
+            restTime: 120,
+          },
+          {
+            id: "test-lateral-c1",
+            exerciseName: "Lateral Raises",
+            category: "isolation",
+            progressionTemplate: {
+              week1: { sets: 3, repRange: "12-15" },
+              week2: { sets: 2, repRange: "10-12", intensity: "deload" }, // Deload week
+            },
+            autoProgression: {
+              enabled: true,
+              progressionType: "weight_based",
+              rules: {
+                if_all_sets_completed: "increase_weight_2.5",
+                if_failed_reps: "repeat_weight",
+                if_failed_twice: "reduce_weight_10_percent",
+              },
+            },
+            restTime: 90,
+          },
+        ],
+      },
+    },
+  },
+
   // 3-Day Full Body Beginner Female
   {
     id: "fullbody-3day-beginner-female",
@@ -783,11 +1001,21 @@ export const GYM_TEMPLATES: GymTemplate[] = [
 export const gymTemplates = {
   beginner: {
     female: ["fullbody-3day-beginner-female"],
+    male: ["test-2week-3day-program"], // Test template available for all
   },
   intermediate: {
-    male: ["upperlower-4day-intermediate-male"],
+    male: ["upperlower-4day-intermediate-male", "test-2week-3day-program"], // Test template available for all
+    female: ["test-2week-3day-program"], // Test template available for all
+  },
+  advanced: {
+    male: ["test-2week-3day-program"], // Test template available for all
+    female: ["test-2week-3day-program"], // Test template available for all
   },
 }
+// ========================================
+// IMPORTANT: Remove test template from gymTemplates object before production
+// The test template ("test-2week-3day-program") should only be available during development
+// ========================================
 
 // Helper functions
 export const getTemplateById = (id: string): GymTemplate | undefined => {
@@ -822,4 +1050,3 @@ export const createUserTemplate = (baseTemplate: GymTemplate, customizations: an
     ...customizations,
   }
 }
-

@@ -15,7 +15,7 @@ interface WorkoutCalendarProps {
 }
 
 const DEFAULT_TEMPLATE_WEEKS = 6
-const MIN_VISIBLE_WEEKS = 4
+const MIN_VISIBLE_WEEKS = 2 // Reduced from 4 to respect shorter templates
 const MAX_VISIBLE_WEEKS = 12
 
 export function WorkoutCalendar({ onWorkoutClick, selectedWeek, selectedDay }: WorkoutCalendarProps) {
@@ -104,7 +104,8 @@ export function WorkoutCalendar({ onWorkoutClick, selectedWeek, selectedDay }: W
 
     if (program) {
       const templateWeeks = program.template.weeks || DEFAULT_TEMPLATE_WEEKS
-      const initialWeeks = Math.max(templateWeeks, MIN_VISIBLE_WEEKS)
+      // Use the template's exact week count, no minimum override
+      const initialWeeks = templateWeeks
       setTotalWeeks(initialWeeks)
       console.log("[Calendar] Active program loaded instantly:", {
         name: program.template.name,
@@ -263,6 +264,17 @@ export function WorkoutCalendar({ onWorkoutClick, selectedWeek, selectedDay }: W
       })
     }
 
+    // Special debug logging for Week 2, Day 1
+    if (week === 2 && day === 1 && process.env.NODE_ENV === "development") {
+      console.log(`[Calendar] Week 2, Day 1 status:`, {
+        hasCompletedWorkout,
+        fromCache: completionStatus.has(statusKey),
+        userId: user?.id,
+        currentWeek,
+        currentDay
+      })
+    }
+
     if (hasCompletedWorkout) {
       return "completed"
     } else if (week === currentWeek) {
@@ -308,16 +320,26 @@ export function WorkoutCalendar({ onWorkoutClick, selectedWeek, selectedDay }: W
   const handleWorkoutClick = (week: number, day: number) => {
     console.log("[v0] Calendar click:", { week, day, currentWeek, currentDay })
 
+    // Validate that the week is within the program's bounds
+    if (week > templateWeekCount) {
+      console.log("[Calendar] Blocked click - week exceeds program duration:", { week, templateWeekCount })
+      return
+    }
+
     console.log("[v0] Allowing click - calling onWorkoutClick")
     onWorkoutClick?.(week, day)
   }
 
   const addWeek = () => {
-    setTotalWeeks((prev) => Math.min(prev + 1, MAX_VISIBLE_WEEKS))
+    // Don't allow adding weeks beyond the template's week count
+    const maxAllowedWeeks = templateWeekCount
+    setTotalWeeks((prev) => Math.min(prev + 1, Math.min(MAX_VISIBLE_WEEKS, maxAllowedWeeks)))
   }
 
   const removeWeek = () => {
-    setTotalWeeks((prev) => Math.max(prev - 1, MIN_VISIBLE_WEEKS))
+    // Don't allow removing weeks below the template's week count
+    const minAllowedWeeks = Math.max(MIN_VISIBLE_WEEKS, templateWeekCount)
+    setTotalWeeks((prev) => Math.max(prev - 1, minAllowedWeeks))
   }
 
   return (
@@ -392,4 +414,3 @@ export function WorkoutCalendar({ onWorkoutClick, selectedWeek, selectedDay }: W
     </Card>
   )
 }
-

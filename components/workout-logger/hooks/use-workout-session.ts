@@ -661,10 +661,26 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
           console.log("[v0] Debounced sync triggered for weight/reps update")
           if (ConnectionMonitor.isOnline()) {
             WorkoutLogger.saveCurrentWorkout(updatedWorkout, user?.id)
+              .catch((error: unknown) => {
+                // Handle 409 conflicts gracefully - they just mean the record already exists
+                if (error && typeof error === 'object' && 'message' in error && typeof error.message === 'string' && error.message.includes('409')) {
+                  console.log("[v0] Workout already exists in database (this is normal)")
+                } else {
+                  console.error("[v0] Failed to sync workout to database:", error)
+                }
+              })
           } else {
             // Queue sync for when connection is restored
             ConnectionMonitor.addToQueue(async () => {
-              await WorkoutLogger.saveCurrentWorkout(updatedWorkout, user?.id)
+              try {
+                await WorkoutLogger.saveCurrentWorkout(updatedWorkout, user?.id)
+              } catch (error: unknown) {
+                if (error && typeof error === 'object' && 'message' in error && typeof error.message === 'string' && error.message.includes('409')) {
+                  console.log("[v0] Workout already exists in database (this is normal)")
+                } else {
+                  console.error("[v0] Failed to sync queued workout:", error)
+                }
+              }
             })
           }
         }, 500)
@@ -1680,9 +1696,3 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
     groupedExercises,
   }
 }
-
-
-
-
-
-

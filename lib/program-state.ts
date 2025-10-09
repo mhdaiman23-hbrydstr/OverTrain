@@ -258,6 +258,15 @@ export class ProgramStateManager {
     const isCurrentWeekComplete = WorkoutLogger.isWeekCompleted(activeProgram.currentWeek, daysPerWeek, userId)
 
     if (isCurrentWeekComplete) {
+      // Check if we've reached the program's final week
+      const programWeeks = activeProgram.template.weeks || 6 // Default to 6 weeks if not set
+      if (activeProgram.currentWeek >= programWeeks) {
+        // Program is complete - finalize it instead of advancing to next week
+        console.log("[v0] Program completed! Finalizing program after week", activeProgram.currentWeek)
+        await this.finalizeActiveProgram(userId, { endedEarly: false })
+        return
+      }
+      
       // All days in current week are done, advance to next week
       activeProgram.currentWeek += 1
       activeProgram.currentDay = 1

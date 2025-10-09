@@ -116,6 +116,19 @@ export function WorkoutCompletionDialog({
     onStartNextWorkout?.()
   }
 
+  const handleViewProgramSummary = () => {
+    // For now, just close the dialog
+    // TODO: Implement program summary view
+    onClose()
+  }
+
+  const handleStartNewProgram = () => {
+    // Clear the active program and close dialog
+    ProgramStateManager.clearActiveProgram()
+    onClose()
+    // TODO: Navigate to program selection
+  }
+
   const hasNextWorkout = () => {
     const activeProgram = ProgramStateManager.getActiveProgram()
     if (!activeProgram) return false
@@ -229,11 +242,11 @@ export function WorkoutCompletionDialog({
             </Button>
           ) : (
             <>
-              <Button onClick={onClose} className="dialog-button w-full gradient-primary text-primary-foreground text-xs sm:text-sm md:text-base py-1.5 sm:py-2 md:py-3 h-auto min-h-[32px] sm:min-h-[36px] md:min-h-[44px]">
+              <Button onClick={handleViewProgramSummary} className="dialog-button w-full gradient-primary text-primary-foreground text-xs sm:text-sm md:text-base py-1.5 sm:py-2 md:py-3 h-auto min-h-[32px] sm:min-h-[36px] md:min-h-[44px]">
                 <Trophy className="button-icon h-3 w-3 sm:h-4 sm:w-4 md:h-4 md:w-4 mr-1 sm:mr-2" />
                 <span className="truncate">View Program Summary</span>
               </Button>
-              <Button onClick={onClose} variant="outline" className="dialog-button w-full text-xs sm:text-sm md:text-base py-1.5 sm:py-2 md:py-3 h-auto min-h-[32px] sm:min-h-[36px] md:min-h-[44px]">
+              <Button onClick={handleStartNewProgram} variant="outline" className="dialog-button w-full text-xs sm:text-sm md:text-base py-1.5 sm:py-2 md:py-3 h-auto min-h-[32px] sm:min-h-[36px] md:min-h-[44px]">
                 <Zap className="button-icon h-3 w-3 sm:h-4 sm:w-4 md:h-4 md:w-4 mr-1 sm:mr-2" />
                 <span className="truncate">Start New Program</span>
               </Button>

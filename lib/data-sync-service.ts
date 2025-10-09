@@ -300,7 +300,7 @@ export class DataSyncService {
     localStorage.setItem(this.SYNC_QUEUE_KEY, JSON.stringify(finalQueue))
     
     // Update status
-    ConnectionMonitor.updateStatus('synced' in successfulOps ? 'synced' : 'online')
+    ConnectionMonitor.updateStatus(successfulOps.length > 0 ? 'synced' : 'online')
     this.updateLastSyncTime()
     
     console.log(`[DataSync] 📊 Sync completed: ${successfulOps.length} success, ${finalQueue.length} remaining`)

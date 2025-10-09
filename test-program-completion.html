@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Program Completion Fix</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .status {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .warning { background-color: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+        .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .info { background-color: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        button:hover { background-color: #0056b3; }
+        button.danger { background-color: #dc3545; }
+        button.danger:hover { background-color: #c82333; }
+        pre {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            border: 1px solid #e9ecef;
+        }
+        .step {
+            margin: 20px 0;
+            padding: 15px;
+            border-left: 4px solid #007bff;
+            background-color: #f8f9fa;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏋️ Test Program Completion Fix</h1>
+        <p>This tool will help you test the program completion fix by reverting your program state to Week 6, Day 2, so you can complete the final workout and verify the program ends properly.</p>
+
+        <div class="info">
+            <strong>📋 What this fix does:</strong>
+            <ul>
+                <li>Prevents programs from advancing beyond their specified duration (e.g., 6 weeks)</li>
+                <li>Properly finalizes the program when the final week is completed</li>
+                <li>Shows "View Program Summary" button instead of advancing to Week 7</li>
+            </ul>
+        </div>
+
+        <div class="step">
+            <h3>Step 1: Check Current Program State</h3>
+            <button onclick="checkCurrentState()">Check Current State</button>
+            <div id="currentState"></div>
+        </div>
+
+        <div class="step">
+            <h3>Step 2: Revert to Week 6, Day 2 (for testing)</h3>
+            <p>This will modify your active program to Week 6, Day 2, and remove the Week 6, Day 3 completion so you can test the final workout completion.</p>
+            <button onclick="revertToTestState()">Revert to Test State</button>
+            <div id="revertStatus"></div>
+        </div>
+
+        <div class="step">
+            <h3>Step 3: Test Instructions</h3>
+            <div class="info">
+                <strong>After reverting:</strong>
+                <ol>
+                    <li>Go to your LiftLog app</li>
+                    <li>Navigate to the Train section</li>
+                    <li>You should see "Week 6, Day 3" as your current workout</li>
+                    <li>Complete the workout normally</li>
+                    <li>You should see the completion dialog with "View Program Summary" button</li>
+                    <li>The program should NOT advance to Week 7</li>
+                </ol>
+            </div>
+        </div>
+
+        <div class="step">
+            <h3>Step 4: Emergency Reset</h3>
+            <p>If something goes wrong, you can reset all program data:</p>
+            <button class="danger" onclick="resetAllProgramData()">⚠️ Reset All Program Data</button>
+            <div id="resetStatus"></div>
+        </div>
+
+        <div class="step">
+            <h3>Debug Information</h3>
+            <button onclick="showDebugInfo()">Show Debug Info</button>
+            <div id="debugInfo"></div>
+        </div>
+    </div>
+
+    <script>
+        function showMessage(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.innerHTML = `<div class="${type}">${message}</div>`;
+        }
+
+        function checkCurrentState() {
+            try {
+                const activeProgram = localStorage.getItem('liftlog_active_program');
+                const programHistory = localStorage.getItem('liftlog_program_history');
+                const workouts = localStorage.getItem('liftlog_workouts');
+
+                if (activeProgram) {
+                    const program = JSON.parse(activeProgram);
+                    showMessage('currentState', `
+                        <strong>Current Active Program:</strong><br>
+                        Name: ${program.template?.name || 'Unknown'}<br>
+                        Template ID: ${program.templateId}<br>
+                        Current Week: ${program.currentWeek}<br>
+                        Current Day: ${program.currentDay}<br>
+                        Total Weeks: ${program.template?.weeks || 'Not specified'}<br>
+                        Completed Workouts: ${program.completedWorkouts}/${program.totalWorkouts}<br>
+                        Progress: ${program.progress.toFixed(1)}%
+                    `, 'success');
+                } else {
+                    showMessage('currentState', 'No active program found', 'warning');
+                }
+
+                if (workouts) {
+                    const workoutData = JSON.parse(workouts);
+                    const week6Workouts = workoutData.filter(w => w.week === 6);
+                    showMessage('currentState', document.getElementById('currentState').innerHTML + 
+                        `<br><br><strong>Week 6 Workouts (${week6Workouts.length}):</strong><br>` +
+                        week6Workouts.map(w => `Day ${w.day}: ${w.completed ? '✅ Completed' : '❌ Not completed'}`).join('<br>'), 
+                        'info');
+                }
+
+            } catch (error) {
+                showMessage('currentState', `Error reading data: ${error.message}`, 'error');
+            }
+        }
+
+        function revertToTestState() {
+            try {
+                let program = null;
+                const activeProgram = localStorage.getItem('liftlog_active_program');
+                
+                if (!activeProgram) {
+                    // Try to restore from program history if no active program exists
+                    const programHistory = localStorage.getItem('liftlog_program_history');
+                    if (programHistory) {
+                        const history = JSON.parse(programHistory);
+                        // Find the most recent completed program
+                        const lastProgram = history.find(p => !p.isActive && p.templateId === 'fullbody-3day-beginner-female');
+                        
+                        if (lastProgram) {
+                            showMessage('revertStatus', 'Restoring program from history since no active program found...', 'info');
+                            
+                            // Get the template data
+                            const workouts = localStorage.getItem('liftlog_workouts');
+                            let templateData = null;
+                            
+                            if (workouts) {
+                                const workoutData = JSON.parse(workouts);
+                                const week1Workout = workoutData.find(w => w.week === 1 && w.day === 1);
+                                if (week1Workout) {
+                                    // Create a basic template structure
+                                    templateData = {
+                                        id: lastProgram.templateId,
+                                        name: lastProgram.name,
+                                        weeks: 6,
+                                        schedule: {
+                                            day1: { name: 'Full Body A', exercises: [] },
+                                            day2: { name: 'Full Body B', exercises: [] },
+                                            day3: { name: 'Full Body C', exercises: [] }
+                                        }
+                                    };
+                                }
+                            }
+                            
+                            if (templateData) {
+                                program = {
+                                    templateId: lastProgram.templateId,
+                                    template: templateData,
+                                    startDate: new Date(lastProgram.startDate).getTime(),
+                                    currentWeek: 6,
+                                    currentDay: 2,
+                                    completedWorkouts: 17,
+                                    totalWorkouts: 18,
+                                    progress: (17/18) * 100
+                                };
+                            }
+                        }
+                    }
+                    
+                    if (!program) {
+                        showMessage('revertStatus', 'No active program found and could not restore from history. You may need to start a new program.', 'error');
+                        return;
+                    }
+                } else {
+                    program = JSON.parse(activeProgram);
+                    // Revert to Week 6, Day 2
+                    program.currentWeek = 6;
+                    program.currentDay = 2;
+                    program.completedWorkouts = 17; // 5 weeks * 3 days/week + 2 days in week 6
+                    program.progress = (program.completedWorkouts / program.totalWorkouts) * 100;
+                }
+
+                // Save the modified program
+                localStorage.setItem('liftlog_active_program', JSON.stringify(program));
+
+                // Remove Week 6, Day 3 completion from workout history
+                const workouts = localStorage.getItem('liftlog_workouts');
+                if (workouts) {
+                    const workoutData = JSON.parse(workouts);
+                    const filteredWorkouts = workoutData.filter(w => !(w.week === 6 && w.day === 3 && w.completed));
+                    localStorage.setItem('liftlog_workouts', JSON.stringify(filteredWorkouts));
+                }
+
+                // Remove Week 6, Day 3 from in-progress workouts
+                const inProgress = localStorage.getItem('liftlog_in_progress_workouts');
+                if (inProgress) {
+                    const inProgressData = JSON.parse(inProgress);
+                    const filteredInProgress = inProgressData.filter(w => !(w.week === 6 && w.day === 3));
+                    localStorage.setItem('liftlog_in_progress_workouts', JSON.stringify(filteredInProgress));
+                }
+
+                showMessage('revertStatus', `
+                    ✅ Successfully reverted to test state!<br>
+                    Program is now at Week 6, Day 2<br>
+                    Week 6, Day 3 completion has been removed<br>
+                    You can now test the final workout completion.
+                `, 'success');
+
+                // Refresh the current state display
+                setTimeout(checkCurrentState, 1000);
+
+            } catch (error) {
+                showMessage('revertStatus', `Error reverting state: ${error.message}`, 'error');
+            }
+        }
+
+        function resetAllProgramData() {
+            if (!confirm('⚠️ This will delete ALL program data. Are you sure?')) {
+                return;
+            }
+
+            try {
+                localStorage.removeItem('liftlog_active_program');
+                localStorage.removeItem('liftlog_program_progress');
+                localStorage.removeItem('liftlog_program_history');
+                localStorage.removeItem('liftlog_workouts');
+                localStorage.removeItem('liftlog_in_progress_workouts');
+
+                showMessage('resetStatus', '✅ All program data has been reset', 'success');
+                setTimeout(checkCurrentState, 1000);
+
+            } catch (error) {
+                showMessage('resetStatus', `Error resetting data: ${error.message}`, 'error');
+            }
+        }
+
+        function showDebugInfo() {
+            try {
+                const keys = [
+                    'liftlog_active_program',
+                    'liftlog_program_progress', 
+                    'liftlog_program_history',
+                    'liftlog_workouts',
+                    'liftlog_in_progress_workouts'
+                ];
+
+                let debugInfo = '<strong>LocalStorage Debug Info:</strong><br><pre>';
+                
+                keys.forEach(key => {
+                    const data = localStorage.getItem(key);
+                    if (data) {
+                        try {
+                            const parsed = JSON.parse(data);
+                            debugInfo += `${key}: ${JSON.stringify(parsed, null, 2)}\n\n`;
+                        } catch (e) {
+                            debugInfo += `${key}: [Invalid JSON: ${data.substring(0, 100)}...]\n\n`;
+                        }
+                    } else {
+                        debugInfo += `${key}: [Not found]\n\n`;
+                    }
+                });
+
+                debugInfo += '</pre>';
+                document.getElementById('debugInfo').innerHTML = debugInfo;
+
+            } catch (error) {
+                showMessage('debugInfo', `Error getting debug info: ${error.message}`, 'error');
+            }
+        }
+
+        // Auto-check current state on page load
+        window.onload = function() {
+            checkCurrentState();
+        };
+    </script>
+</body>
+</html>
