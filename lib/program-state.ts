@@ -105,29 +105,26 @@ export class ProgramStateManager {
   }
 
   /**
-   * Get all available templates (database + hardcoded)
-   * Deduplicates by ID, preferring database templates
+   * Get all available templates from database only
+   * Falls back to hardcoded templates only if database is unavailable
    */
   static async getAllTemplates(): Promise<GymTemplate[]> {
-    const templates = new Map<string, GymTemplate>()
-
-    // Add hardcoded templates first
-    GYM_TEMPLATES.forEach(t => {
-      templates.set(t.id, t)
-    })
-
     try {
-      // Add database templates (overwrites hardcoded if same ID)
+      // Load templates from database
       const dbTemplates = await programTemplateService.getAllGymTemplates()
-      dbTemplates.forEach(t => {
-        templates.set(t.id, t)
-      })
-      console.log(`[ProgramState] Loaded ${dbTemplates.length} templates from database`)
+      
+      if (dbTemplates.length > 0) {
+        console.log(`[ProgramState] Loaded ${dbTemplates.length} templates from database`)
+        return dbTemplates
+      }
+      
+      // Fallback to hardcoded templates only if database returns nothing
+      console.warn('[ProgramState] No database templates found, using hardcoded fallback')
+      return GYM_TEMPLATES
     } catch (error) {
-      console.warn('[ProgramState] Failed to load database templates:', error)
+      console.error('[ProgramState] Failed to load database templates, using hardcoded fallback:', error)
+      return GYM_TEMPLATES
     }
-
-    return Array.from(templates.values())
   }
 
   static async getActiveProgram(options?: { refreshTemplate?: boolean }): Promise<ActiveProgram | null> {

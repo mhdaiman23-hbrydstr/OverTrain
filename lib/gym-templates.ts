@@ -219,12 +219,17 @@ export function processTemplateWithDeload(template: GymTemplate): GymTemplate {
 }
 
 // Template definitions
+// NOTE: All templates are now stored in the database.
+// This array is kept for backward compatibility but should be empty in production.
 export const GYM_TEMPLATES: GymTemplate[] = [
-  // ========================================
-  // TESTING TEMPLATE - FOR DEVELOPMENT ONLY
-  // ========================================
-  // 2-Week Test Program - Quick completion testing
-  // REMOVE BEFORE PRODUCTION DEPLOYMENT
+  // All templates have been migrated to the database
+  // Use ProgramTemplateService to load templates from database
+]
+
+// LEGACY HARDCODED TEMPLATES - KEPT FOR REFERENCE ONLY
+// These templates have been migrated to the database
+// DO NOT USE - Use database templates instead
+const LEGACY_TEMPLATES_FOR_REFERENCE = [
   {
     id: "test-2week-3day-program",
     name: "2-Week Test Program (DEV ONLY)",
@@ -999,24 +1004,22 @@ export const GYM_TEMPLATES: GymTemplate[] = [
 ]
 
 // Template organization by experience and gender
+// NOTE: This is now LEGACY - templates are loaded dynamically from database
+// Use ProgramStateManager.getAllTemplates() instead
 export const gymTemplates = {
   beginner: {
-    female: ["fullbody-3day-beginner-female"],
-    male: ["test-2week-3day-program"], // Test template available for all
+    female: [],
+    male: [],
   },
   intermediate: {
-    male: ["upperlower-4day-intermediate-male", "test-2week-3day-program"], // Test template available for all
-    female: ["test-2week-3day-program"], // Test template available for all
+    male: [],
+    female: [],
   },
   advanced: {
-    male: ["test-2week-3day-program"], // Test template available for all
-    female: ["test-2week-3day-program"], // Test template available for all
+    male: [],
+    female: [],
   },
 }
-// ========================================
-// IMPORTANT: Remove test template from gymTemplates object before production
-// The test template ("test-2week-3day-program") should only be available during development
-// ========================================
 
 // Helper functions
 export const getTemplateById = (id: string): GymTemplate | undefined => {
