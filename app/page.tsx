@@ -10,7 +10,6 @@ import { Dumbbell, TrendingUp, Zap, LogOut } from "lucide-react"
 import { useAuth } from "@/contexts/auth-context"
 import { IntakeForm } from "@/components/intake-form"
 import { ProgramsSection } from "@/components/programs-section"
-import { TrainSection } from "@/components/train-section"
 import { WorkoutLoggerComponent } from "@/components/workout-logger"
 import { SidebarNavigation } from "@/components/sidebar-navigation"
 import { BottomNavigation } from "@/components/bottom-navigation"
@@ -291,13 +290,15 @@ export default function HomePage() {
 
   if (user && currentView === "train") {
     return (
-      <div className="flex h-screen bg-background overflow-x-hidden">
+      <div className="flex h-screen bg-background overflow-hidden">
         <SidebarNavigation currentView="train" onViewChange={setCurrentView} />
 
-        <div className="flex-1 lg:ml-64 overflow-x-hidden">
-          <TrainSection 
-            onStartWorkout={() => setCurrentView("workout")} 
-            onAddProgram={() => setCurrentView("programs")} 
+        <div className="flex-1 lg:ml-64 overflow-y-auto overflow-x-hidden h-screen">
+          <WorkoutLoggerComponent
+            key={programKey}
+            onComplete={handleWorkoutComplete}
+            onCancel={() => setCurrentView("programs")}
+            onViewAnalytics={() => setCurrentView("analytics")}
           />
         </div>
         <BottomNavigation currentView={currentView} onViewChange={handleViewChange} />
