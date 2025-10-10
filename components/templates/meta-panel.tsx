@@ -1,0 +1,131 @@
+"use client"
+
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Badge } from "@/components/ui/badge"
+import { Switch } from "@/components/ui/switch"
+import type { ExperienceOption, GenderOption, ProgramMeta, ProgressionType } from "./types"
+
+interface MetaPanelProps {
+  meta: ProgramMeta
+  onMetaChange: <K extends keyof ProgramMeta>(key: K, value: ProgramMeta[K]) => void
+  onToggleOption: (key: "gender" | "experienceLevel", value: GenderOption | ExperienceOption) => void
+}
+
+export function MetaPanel({ meta, onMetaChange, onToggleOption }: MetaPanelProps) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Program Details</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="space-y-2">
+            <Label htmlFor="program-name">Program name</Label>
+            <Input
+              id="program-name"
+              value={meta.name}
+              placeholder="Ultimate Strength Builder"
+              onChange={(event) => onMetaChange("name", event.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="program-days">Days per week</Label>
+            <Input
+              id="program-days"
+              type="number"
+              min={1}
+              max={7}
+              value={meta.daysPerWeek}
+              onChange={(event) => onMetaChange("daysPerWeek", Number(event.target.value) || 1)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="program-weeks">Total weeks</Label>
+            <Input
+              id="program-weeks"
+              type="number"
+              min={1}
+              max={52}
+              value={meta.totalWeeks}
+              onChange={(event) => onMetaChange("totalWeeks", Number(event.target.value) || 1)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>Progression type</Label>
+            <Select
+              value={meta.progressionType}
+              onValueChange={(value: ProgressionType) => onMetaChange("progressionType", value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select progression type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="linear">Linear</SelectItem>
+                <SelectItem value="percentage">Percentage</SelectItem>
+                <SelectItem value="hybrid">Hybrid</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="program-description">Description</Label>
+          <Textarea
+            id="program-description"
+            value={meta.description}
+            placeholder="Describe the intent of this program so coaches know when to assign it."
+            onChange={(event) => onMetaChange("description", event.target.value)}
+            rows={4}
+          />
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          <div>
+            <Label>Target gender</Label>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {(["male", "female"] as GenderOption[]).map((option) => (
+                <Badge
+                  key={option}
+                  variant={meta.gender.includes(option) ? "default" : "outline"}
+                  className="cursor-pointer capitalize"
+                  onClick={() => onToggleOption("gender", option)}
+                >
+                  {option}
+                </Badge>
+              ))}
+            </div>
+          </div>
+          <div>
+            <Label>Experience level</Label>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {(["beginner", "intermediate", "advanced"] as ExperienceOption[]).map((option) => (
+                <Badge
+                  key={option}
+                  variant={meta.experienceLevel.includes(option) ? "default" : "outline"}
+                  className="cursor-pointer capitalize"
+                  onClick={() => onToggleOption("experienceLevel", option)}
+                >
+                  {option}
+                </Badge>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between rounded-lg border border-border/50 px-3 py-2">
+          <div>
+            <div className="text-sm font-medium">Program visibility</div>
+            <div className="text-xs text-muted-foreground">
+              Active templates appear immediately in the programs list.
+            </div>
+          </div>
+          <Switch checked={meta.isActive} onCheckedChange={(checked) => onMetaChange("isActive", checked)} />
+        </div>
+      </CardContent>
+    </Card>
+  )
+}

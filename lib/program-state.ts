@@ -81,7 +81,7 @@ export class ProgramStateManager {
    * Load template from database first, fallback to hardcoded templates
    * This enables seamless migration from hardcoded to database templates
    */
-  private static async loadTemplate(templateId: string): Promise<GymTemplate | null> {
+  static async loadTemplate(templateId: string): Promise<GymTemplate | null> {
     try {
       // Try database first (new system)
       const dbTemplate = await programTemplateService.getTemplate(templateId)

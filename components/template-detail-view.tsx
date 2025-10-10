@@ -1,8 +1,9 @@
 "use client"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { X, Play } from "lucide-react"
-import { GYM_TEMPLATES } from "@/lib/gym-templates"
+import { ProgramStateManager } from "@/lib/program-state"
+import type { GymTemplate } from "@/lib/gym-templates"
 import { AdvancedProgramSettings } from "@/components/advanced-program-settings"
 import type { ProgressionOverride } from "@/lib/program-state"
 
@@ -43,6 +44,8 @@ const getMuscleGroupFromExercise = (exerciseName: string): string => {
 
 export function TemplateDetailView({ templateId, onClose, onStartProgram, userProfile }: TemplateDetailViewProps) {
   console.log("[v0] TemplateDetailView rendered with templateId:", templateId)
+  const [template, setTemplate] = useState<GymTemplate | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
   const [progressionOverride, setProgressionOverride] = useState<ProgressionOverride | undefined>()
 
   // Default user profile if not provided
@@ -52,7 +55,34 @@ export function TemplateDetailView({ templateId, onClose, onStartProgram, userPr
   }
   const currentUserProfile = userProfile || defaultUserProfile
 
-  const template = GYM_TEMPLATES.find((t) => t.id === templateId)
+  useEffect(() => {
+    const loadTemplate = async () => {
+      setIsLoading(true)
+      try {
+        console.log("[TemplateDetailView] Loading template:", templateId)
+        const loaded = await ProgramStateManager.loadTemplate(templateId)
+        console.log("[TemplateDetailView] Template loaded:", loaded?.name)
+        setTemplate(loaded)
+      } catch (error) {
+        console.error('[TemplateDetailView] Failed to load template:', error)
+        setTemplate(null)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    loadTemplate()
+  }, [templateId])
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading template...</p>
+        </div>
+      </div>
+    )
+  }
 
   if (!template) {
     return (

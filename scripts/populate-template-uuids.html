@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Populate Template UUIDs</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            max-width: 1400px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #0a0a0a;
+            color: #00ff00;
+        }
+        h1 { color: #00ff00; border-bottom: 2px solid #00ff00; padding-bottom: 10px; }
+        .status { padding: 10px; margin: 10px 0; border-left: 4px solid #00ff00; }
+        .success { color: #00ff00; }
+        .error { color: #ff0000; border-left-color: #ff0000; }
+        .warning { color: #ffaa00; border-left-color: #ffaa00; }
+        .result { background: #1a1a1a; padding: 10px; margin: 5px 0; font-size: 12px; }
+        pre { background: #1a1a1a; padding: 15px; overflow-x: auto; max-height: 500px; font-size: 11px; }
+        .button { background: #00ff00; color: #000; border: none; padding: 10px 20px; cursor: pointer; margin: 10px 5px; font-weight: bold; }
+        .button:hover { background: #00cc00; }
+        .button:disabled { background: #666; cursor: not-allowed; }
+        #output { white-space: pre-wrap; }
+        #code-output { background: #1a1a1a; color: #00ff00; padding: 20px; border: 2px solid #00ff00; margin: 20px 0; }
+    </style>
+</head>
+<body>
+    <h1>🔄 Populate Template UUIDs from Database</h1>
+
+    <div class="status">
+        <strong>Purpose:</strong> This script fetches UUIDs from the database and generates updated template code.
+        <br><strong>Status:</strong> <span id="status">Ready</span>
+    </div>
+
+    <button class="button" onclick="populateUUIDs()" id="runBtn">▶ Populate UUIDs</button>
+    <button class="button" onclick="copyToClipboard()">📋 Copy Generated Code</button>
+    <button class="button" onclick="clearOutput()">🗑 Clear</button>
+
+    <div id="output"></div>
+
+    <div id="code-output-container" style="display: none;">
+        <h2>📄 Generated Template Code (Copy this into gym-templates.ts)</h2>
+        <pre id="code-output"></pre>
+    </div>
+
+    <script type="module">
+        import { exerciseResolver } from './lib/services/exercise-resolver.js'
+        import { GYM_TEMPLATES } from './lib/gym-templates.js'
+
+        window.exerciseResolver = exerciseResolver
+        window.GYM_TEMPLATES = GYM_TEMPLATES
+        document.getElementById('status').textContent = '✅ Ready - Modules loaded'
+    </script>
+
+    <script>
+        let generatedCode = ''
+
+        function log(message, type = 'info') {
+            const output = document.getElementById('output')
+            const div = document.createElement('div')
+            div.className = `result ${type}`
+            div.textContent = message
+            output.appendChild(div)
+            output.scrollTop = output.scrollHeight
+        }
+
+        function clearOutput() {
+            document.getElementById('output').innerHTML = ''
+            document.getElementById('code-output').textContent = ''
+            document.getElementById('code-output-container').style.display = 'none'
+        }
+
+        function updateStatus(text) {
+            document.getElementById('status').textContent = text
+        }
+
+        async function populateUUIDs() {
+            const btn = document.getElementById('runBtn')
+            btn.disabled = true
+            clearOutput()
+
+            log('🚀 Starting UUID Population...', 'success')
+            log('='.repeat(80))
+
+            try {
+                updateStatus('⏳ Processing templates...')
+
+                const updatedTemplates = []
+                let totalExercises = 0
+                let foundCount = 0
+                let notFoundCount = 0
+                const missing = []
+
+                // Process each template
+                for (const template of window.GYM_TEMPLATES) {
+                    log(`\n📋 Processing template: ${template.name}`)
+
+                    const updatedSchedule = {}
+
+                    // Process each day
+                    for (const dayKey in template.schedule) {
+                        const day = template.schedule[dayKey]
+                        const updatedExercises = []
+
+                        log(`  Day ${dayKey}: ${day.name}`)
+
+                        // Process each exercise
+                        for (const exercise of day.exercises) {
+                            totalExercises++
+
+                            const startTime = performance.now()
+                            const dbExercise = await window.exerciseResolver.resolve(exercise.exerciseName)
+                            const endTime = performance.now()
+
+                            if (dbExercise) {
+                                foundCount++
+
+                                // Create updated exercise with UUID
+                                const updatedExercise = {
+                                    ...exercise,
+                                    exerciseLibraryId: dbExercise.id
+                                }
+
+                                updatedExercises.push(updatedExercise)
+
+                                log(`    ✅ ${exercise.exerciseName}`, 'success')
+                                log(`       UUID: ${dbExercise.id} (${(endTime - startTime).toFixed(1)}ms)`)
+                            } else {
+                                notFoundCount++
+                                missing.push(exercise.exerciseName)
+
+                                // Keep original exercise (no UUID)
+                                updatedExercises.push(exercise)
+
+                                log(`    ❌ ${exercise.exerciseName} - NOT FOUND`, 'error')
+                            }
+                        }
+
+                        updatedSchedule[dayKey] = {
+                            ...day,
+                            exercises: updatedExercises
+                        }
+                    }
+
+                    updatedTemplates.push({
+                        ...template,
+                        schedule: updatedSchedule
+                    })
+                }
+
+                // Generate code
+                log('\n' + '='.repeat(80))
+                log('📝 Generating updated template code...', 'success')
+
+                generatedCode = generateTemplateCode(updatedTemplates)
+
+                // Show code
+                document.getElementById('code-output').textContent = generatedCode
+                document.getElementById('code-output-container').style.display = 'block'
+
+                // Summary
+                log('\n' + '='.repeat(80))
+                log('📊 SUMMARY', 'success')
+                log('='.repeat(80))
+                log(`Total Exercises: ${totalExercises}`)
+                log(`✅ Found in DB: ${foundCount}`)
+                log(`❌ Not Found: ${notFoundCount}`)
+                log(`📈 Success Rate: ${((foundCount / totalExercises) * 100).toFixed(2)}%`)
+
+                if (notFoundCount > 0) {
+                    log('\n⚠️  Missing Exercises (need to be added to DB or names corrected):', 'warning')
+                    [...new Set(missing)].forEach(name => {
+                        log(`  • ${name}`, 'warning')
+                    })
+                }
+
+                log('\n✅ Code generation complete!', 'success')
+                log('📋 Click "Copy Generated Code" button to copy the updated templates')
+                log('📝 Then paste into lib/gym-templates.ts (replace GYM_TEMPLATES array)')
+
+                updateStatus(`✅ Complete: ${foundCount}/${totalExercises} UUIDs added`)
+
+            } catch (error) {
+                log(`\n❌ Error: ${error.message}`, 'error')
+                log(error.stack, 'error')
+                updateStatus('❌ Failed')
+            } finally {
+                btn.disabled = false
+            }
+        }
+
+        function generateTemplateCode(templates) {
+            // Generate TypeScript code for the updated templates
+            return `// Updated GYM_TEMPLATES with exercise library UUIDs
+// Generated: ${new Date().toISOString()}
+
+export const GYM_TEMPLATES: GymTemplate[] = ${JSON.stringify(templates, null, 2)}`
+        }
+
+        function copyToClipboard() {
+            if (!generatedCode) {
+                alert('No code generated yet. Please run "Populate UUIDs" first.')
+                return
+            }
+
+            navigator.clipboard.writeText(generatedCode).then(() => {
+                alert('✅ Code copied to clipboard!\n\nNow paste it into lib/gym-templates.ts')
+            }).catch(err => {
+                alert('❌ Failed to copy: ' + err.message)
+            })
+        }
+    </script>
+</body>
+</html>

@@ -146,13 +146,14 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
       return
     }
 
-    startNewProgram(templateId, progressionOverride)
+    await startNewProgram(templateId, progressionOverride)
   }
 
-  const startNewProgram = (templateId: string, progressionOverride?: any) => {
+  const startNewProgram = async (templateId: string, progressionOverride?: any) => {
     console.log("[v0] Starting program:", templateId, "with override:", !!progressionOverride)
 
-    const template = GYM_TEMPLATES.find((t) => t.id === templateId)
+    // Load template from database or hardcoded templates
+    const template = await ProgramStateManager.loadTemplate(templateId)
     if (!template) {
       console.error("[v0] Template not found:", templateId)
       return
@@ -165,7 +166,7 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
     // Also clear any corrupted workout data
     WorkoutLogger.cleanupCorruptedWorkouts()
 
-    const activeProgram = ProgramStateManager.setActiveProgram(templateId, progressionOverride)
+    const activeProgram = await ProgramStateManager.setActiveProgram(templateId, progressionOverride)
 
     if (activeProgram) {
       console.log("[v0] Program activated successfully:", activeProgram)
@@ -181,10 +182,10 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
     }
   }
 
-  const handleConfirmSwitch = () => {
+  const handleConfirmSwitch = async () => {
     if (!pendingProgramId) return
 
-    startNewProgram(pendingProgramId.templateId, pendingProgramId.progressionOverride)
+    await startNewProgram(pendingProgramId.templateId, pendingProgramId.progressionOverride)
     setShowSwitchDialog(false)
 
     const updatedHistory = TemplateStorageManager.getProgramHistory()

@@ -22,7 +22,11 @@
       "Bash(git log:*)",
       "Bash(npm run test:*)",
       "Bash(find:*)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(rm:*)",
+      "Bash(git tag:*)",
+      "Bash(git push:*)",
+      "Bash(npx ts-node:*)"
     ]
   }
 }

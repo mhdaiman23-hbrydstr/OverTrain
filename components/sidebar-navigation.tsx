@@ -1,7 +1,8 @@
 "use client"
 import { Button } from "@/components/ui/button"
-import { Dumbbell, Calendar, BarChart3, User, Sun, HelpCircle, LogOut } from "lucide-react"
+import { Dumbbell, Calendar, BarChart3, User, Sun, HelpCircle, LogOut, FilePlus2 } from "lucide-react"
 import { useAuth } from "@/contexts/auth-context"
+import { useRouter } from "next/navigation"
 
 interface SidebarNavigationProps {
   currentView: string
@@ -9,14 +10,19 @@ interface SidebarNavigationProps {
 }
 
 export function SidebarNavigation({ currentView, onViewChange }: SidebarNavigationProps) {
-  const { signOut } = useAuth()
+  const { signOut, user } = useAuth()
+  const router = useRouter()
+  const isAdmin = !!user?.isAdmin
 
-  const navigationItems = [
+  const baseNavigationItems = [
     { id: "train", label: "Train", icon: Dumbbell },
     { id: "programs", label: "Programs", icon: Calendar },
     { id: "analytics", label: "Analytics", icon: BarChart3 },
     { id: "profile", label: "Profile", icon: User },
   ]
+  const navigationItems = isAdmin
+    ? [...baseNavigationItems, { id: "templates", label: "Templates", icon: FilePlus2 }]
+    : baseNavigationItems
 
   const settingsItems = [
     { id: "theme", label: "Light Theme", icon: Sun },
@@ -42,12 +48,18 @@ export function SidebarNavigation({ currentView, onViewChange }: SidebarNavigati
         {/* Navigation */}
         <nav className="flex-1 px-2 py-4 space-y-1">
           {navigationItems.map((item) => (
-            <Button
-              key={item.id}
-              variant={currentView === item.id ? "secondary" : "ghost"}
-              className="w-full justify-start text-sm font-normal"
-              onClick={() => onViewChange(item.id)}
-            >
+          <Button
+            key={item.id}
+            variant={currentView === item.id ? "secondary" : "ghost"}
+            className="w-full justify-start text-sm font-normal"
+            onClick={() => {
+              if (item.id === "templates") {
+                router.push("/admin/templates")
+                return
+              }
+              onViewChange(item.id)
+            }}
+          >
               <item.icon className="mr-3 h-4 w-4" />
               {item.label}
             </Button>

@@ -244,7 +244,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     try {
       await AuthService.updateProfile(state.user.id, updates)
-      const updatedUser = { ...state.user, ...updates }
+      const { isAdmin: _ignoredAdminFlag, ...safeUpdates } = updates
+      const updatedUser = { ...state.user, ...safeUpdates }
       setState((prev) => ({ ...prev, user: updatedUser }))
     } catch (error) {
       console.error('Failed to update user:', error)
