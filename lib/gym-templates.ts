@@ -3,6 +3,7 @@ import { getExerciseTier, type ProgressionTier } from "./progression-tiers"
 export interface ExerciseTemplate {
   id: string
   exerciseName: string
+  exerciseLibraryId?: string // NEW: Optional UUID reference to exercise_library table (for DB integration)
   category: "compound" | "isolation"
   equipmentType?: string
   tier?: ProgressionTier
