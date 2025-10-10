@@ -4,7 +4,6 @@ import { useEffect, useRef, useState, useMemo } from "react"
 import { useAuth } from "@/contexts/auth-context"
 import { useToast } from "@/hooks/use-toast"
 import { ProgramStateManager } from "@/lib/program-state"
-import { getTemplateById } from "@/lib/gym-templates"
 import { getExerciseMuscleGroup } from "@/lib/exercise-muscle-groups"
 import { ProgressionRouter, type ProgressionInput } from "@/lib/progression-router"
 import { getTierRules, isWeightWithinBounds, calculateVolumeCompensation } from "@/lib/progression-tiers"
@@ -1360,12 +1359,14 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
     const activeProgram = await ProgramStateManager.getActiveProgram()
     if (!activeProgram) return
 
-    const { templateId } = activeProgram
-
     console.log("[v0] User clicked on week", week, "day", day)
 
-    const template = getTemplateById(templateId)
-    if (!template) return
+    // Use the template from activeProgram instead of getTemplateById
+    const template = activeProgram.template
+    if (!template) {
+      console.error("[v0] No template in active program")
+      return
+    }
 
     const dayKey = `day${day}`
     const workoutDay = template.schedule[dayKey]
