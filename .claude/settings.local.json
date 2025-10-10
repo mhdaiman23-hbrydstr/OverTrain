@@ -21,7 +21,8 @@
       "Read(//c/Users/mhdai/Desktop/**)",
       "Bash(git log:*)",
       "Bash(npm run test:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(node:*)"
     ]
   }
 }

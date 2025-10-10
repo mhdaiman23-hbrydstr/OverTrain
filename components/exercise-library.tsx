@@ -1,13 +1,13 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Search, SlidersHorizontal } from "lucide-react"
 import { ExerciseLibraryFilter } from "@/components/exercise-library-filter"
-import { EXERCISES, type Exercise } from "@/lib/exercise-data"
+import { exerciseService, type Exercise } from "@/lib/services/exercise-library-service"
 
 interface ExerciseLibraryProps {
   open: boolean
@@ -21,22 +21,46 @@ export function ExerciseLibrary({ open, onOpenChange, onSelectExercise, currentE
   const [showFilters, setShowFilters] = useState(false)
   const [selectedFilters, setSelectedFilters] = useState<{
     muscleGroups: string[]
-    authors: string[]
+    equipmentTypes: string[]
     usePreferred: boolean
   }>({
     muscleGroups: [],
-    authors: [],
+    equipmentTypes: [],
     usePreferred: false,
   })
   const [repeat, setRepeat] = useState(false)
   const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null)
+  const [exercises, setExercises] = useState<Exercise[]>([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  // Load exercises when dialog opens
+  useEffect(() => {
+    if (open) {
+      loadExercises()
+    }
+  }, [open])
+
+  const loadExercises = async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const allExercises = await exerciseService.getAllExercises()
+      setExercises(allExercises)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load exercises')
+      console.error('Error loading exercises:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const handleApplyFilters = (filters: typeof selectedFilters) => {
     setSelectedFilters(filters)
     setShowFilters(false)
   }
 
-  const filteredExercises = EXERCISES.filter((exercise) => {
+  const filteredExercises = exercises.filter((exercise: Exercise) => {
     // Search filter
     if (searchQuery && !exercise.name.toLowerCase().includes(searchQuery.toLowerCase())) {
       return false
@@ -44,6 +68,11 @@ export function ExerciseLibrary({ open, onOpenChange, onSelectExercise, currentE
 
     // Muscle group filter
     if (selectedFilters.muscleGroups.length > 0 && !selectedFilters.muscleGroups.includes(exercise.muscleGroup)) {
+      return false
+    }
+
+    // Equipment type filter
+    if (selectedFilters.equipmentTypes.length > 0 && !selectedFilters.equipmentTypes.includes(exercise.equipmentType)) {
       return false
     }
 
@@ -103,7 +132,7 @@ export function ExerciseLibrary({ open, onOpenChange, onSelectExercise, currentE
               >
                 <div className="flex-1">
                   <p className="font-medium">{exercise.name}</p>
-                  <p className="text-sm text-muted-foreground">{exercise.category}</p>
+                  <p className="text-sm text-muted-foreground">{exercise.muscleGroup} • {exercise.equipmentType}</p>
                 </div>
               </button>
             ))}

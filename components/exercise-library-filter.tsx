@@ -9,39 +9,45 @@ import { Label } from "@/components/ui/label"
 interface ExerciseLibraryFilterProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  onApply: (filters: { muscleGroups: string[]; authors: string[]; usePreferred: boolean }) => void
-  currentFilters: { muscleGroups: string[]; authors: string[]; usePreferred: boolean }
+  onApply: (filters: { muscleGroups: string[]; equipmentTypes: string[]; usePreferred: boolean }) => void
+  currentFilters: { muscleGroups: string[]; equipmentTypes: string[]; usePreferred: boolean }
 }
 
 const MUSCLE_GROUPS = [
-  { name: "Chest", color: "bg-pink-500" },
+  { name: "Abs", color: "bg-violet-500" },
   { name: "Back", color: "bg-cyan-500" },
-  { name: "Triceps", color: "bg-pink-500" },
   { name: "Biceps", color: "bg-cyan-500" },
-  { name: "Shoulders", color: "bg-pink-500" },
-  { name: "Quads", color: "bg-cyan-500" },
+  { name: "Calves", color: "bg-violet-500" },
+  { name: "Chest", color: "bg-pink-500" },
+  { name: "Forearms", color: "bg-violet-500" },
   { name: "Glutes", color: "bg-teal-500" },
   { name: "Hamstrings", color: "bg-cyan-500" },
-  { name: "Calves", color: "bg-violet-500" },
-  { name: "Traps", color: "bg-violet-500" },
-  { name: "Forearms", color: "bg-violet-500" },
-  { name: "Abs", color: "bg-violet-500" },
   { name: "Olympic Lifts", color: "bg-orange-500" },
+  { name: "Quads", color: "bg-cyan-500" },
+  { name: "Shoulders", color: "bg-pink-500" },
+  { name: "Traps", color: "bg-violet-500" },
+  { name: "Triceps", color: "bg-pink-500" },
 ]
 
-const AUTHORS = [
-  { name: "HybridStrengthCoach" },
-  { name: "Custom" },
+const EQUIPMENT_TYPES = [
+  { name: "Barbell", color: "bg-gray-600" },
+  { name: "Bodyweight Loadable", color: "bg-emerald-500" },
+  { name: "Bodyweight Only", color: "bg-green-500" },
+  { name: "Cable", color: "bg-orange-500" },
+  { name: "Dumbbell", color: "bg-blue-500" },
+  { name: "Machine", color: "bg-purple-500" },
+  { name: "Machine Assistance", color: "bg-indigo-500" },
+  { name: "Smith Machine", color: "bg-slate-500" },
 ]
 
 export function ExerciseLibraryFilter({ open, onOpenChange, onApply, currentFilters }: ExerciseLibraryFilterProps) {
   const [selectedMuscleGroups, setSelectedMuscleGroups] = useState<string[]>(currentFilters.muscleGroups)
-  const [selectedAuthors, setSelectedAuthors] = useState<string[]>(currentFilters.authors)
+  const [selectedEquipmentTypes, setSelectedEquipmentTypes] = useState<string[]>(currentFilters.equipmentTypes)
   const [usePreferred, setUsePreferred] = useState(currentFilters.usePreferred)
 
   useEffect(() => {
     setSelectedMuscleGroups(currentFilters.muscleGroups)
-    setSelectedAuthors(currentFilters.authors)
+    setSelectedEquipmentTypes(currentFilters.equipmentTypes)
     setUsePreferred(currentFilters.usePreferred)
   }, [currentFilters])
 
@@ -51,16 +57,16 @@ export function ExerciseLibraryFilter({ open, onOpenChange, onApply, currentFilt
     )
   }
 
-  const toggleAuthor = (author: string) => {
-    setSelectedAuthors((prev) =>
-      prev.includes(author) ? prev.filter((a) => a !== author) : [...prev, author]
+  const toggleEquipmentType = (equipmentType: string) => {
+    setSelectedEquipmentTypes((prev) =>
+      prev.includes(equipmentType) ? prev.filter((e) => e !== equipmentType) : [...prev, equipmentType]
     )
   }
 
   const handleApply = () => {
     onApply({
       muscleGroups: selectedMuscleGroups,
-      authors: selectedAuthors,
+      equipmentTypes: selectedEquipmentTypes,
       usePreferred,
     })
   }
@@ -68,7 +74,7 @@ export function ExerciseLibraryFilter({ open, onOpenChange, onApply, currentFilt
   const handleCancel = () => {
     // Reset to current filters
     setSelectedMuscleGroups(currentFilters.muscleGroups)
-    setSelectedAuthors(currentFilters.authors)
+    setSelectedEquipmentTypes(currentFilters.equipmentTypes)
     setUsePreferred(currentFilters.usePreferred)
     onOpenChange(false)
   }
@@ -105,23 +111,24 @@ export function ExerciseLibraryFilter({ open, onOpenChange, onApply, currentFilt
             </div>
           </div>
 
-          {/* Author */}
+          {/* Equipment Types */}
           <div>
-            <h3 className="font-semibold mb-3">Author</h3>
+            <h3 className="font-semibold mb-3">Equipment</h3>
             <div className="grid grid-cols-2 gap-2">
-              {AUTHORS.map((author) => (
+              {EQUIPMENT_TYPES.map((equipment) => (
                 <button
-                  key={author.name}
-                  onClick={() => toggleAuthor(author.name)}
+                  key={equipment.name}
+                  onClick={() => toggleEquipmentType(equipment.name)}
                   className={`flex items-center gap-2 px-3 py-2 rounded-md border transition-colors ${
-                    selectedAuthors.includes(author.name)
+                    selectedEquipmentTypes.includes(equipment.name)
                       ? "bg-primary/10 border-primary"
                       : "border-border hover:bg-muted"
                   }`}
                 >
-                  <span className="text-sm flex-1 text-left">{author.name}</span>
-                  {selectedAuthors.includes(author.name) && (
-                    <div className="w-4 h-4 rounded-sm bg-primary flex items-center justify-center" />
+                  <div className={`w-3 h-3 rounded-full ${equipment.color}`} />
+                  <span className="text-sm">{equipment.name}</span>
+                  {selectedEquipmentTypes.includes(equipment.name) && (
+                    <div className="ml-auto w-4 h-4 rounded-sm bg-primary flex items-center justify-center" />
                   )}
                 </button>
               ))}
