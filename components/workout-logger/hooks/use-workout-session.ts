@@ -67,139 +67,144 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
   const [outOfBoundsExercises, setOutOfBoundsExercises] = useState<Record<string, { min: number; max: number; setNumber: number }>>({})
 
   useEffect(() => {
-    console.log("[v0] ===== STORAGE DEBUG =====")
+    const initializeWorkoutData = async () => {
+      console.log("[v0] ===== STORAGE DEBUG =====")
 
-    // Log in-progress workouts
-    const inProgressRaw = localStorage.getItem("liftlog_in_progress_workouts")
-    if (inProgressRaw) {
-      const inProgressWorkouts = JSON.parse(inProgressRaw)
-      console.log("[v0] IN-PROGRESS WORKOUTS:", inProgressWorkouts.length)
-      inProgressWorkouts.forEach((w: WorkoutSession, idx: number) => {
-        console.log(`[v0] In-Progress ${idx + 1}:`, {
-          id: w.id,
-          name: w.workoutName,
-          week: w.week,
-          day: w.day,
-          completed: w.completed,
-          exercises: w.exercises.map((ex) => ({
-            name: ex.exerciseName,
-            sets: ex.sets.map((s) => ({ weight: s.weight, reps: s.reps, completed: s.completed })),
-          })),
+      // Log in-progress workouts
+      const inProgressRaw = localStorage.getItem("liftlog_in_progress_workouts")
+      if (inProgressRaw) {
+        const inProgressWorkouts = JSON.parse(inProgressRaw)
+        console.log("[v0] IN-PROGRESS WORKOUTS:", inProgressWorkouts.length)
+        inProgressWorkouts.forEach((w: WorkoutSession, idx: number) => {
+          console.log(`[v0] In-Progress ${idx + 1}:`, {
+            id: w.id,
+            name: w.workoutName,
+            week: w.week,
+            day: w.day,
+            completed: w.completed,
+            exercises: w.exercises.map((ex) => ({
+              name: ex.exerciseName,
+              sets: ex.sets.map((s) => ({ weight: s.weight, reps: s.reps, completed: s.completed })),
+            })),
+          })
         })
-      })
-    } else {
-      console.log("[v0] IN-PROGRESS WORKOUTS: None")
-    }
+      } else {
+        console.log("[v0] IN-PROGRESS WORKOUTS: None")
+      }
 
-    // Log workout history
-    const historyRaw = localStorage.getItem("liftlog_workouts")
-    if (historyRaw) {
-      const historyWorkouts = JSON.parse(historyRaw)
-      console.log("[v0] WORKOUT HISTORY:", historyWorkouts.length)
-      historyWorkouts.forEach((w: WorkoutSession, idx: number) => {
-        console.log(`[v0] History ${idx + 1}:`, {
-          id: w.id,
-          name: w.workoutName,
-          week: w.week,
-          day: w.day,
-          completed: w.completed,
-          exercises: w.exercises.map((ex) => ({
-            name: ex.exerciseName,
-            sets: ex.sets.map((s) => ({ weight: s.weight, reps: s.reps, completed: s.completed })),
-          })),
+      // Log workout history
+      const historyRaw = localStorage.getItem("liftlog_workouts")
+      if (historyRaw) {
+        const historyWorkouts = JSON.parse(historyRaw)
+        console.log("[v0] WORKOUT HISTORY:", historyWorkouts.length)
+        historyWorkouts.forEach((w: WorkoutSession, idx: number) => {
+          console.log(`[v0] History ${idx + 1}:`, {
+            id: w.id,
+            name: w.workoutName,
+            week: w.week,
+            day: w.day,
+            completed: w.completed,
+            exercises: w.exercises.map((ex) => ({
+              name: ex.exerciseName,
+              sets: ex.sets.map((s) => ({ weight: s.weight, reps: s.reps, completed: s.completed })),
+            })),
+          })
         })
-      })
-    } else {
-      console.log("[v0] WORKOUT HISTORY: None")
-    }
+      } else {
+        console.log("[v0] WORKOUT HISTORY: None")
+      }
 
-    console.log("[v0] ===== END STORAGE DEBUG =====")
+      console.log("[v0] ===== END STORAGE DEBUG =====")
 
-    await ProgramStateManager.recalculateProgress()
+      await ProgramStateManager.recalculateProgress()
 
-    if (inProgressRaw && historyRaw) {
-      const inProgressWorkouts = JSON.parse(inProgressRaw)
-      const historyWorkouts = JSON.parse(historyRaw)
+      if (inProgressRaw && historyRaw) {
+        const inProgressWorkouts = JSON.parse(inProgressRaw)
+        const historyWorkouts = JSON.parse(historyRaw)
 
-      // Find in-progress workouts that have a completed version in history
-      const cleanedInProgress = inProgressWorkouts.filter((inProgress: WorkoutSession) => {
-        const hasCompletedVersion = historyWorkouts.some(
-          (history: WorkoutSession) =>
-            history.week === inProgress.week && history.day === inProgress.day && history.completed,
-        )
-
-        // If there's a completed version, check if in-progress is empty
-        if (hasCompletedVersion) {
-          const isEmpty = inProgress.exercises.every((ex: any) =>
-            ex.sets.every((s: any) => s.weight === 0 && s.reps === 0 && !s.completed),
+        // Find in-progress workouts that have a completed version in history
+        const cleanedInProgress = inProgressWorkouts.filter((inProgress: WorkoutSession) => {
+          const hasCompletedVersion = historyWorkouts.some(
+            (history: WorkoutSession) =>
+              history.week === inProgress.week && history.day === inProgress.day && history.completed,
           )
 
-          if (isEmpty) {
-            console.log("[v0] Removing empty in-progress workout for week", inProgress.week, "day", inProgress.day)
-            return false // Remove this workout
+          // If there's a completed version, check if in-progress is empty
+          if (hasCompletedVersion) {
+            const isEmpty = inProgress.exercises.every((ex: any) =>
+              ex.sets.every((s: any) => s.weight === 0 && s.reps === 0 && !s.completed),
+            )
+
+            if (isEmpty) {
+              console.log("[v0] Removing empty in-progress workout for week", inProgress.week, "day", inProgress.day)
+              return false // Remove this workout
+            }
           }
+
+          return true // Keep this workout
+        })
+
+        if (cleanedInProgress.length !== inProgressWorkouts.length) {
+          localStorage.setItem("liftlog_in_progress_workouts", JSON.stringify(cleanedInProgress))
+          console.log(
+            "[v0] Cleaned up",
+            inProgressWorkouts.length - cleanedInProgress.length,
+            "empty in-progress workouts",
+          )
         }
-
-        return true // Keep this workout
-      })
-
-      if (cleanedInProgress.length !== inProgressWorkouts.length) {
-        localStorage.setItem("liftlog_in_progress_workouts", JSON.stringify(cleanedInProgress))
-        console.log(
-          "[v0] Cleaned up",
-          inProgressWorkouts.length - cleanedInProgress.length,
-          "empty in-progress workouts",
-        )
       }
     }
+
+    initializeWorkoutData()
   }, [])
 
   useEffect(() => {
-    // First, check raw localStorage data
-    console.log("[v0] 💾 RAW LOCALSTORAGE CHECK:", {
-      inProgressKey: 'liftlog_in_progress_workouts',
-      rawValue: localStorage.getItem('liftlog_in_progress_workouts'),
-      parsed: (() => {
-        try {
-          const raw = localStorage.getItem('liftlog_in_progress_workouts')
-          return raw ? JSON.parse(raw) : null
-        } catch (e) {
-          return { error: (e as Error).message }
-        }
-      })()
-    })
-
-    const activeProgram = ProgramStateManager.getActiveProgram()
-    if (activeProgram) {
-      setProgramName(activeProgram.template.name)
-    }
-
-    const existingWorkout = WorkoutLogger.getCurrentWorkout()
-    if (existingWorkout) {
-      console.log("[v0] 📥 COMPONENT LOAD - Existing workout from localStorage:", {
-        id: existingWorkout.id,
-        week: existingWorkout.week,
-        day: existingWorkout.day,
-        exerciseCount: existingWorkout.exercises.length,
-        exercises: existingWorkout.exercises.map((ex) => ({
-          name: ex.exerciseName,
-          setsCount: ex.sets?.length || 0,
-          hasSets: !!ex.sets,
-          firstSetState: ex.sets?.[0] ? {
-            reps: ex.sets[0].reps,
-            weight: ex.sets[0].weight,
-            completed: ex.sets[0].completed,
-            skipped: ex.sets[0].skipped
-          } : null
-        })),
-        fullWorkout: JSON.parse(JSON.stringify(existingWorkout))
+    const loadProgramData = async () => {
+      // First, check raw localStorage data
+      console.log("[v0] 💾 RAW LOCALSTORAGE CHECK:", {
+        inProgressKey: 'liftlog_in_progress_workouts',
+        rawValue: localStorage.getItem('liftlog_in_progress_workouts'),
+        parsed: (() => {
+          try {
+            const raw = localStorage.getItem('liftlog_in_progress_workouts')
+            return raw ? JSON.parse(raw) : null
+          } catch (e) {
+            return { error: (e as Error).message }
+          }
+        })()
       })
-      setWorkout(existingWorkout)
-      setWorkoutNotes(existingWorkout.notes || "")
 
-      // CRITICAL: Only refresh progression for IN-PROGRESS workouts, not completed ones
-      // Completed workouts should remain read-only and not be saved back to in-progress storage
-      if (
+      const activeProgram = await ProgramStateManager.getActiveProgram()
+      if (activeProgram) {
+        setProgramName(activeProgram.template.name)
+      }
+
+      const existingWorkout = WorkoutLogger.getCurrentWorkout()
+      if (existingWorkout) {
+        console.log("[v0] 📥 COMPONENT LOAD - Existing workout from localStorage:", {
+          id: existingWorkout.id,
+          week: existingWorkout.week,
+          day: existingWorkout.day,
+          exerciseCount: existingWorkout.exercises.length,
+          exercises: existingWorkout.exercises.map((ex) => ({
+            name: ex.exerciseName,
+            setsCount: ex.sets?.length || 0,
+            hasSets: !!ex.sets,
+            firstSetState: ex.sets?.[0] ? {
+              reps: ex.sets[0].reps,
+              weight: ex.sets[0].weight,
+              completed: ex.sets[0].completed,
+              skipped: ex.sets[0].skipped
+            } : null
+          })),
+          fullWorkout: JSON.parse(JSON.stringify(existingWorkout))
+        })
+        setWorkout(existingWorkout)
+        setWorkoutNotes(existingWorkout.notes || "")
+
+        // CRITICAL: Only refresh progression for IN-PROGRESS workouts, not completed ones
+        // Completed workouts should remain read-only and not be saved back to in-progress storage
+        if (
         !existingWorkout.completed && // Only refresh in-progress workouts
         activeProgram &&
         existingWorkout.week &&
@@ -385,38 +390,41 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
         setIsFullyBlocked(false)
         setBlockedMessage("")
         console.log("[v0] Workout not blocked - current or past week")
-      }
-    } else if (initialWorkout) {
-      const activeProgram = ProgramStateManager.getActiveProgram()
-      const week = activeProgram?.currentWeek
-      const day = activeProgram?.currentDay
+        }
+      } else if (initialWorkout) {
+        const activeProgram = await ProgramStateManager.getActiveProgram()
+        const week = activeProgram?.currentWeek
+        const day = activeProgram?.currentDay
 
-      const newWorkout = WorkoutLogger.startWorkout(initialWorkout.name, initialWorkout.exercises, week, day, user?.id)
-      console.log("[v0] 🆕 COMPONENT NEW WORKOUT - Created from initialWorkout:", {
-        id: newWorkout.id,
-        week: newWorkout.week,
-        day: newWorkout.day,
-        exerciseCount: newWorkout.exercises.length,
-        firstExerciseFirstSet: newWorkout.exercises[0]?.sets[0] ? {
-          reps: newWorkout.exercises[0].sets[0].reps,
-          weight: newWorkout.exercises[0].sets[0].weight,
-          completed: newWorkout.exercises[0].sets[0].completed,
-          skipped: newWorkout.exercises[0].sets[0].skipped
-        } : null,
-        fullWorkout: JSON.parse(JSON.stringify(newWorkout))
-      })
-      setWorkout(newWorkout)
-      setIsWorkoutBlocked(false)
-      setIsFullyBlocked(false)
-      setBlockedMessage("")
+        const newWorkout = WorkoutLogger.startWorkout(initialWorkout.name, initialWorkout.exercises, week, day, user?.id)
+        console.log("[v0] 🆕 COMPONENT NEW WORKOUT - Created from initialWorkout:", {
+          id: newWorkout.id,
+          week: newWorkout.week,
+          day: newWorkout.day,
+          exerciseCount: newWorkout.exercises.length,
+          firstExerciseFirstSet: newWorkout.exercises[0]?.sets[0] ? {
+            reps: newWorkout.exercises[0].sets[0].reps,
+            weight: newWorkout.exercises[0].sets[0].weight,
+            completed: newWorkout.exercises[0].sets[0].completed,
+            skipped: newWorkout.exercises[0].sets[0].skipped
+          } : null,
+          fullWorkout: JSON.parse(JSON.stringify(newWorkout))
+        })
+        setWorkout(newWorkout)
+        setIsWorkoutBlocked(false)
+        setIsFullyBlocked(false)
+        setBlockedMessage("")
+      }
     }
+    
+    loadProgramData()
   }, [initialWorkout])
 
   // Listen for program state changes
   useEffect(() => {
-    const handleProgramChange = () => {
+    const handleProgramChange = async () => {
       console.log("[v0] Program state changed, reloading workout...")
-      const activeProgram = ProgramStateManager.getActiveProgram()
+      const activeProgram = await ProgramStateManager.getActiveProgram()
       
       if (activeProgram) {
         setProgramName(activeProgram.template.name)
@@ -425,7 +433,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
         setWorkout(null)
         
         // Get the current workout based on updated program state
-        const currentWorkout = ProgramStateManager.getCurrentWorkout()
+        const currentWorkout = await ProgramStateManager.getCurrentWorkout()
         if (currentWorkout) {
           const week = activeProgram?.currentWeek
           const day = activeProgram?.currentDay
@@ -997,7 +1005,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
       return
     }
 
-    const activeProgram = ProgramStateManager.getActiveProgram()
+    const activeProgram = await ProgramStateManager.getActiveProgram()
     if (!activeProgram) {
       setShowEndProgramDialog(false)
       return
@@ -1053,7 +1061,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
         await ProgramStateManager.completeWorkout(user?.id)
       }
 
-      let programForSkipping = ProgramStateManager.getActiveProgram()
+      let programForSkipping = await ProgramStateManager.getActiveProgram()
       const templateSource = programForSkipping ?? activeProgram
       const template = templateSource.template
       const templateWeekCount = template.weeks || 6
@@ -1322,8 +1330,8 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
     onComplete?.()
   }
 
-  const handleWorkoutClick = (week: number, day: number) => {
-    const activeProgram = ProgramStateManager.getActiveProgram()
+  const handleWorkoutClick = async (week: number, day: number) => {
+    const activeProgram = await ProgramStateManager.getActiveProgram()
     if (!activeProgram) return
 
     const { templateId } = activeProgram
