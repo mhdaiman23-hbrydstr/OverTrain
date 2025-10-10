@@ -258,14 +258,6 @@ export default function HomePage() {
   }
 
   if (user && currentView === "workout") {
-    const currentWorkout = ProgramStateManager.getCurrentWorkout()
-
-    // If no workout available, redirect to train screen
-    if (!currentWorkout) {
-      setCurrentView("train")
-      return null
-    }
-
     return (
       <div className="flex h-screen bg-background overflow-hidden">
         <SidebarNavigation currentView="workout" onViewChange={setCurrentView} />
@@ -273,7 +265,6 @@ export default function HomePage() {
         <div className="flex-1 lg:ml-64 overflow-y-auto overflow-x-hidden h-screen">
           <WorkoutLoggerComponent
             key={programKey}
-            initialWorkout={currentWorkout}
             onComplete={handleWorkoutComplete}
             onCancel={() => setCurrentView("train")}
             onViewAnalytics={() => setCurrentView("analytics")}

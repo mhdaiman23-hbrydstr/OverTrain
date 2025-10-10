@@ -414,6 +414,32 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
         setIsWorkoutBlocked(false)
         setIsFullyBlocked(false)
         setBlockedMessage("")
+      } else {
+        // No existing workout and no initialWorkout prop - load current workout from program
+        console.log("[v0] No existing workout or initialWorkout, loading current workout from program")
+        const currentWorkout = await ProgramStateManager.getCurrentWorkout()
+        
+        if (!currentWorkout) {
+          console.error("[v0] No current workout available from program")
+          return
+        }
+
+        const activeProgram = await ProgramStateManager.getActiveProgram()
+        const week = activeProgram?.currentWeek
+        const day = activeProgram?.currentDay
+
+        const newWorkout = WorkoutLogger.startWorkout(currentWorkout.name, currentWorkout.exercises, week, day, user?.id)
+        console.log("[v0] 🆕 COMPONENT NEW WORKOUT - Created from current program workout:", {
+          id: newWorkout.id,
+          week: newWorkout.week,
+          day: newWorkout.day,
+          exerciseCount: newWorkout.exercises.length,
+          workoutName: currentWorkout.name
+        })
+        setWorkout(newWorkout)
+        setIsWorkoutBlocked(false)
+        setIsFullyBlocked(false)
+        setBlockedMessage("")
       }
     }
     
