@@ -130,7 +130,7 @@ export class ProgramStateManager {
     return Array.from(templates.values())
   }
 
-  static async getActiveProgram(): Promise<ActiveProgram | null> {
+  static async getActiveProgram(options?: { refreshTemplate?: boolean }): Promise<ActiveProgram | null> {
     if (typeof window === "undefined") return null
 
     try {
@@ -153,6 +153,18 @@ export class ProgramStateManager {
         // Save the corrected program back to localStorage
         localStorage.setItem(this.ACTIVE_PROGRAM_KEY, JSON.stringify(program))
         console.log('[ProgramState] Template reloaded successfully from database')
+      }
+
+      // Option to force refresh template from database (for template updates)
+      if (options?.refreshTemplate) {
+        console.log('[ProgramState] Refreshing template from database...')
+        const freshTemplate = await this.loadTemplate(program.templateId)
+        if (freshTemplate) {
+          // Preserve program progress, only update template
+          program.template = freshTemplate
+          localStorage.setItem(this.ACTIVE_PROGRAM_KEY, JSON.stringify(program))
+          console.log('[ProgramState] Template refreshed with latest database version')
+        }
       }
 
       return program

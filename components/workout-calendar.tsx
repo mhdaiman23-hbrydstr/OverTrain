@@ -98,8 +98,8 @@ export function WorkoutCalendar({ onWorkoutClick, selectedWeek, selectedDay }: W
   }, [activeProgram, user, completionStatus, isLoadingStatus, totalWeeks])
 
   const loadActiveProgram = async () => {
-    // Load from localStorage (which now refreshes from database if needed)
-    const program = await ProgramStateManager.getActiveProgram()
+    // Refresh template from database on load
+    const program = await ProgramStateManager.getActiveProgram({ refreshTemplate: true })
     setActiveProgram(program)
 
     if (program) {

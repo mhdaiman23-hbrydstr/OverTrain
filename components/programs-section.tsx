@@ -55,7 +55,8 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
       const history = TemplateStorageManager.getProgramHistory()
       setProgramHistory(history)
 
-      const active = await ProgramStateManager.getActiveProgram()
+      // Refresh template from database on load
+      const active = await ProgramStateManager.getActiveProgram({ refreshTemplate: true })
       setActiveProgram(active)
 
       const saved = TemplateStorageManager.getSavedTemplates()

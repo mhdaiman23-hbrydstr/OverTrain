@@ -22,7 +22,8 @@ export function TrainSection({ onStartWorkout, onAddProgram }: TrainSectionProps
   const loadProgramData = async () => {
     try {
       console.log("[v0] Loading active program...")
-      const program = await ProgramStateManager.getActiveProgram()
+      // Refresh template from database on load
+      const program = await ProgramStateManager.getActiveProgram({ refreshTemplate: true })
       console.log("[v0] Loaded active program:", program)
 
       if (program) {
