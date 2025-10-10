@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>LiftLog - Debug localStorage</title>
+  <style>
+    body {
+      font-family: monospace;
+      padding: 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    h2 {
+      color: #333;
+      border-bottom: 2px solid #ddd;
+      padding-bottom: 10px;
+    }
+    pre {
+      background: #f5f5f5;
+      padding: 15px;
+      border-radius: 5px;
+      overflow-x: auto;
+    }
+    .key {
+      font-weight: bold;
+      color: #0066cc;
+      margin-top: 20px;
+    }
+    .error {
+      color: #cc0000;
+    }
+    .success {
+      color: #00cc00;
+    }
+  </style>
+</head>
+<body>
+  <h1>🔍 LiftLog localStorage Debug</h1>
+  
+  <div id="output"></div>
+
+  <script>
+    const output = document.getElementById('output');
+    
+    function displayKey(key) {
+      const div = document.createElement('div');
+      div.innerHTML = `<div class="key">${key}:</div>`;
+      
+      const value = localStorage.getItem(key);
+      if (!value) {
+        div.innerHTML += '<pre class="error">Not found</pre>';
+      } else {
+        try {
+          const parsed = JSON.parse(value);
+          div.innerHTML += `<pre>${JSON.stringify(parsed, null, 2)}</pre>`;
+        } catch (e) {
+          div.innerHTML += `<pre>${value}</pre>`;
+        }
+      }
+      
+      output.appendChild(div);
+    }
+    
+    // Display all relevant keys
+    const keys = [
+      'liftlog_active_program',
+      'liftlog_in_progress_workouts',
+      'liftlog_workouts',
+      'liftlog_user',
+      'liftlog_program_history'
+    ];
+    
+    keys.forEach(displayKey);
+    
+    // Show active program template ID specifically
+    const activeProgram = localStorage.getItem('liftlog_active_program');
+    if (activeProgram) {
+      try {
+        const parsed = JSON.parse(activeProgram);
+        const div = document.createElement('div');
+        div.innerHTML = `
+          <h2>🎯 Active Program Summary</h2>
+          <pre class="success">
+Template ID: ${parsed.templateId}
+Template Name: ${parsed.template?.name || 'MISSING'}
+Current Week: ${parsed.currentWeek}
+Current Day: ${parsed.currentDay}
+Has Schedule: ${parsed.template?.schedule ? 'YES' : 'NO'}
+          </pre>
+        `;
+        output.appendChild(div);
+      } catch (e) {
+        console.error('Error parsing active program:', e);
+      }
+    }
+  </script>
+</body>
+</html>
+

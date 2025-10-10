@@ -21,24 +21,44 @@ export function TrainSection({ onStartWorkout, onAddProgram }: TrainSectionProps
 
   const loadProgramData = async () => {
     try {
-      console.log("[v0] Loading active program...")
+      console.log("[TrainSection] Loading active program...")
+      
+      // Check localStorage first
+      const stored = localStorage.getItem('liftlog_active_program')
+      console.log("[TrainSection] localStorage has active program:", !!stored)
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored)
+          console.log("[TrainSection] Active program templateId in localStorage:", parsed.templateId)
+          console.log("[TrainSection] Has template data:", !!parsed.template)
+        } catch (e) {
+          console.error("[TrainSection] Failed to parse localStorage:", e)
+        }
+      }
+      
       // Refresh template from database on load
       const program = await ProgramStateManager.getActiveProgram({ refreshTemplate: true })
-      console.log("[v0] Loaded active program:", program)
+      console.log("[TrainSection] Loaded active program:", program ? {
+        templateId: program.templateId,
+        templateName: program.template?.name,
+        currentWeek: program.currentWeek,
+        currentDay: program.currentDay
+      } : null)
 
       if (program) {
         setActiveProgram(program)
         const workout = await ProgramStateManager.getCurrentWorkout()
-        console.log("[v0] Loaded current workout:", workout)
+        console.log("[TrainSection] Loaded current workout:", workout)
         setCurrentWorkout(workout)
       } else {
+        console.warn("[TrainSection] No active program returned from ProgramStateManager")
         setActiveProgram(null)
         setCurrentWorkout(null)
       }
 
       setIsLoading(false)
     } catch (err) {
-      console.error("[v0] Error loading program data:", err)
+      console.error("[TrainSection] Error loading program data:", err)
       setError(err instanceof Error ? err.message : "Failed to load program data")
       setIsLoading(false)
     }
