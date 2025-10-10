@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { WorkoutLogger } from "@/lib/workout-logger"
@@ -19,7 +19,7 @@ interface MuscleGroupData {
 }
 
 export function MuscleGroupStats({ open, onClose }: MuscleGroupStatsProps) {
-  const [muscleGroupStats, setMuscleGroupStats] = useState<MuscleGroupStat[]>([])
+  const [muscleGroupStats, setMuscleGroupStats] = useState<MuscleGroupData[]>([])
 
   useEffect(() => {
     const loadStats = async () => {
@@ -65,7 +65,7 @@ export function MuscleGroupStats({ open, onClose }: MuscleGroupStatsProps) {
     const muscleGroups = ["CHEST", "BACK", "TRICEPS", "BICEPS", "SHOULDERS", "QUADS", "GLUTES", "HAMSTRINGS", "CALVES"]
     const maxWeeks = Math.max(currentWeek, 4) // Show at least 4 weeks
 
-    return muscleGroups
+    const stats = muscleGroups
       .map((muscleGroup) => {
         const weeklyData: (number | null)[] = []
         let totalSets = 0
