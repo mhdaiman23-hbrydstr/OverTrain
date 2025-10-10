@@ -1,37 +1,31 @@
-"use client"
+﻿"use client"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Switch } from "@/components/ui/switch"
+import { cn } from "@/lib/utils"
 import type { ExperienceOption, GenderOption, ProgramMeta, ProgressionType } from "./types"
 
 interface MetaPanelProps {
   meta: ProgramMeta
   onMetaChange: <K extends keyof ProgramMeta>(key: K, value: ProgramMeta[K]) => void
   onToggleOption: (key: "gender" | "experienceLevel", value: GenderOption | ExperienceOption) => void
+  fieldErrors: Record<string, string>
 }
 
-export function MetaPanel({ meta, onMetaChange, onToggleOption }: MetaPanelProps) {
+export function MetaPanel({ meta, onMetaChange, onToggleOption, fieldErrors }: MetaPanelProps) {
+  const getError = (path: string) => fieldErrors[path]
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Program Details</CardTitle>
+        <CardTitle>Program Settings</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="grid gap-4 md:grid-cols-2">
-          <div className="space-y-2">
-            <Label htmlFor="program-name">Program name</Label>
-            <Input
-              id="program-name"
-              value={meta.name}
-              placeholder="Ultimate Strength Builder"
-              onChange={(event) => onMetaChange("name", event.target.value)}
-            />
-          </div>
+        <div className="grid gap-4 md:grid-cols-3">
           <div className="space-y-2">
             <Label htmlFor="program-days">Days per week</Label>
             <Input
@@ -41,7 +35,9 @@ export function MetaPanel({ meta, onMetaChange, onToggleOption }: MetaPanelProps
               max={7}
               value={meta.daysPerWeek}
               onChange={(event) => onMetaChange("daysPerWeek", Number(event.target.value) || 1)}
+              className={cn(getError("meta.daysPerWeek") && "border-destructive focus-visible:ring-destructive")}
             />
+            {getError("meta.daysPerWeek") && <p className="text-xs text-destructive">{getError("meta.daysPerWeek")}</p>}
           </div>
           <div className="space-y-2">
             <Label htmlFor="program-weeks">Total weeks</Label>
@@ -52,7 +48,9 @@ export function MetaPanel({ meta, onMetaChange, onToggleOption }: MetaPanelProps
               max={52}
               value={meta.totalWeeks}
               onChange={(event) => onMetaChange("totalWeeks", Number(event.target.value) || 1)}
+              className={cn(getError("meta.totalWeeks") && "border-destructive focus-visible:ring-destructive")}
             />
+            {getError("meta.totalWeeks") && <p className="text-xs text-destructive">{getError("meta.totalWeeks")}</p>}
           </div>
           <div className="space-y-2">
             <Label>Progression type</Label>
@@ -60,7 +58,7 @@ export function MetaPanel({ meta, onMetaChange, onToggleOption }: MetaPanelProps
               value={meta.progressionType}
               onValueChange={(value: ProgressionType) => onMetaChange("progressionType", value)}
             >
-              <SelectTrigger>
+              <SelectTrigger className={cn(getError("meta.progressionType") && "border-destructive focus-visible:ring-destructive")}>
                 <SelectValue placeholder="Select progression type" />
               </SelectTrigger>
               <SelectContent>
@@ -69,18 +67,10 @@ export function MetaPanel({ meta, onMetaChange, onToggleOption }: MetaPanelProps
                 <SelectItem value="hybrid">Hybrid</SelectItem>
               </SelectContent>
             </Select>
+            {getError("meta.progressionType") && (
+              <p className="text-xs text-destructive">{getError("meta.progressionType")}</p>
+            )}
           </div>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="program-description">Description</Label>
-          <Textarea
-            id="program-description"
-            value={meta.description}
-            placeholder="Describe the intent of this program so coaches know when to assign it."
-            onChange={(event) => onMetaChange("description", event.target.value)}
-            rows={4}
-          />
         </div>
 
         <div className="grid gap-4 md:grid-cols-2">

@@ -5,8 +5,8 @@ import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import { Loader2, ArrowLeftRight } from "lucide-react"
+import { cn } from "@/lib/utils"
 import type { ExerciseLibraryItem } from "./types"
 
 export interface LibraryFilters {
@@ -21,8 +21,8 @@ interface ExerciseLibraryPanelProps {
   exercises: ExerciseLibraryItem[]
   isLoading: boolean
   error: string | null
-  activeDayName: string
-  onAddExercise: (exercise: ExerciseLibraryItem) => void
+  activeDayName?: string
+  listHeightClassName?: string
 }
 
 export function ExerciseLibraryPanel({
@@ -32,7 +32,7 @@ export function ExerciseLibraryPanel({
   isLoading,
   error,
   activeDayName,
-  onAddExercise,
+  listHeightClassName,
 }: ExerciseLibraryPanelProps) {
   const updateFilter = <K extends keyof LibraryFilters>(key: K, value: LibraryFilters[K]) => {
     onFiltersChange({ ...filters, [key]: value })
@@ -75,12 +75,17 @@ export function ExerciseLibraryPanel({
         <div className="flex items-center justify-between text-sm text-muted-foreground">
           <div className="flex items-center gap-2">
             <ArrowLeftRight className="h-4 w-4" />
-            Drag exercises into the schedule
+            Drag exercises into the schedule{activeDayName ? ` — ${activeDayName}` : ""}
           </div>
           {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
         </div>
 
-        <ScrollArea className="flex-1 rounded border border-border/40">
+        <ScrollArea
+          className={cn(
+            "rounded border border-border/40",
+            listHeightClassName ? `${listHeightClassName} flex-shrink-0` : "flex-1",
+          )}
+        >
           <div className="divide-y divide-border/40">
             {error && <div className="p-4 text-sm text-destructive">{error}</div>}
             {!error && exercises.length === 0 && !isLoading && (
@@ -96,17 +101,16 @@ export function ExerciseLibraryPanel({
                     JSON.stringify({ exercise }),
                   )
                 }
-                className="group cursor-grab p-4 transition hover:bg-muted/60 active:cursor-grabbing"
+                className="group cursor-grab rounded-md border-b border-border/40 p-3 transition hover:bg-muted/40 active:cursor-grabbing"
               >
-                <div className="text-sm font-medium">{exercise.name}</div>
-                <div className="mt-1 flex flex-wrap gap-2 text-xs text-muted-foreground">
-                  <Badge variant="outline">{exercise.muscle_group}</Badge>
-                  <Badge variant="outline">{exercise.equipment_type}</Badge>
-                </div>
-                <div className="mt-3 flex items-center gap-2">
-                  <Button size="sm" variant="outline" onClick={() => onAddExercise(exercise)}>
-                    Add to {activeDayName}
-                  </Button>
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <div className="text-sm font-medium leading-tight">{exercise.name}</div>
+                    <div className="mt-1 flex flex-wrap gap-2 text-[11px] text-muted-foreground">
+                      <Badge variant="outline">{exercise.muscle_group}</Badge>
+                      <Badge variant="outline">{exercise.equipment_type}</Badge>
+                    </div>
+                  </div>
                 </div>
               </div>
             ))}
