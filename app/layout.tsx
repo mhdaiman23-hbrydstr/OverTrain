@@ -4,6 +4,7 @@ import { Inter, Outfit } from "next/font/google"
 import { Suspense } from "react"
 import { AuthProvider } from "@/contexts/auth-context"
 import { Toaster } from "@/components/ui/toaster"
+import { TemplateCacheWarmer } from "@/components/template-cache-warmer"
 import "./globals.css"
 
 const outfit = Outfit({
@@ -33,6 +34,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${outfit.variable} ${inter.variable} font-sans antialiased`}>
         <AuthProvider>
+          <TemplateCacheWarmer />
           <Suspense fallback={null}>{children}</Suspense>
           <Toaster />
         </AuthProvider>

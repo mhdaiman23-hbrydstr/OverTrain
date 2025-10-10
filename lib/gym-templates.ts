@@ -254,7 +254,7 @@ export const GYM_TEMPLATES: GymTemplate[] = [
         exercises: [
           {
             id: "test-squat-a1",
-            exerciseName: "Barbell Back Squat",
+            exerciseName: "Barbell Squat",
             category: "compound",
             progressionTemplate: {
               week1: { sets: 3, repRange: "8-10" },
@@ -273,7 +273,7 @@ export const GYM_TEMPLATES: GymTemplate[] = [
           },
           {
             id: "test-bench-a1",
-            exerciseName: "Barbell Bench Press",
+            exerciseName: "Bench Press (Flat)",
             category: "compound",
             progressionTemplate: {
               week1: { sets: 3, repRange: "8-10" },
@@ -292,7 +292,7 @@ export const GYM_TEMPLATES: GymTemplate[] = [
           },
           {
             id: "test-row-a1",
-            exerciseName: "Barbell Row",
+            exerciseName: "Barbell Bent Over Row",
             category: "compound",
             progressionTemplate: {
               week1: { sets: 3, repRange: "8-10" },
@@ -335,7 +335,7 @@ export const GYM_TEMPLATES: GymTemplate[] = [
           },
           {
             id: "test-ohp-b1",
-            exerciseName: "Overhead Press",
+            exerciseName: "Barbell Shoulder Press (Standing)",
             category: "compound",
             progressionTemplate: {
               week1: { sets: 3, repRange: "8-10" },
@@ -354,7 +354,7 @@ export const GYM_TEMPLATES: GymTemplate[] = [
           },
           {
             id: "test-curls-b1",
-            exerciseName: "Barbell Curls",
+            exerciseName: "Barbell Curl (Normal Grip)",
             category: "isolation",
             progressionTemplate: {
               week1: { sets: 3, repRange: "10-12" },
@@ -378,7 +378,7 @@ export const GYM_TEMPLATES: GymTemplate[] = [
         exercises: [
           {
             id: "test-squat-c1",
-            exerciseName: "Barbell Front Squat",
+            exerciseName: "Front Squat",
             category: "compound",
             progressionTemplate: {
               week1: { sets: 3, repRange: "8-10" },
@@ -397,7 +397,7 @@ export const GYM_TEMPLATES: GymTemplate[] = [
           },
           {
             id: "test-pullups-c1",
-            exerciseName: "Pull-ups",
+            exerciseName: "Pullup (Normal Grip)",
             category: "compound",
             progressionTemplate: {
               week1: { sets: 3, repRange: "6-10" },
@@ -416,7 +416,7 @@ export const GYM_TEMPLATES: GymTemplate[] = [
           },
           {
             id: "test-lateral-c1",
-            exerciseName: "Lateral Raises",
+            exerciseName: "Dumbbell Lateral Raise",
             category: "isolation",
             progressionTemplate: {
               week1: { sets: 3, repRange: "12-15" },
@@ -468,7 +468,7 @@ export const GYM_TEMPLATES: GymTemplate[] = [
         exercises: [
           {
             id: "squat-f1",
-            exerciseName: "Barbell Back Squat",
+            exerciseName: "Barbell Squat",
             category: "compound",
             progressionTemplate: {
               week1: { sets: 3, repRange: "10-12" },
@@ -486,7 +486,7 @@ export const GYM_TEMPLATES: GymTemplate[] = [
           },
           {
             id: "bench-f1",
-            exerciseName: "Barbell Bench Press",
+            exerciseName: "Bench Press (Flat)",
             category: "compound",
             progressionTemplate: {
               week1: { sets: 3, repRange: "10-12" },
@@ -504,7 +504,7 @@ export const GYM_TEMPLATES: GymTemplate[] = [
           },
           {
             id: "row-f1",
-            exerciseName: "Barbell Row",
+            exerciseName: "Barbell Bent Over Row",
             category: "compound",
             progressionTemplate: {
               week1: { sets: 3, repRange: "10-12" },
@@ -527,7 +527,7 @@ export const GYM_TEMPLATES: GymTemplate[] = [
         exercises: [
           {
             id: "rdl-f1",
-            exerciseName: "Romanian Deadlift",
+            exerciseName: "Dumbbell RDL",
             category: "compound",
             progressionTemplate: {
               week1: { sets: 3, repRange: "10-12" },
@@ -545,7 +545,7 @@ export const GYM_TEMPLATES: GymTemplate[] = [
           },
           {
             id: "incline-f1",
-            exerciseName: "Incline Barbell Press",
+            exerciseName: "Bench Press (Incline)",
             category: "compound",
             progressionTemplate: {
               week1: { sets: 3, repRange: "10-12" },
@@ -563,7 +563,7 @@ export const GYM_TEMPLATES: GymTemplate[] = [
           },
           {
             id: "lat-raises-f1",
-            exerciseName: "Lateral Raises",
+            exerciseName: "Dumbbell Lateral Raise",
             category: "isolation",
             progressionTemplate: {
               week1: { sets: 3, repRange: "12-15" },
@@ -586,7 +586,7 @@ export const GYM_TEMPLATES: GymTemplate[] = [
         exercises: [
           {
             id: "front-squat-f1",
-            exerciseName: "Barbell Front Squat",
+            exerciseName: "Front Squat",
             category: "compound",
             progressionTemplate: {
               week1: { sets: 3, repRange: "10-12" },
@@ -604,7 +604,7 @@ export const GYM_TEMPLATES: GymTemplate[] = [
           },
           {
             id: "ohp-f1",
-            exerciseName: "Overhead Press",
+            exerciseName: "Barbell Shoulder Press (Standing)",
             category: "compound",
             progressionTemplate: {
               week1: { sets: 3, repRange: "10-12" },
@@ -622,7 +622,7 @@ export const GYM_TEMPLATES: GymTemplate[] = [
           },
           {
             id: "curls-f1",
-            exerciseName: "Barbell Curls",
+            exerciseName: "Barbell Curl (Normal Grip)",
             category: "isolation",
             progressionTemplate: {
               week1: { sets: 3, repRange: "12-15" },
@@ -673,7 +673,7 @@ export const GYM_TEMPLATES: GymTemplate[] = [
         exercises: [
           {
             id: "bench-ul1",
-            exerciseName: "Barbell Bench Press",
+            exerciseName: "Bench Press (Flat)",
             category: "compound",
             progressionTemplate: {
               week1: { sets: 4, repRange: "6-8" },
@@ -691,7 +691,7 @@ export const GYM_TEMPLATES: GymTemplate[] = [
           },
           {
             id: "row-ul1",
-            exerciseName: "Barbell Row",
+            exerciseName: "Barbell Bent Over Row",
             category: "compound",
             progressionTemplate: {
               week1: { sets: 4, repRange: "6-8" },
@@ -709,7 +709,7 @@ export const GYM_TEMPLATES: GymTemplate[] = [
           },
           {
             id: "ohp-ul1",
-            exerciseName: "Overhead Press",
+            exerciseName: "Barbell Shoulder Press (Standing)",
             category: "compound",
             progressionTemplate: {
               week1: { sets: 3, repRange: "8-10" },
@@ -727,7 +727,7 @@ export const GYM_TEMPLATES: GymTemplate[] = [
           },
           {
             id: "curls-ul1",
-            exerciseName: "Barbell Curls",
+            exerciseName: "Barbell Curl (Normal Grip)",
             category: "isolation",
             progressionTemplate: {
               week1: { sets: 3, repRange: "10-12" },
@@ -745,7 +745,7 @@ export const GYM_TEMPLATES: GymTemplate[] = [
           },
           {
             id: "triceps-ul1",
-            exerciseName: "Tricep Extensions",
+            exerciseName: "Cable Triceps Pushdown (Rope)",
             category: "isolation",
             progressionTemplate: {
               week1: { sets: 3, repRange: "10-12" },
@@ -768,7 +768,7 @@ export const GYM_TEMPLATES: GymTemplate[] = [
         exercises: [
           {
             id: "squat-ul2",
-            exerciseName: "Barbell Back Squat",
+            exerciseName: "Barbell Squat",
             category: "compound",
             progressionTemplate: {
               week1: { sets: 4, repRange: "6-8" },
@@ -786,7 +786,7 @@ export const GYM_TEMPLATES: GymTemplate[] = [
           },
           {
             id: "rdl-ul2",
-            exerciseName: "Romanian Deadlift",
+            exerciseName: "Dumbbell RDL",
             category: "compound",
             progressionTemplate: {
               week1: { sets: 3, repRange: "8-10" },
@@ -822,7 +822,7 @@ export const GYM_TEMPLATES: GymTemplate[] = [
           },
           {
             id: "leg-curl-ul2",
-            exerciseName: "Leg Curls",
+            exerciseName: "Lying Leg Curl",
             category: "isolation",
             progressionTemplate: {
               week1: { sets: 3, repRange: "10-12" },
@@ -845,7 +845,7 @@ export const GYM_TEMPLATES: GymTemplate[] = [
         exercises: [
           {
             id: "incline-ul3",
-            exerciseName: "Incline Barbell Press",
+            exerciseName: "Bench Press (Incline)",
             category: "compound",
             progressionTemplate: {
               week1: { sets: 4, repRange: "6-8" },
@@ -863,7 +863,7 @@ export const GYM_TEMPLATES: GymTemplate[] = [
           },
           {
             id: "pull-ups-ul3",
-            exerciseName: "Pull-ups",
+            exerciseName: "Pullup (Normal Grip)",
             category: "compound",
             progressionTemplate: {
               week1: { sets: 4, repRange: "6-8" },
@@ -881,7 +881,7 @@ export const GYM_TEMPLATES: GymTemplate[] = [
           },
           {
             id: "dips-ul3",
-            exerciseName: "Dips",
+            exerciseName: "Dip (Chest-Focused)",
             category: "compound",
             progressionTemplate: {
               week1: { sets: 3, repRange: "8-10" },
@@ -899,7 +899,7 @@ export const GYM_TEMPLATES: GymTemplate[] = [
           },
           {
             id: "lat-raises-ul3",
-            exerciseName: "Lateral Raises",
+            exerciseName: "Dumbbell Lateral Raise",
             category: "isolation",
             progressionTemplate: {
               week1: { sets: 3, repRange: "12-15" },
@@ -922,7 +922,7 @@ export const GYM_TEMPLATES: GymTemplate[] = [
         exercises: [
           {
             id: "front-squat-ul4",
-            exerciseName: "Barbell Front Squat",
+            exerciseName: "Front Squat",
             category: "compound",
             progressionTemplate: {
               week1: { sets: 4, repRange: "6-8" },
@@ -958,7 +958,7 @@ export const GYM_TEMPLATES: GymTemplate[] = [
           },
           {
             id: "leg-ext-ul4",
-            exerciseName: "Leg Extensions",
+            exerciseName: "Leg Extension",
             category: "isolation",
             progressionTemplate: {
               week1: { sets: 3, repRange: "12-15" },

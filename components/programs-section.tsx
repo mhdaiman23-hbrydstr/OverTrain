@@ -47,9 +47,11 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
   const [daysFilter, setDaysFilter] = useState<string>("all")
   const [genderFilter, setGenderFilter] = useState<string>("all")
   const [durationFilter, setDurationFilter] = useState<string>("all")
+  const [allTemplates, setAllTemplates] = useState<any[]>([]) // Combined DB + hardcoded templates
+  const [templatesLoading, setTemplatesLoading] = useState(true)
 
   useEffect(() => {
-    const loadData = () => {
+    const loadData = async () => {
       const history = TemplateStorageManager.getProgramHistory()
       setProgramHistory(history)
 
@@ -61,6 +63,19 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
 
       const workouts = WorkoutLogger.getWorkoutHistory()
       setWorkoutHistory(workouts)
+
+      // Load templates (database + hardcoded)
+      setTemplatesLoading(true)
+      try {
+        const templates = await ProgramStateManager.getAllTemplates()
+        setAllTemplates(templates)
+      } catch (error) {
+        console.error('[ProgramsSection] Failed to load templates:', error)
+        // Fallback to hardcoded templates only
+        setAllTemplates(GYM_TEMPLATES)
+      } finally {
+        setTemplatesLoading(false)
+      }
     }
 
     loadData()
@@ -77,20 +92,26 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
   }, [])
 
   const getFilteredTemplates = () => {
-    const filters: any = {}
+    // Use loaded templates (includes both database and hardcoded)
+    let templates = allTemplates
 
+    // Apply experience filter
     if (experienceFilter !== "all") {
-      filters.experience = experienceFilter
+      templates = templates.filter((t) => t.experience?.includes(experienceFilter as any))
     }
+
+    // Apply days per week filter
     if (daysFilter !== "all") {
-      filters.workoutsPerWeek = Number.parseInt(daysFilter)
+      const days = Number.parseInt(daysFilter)
+      templates = templates.filter((t) => t.days === days)
     }
+
+    // Apply gender filter
     if (genderFilter !== "all") {
-      filters.gender = genderFilter
+      templates = templates.filter((t) => t.gender?.includes(genderFilter as any))
     }
 
-    let templates = Object.keys(filters).length === 0 ? GYM_TEMPLATES : getTemplatesByFilter(filters)
-
+    // Apply duration filter
     if (durationFilter !== "all") {
       const weeks = Number.parseInt(durationFilter)
       templates = templates.filter((t) => t.weeks === weeks)

@@ -1,6 +1,8 @@
 import { GYM_TEMPLATES, type GymTemplate, processTemplateWithDeload } from "./gym-templates"
 import { WorkoutLogger } from "./workout-logger"
 import { supabase } from "./supabase"
+import { programTemplateService } from "./services/program-template-service"
+
 function logSupabaseError(label: string, error: unknown) {
   if (!error) return
   if (typeof error === "object" && error !== null && "message" in (error as Record<string, unknown>) && (error as { message?: unknown }).message) {
@@ -75,6 +77,59 @@ export class ProgramStateManager {
   private static readonly PROGRAM_PROGRESS_KEY = "liftlog_program_progress"
   private static readonly PROGRAM_HISTORY_KEY = "liftlog_program_history"
 
+  /**
+   * Load template from database first, fallback to hardcoded templates
+   * This enables seamless migration from hardcoded to database templates
+   */
+  private static async loadTemplate(templateId: string): Promise<GymTemplate | null> {
+    try {
+      // Try database first (new system)
+      const dbTemplate = await programTemplateService.getTemplate(templateId)
+      if (dbTemplate) {
+        console.log('[ProgramState] Loaded template from database:', templateId)
+        return dbTemplate
+      }
+    } catch (error) {
+      console.warn('[ProgramState] Failed to load from database, using fallback:', error)
+    }
+
+    // Fallback to hardcoded templates (backwards compatibility)
+    const hardcodedTemplate = GYM_TEMPLATES.find((t) => t.id === templateId)
+    if (hardcodedTemplate) {
+      console.log('[ProgramState] Loaded template from hardcoded GYM_TEMPLATES:', templateId)
+      return hardcodedTemplate
+    }
+
+    console.error('[ProgramState] Template not found in database or GYM_TEMPLATES:', templateId)
+    return null
+  }
+
+  /**
+   * Get all available templates (database + hardcoded)
+   * Deduplicates by ID, preferring database templates
+   */
+  static async getAllTemplates(): Promise<GymTemplate[]> {
+    const templates = new Map<string, GymTemplate>()
+
+    // Add hardcoded templates first
+    GYM_TEMPLATES.forEach(t => {
+      templates.set(t.id, t)
+    })
+
+    try {
+      // Add database templates (overwrites hardcoded if same ID)
+      const dbTemplates = await programTemplateService.getAllGymTemplates()
+      dbTemplates.forEach(t => {
+        templates.set(t.id, t)
+      })
+      console.log(`[ProgramState] Loaded ${dbTemplates.length} templates from database`)
+    } catch (error) {
+      console.warn('[ProgramState] Failed to load database templates:', error)
+    }
+
+    return Array.from(templates.values())
+  }
+
   static getActiveProgram(): ActiveProgram | null {
     if (typeof window === "undefined") return null
 
@@ -84,10 +139,15 @@ export class ProgramStateManager {
 
       const program = JSON.parse(stored) as ActiveProgram
 
+      // If template is missing or corrupted, reload it
       if (!program.template || !program.template.schedule) {
+        console.warn('[ProgramState] Active program missing template data, reloading...')
+        
+        // Note: This is synchronous for backwards compatibility
+        // Template should already be cached from app startup
         const template = GYM_TEMPLATES.find((t) => t.id === program.templateId)
         if (!template) {
-          console.error("[v0] Template not found for active program:", program.templateId)
+          console.error("[ProgramState] Template not found for active program:", program.templateId)
           return null
         }
         program.template = template
@@ -105,8 +165,12 @@ export class ProgramStateManager {
   static async setActiveProgram(templateId: string, progressionOverride?: ProgressionOverride, userId?: string): Promise<ActiveProgram | null> {
     if (typeof window === "undefined") return null
 
-    let template = GYM_TEMPLATES.find((t) => t.id === templateId)
-    if (!template) return null
+    // Load template from database or fallback to hardcoded
+    let template = await this.loadTemplate(templateId)
+    if (!template) {
+      console.error('[ProgramState] Template not found:', templateId)
+      return null
+    }
 
     // Process template to add automatic deload weeks
     template = processTemplateWithDeload(template)
