@@ -219,17 +219,9 @@ export function processTemplateWithDeload(template: GymTemplate): GymTemplate {
 }
 
 // Template definitions
-// NOTE: All templates are now stored in the database.
-// This array is kept for backward compatibility but should be empty in production.
+// NOTE: These templates are kept for backward compatibility with existing user programs
+// New programs should use database templates via ProgramTemplateService
 export const GYM_TEMPLATES: GymTemplate[] = [
-  // All templates have been migrated to the database
-  // Use ProgramTemplateService to load templates from database
-]
-
-// LEGACY HARDCODED TEMPLATES - KEPT FOR REFERENCE ONLY
-// These templates have been migrated to the database
-// DO NOT USE - Use database templates instead
-const LEGACY_TEMPLATES_FOR_REFERENCE = [
   {
     id: "test-2week-3day-program",
     name: "2-Week Test Program (DEV ONLY)",

@@ -106,7 +106,8 @@ export class ProgramStateManager {
 
   /**
    * Get all available templates from database only
-   * Falls back to hardcoded templates only if database is unavailable
+   * NOTE: Does NOT return hardcoded templates - those are only for backward compatibility
+   * Falls back to hardcoded templates only if database is completely unavailable
    */
   static async getAllTemplates(): Promise<GymTemplate[]> {
     try {
@@ -118,7 +119,7 @@ export class ProgramStateManager {
         return dbTemplates
       }
       
-      // Fallback to hardcoded templates only if database returns nothing
+      // Only show hardcoded templates if database returns nothing (emergency fallback)
       console.warn('[ProgramState] No database templates found, using hardcoded fallback')
       return GYM_TEMPLATES
     } catch (error) {
