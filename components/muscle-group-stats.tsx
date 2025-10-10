@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo } from "react"
+import { useState, useEffect } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { WorkoutLogger } from "@/lib/workout-logger"
@@ -19,11 +19,17 @@ interface MuscleGroupData {
 }
 
 export function MuscleGroupStats({ open, onClose }: MuscleGroupStatsProps) {
-  const muscleGroupStats = useMemo(() => {
-    const workouts = WorkoutLogger.getWorkoutHistory()
-    const activeProgram = ProgramStateManager.getActiveProgram()
+  const [muscleGroupStats, setMuscleGroupStats] = useState<MuscleGroupStat[]>([])
 
-    if (!activeProgram) return []
+  useEffect(() => {
+    const loadStats = async () => {
+      const workouts = WorkoutLogger.getWorkoutHistory()
+      const activeProgram = await ProgramStateManager.getActiveProgram()
+
+      if (!activeProgram) {
+        setMuscleGroupStats([])
+        return
+      }
 
     // Calculate which week each workout belongs to
     const programStartDate = new Date(activeProgram.startDate)
@@ -82,7 +88,12 @@ export function MuscleGroupStats({ open, onClose }: MuscleGroupStatsProps) {
         }
       })
       .filter((group) => group.avgSets > 0) // Only show muscle groups with data
-  }, [])
+
+      setMuscleGroupStats(stats)
+    }
+
+    loadStats()
+  }, [open])
 
   const getIntensityColor = (sets: number | null, maxSets: number) => {
     if (sets === null || sets === 0) return "bg-muted text-muted-foreground"

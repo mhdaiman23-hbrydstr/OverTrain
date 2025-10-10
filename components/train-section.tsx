@@ -19,15 +19,15 @@ export function TrainSection({ onStartWorkout, onAddProgram }: TrainSectionProps
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const loadProgramData = () => {
+  const loadProgramData = async () => {
     try {
       console.log("[v0] Loading active program...")
-      const program = ProgramStateManager.getActiveProgram()
+      const program = await ProgramStateManager.getActiveProgram()
       console.log("[v0] Loaded active program:", program)
 
       if (program) {
         setActiveProgram(program)
-        const workout = ProgramStateManager.getCurrentWorkout()
+        const workout = await ProgramStateManager.getCurrentWorkout()
         console.log("[v0] Loaded current workout:", workout)
         setCurrentWorkout(workout)
       } else {

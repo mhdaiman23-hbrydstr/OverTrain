@@ -97,9 +97,9 @@ export function WorkoutCalendar({ onWorkoutClick, selectedWeek, selectedDay }: W
     }
   }, [activeProgram, user, completionStatus, isLoadingStatus, totalWeeks])
 
-  const loadActiveProgram = () => {
-    // Instant load from localStorage only
-    const program = ProgramStateManager.getActiveProgram()
+  const loadActiveProgram = async () => {
+    // Load from localStorage (which now refreshes from database if needed)
+    const program = await ProgramStateManager.getActiveProgram()
     setActiveProgram(program)
 
     if (program) {
@@ -161,17 +161,17 @@ export function WorkoutCalendar({ onWorkoutClick, selectedWeek, selectedDay }: W
       await WorkoutLogger.loadFromDatabase(user.id, false) // false = don't block UI
 
       // Check if program needs recalculation (background only)
-      const program = ProgramStateManager.getActiveProgram()
+      const program = await ProgramStateManager.getActiveProgram()
       if (program && user?.id) {
         const currentWorkoutCompleted = WorkoutLogger.hasCompletedWorkout(program.currentWeek, program.currentDay, user.id)
 
         if (currentWorkoutCompleted) {
           console.log("[Calendar] Background: Current workout completed, triggering recalculation")
-          ProgramStateManager.recalculateProgress()
+          await ProgramStateManager.recalculateProgress()
 
           // Reload program if it changed
-          setTimeout(() => {
-            const updatedProgram = ProgramStateManager.getActiveProgram()
+          setTimeout(async () => {
+            const updatedProgram = await ProgramStateManager.getActiveProgram()
             if (updatedProgram && (
               updatedProgram.currentWeek !== program.currentWeek ||
               updatedProgram.currentDay !== program.currentDay

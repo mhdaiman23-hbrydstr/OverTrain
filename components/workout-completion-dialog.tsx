@@ -35,11 +35,16 @@ export function WorkoutCompletionDialog({
   onStartNextWorkout,
 }: WorkoutCompletionDialogProps) {
   const [showCelebration, setShowCelebration] = useState(false)
+  const [hasNext, setHasNext] = useState(false)
 
   useEffect(() => {
     if (open && workout) {
       setShowCelebration(true)
       const timer = setTimeout(() => setShowCelebration(false), 2000)
+      
+      // Check if there's a next workout
+      hasNextWorkout().then(setHasNext)
+      
       return () => clearTimeout(timer)
     }
   }, [open, workout])
@@ -129,8 +134,8 @@ export function WorkoutCompletionDialog({
     // TODO: Navigate to program selection
   }
 
-  const hasNextWorkout = () => {
-    const activeProgram = ProgramStateManager.getActiveProgram()
+  const hasNextWorkout = async () => {
+    const activeProgram = await ProgramStateManager.getActiveProgram()
     if (!activeProgram) return false
 
     // Check if we haven't completed all workouts yet
@@ -235,7 +240,7 @@ export function WorkoutCompletionDialog({
             <TrendingUp className="button-icon h-3 w-3 sm:h-4 sm:w-4 md:h-4 md:w-4 mr-1 sm:mr-2" />
             <span className="truncate">View Muscle Group Stats</span>
           </Button>
-          {hasNextWorkout() ? (
+          {hasNext ? (
             <Button onClick={handleNextWorkout} className="dialog-button w-full gradient-primary text-primary-foreground text-xs sm:text-sm md:text-base py-1.5 sm:py-2 md:py-3 h-auto min-h-[32px] sm:min-h-[36px] md:min-h-[44px]">
               <Calendar className="button-icon h-3 w-3 sm:h-4 sm:w-4 md:h-4 md:w-4 mr-1 sm:mr-2" />
               <span className="truncate">Start Next Workout</span>

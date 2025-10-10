@@ -130,7 +130,7 @@ export class ProgramStateManager {
     return Array.from(templates.values())
   }
 
-  static getActiveProgram(): ActiveProgram | null {
+  static async getActiveProgram(): Promise<ActiveProgram | null> {
     if (typeof window === "undefined") return null
 
     try {
@@ -139,13 +139,12 @@ export class ProgramStateManager {
 
       const program = JSON.parse(stored) as ActiveProgram
 
-      // If template is missing or corrupted, reload it
+      // If template is missing or corrupted, reload it from database
       if (!program.template || !program.template.schedule) {
-        console.warn('[ProgramState] Active program missing template data, reloading...')
+        console.warn('[ProgramState] Active program missing template data, reloading from database...')
         
-        // Note: This is synchronous for backwards compatibility
-        // Template should already be cached from app startup
-        const template = GYM_TEMPLATES.find((t) => t.id === program.templateId)
+        // Load template from database (or fallback to hardcoded)
+        const template = await this.loadTemplate(program.templateId)
         if (!template) {
           console.error("[ProgramState] Template not found for active program:", program.templateId)
           return null
@@ -153,6 +152,7 @@ export class ProgramStateManager {
         program.template = template
         // Save the corrected program back to localStorage
         localStorage.setItem(this.ACTIVE_PROGRAM_KEY, JSON.stringify(program))
+        console.log('[ProgramState] Template reloaded successfully from database')
       }
 
       return program
@@ -256,8 +256,8 @@ export class ProgramStateManager {
     console.log("[ProgramState] Program history cleared successfully")
   }
 
-  static getCurrentWorkout(): { name: string; exercises: any[] } | null {
-    const activeProgram = this.getActiveProgram()
+  static async getCurrentWorkout(): Promise<{ name: string; exercises: any[] } | null> {
+    const activeProgram = await this.getActiveProgram()
 
     if (!activeProgram) {
       return null
@@ -298,7 +298,7 @@ export class ProgramStateManager {
   }
 
   static async completeWorkout(userId?: string): Promise<void> {
-    const activeProgram = this.getActiveProgram()
+    const activeProgram = await this.getActiveProgram()
     if (!activeProgram) return
 
     // Get current user ID if not provided
@@ -369,7 +369,7 @@ export class ProgramStateManager {
 
 
   static async finalizeActiveProgram(userId?: string, options?: { endedEarly?: boolean }): Promise<void> {
-    const activeProgram = this.getActiveProgram()
+    const activeProgram = await this.getActiveProgram()
     if (!activeProgram) return
 
     activeProgram.completedWorkouts = activeProgram.totalWorkouts
@@ -432,8 +432,8 @@ export class ProgramStateManager {
       }
     }
   }
-  static recalculateProgress(): void {
-    const activeProgram = this.getActiveProgram()
+  static async recalculateProgress(): Promise<void> {
+    const activeProgram = await this.getActiveProgram()
     if (!activeProgram) return
 
     // Get current user ID
@@ -537,7 +537,7 @@ export class ProgramStateManager {
     }
 
     try {
-      const activeProgram = this.getActiveProgram()
+      const activeProgram = await this.getActiveProgram()
 
       if (activeProgram) {
         // Upsert active program

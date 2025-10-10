@@ -115,7 +115,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
 
     console.log("[v0] ===== END STORAGE DEBUG =====")
 
-    ProgramStateManager.recalculateProgress()
+    await ProgramStateManager.recalculateProgress()
 
     if (inProgressRaw && historyRaw) {
       const inProgressWorkouts = JSON.parse(inProgressRaw)

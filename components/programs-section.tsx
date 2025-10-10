@@ -55,7 +55,7 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
       const history = TemplateStorageManager.getProgramHistory()
       setProgramHistory(history)
 
-      const active = ProgramStateManager.getActiveProgram()
+      const active = await ProgramStateManager.getActiveProgram()
       setActiveProgram(active)
 
       const saved = TemplateStorageManager.getSavedTemplates()
@@ -133,10 +133,10 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
     setSelectedTemplate(templateId)
   }
 
-  const handleStartProgram = (templateId: string, progressionOverride?: any) => {
+  const handleStartProgram = async (templateId: string, progressionOverride?: any) => {
     console.log("[v0] Start Program clicked for:", templateId, "with override:", !!progressionOverride)
 
-    const activeProgram = ProgramStateManager.getActiveProgram()
+    const activeProgram = await ProgramStateManager.getActiveProgram()
 
     if (activeProgram) {
       console.log("[v0] Active program exists, showing confirmation dialog")

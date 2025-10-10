@@ -39,9 +39,9 @@ export default function HomePage() {
       setDataLoadingStatus("Loading your workout data...")
 
       // Add a small delay to ensure all data loading is complete
-      const timer = setTimeout(() => {
+      const timer = setTimeout(async () => {
         // Check if user has an active program
-        const activeProgram = ProgramStateManager.getActiveProgram()
+        const activeProgram = await ProgramStateManager.getActiveProgram()
 
         if (activeProgram) {
           // Go directly to workout if program exists
@@ -94,9 +94,9 @@ export default function HomePage() {
 
   // Listen for program state changes (e.g., after loading from database)
   useEffect(() => {
-    const handleProgramChange = () => {
+    const handleProgramChange = async () => {
       if (user && user.gender) {
-        const activeProgram = ProgramStateManager.getActiveProgram()
+        const activeProgram = await ProgramStateManager.getActiveProgram()
         if (activeProgram && currentView === "train") {
           setCurrentView("workout")
         }
@@ -153,10 +153,10 @@ export default function HomePage() {
     setCurrentView("workout")
   }
 
-  const handleViewChange = (view: string) => {
+  const handleViewChange = async (view: string) => {
     // Redirect train view to workout if program exists, otherwise show train screen
     if (view === "train") {
-      const activeProgram = ProgramStateManager.getActiveProgram()
+      const activeProgram = await ProgramStateManager.getActiveProgram()
       setCurrentView(activeProgram ? "workout" : "train")
     } else {
       setCurrentView(view as any)

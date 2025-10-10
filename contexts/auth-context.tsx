@@ -128,7 +128,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Step 5: Load program state and recalculate if needed
       emitStatus('Loading active programs...')
       const { ProgramStateManager } = await import('@/lib/program-state')
-      ProgramStateManager.recalculateProgress()
+      await ProgramStateManager.recalculateProgress()
 
       // Step 6: Trigger global update to refresh all components
       if (typeof window !== 'undefined') {
