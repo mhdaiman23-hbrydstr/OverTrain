@@ -10,6 +10,7 @@ import { Dumbbell, TrendingUp, Zap, LogOut } from "lucide-react"
 import { useAuth } from "@/contexts/auth-context"
 import { IntakeForm } from "@/components/intake-form"
 import { ProgramsSection } from "@/components/programs-section"
+import { TrainSection } from "@/components/train-section"
 import { WorkoutLoggerComponent } from "@/components/workout-logger"
 import { SidebarNavigation } from "@/components/sidebar-navigation"
 import { BottomNavigation } from "@/components/bottom-navigation"
@@ -294,39 +295,10 @@ export default function HomePage() {
         <SidebarNavigation currentView="train" onViewChange={setCurrentView} />
 
         <div className="flex-1 lg:ml-64 overflow-x-hidden">
-          <div className="min-h-screen bg-background">
-            <header className="border-b border-border/50">
-              <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-                <h1 className="text-2xl font-bold text-gradient">LiftLog</h1>
-                <div className="flex items-center gap-4">
-                  <span className="text-sm text-muted-foreground">Welcome, {user.name || user.email}</span>
-                  <Button variant="outline" size="sm" onClick={signOut}>
-                    <LogOut className="h-4 w-4 mr-2" />
-                    Sign Out
-                  </Button>
-                </div>
-              </div>
-            </header>
-
-            <main className="container mx-auto px-4 py-8 pb-20">
-              <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-6">
-                <div className="text-center space-y-4 max-w-md">
-                  <Dumbbell className="h-16 w-16 text-primary mx-auto" />
-                  <h2 className="text-3xl font-bold">Ready to Start Training?</h2>
-                  <p className="text-muted-foreground">
-                    Choose a workout program tailored to your goals and start your fitness journey today.
-                  </p>
-                  <Button
-                    className="w-full gradient-primary text-primary-foreground mt-6"
-                    onClick={() => setCurrentView("programs")}
-                    size="lg"
-                  >
-                    Browse Programs
-                  </Button>
-                </div>
-              </div>
-            </main>
-          </div>
+          <TrainSection 
+            onStartWorkout={() => setCurrentView("workout")} 
+            onAddProgram={() => setCurrentView("programs")} 
+          />
         </div>
         <BottomNavigation currentView={currentView} onViewChange={handleViewChange} />
       </div>

@@ -65,26 +65,36 @@ export function TrainSection({ onStartWorkout, onAddProgram }: TrainSectionProps
   }
 
   useEffect(() => {
+    console.log("[TrainSection] Component mounted or updated, loading program data...")
     loadProgramData()
 
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === "liftlog_active_program") {
-        console.log("[v0] Active program changed in localStorage, reloading...")
+        console.log("[TrainSection] Active program changed in localStorage, reloading...")
         loadProgramData()
       }
     }
 
     const handleProgramChange = () => {
-      console.log("[v0] Active program changed, reloading...")
+      console.log("[TrainSection] Active program changed event received, reloading...")
       loadProgramData()
+    }
+
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        console.log("[TrainSection] Tab became visible, reloading program data...")
+        loadProgramData()
+      }
     }
 
     window.addEventListener("storage", handleStorageChange)
     window.addEventListener("programChanged", handleProgramChange)
+    document.addEventListener("visibilitychange", handleVisibilityChange)
 
     return () => {
       window.removeEventListener("storage", handleStorageChange)
       window.removeEventListener("programChanged", handleProgramChange)
+      document.removeEventListener("visibilitychange", handleVisibilityChange)
     }
   }, [])
 
