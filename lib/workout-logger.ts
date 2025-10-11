@@ -1,6 +1,7 @@
 import { supabase } from "./supabase"
 import type { WorkoutDay, ExerciseTemplate } from "./gym-templates"
 import { ConnectionMonitor, type SetSyncProvider } from "./connection-monitor"
+import { ExerciseLibraryService } from "./services/exercise-library-service"
 
 export interface WorkoutSet {
   id: string
@@ -840,7 +841,7 @@ export class WorkoutLogger implements SetSyncProvider {
     console.log("=== End Force Load ===")
   }
 
-  static getInProgressWorkout(week: number, day: number, userId?: string): WorkoutSession | null {
+  static async getInProgressWorkout(week: number, day: number, userId?: string): Promise<WorkoutSession | null> {
     if (typeof window === "undefined") return null
 
     const storageKeys = this.getUserStorageKeys(userId)
@@ -865,15 +866,59 @@ export class WorkoutLogger implements SetSyncProvider {
             return set
           })
         }))
+
+        // MIGRATION: Enrich exercises with metadata from database if missing
+        console.log(`[WorkoutLogger] Enriching ${workout.exercises.length} exercises with database metadata`)
+        const exerciseService = ExerciseLibraryService.getInstance()
+        let enrichedCount = 0
+        
+        workout.exercises = await Promise.all(
+          workout.exercises.map(async (exercise) => {
+            // If exercise already has both fields, skip enrichment
+            if (exercise.equipmentType && exercise.muscleGroup) {
+              return exercise
+            }
+            
+            // Fetch metadata from database
+            try {
+              const dbExercise = await exerciseService.getExerciseByName(exercise.exerciseName)
+              if (dbExercise) {
+                enrichedCount++
+                console.log(`[WorkoutLogger] ✅ Enriched "${exercise.exerciseName}" → ${dbExercise.equipmentType} (${dbExercise.muscleGroup})`)
+                return {
+                  ...exercise,
+                  muscleGroup: dbExercise.muscleGroup,
+                  equipmentType: dbExercise.equipmentType,
+                }
+              }
+            } catch (error) {
+              console.warn(`[WorkoutLogger] Could not enrich exercise metadata for "${exercise.exerciseName}":`, error)
+            }
+            
+            return exercise
+          })
+        )
+
+        if (enrichedCount > 0) {
+          console.log(`[WorkoutLogger] Enriched ${enrichedCount}/${workout.exercises.length} exercises with database metadata`)
+          
+          // Save enriched workout back to localStorage
+          const updatedWorkouts = workouts.map(w => 
+            (w.week === week && w.day === day) ? workout : w
+          )
+          localStorage.setItem(storageKeys.inProgress, JSON.stringify(updatedWorkouts))
+          console.log(`[WorkoutLogger] Saved enriched workout back to localStorage`)
+        }
       }
       
       return workout
-    } catch {
+    } catch (error) {
+      console.error("[WorkoutLogger] Error loading in-progress workout:", error)
       return null
     }
   }
 
-  static getCurrentWorkout(): WorkoutSession | null {
+  static async getCurrentWorkout(): WorkoutSession | null {
     if (typeof window === "undefined") return null
 
     try {
@@ -885,7 +930,7 @@ export class WorkoutLogger implements SetSyncProvider {
       const currentUser = storedUser ? JSON.parse(storedUser) : null
       const userId = currentUser?.id
 
-      return this.getInProgressWorkout(activeProgram.currentWeek, activeProgram.currentDay, userId)
+      return await this.getInProgressWorkout(activeProgram.currentWeek, activeProgram.currentDay, userId)
     } catch {
       return null
     }
@@ -989,7 +1034,7 @@ export class WorkoutLogger implements SetSyncProvider {
     }
   }
 
-  static startWorkout(
+  static async startWorkout(
     workoutName: string,
     exercises: {
       exerciseId: string
@@ -1010,9 +1055,9 @@ export class WorkoutLogger implements SetSyncProvider {
     week?: number,
     day?: number,
     userId?: string,
-  ): WorkoutSession {
+  ): Promise<WorkoutSession> {
     if (week && day) {
-      const existing = this.getInProgressWorkout(week, day)
+      const existing = await this.getInProgressWorkout(week, day)
       if (existing) {
         const isCorrupted =
           !existing.week || !existing.day || existing.exercises.some((ex) => !ex.sets || ex.sets.length === 0)
@@ -1474,7 +1519,7 @@ export class WorkoutLogger implements SetSyncProvider {
     return null
   }
 
-  static getWorkout(week: number, day: number, userId?: string): WorkoutSession | null {
+  static async getWorkout(week: number, day: number, userId?: string): WorkoutSession | null {
     // Get current user ID if not provided
     if (!userId && typeof window !== "undefined") {
       try {
@@ -1491,7 +1536,7 @@ export class WorkoutLogger implements SetSyncProvider {
     if (completed) return completed
 
     // Then check in-progress workouts
-    return this.getInProgressWorkout(week, day, userId)
+    return await this.getInProgressWorkout(week, day, userId)
   }
 
   static hasCompletedWorkout(week: number, day: number, userId?: string): boolean {
