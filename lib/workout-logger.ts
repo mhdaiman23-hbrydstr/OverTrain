@@ -19,6 +19,8 @@ export interface WorkoutExercise {
   targetSets: number
   targetReps: string
   targetRest: string
+  muscleGroup?: string  // NEW: Muscle group from exercise library (e.g., "Back", "Chest")
+  equipmentType?: string  // NEW: Equipment type from exercise library (e.g., "Barbell", "Cable")
   suggestedWeight?: number
   progressionNote?: string
   sets: WorkoutSet[]

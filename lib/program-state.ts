@@ -2,6 +2,7 @@ import { GYM_TEMPLATES, type GymTemplate, processTemplateWithDeload } from "./gy
 import { WorkoutLogger } from "./workout-logger"
 import { supabase } from "./supabase"
 import { programTemplateService } from "./services/program-template-service"
+import { ExerciseLibraryService } from "./services/exercise-library-service"
 
 function logSupabaseError(label: string, error: unknown) {
   if (!error) return
@@ -292,13 +293,33 @@ export class ProgramStateManager {
     }
 
     // Convert gym template format to workout logger format
-    const exercises = workout.exercises.map((exercise) => ({
-      exerciseId: exercise.exerciseName.toLowerCase().replace(/\s+/g, "-"),
-      exerciseName: exercise.exerciseName,
-      targetSets: exercise.progressionTemplate.week1?.sets || 3,
-      targetReps: exercise.progressionTemplate.week1?.repRange || "8-10",
-      targetRest: exercise.restTime,
-      muscleGroup: exercise.category,
+    // Fetch exercise metadata from database to get correct muscle group and equipment type
+    const exerciseService = ExerciseLibraryService.getInstance()
+    const exercises = await Promise.all(workout.exercises.map(async (exercise) => {
+      let muscleGroup = exercise.category  // Fallback to category ("compound"/"isolation")
+      let equipmentType = exercise.equipmentType  // Use template equipment if available
+
+      // Try to fetch from exercise library for accurate data
+      try {
+        const dbExercise = await exerciseService.getExerciseByName(exercise.exerciseName)
+        if (dbExercise) {
+          muscleGroup = dbExercise.muscleGroup  // e.g., "Back", "Chest"
+          equipmentType = dbExercise.equipmentType  // e.g., "Barbell", "Cable", "Bodyweight Only"
+        }
+      } catch (error) {
+        console.warn(`[ProgramState] Could not fetch exercise metadata for "${exercise.exerciseName}":`, error)
+        // Continue with fallback values
+      }
+
+      return {
+        exerciseId: exercise.exerciseName.toLowerCase().replace(/\s+/g, "-"),
+        exerciseName: exercise.exerciseName,
+        targetSets: exercise.progressionTemplate.week1?.sets || 3,
+        targetReps: exercise.progressionTemplate.week1?.repRange || "8-10",
+        targetRest: exercise.restTime,
+        muscleGroup,
+        equipmentType,
+      }
     }))
 
     return {

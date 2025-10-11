@@ -73,8 +73,12 @@ export function ExerciseGroups({
       {Object.entries(groupedExercises).map(([muscleGroup, exercises]) => (
         <div key={muscleGroup}>
           {exercises.map((exercise, index) => {
-            const currentMuscleGroup = getExerciseMuscleGroup(exercise.exerciseName)
-            const previousMuscleGroup = index > 0 ? getExerciseMuscleGroup(exercises[index - 1].exerciseName) : null
+            // Use database muscle group if available, fallback to name-based detection
+            const currentMuscleGroup = (exercise as any).muscleGroup || getExerciseMuscleGroup(exercise.exerciseName)
+            const previousExercise = index > 0 ? exercises[index - 1] : null
+            const previousMuscleGroup = previousExercise 
+              ? ((previousExercise as any).muscleGroup || getExerciseMuscleGroup(previousExercise.exerciseName))
+              : null
             const isNewMuscleGroup = currentMuscleGroup !== previousMuscleGroup
 
             return (
@@ -94,7 +98,7 @@ export function ExerciseGroups({
                       <div className="flex-1">
                         <h4 className="text-base font-medium">{exercise.exerciseName}</h4>
                         <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                          <span>{(exercise as any).equipmentType || "BARBELL"}</span>
+                          <span>{(exercise as any).equipmentType || "Unknown"}</span>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
