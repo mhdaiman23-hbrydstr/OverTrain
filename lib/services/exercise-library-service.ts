@@ -9,9 +9,19 @@ export interface Exercise {
   updated_at?: string
 }
 
+// Database row type (snake_case from Supabase)
+interface ExerciseRow {
+  id: string
+  name: string
+  muscle_group: string
+  equipment_type: string
+  created_at?: string
+  updated_at?: string
+}
+
 export class ExerciseLibraryService {
   private static instance: ExerciseLibraryService
-  
+
   static getInstance(): ExerciseLibraryService {
     if (!ExerciseLibraryService.instance) {
       ExerciseLibraryService.instance = new ExerciseLibraryService()
@@ -21,6 +31,18 @@ export class ExerciseLibraryService {
 
   private ensureSupabase() {
     if (!supabase) throw new Error('Supabase client not initialized - check environment variables')
+  }
+
+  // Map database row (snake_case) to TypeScript interface (camelCase)
+  private mapExercise(row: ExerciseRow): Exercise {
+    return {
+      id: row.id,
+      name: row.name,
+      muscleGroup: row.muscle_group,
+      equipmentType: row.equipment_type,
+      created_at: row.created_at,
+      updated_at: row.updated_at,
+    }
   }
 
   // Basic CRUD operations
@@ -33,7 +55,7 @@ export class ExerciseLibraryService {
       .order('name')
     
     if (error) throw error
-    return data || []
+    return (data || []).map(row => this.mapExercise(row as ExerciseRow))
   }
 
   async getExerciseById(id: string): Promise<Exercise | null> {
@@ -45,7 +67,7 @@ export class ExerciseLibraryService {
       .single()
     
     if (error && error.code !== 'PGRST116') throw error
-    return data
+    return data ? this.mapExercise(data as ExerciseRow) : null
   }
 
   async getExerciseByName(name: string): Promise<Exercise | null> {
@@ -57,7 +79,7 @@ export class ExerciseLibraryService {
       .single()
     
     if (error && error.code !== 'PGRST116') throw error
-    return data
+    return data ? this.mapExercise(data as ExerciseRow) : null
   }
 
   // Filtering operations
@@ -70,7 +92,7 @@ export class ExerciseLibraryService {
       .order('name')
     
     if (error) throw error
-    return data || []
+    return (data || []).map(row => this.mapExercise(row as ExerciseRow))
   }
 
   async getExercisesByEquipment(equipmentType: string): Promise<Exercise[]> {
@@ -82,7 +104,7 @@ export class ExerciseLibraryService {
       .order('name')
     
     if (error) throw error
-    return data || []
+    return (data || []).map(row => this.mapExercise(row as ExerciseRow))
   }
 
   async searchExercises(query: string): Promise<Exercise[]> {
@@ -95,7 +117,7 @@ export class ExerciseLibraryService {
       .limit(50)
     
     if (error) throw error
-    return data || []
+    return (data || []).map(row => this.mapExercise(row as ExerciseRow))
   }
 
   // Advanced filtering
@@ -124,7 +146,7 @@ export class ExerciseLibraryService {
     const { data, error } = await query.order('name')
     
     if (error) throw error
-    return data || []
+    return (data || []).map(row => this.mapExercise(row as ExerciseRow))
   }
 
   // Utility methods
