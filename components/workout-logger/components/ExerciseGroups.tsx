@@ -23,7 +23,7 @@ import {
   Minus,
   Check,
 } from "lucide-react"
-import { ReactNode } from "react"
+import React, { ReactNode, Fragment } from "react"
 
 interface ExerciseGroupsProps {
   groupedExercises: Record<string, WorkoutSession["exercises"]>
@@ -82,7 +82,7 @@ export function ExerciseGroups({
             const isNewMuscleGroup = currentMuscleGroup !== previousMuscleGroup
 
             return (
-              <div key={exercise.id}>
+              <Fragment key={exercise.id}>
                 {isNewMuscleGroup && (
                   <div className="flex items-center gap-2 py-3 px-1 mt-4">
                     <div className="flex items-center gap-2 flex-1">
@@ -98,7 +98,7 @@ export function ExerciseGroups({
                       <div className="flex-1">
                         <h4 className="text-base font-medium">{exercise.exerciseName}</h4>
                         <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                          <span>{(exercise as any).equipmentType || "Unknown"}</span>
+                          <span>{exercise.equipmentType || "Unknown"}</span>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
@@ -261,7 +261,7 @@ export function ExerciseGroups({
                               </div>
                             </div>
 
-                            {compensation && !userOverrides[exercise.id] && (
+                            {compensation && (
                               <div className={`mt-2 text-xs rounded px-3 py-2 ${
                                 compensation.strategy === 'out_of_bounds'
                                   ? 'text-yellow-800 bg-yellow-50 border border-yellow-200'
@@ -276,7 +276,7 @@ export function ExerciseGroups({
                     </div>
                   </div>
                 </div>
-              </div>
+              </Fragment>
             )
           })}
         </div>

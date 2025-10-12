@@ -8,7 +8,6 @@ export interface User {
   experience?: "beginner" | "intermediate" | "advanced"
   goals?: string[]
   createdAt: string
-  isAdmin?: boolean
 }
 
 export interface AuthState {
@@ -58,21 +57,19 @@ export class AuthService {
       id: data.user.id,
       email: data.user.email!,
       createdAt: data.user.created_at,
-      isAdmin: false,
     }
 
     // Store user profile in Supabase
     const { error: profileError } = await supabase
       .from('profiles')
-      .insert([{ id: user.id, email: user.email, is_admin: false }])
+      .insert([{ id: user.id, email: user.email }])
 
     if (profileError && profileError.code !== '23505') { // Ignore duplicate key error
       console.error('Failed to create profile:', profileError)
     }
 
-    const normalizedUser = { ...user, isAdmin: user.isAdmin ?? false }
-    this.setUser(normalizedUser)
-    return normalizedUser
+    this.setUser(user)
+    return user
   }
 
   static async signIn(email: string, password: string): Promise<User> {
@@ -104,12 +101,10 @@ export class AuthService {
       experience: profile?.experience,
       goals: profile?.goals,
       createdAt: data.user.created_at,
-      isAdmin: profile?.is_admin ?? false,
     }
 
-    const normalizedUser = { ...user, isAdmin: user.isAdmin ?? false }
-    this.setUser(normalizedUser)
-    return normalizedUser
+    this.setUser(user)
+    return user
   }
 
   static async signOut(): Promise<void> {
@@ -170,7 +165,6 @@ export class AuthService {
           name: session.user.user_metadata?.full_name ||
                 session.user.user_metadata?.name ||
                 session.user.email?.split('@')[0],
-          is_admin: false,
         }
 
         const { error: profileError } = await supabase
@@ -190,7 +184,6 @@ export class AuthService {
         experience: profile?.experience,
         goals: profile?.goals,
         createdAt: session.user.created_at,
-        isAdmin: profile?.is_admin ?? false,
       }
 
       this.setUser(user)
@@ -206,22 +199,19 @@ export class AuthService {
     if (!supabase) {
       const currentUser = this.getUser()
       if (currentUser) {
-        const { isAdmin: _ignoredAdminFlagLocal, ...safeUpdatesLocal } = updates
-        this.setUser({ ...currentUser, ...safeUpdatesLocal })
+        this.setUser({ ...currentUser, ...updates })
       }
       return
     }
-
-    const { isAdmin: _ignoredAdminFlag, ...safeUpdates } = updates
 
     // Update profile in Supabase
     const { error } = await supabase
       .from('profiles')
       .update({
-        name: safeUpdates.name,
-        gender: safeUpdates.gender,
-        experience: safeUpdates.experience,
-        goals: safeUpdates.goals,
+        name: updates.name,
+        gender: updates.gender,
+        experience: updates.experience,
+        goals: updates.goals,
       })
       .eq('id', userId)
 
@@ -233,7 +223,7 @@ export class AuthService {
     // Also update localStorage
     const currentUser = this.getUser()
     if (currentUser) {
-      this.setUser({ ...currentUser, ...safeUpdates })
+      this.setUser({ ...currentUser, ...updates })
     }
   }
 
@@ -323,7 +313,6 @@ export class AuthService {
       id: Math.random().toString(36).substr(2, 9),
       email,
       createdAt: new Date().toISOString(),
-      isAdmin: false,
     }
 
     // Store user in mock database

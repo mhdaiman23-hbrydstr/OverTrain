@@ -31,6 +31,13 @@ export function MuscleGroupStats({ open, onClose }: MuscleGroupStatsProps) {
         return
       }
 
+      // Guard against corrupted localStorage (workouts must be an array)
+      if (!Array.isArray(workouts)) {
+        console.warn('[MuscleGroupStats] Workouts is not an array, resetting stats')
+        setMuscleGroupStats([])
+        return
+      }
+
     // Calculate which week each workout belongs to
     const programStartDate = new Date(activeProgram.startDate)
     const weeklyMuscleData = new Map<number, Map<string, number>>() // week -> muscleGroup -> sets

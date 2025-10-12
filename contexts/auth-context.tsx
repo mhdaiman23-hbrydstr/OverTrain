@@ -120,15 +120,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Step 4: Ensure data integrity and run cleanup
       emitStatus('Validating workout data...')
       WorkoutLogger.migrateGlobalToUserSpecific(userId)
-      WorkoutLogger.migrateCompletedWorkoutsToHistory(userId)
-      WorkoutLogger.cleanupSkippedWorkoutsFromHistory(userId) // Remove old skipped workouts
       WorkoutLogger.cleanupCorruptedWorkouts(userId)
       WorkoutLogger.validateAndRepairWorkoutIntegrity(userId)
 
       // Step 5: Load program state and recalculate if needed
       emitStatus('Loading active programs...')
       const { ProgramStateManager } = await import('@/lib/program-state')
-      await ProgramStateManager.recalculateProgress()
+      ProgramStateManager.recalculateProgress()
 
       // Step 6: Trigger global update to refresh all components
       if (typeof window !== 'undefined') {
@@ -244,8 +242,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     try {
       await AuthService.updateProfile(state.user.id, updates)
-      const { isAdmin: _ignoredAdminFlag, ...safeUpdates } = updates
-      const updatedUser = { ...state.user, ...safeUpdates }
+      const updatedUser = { ...state.user, ...updates }
       setState((prev) => ({ ...prev, user: updatedUser }))
     } catch (error) {
       console.error('Failed to update user:', error)

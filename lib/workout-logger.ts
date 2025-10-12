@@ -1,7 +1,5 @@
 import { supabase } from "./supabase"
-import type { WorkoutDay, ExerciseTemplate } from "./gym-templates"
 import { ConnectionMonitor, type SetSyncProvider } from "./connection-monitor"
-import { ExerciseLibraryService } from "./services/exercise-library-service"
 
 export interface WorkoutSet {
   id: string
@@ -10,7 +8,6 @@ export interface WorkoutSet {
   completed: boolean
   restStartTime?: number
   notes?: string
-  skipped?: boolean
 }
 
 export interface WorkoutExercise {
@@ -20,8 +17,6 @@ export interface WorkoutExercise {
   targetSets: number
   targetReps: string
   targetRest: string
-  muscleGroup?: string  // NEW: Muscle group from exercise library (e.g., "Back", "Chest")
-  equipmentType?: string  // NEW: Equipment type from exercise library (e.g., "Barbell", "Cable")
   suggestedWeight?: number
   progressionNote?: string
   sets: WorkoutSet[]
@@ -29,21 +24,6 @@ export interface WorkoutExercise {
   startTime?: number
   endTime?: number
   notes?: string
-  skipped?: boolean
-  // Progression metadata for volume compensation
-  bounds?: { min: number; max: number }
-  strategy?: string
-  tier?: string
-  baseVolume?: number
-  userOverridden?: boolean
-  // NEW: Per-set suggestions for percentage-based progression
-  perSetSuggestions?: Array<{
-    weight: number
-    reps: number
-    baseWeight: number  // Weight from previous week (for UI reference)
-    baseReps: number    // Reps from previous week (for UI reference)
-    bounds: { min: number; max: number }  // Acceptable weight range for this set
-  }>
 }
 
 export interface WorkoutSession {
@@ -58,21 +38,11 @@ export interface WorkoutSession {
   completed: boolean
   week?: number
   day?: number
-  skipped?: boolean
 }
 
 export class WorkoutLogger implements SetSyncProvider {
   private static readonly STORAGE_KEY = "liftlog_workouts"
   private static readonly IN_PROGRESS_KEY = "liftlog_in_progress_workouts"
-
-  // Instance methods required by SetSyncProvider interface
-  getSetSyncStatus(): { queueSize: number; lastSync?: number } {
-    return WorkoutLogger.getSetSyncStatus()
-  }
-
-  async syncQueuedSets(): Promise<void> {
-    return WorkoutLogger.syncQueuedSets()
-  }
 
   static getUserStorageKeys(userId?: string): { workouts: string; inProgress: string } {
     // Always try to get current user ID if not provided
@@ -102,7 +72,7 @@ export class WorkoutLogger implements SetSyncProvider {
 
   // Register as set sync provider when module loads
   static {
-    ConnectionMonitor.registerSetSyncProvider(new WorkoutLogger())
+    ConnectionMonitor.registerSetSyncProvider(WorkoutLogger)
 
     // Attach testing methods to window object in development
     if (typeof window !== "undefined" && process.env.NODE_ENV === "development") {
@@ -216,273 +186,6 @@ export class WorkoutLogger implements SetSyncProvider {
   }
 
   /**
-   * Remove old skipped workouts from history
-   * Skipped workouts should not be in completed history
-   */
-  static cleanupSkippedWorkoutsFromHistory(userId?: string): void {
-    if (typeof window === "undefined") return
-
-    const storageKeys = this.getUserStorageKeys(userId)
-
-    try {
-      const historyRaw = localStorage.getItem(storageKeys.workouts)
-      if (!historyRaw) return
-
-      const history: WorkoutSession[] = JSON.parse(historyRaw)
-      const originalCount = history.length
-
-      // Filter out workouts with "skipped-" in the ID
-      const cleanedHistory = history.filter(workout => {
-        if (workout.id.includes('skipped-')) {
-          console.log(`[WorkoutLogger] 🗑️ Removing skipped workout from history: Week ${workout.week} Day ${workout.day} (${workout.id})`)
-          return false
-        }
-        return true
-      })
-
-      const removedCount = originalCount - cleanedHistory.length
-
-      if (removedCount > 0) {
-        localStorage.setItem(storageKeys.workouts, JSON.stringify(cleanedHistory))
-        console.log(`[WorkoutLogger] ✅ Cleaned up ${removedCount} skipped workouts from history`)
-      } else {
-        console.log(`[WorkoutLogger] ✓ No skipped workouts found in history`)
-      }
-    } catch (error) {
-      console.error("[WorkoutLogger] Failed to cleanup skipped workouts:", error)
-    }
-  }
-
-  /**
-   * Migrate completed workouts from in-progress storage to history
-   * This fixes workouts that were marked complete but never moved to history
-   * Also removes duplicates where the same workout exists in both locations
-   */
-  static migrateCompletedWorkoutsToHistory(userId?: string): void {
-    if (typeof window === "undefined") return
-
-    const storageKeys = this.getUserStorageKeys(userId)
-    let migratedCount = 0
-    let deduplicatedCount = 0
-
-    try {
-      // Check BOTH global and user-specific keys (for backward compatibility)
-      const globalInProgressRaw = localStorage.getItem(this.IN_PROGRESS_KEY)
-      const userInProgressRaw = localStorage.getItem(storageKeys.inProgress)
-      
-      // Get history from user-specific key
-      const historyRaw = localStorage.getItem(storageKeys.workouts)
-      const history: WorkoutSession[] = historyRaw ? JSON.parse(historyRaw) : []
-      
-      // Build a map of completed workouts in history by week/day for fast lookup
-      const historyByWeekDay = new Map<string, WorkoutSession>()
-      history.forEach(w => {
-        if (w.completed && w.week && w.day) {
-          const key = `${w.week}-${w.day}`
-          // Keep the workout with the most recent startTime or most data
-          const existing = historyByWeekDay.get(key)
-          if (!existing || (w.startTime || 0) > (existing.startTime || 0)) {
-            historyByWeekDay.set(key, w)
-          }
-        }
-      })
-
-      // Process both global and user-specific in-progress storage
-      const keysToProcess = [
-        { key: this.IN_PROGRESS_KEY, label: 'global' },
-        { key: storageKeys.inProgress, label: 'user-specific' }
-      ]
-
-      for (const { key, label } of keysToProcess) {
-        const inProgressRaw = localStorage.getItem(key)
-        if (!inProgressRaw) continue
-
-        console.log(`[WorkoutLogger] Checking ${label} in-progress storage for completed workouts...`)
-
-        const inProgressWorkouts: WorkoutSession[] = JSON.parse(inProgressRaw)
-        
-        // Separate completed from in-progress
-        const completedWorkouts = inProgressWorkouts.filter(w => w.completed)
-        const stillInProgress = inProgressWorkouts.filter(w => !w.completed)
-
-        if (completedWorkouts.length > 0) {
-          console.log(`[WorkoutLogger] Found ${completedWorkouts.length} completed workouts in ${label} in-progress storage`)
-
-          // For each completed workout, check if it should be migrated or deduplicated
-          completedWorkouts.forEach(workout => {
-            if (!workout.week || !workout.day) return
-
-            const weekDayKey = `${workout.week}-${workout.day}`
-            const existingInHistory = historyByWeekDay.get(weekDayKey)
-
-            if (!existingInHistory) {
-              // No workout in history for this week/day - migrate this one
-              history.push(workout)
-              historyByWeekDay.set(weekDayKey, workout)
-              migratedCount++
-              console.log(`[WorkoutLogger] ✅ Migrated completed workout: Week ${workout.week} Day ${workout.day}`)
-            } else {
-              // Workout already exists in history - this is a duplicate, don't migrate
-              deduplicatedCount++
-              console.log(`[WorkoutLogger] 🗑️ Removed duplicate: Week ${workout.week} Day ${workout.day} (already in history)`)
-            }
-          })
-        }
-
-        // Save the cleaned in-progress storage (only actual in-progress workouts remain)
-        if (completedWorkouts.length > 0) {
-          localStorage.setItem(key, JSON.stringify(stillInProgress))
-          console.log(`[WorkoutLogger] ${stillInProgress.length} workouts remain in ${label} in-progress storage`)
-        }
-      }
-
-      // Save updated history if we migrated anything
-      if (migratedCount > 0) {
-        localStorage.setItem(storageKeys.workouts, JSON.stringify(history))
-        console.log(`[WorkoutLogger] ✅ Migrated ${migratedCount} completed workouts to history`)
-      }
-      
-      if (deduplicatedCount > 0) {
-        console.log(`[WorkoutLogger] 🧹 Removed ${deduplicatedCount} duplicate completed workouts from in-progress storage`)
-      }
-
-      if (migratedCount === 0 && deduplicatedCount === 0) {
-        console.log("[WorkoutLogger] ✓ No completed workouts found in in-progress storage - data is clean")
-      }
-
-    } catch (error) {
-      console.error("[WorkoutLogger] Failed to migrate completed workouts:", error)
-    }
-  }
-
-
-  /**
-   * Clean up false skipped sets - removes skipped flag from sets that have actual data
-   */
-  static cleanupFalseSkippedSets(userId?: string): void {
-    if (typeof window === "undefined") return
-
-    const storageKeys = this.getUserStorageKeys(userId)
-    let cleanedCount = 0
-
-    try {
-      // Clean up completed workouts
-      const workoutsRaw = localStorage.getItem(storageKeys.workouts)
-      if (workoutsRaw) {
-        const completedWorkouts: WorkoutSession[] = JSON.parse(workoutsRaw)
-        let hasChanges = false
-
-        const cleanedWorkouts = completedWorkouts.map(workout => {
-          const cleanedWorkout = { ...workout }
-
-          cleanedWorkout.exercises = cleanedWorkout.exercises.map(exercise => {
-            const cleanedExercise = { ...exercise }
-
-            cleanedExercise.sets = cleanedExercise.sets.map(set => {
-              // If set is marked as skipped but has actual data (reps > 0 or weight > 0), remove skipped flag
-              if (set.skipped && (set.reps > 0 || set.weight > 0)) {
-                console.log("[WorkoutLogger] Removing false skipped flag from set with data:", {
-                  exercise: exercise.exerciseName,
-                  reps: set.reps,
-                  weight: set.weight
-                })
-                cleanedCount++
-                hasChanges = true
-                return { ...set, skipped: false }
-              }
-              return set
-            })
-
-            // If exercise was marked skipped but has completed sets with data, remove skipped flag
-            if (exercise.skipped && cleanedExercise.sets.some(s => s.completed && !s.skipped)) {
-              console.log("[WorkoutLogger] Removing false skipped flag from exercise:", exercise.exerciseName)
-              cleanedExercise.skipped = false
-              hasChanges = true
-            }
-
-            return cleanedExercise
-          })
-
-          // If workout was marked skipped but has exercises with actual data, remove skipped flag
-          if (workout.skipped && cleanedWorkout.exercises.some(ex =>
-            ex.sets.some(s => s.completed && (s.reps > 0 || s.weight > 0))
-          )) {
-            console.log("[WorkoutLogger] Removing false skipped flag from workout:", workout.workoutName)
-            cleanedWorkout.skipped = false
-            hasChanges = true
-          }
-
-          return cleanedWorkout
-        })
-
-        if (hasChanges) {
-          localStorage.setItem(storageKeys.workouts, JSON.stringify(cleanedWorkouts))
-          console.log(`[WorkoutLogger] Cleaned up ${cleanedCount} false skipped sets in completed workouts`)
-        }
-      }
-    } catch (error) {
-      console.error("[WorkoutLogger] Failed to clean up false skipped sets in completed workouts:", error)
-    }
-
-    // Clean up in-progress workouts
-    try {
-      const inProgressRaw = localStorage.getItem(storageKeys.inProgress)
-      if (inProgressRaw) {
-        const inProgressWorkouts: WorkoutSession[] = JSON.parse(inProgressRaw)
-        let hasChanges = false
-
-        const cleanedInProgress = inProgressWorkouts.map(workout => {
-          const cleanedWorkout = { ...workout }
-
-          cleanedWorkout.exercises = cleanedWorkout.exercises.map(exercise => {
-            const cleanedExercise = { ...exercise }
-
-            cleanedExercise.sets = cleanedExercise.sets.map(set => {
-              if (set.skipped && (set.reps > 0 || set.weight > 0)) {
-                console.log("[WorkoutLogger] Removing false skipped flag from in-progress set:", {
-                  exercise: exercise.exerciseName,
-                  reps: set.reps,
-                  weight: set.weight
-                })
-                cleanedCount++
-                hasChanges = true
-                return { ...set, skipped: false }
-              }
-              return set
-            })
-
-            if (exercise.skipped && cleanedExercise.sets.some(s => s.completed && !s.skipped)) {
-              cleanedExercise.skipped = false
-              hasChanges = true
-            }
-
-            return cleanedExercise
-          })
-
-          if (workout.skipped && cleanedWorkout.exercises.some(ex =>
-            ex.sets.some(s => s.completed && (s.reps > 0 || s.weight > 0))
-          )) {
-            cleanedWorkout.skipped = false
-            hasChanges = true
-          }
-
-          return cleanedWorkout
-        })
-
-        if (hasChanges) {
-          localStorage.setItem(storageKeys.inProgress, JSON.stringify(cleanedInProgress))
-        }
-      }
-    } catch (error) {
-      console.error("[WorkoutLogger] Failed to clean up false skipped sets in in-progress workouts:", error)
-    }
-
-    if (cleanedCount > 0) {
-      console.log(`[WorkoutLogger] Total false skipped sets cleaned: ${cleanedCount}`)
-    }
-  }
-
-  /**
    * Clean up corrupted or empty workout data
    */
   static cleanupCorruptedWorkouts(userId?: string): void {
@@ -491,7 +194,9 @@ export class WorkoutLogger implements SetSyncProvider {
     const storageKeys = this.getUserStorageKeys(userId)
     let cleanedCount = 0
 
+    console.log("[WorkoutLogger] Starting cleanup of corrupted workouts...")
 
+    // Clean up in-progress workouts
     try {
       const inProgressRaw = localStorage.getItem(storageKeys.inProgress)
       if (inProgressRaw) {
@@ -586,7 +291,7 @@ export class WorkoutLogger implements SetSyncProvider {
             // Ensure exercise has required fields
             if (!repairedExercise.id || !repairedExercise.exerciseName) {
               console.warn("[WorkoutLogger] Invalid exercise found in workout:", repairedWorkout.id)
-              return null
+              return null // Remove invalid exercise
             }
 
             // Validate sets
@@ -596,7 +301,7 @@ export class WorkoutLogger implements SetSyncProvider {
               repairedExercise.sets = Array.from({ length: repairedExercise.targetSets || 3 }, (_, i) => ({
                 id: Math.random().toString(36).substr(2, 9),
                 reps: 0,
-                weight: repairedExercise.suggestedWeight || 0, // Pre-fill suggested weight
+                weight: 0,
                 completed: false,
               }))
               needsRepair = true
@@ -640,7 +345,7 @@ export class WorkoutLogger implements SetSyncProvider {
             }
 
             return repairedExercise
-          }).filter((ex): ex is WorkoutExercise => ex !== null) // Remove any null exercises
+          }).filter(Boolean) // Remove any null exercises
 
           // Check if workout still has valid exercises
           if (repairedWorkout.exercises.length === 0) {
@@ -731,7 +436,7 @@ export class WorkoutLogger implements SetSyncProvider {
             }
 
             return repairedExercise
-          }).filter((ex): ex is WorkoutExercise => ex !== null)
+          }).filter(Boolean)
 
           if (repairedWorkout.exercises.length === 0) {
             return null
@@ -841,7 +546,7 @@ export class WorkoutLogger implements SetSyncProvider {
     console.log("=== End Force Load ===")
   }
 
-  static async getInProgressWorkout(week: number, day: number, userId?: string): Promise<WorkoutSession | null> {
+  static getInProgressWorkout(week: number, day: number, userId?: string): WorkoutSession | null {
     if (typeof window === "undefined") return null
 
     const storageKeys = this.getUserStorageKeys(userId)
@@ -851,74 +556,13 @@ export class WorkoutLogger implements SetSyncProvider {
       if (!stored) return null
 
       const workouts: WorkoutSession[] = JSON.parse(stored)
-      const workout = workouts.find((w) => w.week === week && w.day === day) || null
-      
-      // Validate and fix any incorrectly marked sets
-      if (workout) {
-        workout.exercises = workout.exercises.map(exercise => ({
-          ...exercise,
-          sets: exercise.sets.map(set => {
-            // If set is marked completed but has no data, it was incorrectly marked
-            // Reset it to incomplete
-            if (set.completed && set.reps === 0 && set.weight === 0 && !set.skipped) {
-              return { ...set, completed: false }
-            }
-            return set
-          })
-        }))
-
-        // MIGRATION: Enrich exercises with metadata from database if missing
-        console.log(`[WorkoutLogger] Enriching ${workout.exercises.length} exercises with database metadata`)
-        const exerciseService = ExerciseLibraryService.getInstance()
-        let enrichedCount = 0
-        
-        workout.exercises = await Promise.all(
-          workout.exercises.map(async (exercise) => {
-            // If exercise already has both fields, skip enrichment
-            if (exercise.equipmentType && exercise.muscleGroup) {
-              return exercise
-            }
-            
-            // Fetch metadata from database
-            try {
-              const dbExercise = await exerciseService.getExerciseByName(exercise.exerciseName)
-              if (dbExercise) {
-                enrichedCount++
-                console.log(`[WorkoutLogger] ✅ Enriched "${exercise.exerciseName}" → ${dbExercise.equipmentType} (${dbExercise.muscleGroup})`)
-                return {
-                  ...exercise,
-                  muscleGroup: dbExercise.muscleGroup,
-                  equipmentType: dbExercise.equipmentType,
-                }
-              }
-            } catch (error) {
-              console.warn(`[WorkoutLogger] Could not enrich exercise metadata for "${exercise.exerciseName}":`, error)
-            }
-            
-            return exercise
-          })
-        )
-
-        if (enrichedCount > 0) {
-          console.log(`[WorkoutLogger] Enriched ${enrichedCount}/${workout.exercises.length} exercises with database metadata`)
-          
-          // Save enriched workout back to localStorage
-          const updatedWorkouts = workouts.map(w => 
-            (w.week === week && w.day === day) ? workout : w
-          )
-          localStorage.setItem(storageKeys.inProgress, JSON.stringify(updatedWorkouts))
-          console.log(`[WorkoutLogger] Saved enriched workout back to localStorage`)
-        }
-      }
-      
-      return workout
-    } catch (error) {
-      console.error("[WorkoutLogger] Error loading in-progress workout:", error)
+      return workouts.find((w) => w.week === week && w.day === day) || null
+    } catch {
       return null
     }
   }
 
-  static async getCurrentWorkout(): WorkoutSession | null {
+  static getCurrentWorkout(): WorkoutSession | null {
     if (typeof window === "undefined") return null
 
     try {
@@ -930,7 +574,7 @@ export class WorkoutLogger implements SetSyncProvider {
       const currentUser = storedUser ? JSON.parse(storedUser) : null
       const userId = currentUser?.id
 
-      return await this.getInProgressWorkout(activeProgram.currentWeek, activeProgram.currentDay, userId)
+      return this.getInProgressWorkout(activeProgram.currentWeek, activeProgram.currentDay, userId)
     } catch {
       return null
     }
@@ -1034,7 +678,7 @@ export class WorkoutLogger implements SetSyncProvider {
     }
   }
 
-  static async startWorkout(
+  static startWorkout(
     workoutName: string,
     exercises: {
       exerciseId: string
@@ -1044,20 +688,13 @@ export class WorkoutLogger implements SetSyncProvider {
       targetRest: string
       suggestedWeight?: number
       progressionNote?: string
-      perSetSuggestions?: Array<{  // NEW: per-set weight and rep suggestions
-        weight: number
-        reps: number
-        baseWeight: number
-        baseReps: number
-        bounds: { min: number; max: number }
-      }>
     }[],
     week?: number,
     day?: number,
     userId?: string,
-  ): Promise<WorkoutSession> {
+  ): WorkoutSession {
     if (week && day) {
-      const existing = await this.getInProgressWorkout(week, day)
+      const existing = this.getInProgressWorkout(week, day)
       if (existing) {
         const isCorrupted =
           !existing.week || !existing.day || existing.exercises.some((ex) => !ex.sets || ex.sets.length === 0)
@@ -1098,55 +735,30 @@ export class WorkoutLogger implements SetSyncProvider {
       startTime: Date.now(),
       week,
       day,
-      exercises: exercises.map((ex) => {
-        // NEW: Use per-set suggestions if available, otherwise use single suggested weight
-        const sets = ex.perSetSuggestions && ex.perSetSuggestions.length > 0
-          ? ex.perSetSuggestions.map((suggestion) => ({
-              id: Math.random().toString(36).substr(2, 9),
-              reps: suggestion.reps, // Pre-fill with reps from previous week
-              weight: suggestion.weight, // Pre-fill with per-set suggested weight
-              completed: false,
-              skipped: false,
-            }))
-          : Array.from({ length: ex.targetSets }, (_, i) => ({
-              id: Math.random().toString(36).substr(2, 9),
-              reps: 0,
-              weight: ex.suggestedWeight || 0, // Fallback to single suggested weight
-              completed: false,
-              skipped: false,
-            }))
-
-        return {
+      exercises: exercises.map((ex) => ({
+        id: Math.random().toString(36).substr(2, 9),
+        exerciseId: ex.exerciseId,
+        exerciseName: ex.exerciseName,
+        targetSets: ex.targetSets,
+        targetReps: ex.targetReps,
+        targetRest: ex.targetRest,
+        suggestedWeight: ex.suggestedWeight,
+        progressionNote: ex.progressionNote,
+        sets: Array.from({ length: ex.targetSets }, (_, i) => ({
           id: Math.random().toString(36).substr(2, 9),
-          exerciseId: ex.exerciseId,
-          exerciseName: ex.exerciseName,
-          targetSets: ex.targetSets,
-          targetReps: ex.targetReps,
-          targetRest: ex.targetRest,
-          suggestedWeight: ex.suggestedWeight,
-          progressionNote: ex.progressionNote,
-          perSetSuggestions: ex.perSetSuggestions, // NEW: Store per-set suggestions
-          sets,
+          reps: 0,
+          weight: ex.suggestedWeight || 0, // Pre-fill with suggested weight from progression
           completed: false,
-          skipped: false,
-        }
-      }),
+        })),
+        completed: false,
+      })),
       completed: false,
-      skipped: false, // Explicitly set skipped to false
       notes: "",
     }
 
-    console.log("[v0] 🏋️ WORKOUT CREATION - Full workout object:", {
+    console.log("[v0] Created workout structure:", {
       id: workout.id,
       exerciseCount: workout.exercises.length,
-      workout: JSON.parse(JSON.stringify(workout)), // Deep clone for inspection
-      firstExerciseSets: workout.exercises[0]?.sets.map(s => ({
-        id: s.id,
-        reps: s.reps,
-        weight: s.weight,
-        completed: s.completed,
-        skipped: s.skipped
-      })),
       exercises: workout.exercises.map((ex) => ({
         name: ex.exerciseName,
         setsCount: ex.sets.length,
@@ -1174,50 +786,40 @@ export class WorkoutLogger implements SetSyncProvider {
     const set = exercise.sets.find((s) => s.id === setId)
     if (!set) return null
 
-    const originalSetState = { ...set }
     const wasCompleted = set.completed
     Object.assign(set, updates)
 
-    const shouldLogSet = !wasCompleted && set.completed && !!userId
-
-    if (shouldLogSet) {
-      ConnectionMonitor.updateStatus('syncing')
-      const setNumber = exercise.sets.findIndex((s) => s.id === setId) + 1
-      try {
-        await this.logSetCompletion(
-          workout.id,
-          exercise.id,
-          exercise.exerciseName,
-          setNumber,
-          set.reps,
-          set.weight,
-          true,
-          userId,
-          workout.week,
-          workout.day,
-          set.notes
-        )
-      } catch (error) {
-        Object.assign(set, originalSetState)
-        exercise.completed = exercise.sets.every((s) => s.completed)
-        if (!exercise.completed && exercise.endTime) {
-          delete exercise.endTime
-        }
-        throw error
-      }
-    }
-
+    // Check if exercise is completed
     exercise.completed = exercise.sets.every((s) => s.completed)
     if (exercise.completed && !exercise.endTime) {
       exercise.endTime = Date.now()
-    } else if (!exercise.completed && exercise.endTime) {
-      delete exercise.endTime
     }
 
+    // Save to localStorage (always) and optionally sync to database
     if (skipDbSync) {
+      // Only save to localStorage without database sync
       this.saveCurrentWorkout(updatedWorkout)
     } else {
+      // Save with userId to trigger database sync
       this.saveCurrentWorkout(updatedWorkout, userId)
+    }
+
+    // If set was just marked as completed, log it to database
+    if (!wasCompleted && set.completed && userId) {
+      const setNumber = exercise.sets.findIndex(s => s.id === setId) + 1
+      await this.logSetCompletion(
+        workout.id,
+        exercise.id,
+        exercise.exerciseName,
+        setNumber,
+        set.reps,
+        set.weight,
+        true,
+        userId,
+        workout.week,
+        workout.day,
+        set.notes
+      )
     }
 
     return updatedWorkout
@@ -1266,116 +868,6 @@ export class WorkoutLogger implements SetSyncProvider {
     }
   }
 
-  static async skipWorkout({
-    templateDay,
-    week,
-    day,
-    userId,
-    templateId,
-    workoutName,
-  }: {
-    templateDay: WorkoutDay
-    week: number
-    day: number
-    userId?: string
-    templateId?: string
-    workoutName?: string
-  }): Promise<WorkoutSession | null> {
-    if (!templateDay) {
-      return null
-    }
-
-    let resolvedUserId = userId
-    if (!resolvedUserId) {
-      try {
-        const storedUser = typeof window !== 'undefined' ? localStorage.getItem("liftlog_user") : null
-        const currentUser = storedUser ? JSON.parse(storedUser) : null
-        resolvedUserId = currentUser?.id
-      } catch {
-        // ignore
-      }
-    }
-
-    const effectiveUserId = resolvedUserId || "anonymous"
-    const scheduleName = workoutName || templateDay.name || `Week ${week} Day ${day}`
-    const workoutId = `skipped-${week}-${day}-${Math.random().toString(36).slice(2)}`
-    const timestamp = Date.now()
-
-    const plan = templateDay.exercises || []
-
-    const getWeekData = (exercise: ExerciseTemplate, targetWeek: number) => {
-      const progression = exercise.progressionTemplate as Record<string, { sets?: number; repRange?: string } | undefined>
-      const directKey = `week${targetWeek}`
-      if (progression[directKey]) {
-        return progression[directKey]
-      }
-      const availableWeeks = Object.keys(progression)
-        .filter((key) => key.startsWith('week'))
-        .map((key) => Number.parseInt(key.replace('week', ''), 10))
-        .filter((value) => !Number.isNaN(value))
-        .sort((a, b) => a - b)
-
-      for (let i = availableWeeks.length - 1; i >= 0; i--) {
-        const current = availableWeeks[i]
-        if (current <= targetWeek && progression[`week${current}`]) {
-          return progression[`week${current}`]
-        }
-      }
-
-      return progression.week1
-    }
-
-    const skippedExercises = plan.map((exercise, index) => {
-      const weekData = getWeekData(exercise, week) || {}
-      const targetSets = Math.max(weekData?.sets ?? exercise.progressionTemplate.week1?.sets ?? 3, 1)
-      const targetReps = weekData?.repRange || exercise.progressionTemplate.week1?.repRange || '8-10'
-      const exerciseId = exercise.id || exercise.exerciseName.toLowerCase().replace(/\s+/g, '-')
-
-      const sets = Array.from({ length: targetSets }, (_, setIndex) => ({
-        id: `${workoutId}-set-${index}-${setIndex}`,
-        reps: 0,
-        weight: 0,
-        completed: true,
-        skipped: true,
-      }))
-
-      return {
-        id: `${workoutId}-ex-${index}`,
-        exerciseId,
-        exerciseName: exercise.exerciseName,
-        targetSets,
-        targetReps,
-        targetRest: exercise.restTime !== undefined ? `${exercise.restTime}` : 'Rest as needed',
-        muscleGroup: exercise.category,
-        sets,
-        completed: true,
-        skipped: true,
-        notes: 'Skipped exercise',
-      }
-    })
-
-    const skippedWorkout: WorkoutSession = {
-      id: workoutId,
-      userId: effectiveUserId,
-      programId: templateId,
-      workoutName: scheduleName,
-      startTime: timestamp,
-      endTime: timestamp,
-      exercises: skippedExercises,
-      notes: 'Skipped workout',
-      completed: true,
-      week,
-      day,
-      skipped: true,
-    }
-
-    await this.clearCurrentWorkout(week, day, effectiveUserId)
-    await this.saveWorkoutToHistory(skippedWorkout, effectiveUserId)
-
-    return skippedWorkout
-  }
-
-
   private static async saveWorkoutToHistory(workout: WorkoutSession, userId?: string): Promise<void> {
     if (typeof window === "undefined") return
 
@@ -1392,14 +884,6 @@ export class WorkoutLogger implements SetSyncProvider {
 
     const storageKeys = this.getUserStorageKeys(userId)
 
-    const activeProgram = this.getActiveProgram()
-    const activeTemplateId = activeProgram?.template?.id ?? activeProgram?.templateId
-    const isProgramWorkout = typeof workout.week === "number" && typeof workout.day === "number"
-
-    if (isProgramWorkout && activeTemplateId && !workout.programId) {
-      workout.programId = activeTemplateId
-    }
-
     try {
       const existing = localStorage.getItem(storageKeys.workouts)
       const workouts: WorkoutSession[] = existing ? JSON.parse(existing) : []
@@ -1414,7 +898,6 @@ export class WorkoutLogger implements SetSyncProvider {
         // Add to connection monitor queue for auto-sync
         ConnectionMonitor.addToQueue(async () => {
           try {
-            if (!supabase) return
             await supabase
               .from("workouts")
               .upsert({
@@ -1465,7 +948,7 @@ export class WorkoutLogger implements SetSyncProvider {
 
       // Minimal debug logging (only in development)
       if (process.env.NODE_ENV === "development" && history.length > 0) {
-        const week1Workouts = history.filter((w: WorkoutSession) => w.week === 1)
+        const week1Workouts = history.filter(w => w.week === 1)
         console.log(`[WorkoutLogger] User ${userId} - Week 1 workouts: ${week1Workouts.length}/${history.length}`)
       }
 
@@ -1478,48 +961,10 @@ export class WorkoutLogger implements SetSyncProvider {
 
   static getCompletedWorkout(week: number, day: number, userId?: string): WorkoutSession | null {
     const history = this.getWorkoutHistory(userId)
-    const matchingWorkouts = history.filter((workout: WorkoutSession) => 
-      workout.week === week && workout.day === day && workout.completed
-    )
-    
-    if (matchingWorkouts.length === 0) return null
-    
-    // ALWAYS filter out skipped workouts and prioritize actual logged data
-    // This applies even when there's only one match
-    const workoutsWithData = matchingWorkouts.filter(workout => {
-      // Exclude workouts with "skipped" in the ID
-      if (workout.id.includes('skipped-')) {
-        console.log(`[WorkoutLogger] ⏭️ Skipping workout with ID: ${workout.id}`)
-        return false
-      }
-      
-      // Check if workout has actual logged sets (non-zero weight/reps)
-      const hasLoggedData = workout.exercises?.some(exercise => 
-        exercise.sets?.some(set => 
-          set.completed && set.weight > 0 && set.reps > 0
-        )
-      )
-      
-      if (!hasLoggedData) {
-        console.log(`[WorkoutLogger] ⏭️ Skipping workout with no logged data: ${workout.id}`)
-      }
-      
-      return hasLoggedData
-    })
-    
-    // If we have workouts with actual data, use the most recent one
-    if (workoutsWithData.length > 0) {
-      const selected = workoutsWithData.sort((a, b) => (b.startTime || 0) - (a.startTime || 0))[0]
-      console.log(`[WorkoutLogger] ✅ Selected completed workout: ${selected.id} (has logged data)`)
-      return selected
-    }
-    
-    // If no workouts with data, return null (don't return skipped workouts)
-    console.log(`[WorkoutLogger] ❌ No completed workouts with actual data found for Week ${week} Day ${day}`)
-    return null
+    return history.find((workout) => workout.week === week && workout.day === day && workout.completed) || null
   }
 
-  static async getWorkout(week: number, day: number, userId?: string): WorkoutSession | null {
+  static getWorkout(week: number, day: number, userId?: string): WorkoutSession | null {
     // Get current user ID if not provided
     if (!userId && typeof window !== "undefined") {
       try {
@@ -1536,7 +981,7 @@ export class WorkoutLogger implements SetSyncProvider {
     if (completed) return completed
 
     // Then check in-progress workouts
-    return await this.getInProgressWorkout(week, day, userId)
+    return this.getInProgressWorkout(week, day, userId)
   }
 
   static hasCompletedWorkout(week: number, day: number, userId?: string): boolean {
@@ -1552,29 +997,7 @@ export class WorkoutLogger implements SetSyncProvider {
     }
 
     const history = this.getWorkoutHistory(userId)
-    const activeProgram = this.getActiveProgram()
-    const activeTemplateId = activeProgram?.template?.id ?? activeProgram?.templateId
-    const programStartDate = typeof activeProgram?.startDate === "number" ? activeProgram.startDate : undefined
-
-    const completedWorkout = history.find((workout) => {
-      if (workout.week !== week || workout.day !== day) {
-        return false
-      }
-
-      if (!workout.completed) {
-        return false
-      }
-
-      if (programStartDate && typeof workout.startTime === "number" && workout.startTime < programStartDate) {
-        return false
-      }
-
-      if (activeTemplateId && workout.programId && workout.programId !== activeTemplateId) {
-        return false
-      }
-
-      return true
-    })
+    const completedWorkout = history.find((workout) => workout.week === week && workout.day === day && workout.completed)
 
     // Minimal debug logging (only in development)
     if (week === 1 && day === 1 && process.env.NODE_ENV === "development") {
@@ -1599,6 +1022,7 @@ export class WorkoutLogger implements SetSyncProvider {
 
     return !!completedWorkout
   }
+
   static isWeekCompleted(week: number, daysPerWeek: number, userId?: string): boolean {
     // Get current user ID if not provided
     if (!userId) {
@@ -1639,22 +1063,10 @@ export class WorkoutLogger implements SetSyncProvider {
     day?: number,
     notes?: string
   ): Promise<void> {
-    if (!userId) {
-      throw new Error('User must be authenticated to log sets')
-    }
-
-    if (!supabase) {
-      throw new Error('Database client is not configured')
-    }
-
-    if (!ConnectionMonitor.isOnline()) {
-      ConnectionMonitor.updateStatus('offline')
-      throw new Error('No connection. Reconnect before logging sets.')
-    }
-
     const setId = `${workoutId}-${exerciseId}-${setNumber}`
     const completedAt = Date.now()
 
+    // Create set log entry
     const setLog = {
       id: setId,
       user_id: userId,
@@ -1667,64 +1079,36 @@ export class WorkoutLogger implements SetSyncProvider {
       completed,
       completed_at: completedAt,
       notes: notes || null,
-      week: week ?? null,
-      day: day ?? null,
+      week: week || null,
+      day: day || null,
     }
 
-    const { error } = await supabase
-      .from('workout_sets')
-      .upsert(setLog, { onConflict: 'id' })
+    // Always save to localStorage first
+    this.saveSetToLocalStorage(setLog)
 
-    if (error) {
-      // Log error but don't throw - allow local operation to succeed
-      console.error('[WorkoutLogger] Failed to sync set to database:', error.message)
-      
-      // Provide helpful error context
-      if (error.message.includes('relation "public.workout_sets" does not exist')) {
-        console.error('[WorkoutLogger] The workout_sets table does not exist. Run workout_sets_migration.sql to create it.')
-      } else if (error.message.includes('policy')) {
-        // This is usually not a blocking issue - sets are saved locally and will sync later
-        console.log('[WorkoutLogger] Note: Set saved locally, database sync will retry when connection is stable')
-        console.log('[WorkoutLogger] This is normal during connection transitions and does not affect your workout data.')
-      } else if (error.message.includes('409') || error.message.includes('duplicate')) {
-        // 409 conflicts are normal - they just mean the set already exists
-        console.log('[WorkoutLogger] Set already exists in database (this is normal)')
-      } else {
-        console.log('[WorkoutLogger] Set saved locally, will sync to database when connection is stable')
-      }
-      
-      ConnectionMonitor.updateStatus('error')
-      
-      // Auto-clear error after 3 seconds to prevent persistent error banner
-      setTimeout(() => {
-        if (ConnectionMonitor.getStatus() === 'error') {
-          ConnectionMonitor.updateStatus('online')
+    // If online, try to sync immediately
+    if (userId && supabase && ConnectionMonitor.isOnline()) {
+      try {
+        const { error } = await supabase
+          .from("workout_sets")
+          .insert(setLog)
+
+        if (error) {
+          console.error("[WorkoutLogger] Failed to log set to database, adding to queue:", error)
+          this.addSetToSyncQueue(setLog)
+        } else {
+          console.log("[WorkoutLogger] Set logged successfully:", setId)
+          this.removeSetFromSyncQueue(setId)
         }
-      }, 3000)
-      
-      // Don't throw - the set is still saved locally
-      return
-    }
-
-    // Log success to console for monitoring and debugging
-    console.log('[WorkoutLogger] ✅ Set synced to database successfully:', {
-      workoutId,
-      exerciseId,
-      exerciseName,
-      setNumber,
-      reps,
-      weight,
-      week,
-      day,
-      notes: notes || 'none'
-    })
-    
-    ConnectionMonitor.updateStatus('synced')
-    setTimeout(() => {
-      if (ConnectionMonitor.getStatus() === 'synced') {
-        ConnectionMonitor.updateStatus('online')
+      } catch (error) {
+        console.error("[WorkoutLogger] Error logging set, adding to queue:", error)
+        this.addSetToSyncQueue(setLog)
       }
-    }, 1500)
+    } else {
+      // Offline - add to sync queue
+      console.log("[WorkoutLogger] Offline, adding set to sync queue:", setId)
+      this.addSetToSyncQueue(setLog)
+    }
   }
 
   /**
@@ -2219,7 +1603,7 @@ export class WorkoutLogger implements SetSyncProvider {
       if (workouts.length > 0) {
         // Remove duplicates by ID (keep latest)
         const uniqueWorkouts = Array.from(
-          new Map(workouts.map((w: WorkoutSession) => [w.id, w])).values()
+          new Map(workouts.map(w => [w.id, w])).values()
         )
 
         const { error } = await supabase
@@ -2242,7 +1626,7 @@ export class WorkoutLogger implements SetSyncProvider {
           )
 
         if (error) {
-          console.warn("[WorkoutLogger] Failed to sync workouts (table may not exist):", error.message || error)
+          console.error("[WorkoutLogger] Failed to sync workouts:", error)
         } else {
           console.log("[WorkoutLogger] Synced", uniqueWorkouts.length, "workouts to database")
         }
@@ -2255,7 +1639,7 @@ export class WorkoutLogger implements SetSyncProvider {
         if (inProgressWorkouts.length > 0) {
           // Remove duplicates by ID (keep latest)
           const uniqueInProgress = Array.from(
-            new Map(inProgressWorkouts.map((w: WorkoutSession) => [w.id, w])).values()
+            new Map(inProgressWorkouts.map(w => [w.id, w])).values()
           )
 
           const { error } = await supabase
@@ -2276,7 +1660,7 @@ export class WorkoutLogger implements SetSyncProvider {
             )
 
           if (error) {
-            console.warn("[WorkoutLogger] Failed to sync in-progress workouts (table may not exist):", error.message || error)
+            console.error("[WorkoutLogger] Failed to sync in-progress workouts:", error)
           } else {
             console.log("[WorkoutLogger] Synced", uniqueInProgress.length, "in-progress workouts to database")
           }
@@ -2454,6 +1838,84 @@ export class WorkoutLogger implements SetSyncProvider {
     }
   }
 
+  /**
+   * Sync local data to database (preserve current work before loading fresh data)
+   */
+  static async syncToDatabase(userId: string): Promise<void> {
+    if (!supabase) return
+
+    try {
+      const storageKeys = this.getUserStorageKeys(userId)
+
+      // Sync in-progress workouts
+      const localInProgress = localStorage.getItem(storageKeys.inProgress)
+      if (localInProgress) {
+        const inProgressWorkouts = JSON.parse(localInProgress)
+        if (inProgressWorkouts.length > 0) {
+          console.log("[WorkoutLogger] Syncing", inProgressWorkouts.length, "in-progress workouts to database")
+
+          const { error } = await supabase
+            .from("in_progress_workouts")
+            .upsert(
+              inProgressWorkouts.map((w) => ({
+                id: w.id,
+                user_id: userId,
+                program_id: w.programId || null,
+                workout_name: w.workoutName,
+                start_time: w.startTime,
+                week: w.week || null,
+                day: w.day || null,
+                exercises: w.exercises,
+                notes: w.notes || null,
+              })),
+              { onConflict: 'id' }
+            )
+
+          if (error) {
+            console.error("[WorkoutLogger] Failed to sync in-progress workouts:", error)
+          } else {
+            console.log("[WorkoutLogger] Successfully synced in-progress workouts")
+          }
+        }
+      }
+
+      // Sync completed workouts
+      const localWorkouts = localStorage.getItem(storageKeys.workouts)
+      if (localWorkouts) {
+        const workouts = JSON.parse(localWorkouts)
+        if (workouts.length > 0) {
+          console.log("[WorkoutLogger] Syncing", workouts.length, "completed workouts to database")
+
+          const { error } = await supabase
+            .from("workouts")
+            .upsert(
+              workouts.map((w) => ({
+                id: w.id,
+                user_id: userId,
+                program_id: w.programId || null,
+                workout_name: w.workoutName,
+                start_time: w.startTime,
+                end_time: w.endTime || null,
+                exercises: w.exercises,
+                notes: w.notes || undefined,
+                completed: w.completed,
+                week: w.week || null,
+                day: w.day || null,
+              })),
+              { onConflict: 'id' }
+            )
+
+          if (error) {
+            console.error("[WorkoutLogger] Failed to sync completed workouts:", error)
+          } else {
+            console.log("[WorkoutLogger] Successfully synced completed workouts")
+          }
+        }
+      }
+    } catch (error) {
+      console.error("[WorkoutLogger] syncToDatabase failed:", error)
+    }
+  }
 
   /**
    * Periodic sync to keep data fresh

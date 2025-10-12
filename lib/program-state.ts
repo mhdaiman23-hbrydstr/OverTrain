@@ -78,16 +78,35 @@ export class ProgramStateManager {
   private static readonly PROGRAM_PROGRESS_KEY = "liftlog_program_progress"
   private static readonly PROGRAM_HISTORY_KEY = "liftlog_program_history"
 
+  // Migration mapping from old hardcoded IDs to new database IDs
+  private static readonly TEMPLATE_ID_MIGRATIONS: Record<string, string> = {
+    "fullbody-3day-beginner-male": "template2",
+    "fullbody-3day-beginner-female": "template2",
+  }
+
+  // Migrate old template ID to new database ID if needed
+  private static migrateTemplateId(oldId: string): string {
+    const newId = this.TEMPLATE_ID_MIGRATIONS[oldId]
+    if (newId) {
+      console.log(`[ProgramState] Migrating template ID: ${oldId} -> ${newId}`)
+      return newId
+    }
+    return oldId
+  }
+
   /**
    * Load template from database first, fallback to hardcoded templates
    * This enables seamless migration from hardcoded to database templates
    */
   static async loadTemplate(templateId: string): Promise<GymTemplate | null> {
+    // Auto-migrate old template IDs
+    const migratedId = this.migrateTemplateId(templateId)
+
     try {
       // Try database first (new system)
-      const dbTemplate = await programTemplateService.getTemplate(templateId)
+      const dbTemplate = await programTemplateService.getTemplate(migratedId)
       if (dbTemplate) {
-        console.log('[ProgramState] Loaded template from database:', templateId)
+        console.log('[ProgramState] Loaded template from database:', migratedId)
         return dbTemplate
       }
     } catch (error) {
@@ -303,7 +322,7 @@ export class ProgramStateManager {
       try {
         const dbExercise = await exerciseService.getExerciseByName(exercise.exerciseName)
         if (dbExercise) {
-          muscleGroup = dbExercise.muscleGroup  // e.g., "Back", "Chest"
+          muscleGroup = dbExercise.muscleGroup  // Use database muscle group (e.g., "Back", "Chest", "Legs")
           equipmentType = dbExercise.equipmentType  // e.g., "Barbell", "Cable", "Bodyweight Only"
         }
       } catch (error) {
@@ -311,11 +330,23 @@ export class ProgramStateManager {
         // Continue with fallback values
       }
 
+      // Get target sets for the CURRENT week (not hardcoded to week1)
+      const weekKey = `week${activeProgram.currentWeek}` as keyof typeof exercise.progressionTemplate
+      const weekData = exercise.progressionTemplate[weekKey]
+      const targetSets = typeof weekData === 'object' && weekData && 'sets' in weekData
+        ? (weekData as { sets: number }).sets
+        : exercise.progressionTemplate.week1?.sets || 3
+
+      // performedReps logic:
+      // Week 1: Empty - user inputs manually
+      // Week 2+: Filled by progression engine based on previous week's actual performance
+      const performedReps = ""
+
       return {
         exerciseId: exercise.exerciseName.toLowerCase().replace(/\s+/g, "-"),
         exerciseName: exercise.exerciseName,
-        targetSets: exercise.progressionTemplate.week1?.sets || 3,
-        targetReps: exercise.progressionTemplate.week1?.repRange || "8-10",
+        targetSets,
+        performedReps,  // Empty initially, progression engine fills this for Week 2+
         targetRest: exercise.restTime,
         muscleGroup,
         equipmentType,
