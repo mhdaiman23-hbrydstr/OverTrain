@@ -313,6 +313,11 @@ export function ProfileSection() {
                         {user.bodyweight ? `${user.bodyweight} ${user.preferredUnit === "metric" ? "kg" : "lbs"}` : "Not set"}
                       </span>
                     </div>
+                    <Separator />
+                    <div className="flex justify-between">
+                      <span className="text-sm text-muted-foreground">Preferred Unit</span>
+                      <span className="text-sm font-medium capitalize">{user.preferredUnit || "metric"}</span>
+                    </div>
                   </div>
                 )}
               </CardContent>
