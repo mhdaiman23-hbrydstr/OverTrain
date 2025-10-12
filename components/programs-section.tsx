@@ -326,8 +326,8 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
                 </SheetContent>
               </Sheet>
 
-              <Button size="sm" className="bg-orange-500 hover:bg-orange-600 text-white h-9 sm:h-10" onClick={onAddProgram}>
-                <Plus className="h-4 w-4 mr-1" />
+              <Button size="sm" className="bg-orange-500 hover:bg-orange-600 text-white h-9 sm:h-10 px-4 sm:px-6" onClick={onAddProgram}>
+                <Plus className="h-4 w-4 mr-1 sm:mr-2" />
                 NEW
               </Button>
               </div>
