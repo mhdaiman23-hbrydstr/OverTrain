@@ -47,6 +47,7 @@ export function ProfileSection() {
     gender: user?.gender || "",
     experience: user?.experience || "",
     goals: user?.goals || [],
+    bodyweight: user?.bodyweight || 0,
   })
   const [oneRMData, setOneRMData] = useState({
     squat: user?.oneRepMax?.squat || 0,
@@ -70,6 +71,7 @@ export function ProfileSection() {
         gender: formData.gender as "male" | "female" | "Prefer not say",
         experience: formData.experience as "beginner" | "intermediate" | "advanced",
         goals: formData.goals,
+        bodyweight: formData.bodyweight,
         preferredUnit: preferredUnit,
       })
       setInitialPreferredUnit(preferredUnit)
@@ -85,6 +87,7 @@ export function ProfileSection() {
       gender: user?.gender || "",
       experience: user?.experience || "",
       goals: user?.goals || [],
+      bodyweight: user?.bodyweight || 0,
     })
     setPreferredUnit(initialPreferredUnit)
     setIsEditing(false)
@@ -259,6 +262,22 @@ export function ProfileSection() {
                     </div>
 
                     <div className="space-y-2">
+                      <Label htmlFor="bodyweight">Bodyweight</Label>
+                      <Input
+                        id="bodyweight"
+                        type="number"
+                        min="0"
+                        step="0.1"
+                        placeholder={`Enter your bodyweight in ${preferredUnit === "metric" ? "kg" : "lbs"}`}
+                        value={formData.bodyweight || ""}
+                        onChange={(e) => setFormData((prev) => ({ ...prev, bodyweight: parseFloat(e.target.value) || 0 }))}
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Unit: {preferredUnit === "metric" ? "kilograms (kg)" : "pounds (lbs)"}
+                      </p>
+                    </div>
+
+                    <div className="space-y-2">
                       <Label htmlFor="unit-selector">Preferred Unit</Label>
                       <Select value={preferredUnit} onValueChange={handleUnitChange}>
                         <SelectTrigger id="unit-selector" className="w-full">
@@ -286,6 +305,13 @@ export function ProfileSection() {
                     <div className="flex justify-between">
                       <span className="text-sm text-muted-foreground">Email</span>
                       <span className="text-sm font-medium">{user.email}</span>
+                    </div>
+                    <Separator />
+                    <div className="flex justify-between">
+                      <span className="text-sm text-muted-foreground">Bodyweight</span>
+                      <span className="text-sm font-medium">
+                        {user.bodyweight ? `${user.bodyweight} ${user.preferredUnit === "metric" ? "kg" : "lbs"}` : "Not set"}
+                      </span>
                     </div>
                   </div>
                 )}

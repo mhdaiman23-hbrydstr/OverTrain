@@ -7,6 +7,7 @@ export interface User {
   gender?: "male" | "female" | "Prefer not say"
   experience?: "beginner" | "intermediate" | "advanced"
   goals?: string[]
+  bodyweight?: number
   oneRepMax?: {
     squat?: number
     benchPress?: number
@@ -106,6 +107,7 @@ export class AuthService {
       gender: profile?.gender,
       experience: profile?.experience,
       goals: profile?.goals,
+      bodyweight: profile?.bodyweight,
       oneRepMax: profile?.one_rep_max,
       preferredUnit: profile?.preferred_unit || "metric",
       createdAt: data.user.created_at,
@@ -191,6 +193,7 @@ export class AuthService {
         gender: profile?.gender,
         experience: profile?.experience,
         goals: profile?.goals,
+        bodyweight: profile?.bodyweight,
         oneRepMax: profile?.one_rep_max,
         preferredUnit: profile?.preferred_unit || "metric",
         createdAt: session.user.created_at,
@@ -222,6 +225,7 @@ export class AuthService {
         gender: updates.gender,
         experience: updates.experience,
         goals: updates.goals,
+        bodyweight: updates.bodyweight,
         one_rep_max: updates.oneRepMax,
         preferred_unit: updates.preferredUnit,
       })
