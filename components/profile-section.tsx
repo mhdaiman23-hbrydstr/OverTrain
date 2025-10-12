@@ -316,7 +316,9 @@ export function ProfileSection() {
                     <Separator />
                     <div className="flex justify-between">
                       <span className="text-sm text-muted-foreground">Preferred Unit</span>
-                      <span className="text-sm font-medium capitalize">{user.preferredUnit || "metric"}</span>
+                      <span className="text-sm font-medium">
+                        {user.preferredUnit === "imperial" ? "Imperial (Lbs)" : "Metric (Kg)"}
+                      </span>
                     </div>
                   </div>
                 )}
