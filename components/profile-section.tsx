@@ -11,6 +11,16 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { useAuth } from "@/contexts/auth-context"
 import { User, Mail, Target, Award, LogOut, Edit2, Check, X, Settings, HelpCircle, MessageSquare } from "lucide-react"
 import type { User as UserType } from "@/lib/auth"
@@ -61,6 +71,7 @@ export function ProfileSection() {
   })
   const [preferredUnit, setPreferredUnit] = useState<"metric" | "imperial">(user?.preferredUnit || "metric")
   const [initialPreferredUnit, setInitialPreferredUnit] = useState<"metric" | "imperial">(user?.preferredUnit || "metric")
+  const [showSignOutDialog, setShowSignOutDialog] = useState(false)
 
   if (!user) return null
 
@@ -346,7 +357,7 @@ export function ProfileSection() {
                   <CardTitle>Account</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2">
-                  <Button variant="ghost" className="w-full justify-start text-destructive hover:text-destructive hover:bg-destructive/10" onClick={signOut}>
+                  <Button variant="ghost" className="w-full justify-start text-destructive hover:text-destructive hover:bg-destructive/10" onClick={() => setShowSignOutDialog(true)}>
                     <LogOut className="h-4 w-4 mr-2" />
                     Sign Out
                   </Button>
@@ -562,6 +573,27 @@ export function ProfileSection() {
           <p className="mt-1">Made with 💪 for fitness enthusiasts</p>
         </div>
       </div>
+
+      {/* Sign Out Confirmation Dialog */}
+      <AlertDialog open={showSignOutDialog} onOpenChange={setShowSignOutDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Sign Out</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to sign out? You'll need to sign in again to access your account and workout data.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={signOut}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Sign Out
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }
