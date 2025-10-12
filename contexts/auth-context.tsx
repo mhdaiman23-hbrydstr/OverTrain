@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react"
 import { type User, type AuthState, AuthService } from "@/lib/auth"
+import { SessionManager } from "@/lib/session-manager"
 
 interface AuthContextType extends AuthState {
   signIn: (email: string, password: string) => Promise<void>
@@ -21,6 +22,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [dataLoaded, setDataLoaded] = useState(false) // Prevent multiple data loading attempts
 
   useEffect(() => {
+    // Start session monitoring on mount
+    SessionManager.startMonitoring()
+
     // Check for OAuth callback first
     const checkOAuthCallback = async () => {
       const oauthUser = await AuthService.handleOAuthCallback()
@@ -47,6 +51,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     checkOAuthCallback()
+
+    // Cleanup session monitoring on unmount
+    return () => {
+      SessionManager.stopMonitoring()
+    }
   }, [])
 
   // Comprehensive user data loading
@@ -244,6 +253,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const signOut = () => {
+    SessionManager.stopMonitoring() // Stop session monitoring
     AuthService.signOut()
     setState({ user: null, isLoading: false })
     setDataLoaded(false) // Reset data loaded flag for next login
