@@ -168,7 +168,7 @@
   }
 
   .gradient-card {
-    background: linear-gradient(135deg, oklch(1 0 0), oklch(0.98 0 0));
+    background: linear-gradient(135deg, var(--card), var(--background));
   }
 
   .text-gradient {
