@@ -117,11 +117,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       }
 
-      // Step 4: Ensure data integrity and run cleanup
+      // Step 4: Ensure data integrity and run cleanup with recovery fallback
       emitStatus('Validating workout data...')
-      WorkoutLogger.migrateGlobalToUserSpecific(userId)
-      WorkoutLogger.cleanupCorruptedWorkouts(userId)
-      WorkoutLogger.validateAndRepairWorkoutIntegrity(userId)
+      try {
+        WorkoutLogger.migrateGlobalToUserSpecific(userId)
+        WorkoutLogger.cleanupCorruptedWorkouts(userId)
+        WorkoutLogger.validateAndRepairWorkoutIntegrity(userId)
+      } catch (cleanupError) {
+        console.error('[Auth] Cleanup failed, clearing corrupted workout data:', cleanupError)
+        // Nuclear option: clear all workout-related localStorage if cleanup fails
+        Object.keys(localStorage)
+          .filter(key => key.includes('workout') || key.includes('program'))
+          .forEach(key => {
+            console.log('[Auth] Removing corrupted key:', key)
+            localStorage.removeItem(key)
+          })
+        emitStatus('Cleared corrupted data, starting fresh...')
+      }
 
       // Step 5: Load program state and recalculate if needed
       emitStatus('Loading active programs...')

@@ -11,6 +11,7 @@ import { useAuth } from "@/contexts/auth-context"
 import { IntakeForm } from "@/components/intake-form"
 import { ProgramsSection } from "@/components/programs-section"
 import { WorkoutLoggerComponent } from "@/components/workout-logger"
+import { TrainSection } from "@/components/train-section"
 import { SidebarNavigation } from "@/components/sidebar-navigation"
 import { BottomNavigation } from "@/components/bottom-navigation"
 import { AnalyticsSection } from "@/components/analytics-section"
@@ -25,8 +26,8 @@ export default function HomePage() {
   const [dataLoadingStatus, setDataLoadingStatus] = useState<string>("")
 
   const [currentView, setCurrentView] = useState<
-    "dashboard" | "programs" | "workout" | "analytics" | "train" | "profile"
-  >("train")
+    "dashboard" | "programs" | "workout" | "analytics" | "train" | "profile" | null
+  >(null)
 
   const [formData, setFormData] = useState({
     email: "",
@@ -36,37 +37,34 @@ export default function HomePage() {
 
   useEffect(() => {
     if (user && user.gender) {
-      setDataLoadingStatus("Loading your workout data...")
-
-      // Add a small delay to ensure all data loading is complete
-      const timer = setTimeout(async () => {
-        // Check if user has an active program
+      // Immediately check for active program without delay
+      const initializeView = async () => {
         const activeProgram = await ProgramStateManager.getActiveProgram()
 
         if (activeProgram) {
-          // Go directly to workout if program exists
+          // User has program - go to workout view
           setCurrentView("workout")
         } else {
-          // Go to train screen to select a program
+          // No program - show train section with CTA
           setCurrentView("train")
         }
-
-        setDataLoadingStatus("") // Clear loading status
-        console.log('[HomePage] Initial loading completed')
-      }, 500)
-
-      // Safety net: Force clear loading status after maximum 10 seconds
-      const safetyTimer = setTimeout(() => {
-        console.log('[HomePage] Safety timeout triggered, forcing loading complete')
-        setDataLoadingStatus("")
-      }, 10000)
-
-      return () => {
-        clearTimeout(timer)
-        clearTimeout(safetyTimer)
       }
+
+      initializeView()
     }
   }, [user])
+
+  // Listen for program ended event to navigate back to program selection
+  useEffect(() => {
+    const handleProgramEnded = () => {
+      console.log("[HomePage] Program ended, navigating to program selection")
+      setCurrentView("train")
+      setProgramKey(prev => prev + 1) // Force re-render of programs section
+    }
+
+    window.addEventListener("programEnded", handleProgramEnded)
+    return () => window.removeEventListener("programEnded", handleProgramEnded)
+  }, [])
 
   // Listen for data loading status updates
   useEffect(() => {
@@ -159,7 +157,7 @@ export default function HomePage() {
       const activeProgram = await ProgramStateManager.getActiveProgram()
       setCurrentView(activeProgram ? "workout" : "train")
     } else {
-      setCurrentView(view as any)
+      setCurrentView(view as "dashboard" | "programs" | "workout" | "analytics" | "train" | "profile")
     }
   }
 
@@ -195,36 +193,21 @@ export default function HomePage() {
     )
   }
 
-  // Show data loading screen after authentication is complete but data is still loading
-  if (dataLoadingStatus && dataLoadingStatus.trim() !== '') {
+  if (user && !user.gender) {
+    return <IntakeForm />
+  }
+
+  // Show loading while determining initial view
+  if (user && currentView === null) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center space-y-6">
           <div className="text-3xl font-bold text-gradient">LiftLog</div>
-          <div className="space-y-2">
-            <div className="text-muted-foreground">Preparing your workout space...</div>
-            <div className="text-sm text-muted-foreground animate-pulse">
-              {dataLoadingStatus}
-            </div>
-          </div>
+          <div className="text-muted-foreground">Loading your workout data...</div>
           <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
-          {/* Add manual clear button for debugging */}
-          <button
-            onClick={() => {
-              console.log('[HomePage] Manual clear loading status')
-              setDataLoadingStatus('')
-            }}
-            className="mt-4 px-4 py-2 text-xs text-muted-foreground hover:text-foreground transition-colors"
-          >
-            Force Continue
-          </button>
         </div>
       </div>
     )
-  }
-
-  if (user && !user.gender) {
-    return <IntakeForm />
   }
 
   if (user && currentView === "profile") {
@@ -294,11 +277,9 @@ export default function HomePage() {
         <SidebarNavigation currentView="train" onViewChange={setCurrentView} />
 
         <div className="flex-1 lg:ml-64 overflow-y-auto overflow-x-hidden h-screen">
-          <WorkoutLoggerComponent
-            key={programKey}
-            onComplete={handleWorkoutComplete}
-            onCancel={() => setCurrentView("programs")}
-            onViewAnalytics={() => setCurrentView("analytics")}
+          <TrainSection
+            onStartWorkout={handleStartWorkout}
+            onAddProgram={() => setCurrentView("programs")}
           />
         </div>
         <BottomNavigation currentView={currentView} onViewChange={handleViewChange} />
@@ -406,35 +387,41 @@ export default function HomePage() {
                     </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="login-email">Email</Label>
-                    <Input
-                      id="login-email"
-                      type="email"
-                      placeholder="Enter your email"
-                      className="bg-input border-border"
-                      value={formData.email}
-                      onChange={(e) => handleInputChange("email", e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="login-password">Password</Label>
-                    <Input
-                      id="login-password"
-                      type="password"
-                      placeholder="Enter your password"
-                      className="bg-input border-border"
-                      value={formData.password}
-                      onChange={(e) => handleInputChange("password", e.target.value)}
-                    />
-                  </div>
-                  <Button
-                    className="w-full gradient-primary text-primary-foreground"
-                    onClick={() => handleAuth("login")}
-                    disabled={isLoading}
-                  >
-                    {isLoading ? "Signing In..." : "Sign In"}
-                  </Button>
+                  <form onSubmit={(e) => { e.preventDefault(); handleAuth("login") }} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="login-email">Email</Label>
+                      <Input
+                        id="login-email"
+                        type="email"
+                        placeholder="Enter your email"
+                        className="bg-input border-border"
+                        autoComplete="email"
+                        value={formData.email}
+                        onChange={(e) => handleInputChange("email", e.target.value)}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="login-password">Password</Label>
+                      <Input
+                        id="login-password"
+                        type="password"
+                        placeholder="Enter your password"
+                        className="bg-input border-border"
+                        autoComplete="current-password"
+                        value={formData.password}
+                        onChange={(e) => handleInputChange("password", e.target.value)}
+                        required
+                      />
+                    </div>
+                    <Button
+                      type="submit"
+                      className="w-full gradient-primary text-primary-foreground"
+                      disabled={isLoading}
+                    >
+                      {isLoading ? "Signing In..." : "Sign In"}
+                    </Button>
+                  </form>
                 </TabsContent>
 
                 <TabsContent value="signup" className="space-y-4">
@@ -474,46 +461,54 @@ export default function HomePage() {
                     </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-email">Email</Label>
-                    <Input
-                      id="signup-email"
-                      type="email"
-                      placeholder="Enter your email"
-                      className="bg-input border-border"
-                      value={formData.email}
-                      onChange={(e) => handleInputChange("email", e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-password">Password</Label>
-                    <Input
-                      id="signup-password"
-                      type="password"
-                      placeholder="Create a password"
-                      className="bg-input border-border"
-                      value={formData.password}
-                      onChange={(e) => handleInputChange("password", e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-confirm">Confirm Password</Label>
-                    <Input
-                      id="signup-confirm"
-                      type="password"
-                      placeholder="Confirm your password"
-                      className="bg-input border-border"
-                      value={formData.confirmPassword}
-                      onChange={(e) => handleInputChange("confirmPassword", e.target.value)}
-                    />
-                  </div>
-                  <Button
-                    className="w-full gradient-primary text-primary-foreground"
-                    onClick={() => handleAuth("signup")}
-                    disabled={isLoading}
-                  >
-                    {isLoading ? "Creating Account..." : "Create Account"}
-                  </Button>
+                  <form onSubmit={(e) => { e.preventDefault(); handleAuth("signup") }} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-email">Email</Label>
+                      <Input
+                        id="signup-email"
+                        type="email"
+                        placeholder="Enter your email"
+                        className="bg-input border-border"
+                        autoComplete="email"
+                        value={formData.email}
+                        onChange={(e) => handleInputChange("email", e.target.value)}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-password">Password</Label>
+                      <Input
+                        id="signup-password"
+                        type="password"
+                        placeholder="Create a password"
+                        className="bg-input border-border"
+                        autoComplete="new-password"
+                        value={formData.password}
+                        onChange={(e) => handleInputChange("password", e.target.value)}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-confirm">Confirm Password</Label>
+                      <Input
+                        id="signup-confirm"
+                        type="password"
+                        placeholder="Confirm your password"
+                        className="bg-input border-border"
+                        autoComplete="new-password"
+                        value={formData.confirmPassword}
+                        onChange={(e) => handleInputChange("confirmPassword", e.target.value)}
+                        required
+                      />
+                    </div>
+                    <Button
+                      type="submit"
+                      className="w-full gradient-primary text-primary-foreground"
+                      disabled={isLoading}
+                    >
+                      {isLoading ? "Creating Account..." : "Create Account"}
+                    </Button>
+                  </form>
                 </TabsContent>
               </Tabs>
             </CardContent>

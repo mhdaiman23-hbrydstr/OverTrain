@@ -161,7 +161,6 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
 
     // Clear all in-progress workouts to start fresh
     WorkoutLogger.clearCurrentWorkout()
-    WorkoutLogger.cleanupFalseSkippedSets()
     
     // Also clear any corrupted workout data
     WorkoutLogger.cleanupCorruptedWorkouts()

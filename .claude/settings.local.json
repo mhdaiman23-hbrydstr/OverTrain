@@ -26,7 +26,16 @@
       "Bash(rm:*)",
       "Bash(git tag:*)",
       "Bash(git push:*)",
-      "Bash(npx ts-node:*)"
+      "Bash(npx ts-node:*)",
+      "Bash(sed:*)",
+      "Bash(tasklist)",
+      "Bash(for file in lib/workout-logger.ts.backup lib/gym-templates-backup.ts lib/gym-templates-new.ts)",
+      "Bash(do if [ -f \"$file\" ])",
+      "Bash(then echo \"$file:\")",
+      "Bash(fi)",
+      "Bash(done)",
+      "Bash(awk:*)",
+      "Bash(bash:*)"
     ]
   }
 }

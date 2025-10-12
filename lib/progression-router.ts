@@ -31,7 +31,7 @@ export interface ProgressionInput {
 
 export interface ProgressionResult {
   targetWeight: number
-  targetReps: number
+  performedReps: number
   targetSets?: number
   progressionNote: string
   strategy: "linear" | "percentage" | "hybrid" | "deload" | "standard" | "volume_compensated" | "multi_week" | "out_of_bounds" | "percentage" | "estimated_1rm" | "no_1rm_data"
@@ -218,7 +218,7 @@ export class ProgressionRouter {
 
     return {
       targetWeight: result.targetWeight,
-      targetReps: result.targetReps,
+      performedReps: result.performedReps,
       targetSets,
       progressionNote: safetyNote ? `${safetyNote} | ${result.progressionNote}` : result.progressionNote,
       strategy: result.strategy,
@@ -269,7 +269,7 @@ export class ProgressionRouter {
 
     return {
       targetWeight: result.targetWeight,
-      targetReps: result.targetReps,
+      performedReps: result.performedReps,
       targetSets,
       progressionNote: result.progressionNote,
       strategy: result.strategy,

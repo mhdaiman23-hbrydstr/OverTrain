@@ -1,8 +1,9 @@
 "use client"
 import { Button } from "@/components/ui/button"
-import { Dumbbell, Calendar, BarChart3, User, Sun, HelpCircle, LogOut, FilePlus2 } from "lucide-react"
+import { Dumbbell, Calendar, BarChart3, User, HelpCircle, LogOut, FilePlus2 } from "lucide-react"
 import { useAuth } from "@/contexts/auth-context"
 import { useRouter } from "next/navigation"
+import { ThemeToggle } from "@/components/theme-toggle"
 
 interface SidebarNavigationProps {
   currentView: string
@@ -25,7 +26,6 @@ export function SidebarNavigation({ currentView, onViewChange }: SidebarNavigati
     : baseNavigationItems
 
   const settingsItems = [
-    { id: "theme", label: "Light Theme", icon: Sun },
     { id: "help", label: "Help", icon: HelpCircle },
   ]
 
@@ -33,7 +33,7 @@ export function SidebarNavigation({ currentView, onViewChange }: SidebarNavigati
     <div className="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0 bg-muted/30 border-r border-border">
       <div className="flex flex-col flex-1 min-h-0">
         {/* Header */}
-        <div className="flex items-center h-16 px-4 border-b border-border">
+        <div className="flex items-center justify-between h-16 px-4 border-b border-border">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 bg-primary rounded flex items-center justify-center">
               <span className="text-primary-foreground font-bold text-sm">LL</span>
@@ -43,6 +43,7 @@ export function SidebarNavigation({ currentView, onViewChange }: SidebarNavigati
               <div className="text-xs text-muted-foreground">Leave the Science to Us</div>
             </div>
           </div>
+          <ThemeToggle />
         </div>
 
         {/* Navigation */}

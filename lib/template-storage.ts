@@ -222,7 +222,7 @@ export const calculateWeeklyProgression = (exerciseHistory: any[], progressionRu
   if (!exerciseHistory.length) return null
 
   const lastWorkout = exerciseHistory[exerciseHistory.length - 1]
-  const allSetsCompleted = lastWorkout.sets.every((set: any) => set.completed && set.actualReps >= set.targetReps)
+  const allSetsCompleted = lastWorkout.sets.every((set: any) => set.completed && set.actualReps >= set.performedReps)
 
   if (allSetsCompleted) {
     return {
@@ -231,7 +231,7 @@ export const calculateWeeklyProgression = (exerciseHistory: any[], progressionRu
       note: `Add ${progressionRules.weightIncrease} next week`,
     }
   } else {
-    const failedSets = lastWorkout.sets.filter((set: any) => !set.completed || set.actualReps < set.targetReps).length
+    const failedSets = lastWorkout.sets.filter((set: any) => !set.completed || set.actualReps < set.performedReps).length
 
     if (failedSets <= 1) {
       return {

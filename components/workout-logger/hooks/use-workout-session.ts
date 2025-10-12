@@ -9,20 +9,12 @@ import { ProgressionRouter, type ProgressionInput } from "@/lib/progression-rout
 import { getTierRules, isWeightWithinBounds, calculateVolumeCompensation } from "@/lib/progression-tiers"
 import { ConnectionMonitor } from "@/lib/connection-monitor"
 import { WorkoutLogger, type WorkoutSession } from "@/lib/workout-logger"
-import { useOneRepMaxes } from "@/components/workout-logger/contexts/one-rm-context"
-import { useOneRmPersistence } from "@/components/workout-logger/hooks/use-one-rm-persistence"
 import type { WorkoutLoggerProps } from "@/components/workout-logger/types"
 
 export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: WorkoutLoggerProps) {
   const { user } = useAuth()
   const { toast } = useToast()
-  const { oneRepMaxes } = useOneRepMaxes()
-  useOneRmPersistence(user?.id)
-  const routerOneRepMaxes = useMemo(() => oneRepMaxes.map((entry) => ({
-    exerciseName: entry.exerciseName,
-    maxWeight: entry.maxWeight,
-    dateTested: new Date(entry.dateTested),
-  })), [oneRepMaxes])
+  const routerOneRepMaxes: any[] = []
   const [workout, setWorkout] = useState<WorkoutSession | null>(null)
   const [showNotesDialog, setShowNotesDialog] = useState(false)
   const [showSummaryDialog, setShowSummaryDialog] = useState(false)
@@ -35,6 +27,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
   const [endWorkoutConfirmation, setEndWorkoutConfirmation] = useState("")
   const [endProgramConfirmation, setEndProgramConfirmation] = useState("")
   const [showCalendar, setShowCalendar] = useState(false)
+  const [programWasEnded, setProgramWasEnded] = useState(false)
   const [showMuscleGroupStats, setShowMuscleGroupStats] = useState(false)
   const [isWorkoutBlocked, setIsWorkoutBlocked] = useState(false)
   const [isFullyBlocked, setIsFullyBlocked] = useState(false)
@@ -178,14 +171,14 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
         setProgramName(activeProgram.template.name)
       }
 
-      const existingWorkout = WorkoutLogger.getCurrentWorkout()
+      const existingWorkout = await WorkoutLogger.getCurrentWorkout()
       if (existingWorkout) {
         console.log("[v0] 📥 COMPONENT LOAD - Existing workout from localStorage:", {
           id: existingWorkout.id,
           week: existingWorkout.week,
           day: existingWorkout.day,
-          exerciseCount: existingWorkout.exercises.length,
-          exercises: existingWorkout.exercises.map((ex) => ({
+          exerciseCount: existingWorkout.exercises?.length || 0,
+          exercises: existingWorkout.exercises?.map((ex) => ({
             name: ex.exerciseName,
             setsCount: ex.sets?.length || 0,
             hasSets: !!ex.sets,
@@ -213,7 +206,6 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
           (ex) =>
             !ex.suggestedWeight ||
             ex.suggestedWeight === 0 ||
-            !ex.perSetSuggestions || // Need to refresh if per-set suggestions are missing
             ex.sets.some(set => !set.completed && !set.skipped && (!set.reps || set.reps === 0)) || // Need to refresh if reps are missing
             (ex.progressionNote &&
               ex.progressionNote.includes("Complete any workout from Week"))
@@ -287,35 +279,27 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
             console.log("[v0] MOUNT - Refreshed progression for", exercise.exerciseName, {
               suggestedWeight: result.targetWeight,
               progressionNote: result.progressionNote,
-              hasPerSetSuggestions: !!result.perSetSuggestions,
-              perSetCount: result.perSetSuggestions?.length || 0,
             })
 
             const suggestedWeight = result.targetWeight ?? 0
 
-            const updatedSets = exercise.sets?.map((set, setIndex) => {
-              // Pre-fill from per-set suggestions if available
-              if (result.perSetSuggestions && result.perSetSuggestions[setIndex]) {
-                const suggestion = result.perSetSuggestions[setIndex]
-                return {
-                  ...set,
-                  weight:
-                    !set.completed && !set.skipped && suggestion.weight > 0
-                      ? suggestion.weight
-                      : set.weight,
-                  reps:
-                    !set.completed && !set.skipped && suggestion.reps > 0
-                      ? suggestion.reps
-                      : set.reps,
-                }
-              }
-              // Fallback to exercise-level suggestion
+            // Extract default reps from performedReps string (e.g., "8-10" -> 8)
+            const defaultReps = result.performedReps 
+              ? parseInt(result.performedReps.toString().split('-')[0]) || 0
+              : 0
+
+            const updatedSets = exercise.sets?.map((set) => {
+              // Fallback to exercise-level suggestion with default reps
               return {
                 ...set,
                 weight:
                   !set.completed && !set.skipped && suggestedWeight > 0
                     ? suggestedWeight
                     : set.weight,
+                reps:
+                  !set.completed && !set.skipped && defaultReps > 0
+                    ? defaultReps
+                    : set.reps,
               }
             })
 
@@ -323,14 +307,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
               ...exercise,
               suggestedWeight,
               progressionNote: result.progressionNote,
-              baseVolume:
-                typeof result.targetWeight === "number" &&
-                typeof result.targetReps === "number"
-                  ? result.targetWeight * result.targetReps
-                  : exercise.baseVolume,
-              userOverridden: false,
               sets: updatedSets ?? exercise.sets,
-              perSetSuggestions: result.perSetSuggestions,
             }
           })
 
@@ -350,6 +327,12 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
             })
 
           setWorkout(refreshedWorkout)
+          
+          // Re-check bounds after progression refresh since suggestedWeight/bounds may have changed
+          refreshedWorkout.exercises.forEach((ex) => {
+            // Use setTimeout to ensure state updates have completed
+            setTimeout(() => checkExerciseBoundsStatus(ex.id), 0)
+          })
         }
       }
 
@@ -395,7 +378,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
         const week = activeProgram?.currentWeek
         const day = activeProgram?.currentDay
 
-        const newWorkout = WorkoutLogger.startWorkout(initialWorkout.name, initialWorkout.exercises, week, day, user?.id)
+        const newWorkout = await WorkoutLogger.startWorkout(initialWorkout.name, initialWorkout.exercises, week, day, user?.id)
         console.log("[v0] 🆕 COMPONENT NEW WORKOUT - Created from initialWorkout:", {
           id: newWorkout.id,
           week: newWorkout.week,
@@ -419,7 +402,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
         const currentWorkout = await ProgramStateManager.getCurrentWorkout()
         
         if (!currentWorkout) {
-          console.error("[v0] No current workout available from program")
+          console.warn("[v0] No current workout available from program - this is normal if no active program exists")
           return
         }
 
@@ -427,7 +410,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
         const week = activeProgram?.currentWeek
         const day = activeProgram?.currentDay
 
-        const newWorkout = WorkoutLogger.startWorkout(currentWorkout.name, currentWorkout.exercises, week, day, user?.id)
+        const newWorkout = await WorkoutLogger.startWorkout(currentWorkout.name, currentWorkout.exercises, week, day, user?.id)
         console.log("[v0] 🆕 COMPONENT NEW WORKOUT - Created from current program workout:", {
           id: newWorkout.id,
           week: newWorkout.week,
@@ -453,22 +436,20 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
       
       if (activeProgram) {
         setProgramName(activeProgram.template.name)
-        
-        // Clear current workout and load the new one
-        setWorkout(null)
-        
+
         // Get the current workout based on updated program state
         const currentWorkout = await ProgramStateManager.getCurrentWorkout()
         if (currentWorkout) {
           const week = activeProgram?.currentWeek
           const day = activeProgram?.currentDay
-          
-          const newWorkout = WorkoutLogger.startWorkout(currentWorkout.name, currentWorkout.exercises, week, day, user?.id)
+
+          const newWorkout = await WorkoutLogger.startWorkout(currentWorkout.name, currentWorkout.exercises, week, day, user?.id)
           console.log("[v0] Loaded new workout after program change:", {
             week,
             day,
             workoutName: newWorkout.workoutName,
           })
+          // Only update state after new workout is fully loaded (prevents "No Workout" flash)
           setWorkout(newWorkout)
           setIsWorkoutBlocked(false)
           setIsFullyBlocked(false)
@@ -480,6 +461,8 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
     window.addEventListener("programChanged", handleProgramChange)
     return () => window.removeEventListener("programChanged", handleProgramChange)
   }, [])
+
+  // Legacy enrichment event listener removed - all templates now use proper UUIDs with complete metadata
 
   
   // Cleanup debounce timer on unmount
@@ -493,79 +476,17 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
 
   // Initialize ConnectionMonitor
   const handleSetUpdate = (exerciseId: string, setId: string, field: "reps" | "weight", value: number) => {
-    if (!workout) return
+    if (!workout || !workout.exercises) return
 
     console.log("[v0] handleSetUpdate called:", { exerciseId, setId, field, value, isWorkoutBlocked })
 
     const exercise = workout.exercises.find((ex) => ex.id === exerciseId)
     if (!exercise) return
 
-    // NEW: Check if this exercise uses per-set suggestions
-    if (field === "weight" && exercise.perSetSuggestions && exercise.perSetSuggestions.length > 0) {
-      // Find which set index we're editing
-      const setIndex = exercise.sets.findIndex(s => s.id === setId)
-      const suggestion = exercise.perSetSuggestions[setIndex]
-      
-      if (suggestion && suggestion.bounds) {
-        const { min, max } = suggestion.bounds
-        const withinBounds = value >= min && value <= max
-        
-        if (!withinBounds) {
-          // OUT OF BOUNDS: Set flag for warning (will show on blur) and show yellow banner
-          console.log("[v0] Per-set weight out of bounds:", { setIndex, value, min, max })
-          setVolumeCompensation(prev => ({
-            ...prev,
-            [`${exerciseId}_${setId}`]: {
-              adjustedReps: 0,
-              strategy: "out_of_bounds",
-              message: `Weight out of bounds: ${Math.round(min)}-${Math.round(max)}. Enter reps manually.`
-            }
-          }))
-          setPendingOutOfBoundsWarnings(prev => ({ ...prev, [`${exerciseId}_${setId}`]: true }))
-        } else if (value !== suggestion.weight) {
-          // WITHIN BOUNDS but different from suggestion: Show dynamic rep adjustment
-          const adjustedReps = Math.round(suggestion.reps * (suggestion.weight / value))
-          console.log("[v0] Dynamic rep adjustment:", { 
-            baseWeight: suggestion.weight, 
-            newWeight: value, 
-            baseReps: suggestion.reps, 
-            adjustedReps 
-          })
-          
-          // Show green banner with adjusted reps
-          setVolumeCompensation(prev => ({
-            ...prev,
-            [`${exerciseId}_${setId}`]: {
-              adjustedReps,
-              strategy: "per_set_adjusted",
-              message: `Adjusted to ${adjustedReps} reps based on weight change`
-            }
-          }))
-          // Clear any pending warning since we're within bounds
-          setPendingOutOfBoundsWarnings(prev => {
-            const updated = { ...prev }
-            delete updated[`${exerciseId}_${setId}`]
-            return updated
-          })
-        } else {
-          // Weight matches suggestion exactly - clear any compensation
-          setVolumeCompensation(prev => {
-            const updated = { ...prev }
-            delete updated[`${exerciseId}_${setId}`]
-            return updated
-          })
-          // Clear any pending warning since we're back to suggested weight
-          setPendingOutOfBoundsWarnings(prev => {
-            const updated = { ...prev }
-            delete updated[`${exerciseId}_${setId}`]
-            return updated
-          })
-        }
-      }
-    }
-    // LEGACY: Fall back to exercise-level bounds for old workouts
-    else if (field === "weight" && exercise.suggestedWeight && exercise.bounds) {
-      const tierRules = getTierRules(exercise.exerciseName, exercise.tier === "compound" ? "compound" : "isolation")
+    // Simplified weight handling without 1RM features
+    if (field === "weight" && exercise.suggestedWeight) {
+      // Basic bounds checking if available
+      const tierRules = getTierRules(exercise.exerciseName, "isolation")
       
       // Check if weight is within bounds
       const withinBounds = isWeightWithinBounds(
@@ -575,7 +496,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
       )
       
       if (!withinBounds) {
-        // OUT OF BOUNDS: Mark as overridden, set flag for warning (will show on blur) and track for banner display
+        // OUT OF BOUNDS: Mark as overridden
         console.log("[v0] Weight out of bounds, marking as override")
         setUserOverrides(prev => ({ ...prev, [exerciseId]: true }))
         setVolumeCompensation(prev => {
@@ -586,8 +507,8 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
         setPendingOutOfBoundsWarnings(prev => ({ ...prev, [`${exerciseId}_${setId}`]: true }))
       } else {
         // WITHIN BOUNDS: Calculate volume compensation
-        const baseReps = parseInt(exercise.targetReps.split("-")[0]) || 10
-        const targetVolume = exercise.baseVolume || (exercise.suggestedWeight * baseReps)
+        const baseReps = parseInt(exercise.performedReps.split("-")[0]) || 10
+        const targetVolume = exercise.suggestedWeight * baseReps
         
         const compensation = calculateVolumeCompensation(
           targetVolume,
@@ -616,26 +537,9 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
       }
     }
 
-    // Calculate rep adjustment BEFORE async update (so we have the value immediately, not after state updates)
+    // Simplified rep adjustment without 1RM features
     let calculatedAdjustedReps: number | undefined = undefined
     let shouldClearReps = false
-    if (field === "weight" && exercise.perSetSuggestions && exercise.perSetSuggestions.length > 0) {
-      const setIndex = exercise.sets.findIndex(s => s.id === setId)
-      const suggestion = exercise.perSetSuggestions[setIndex]
-      if (suggestion && suggestion.bounds) {
-        const withinBounds = value >= suggestion.bounds.min && value <= suggestion.bounds.max
-        if (!withinBounds) {
-          // OUT OF BOUNDS: Clear reps
-          shouldClearReps = true
-        } else if (value !== suggestion.weight) {
-          // WITHIN BOUNDS but different from suggestion: Calculate adjusted reps
-          calculatedAdjustedReps = Math.round(suggestion.reps * (suggestion.weight / value))
-        } else {
-          // WITHIN BOUNDS and matches suggestion: Use suggestion reps
-          calculatedAdjustedReps = suggestion.reps
-        }
-      }
-    }
 
     // Handle manual reps changes (detect override)
     if (field === "reps") {
@@ -742,27 +646,12 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
     // Show toast if pending warning
     const key = `${exerciseId}_${setId}`
     if (pendingOutOfBoundsWarnings[key]) {
-      const exercise = workout?.exercises.find((ex) => ex.id === exerciseId)
-      if (exercise?.perSetSuggestions) {
-        const setIndex = exercise.sets.findIndex(s => s.id === setId)
-        const suggestion = exercise.perSetSuggestions[setIndex]
-        if (suggestion?.bounds) {
-          toast({
-            title: 'Weight out of range',
-            description: `Suggested range for this set: ${Math.round(suggestion.bounds.min)}-${Math.round(suggestion.bounds.max)}.`,
-            variant: 'destructive',
-            duration: 4000
-          })
-        }
-      } else if (exercise?.bounds) {
-        // Legacy bounds
-        toast({
-          title: 'Weight out of range',
-          description: `Suggested range: ${Math.round(exercise.bounds.min)}-${Math.round(exercise.bounds.max)}. Fill reps manually.`,
-          variant: 'destructive',
-          duration: 4000
-        })
-      }
+      toast({
+        title: 'Weight out of range',
+        description: 'Please enter a reasonable weight for this exercise.',
+        variant: 'destructive',
+        duration: 4000
+      })
       // Clear the flag after showing toast
       setPendingOutOfBoundsWarnings(prev => {
         const updated = { ...prev }
@@ -774,7 +663,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
 
   // Check if current active set of an exercise is out of bounds and update banner
   const checkExerciseBoundsStatus = (exerciseId: string) => {
-    if (!workout) return
+    if (!workout || !workout.exercises) return
 
     const exercise = workout.exercises.find((ex) => ex.id === exerciseId)
     if (!exercise) return
@@ -794,36 +683,24 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
     const activeSet = exercise.sets[activeSetIndex]
     const setNumber = activeSetIndex + 1
 
-    // Check bounds for per-set suggestions
-    if (exercise.perSetSuggestions && exercise.perSetSuggestions[activeSetIndex]) {
-      const suggestion = exercise.perSetSuggestions[activeSetIndex]
-      if (suggestion.bounds && activeSet.weight > 0) {
-        const { min, max } = suggestion.bounds
-        const withinBounds = activeSet.weight >= min && activeSet.weight <= max
-
-        if (!withinBounds) {
-          setOutOfBoundsExercises(prev => ({
-            ...prev,
-            [exerciseId]: { min, max, setNumber }
-          }))
-        } else {
-          setOutOfBoundsExercises(prev => {
-            const updated = { ...prev }
-            delete updated[exerciseId]
-            return updated
-          })
-        }
-      }
-    }
-    // Check legacy bounds
-    else if (exercise.bounds && activeSet.weight > 0) {
-      const { min, max } = exercise.bounds
-      const withinBounds = activeSet.weight >= min && activeSet.weight <= max
+    // Simplified bounds check without 1RM features
+    if (activeSet.weight > 0 && exercise.suggestedWeight) {
+      const tierRules = getTierRules(exercise.exerciseName, "isolation")
+      const withinBounds = isWeightWithinBounds(
+        activeSet.weight,
+        exercise.suggestedWeight,
+        tierRules.adjustmentBounds
+      )
 
       if (!withinBounds) {
+        const bounds = tierRules.adjustmentBounds
         setOutOfBoundsExercises(prev => ({
           ...prev,
-          [exerciseId]: { min, max, setNumber }
+          [exerciseId]: { 
+            min: typeof bounds.min === 'number' ? bounds.min : Number(bounds.min), 
+            max: typeof bounds.max === 'number' ? bounds.max : Number(bounds.max), 
+            setNumber 
+          }
         }))
       } else {
         setOutOfBoundsExercises(prev => {
@@ -836,7 +713,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
   }
 
   const handleCompleteSet = async (exerciseId: string, setId: string) => {
-    if (!workout) return
+    if (!workout || !workout.exercises) return
 
     const exercise = workout.exercises.find((ex) => ex.id === exerciseId)
     const set = exercise?.sets.find((s) => s.id === setId)
@@ -883,13 +760,13 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
 
   
   const canFinishWorkout = (): boolean => {
-    if (!workout) return false
+    if (!workout || !workout.exercises) return false
 
     return workout.exercises.every((exercise) => exercise.sets.every((set) => set.completed))
   }
 
   const handleCompleteWorkout = async () => {
-    if (!workout) return
+    if (!workout || !workout.exercises) return
 
     setIsCompletingWorkout(true)
 
@@ -914,23 +791,43 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
           return
         }
 
+        // Batch all state updates and sync together, only dispatch event once at the end
         if (!wasAlreadyCompleted) {
-          await ProgramStateManager.completeWorkout()
+          await ProgramStateManager.completeWorkout(user?.id, { skipEvent: true })
         }
 
-        // Sync to database
+        // Sync to database (batched operation)
         if (user?.id) {
           try {
             await WorkoutLogger.syncToDatabase(user.id)
-
-            // Notify calendar that data has changed
-            window.dispatchEvent(new Event("programChanged"))
-
           } catch (error) {
             console.error("[v0] Failed to sync to database:", error)
             // Still show completion dialog even if sync fails
           }
         }
+
+        // Dispatch optimistic update event immediately (synchronous)
+        window.dispatchEvent(new CustomEvent("workoutCompleted", {
+          detail: {
+            week: completedWorkout.week,
+            day: completedWorkout.day,
+            completed: true
+          }
+        }))
+
+        // Also dispatch on next tick to catch listeners that remount
+        setTimeout(() => {
+          window.dispatchEvent(new CustomEvent("workoutCompleted", {
+            detail: {
+              week: completedWorkout.week,
+              day: completedWorkout.day,
+              completed: true
+            }
+          }))
+        }, 0)
+
+        // Dispatch single programChanged event after all updates complete
+        window.dispatchEvent(new Event("programChanged"))
 
         setCompletedWorkout(completedWorkout)
         setShowCompletionDialog(true)
@@ -945,12 +842,23 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
   const handleCompletionDialogClose = () => {
     setShowCompletionDialog(false)
     setCompletedWorkout(null)
-    onComplete?.()
+    
+    // If program was ended, the event was already dispatched in handleEndProgram
+    // Just reset the flag
+    if (programWasEnded) {
+      setProgramWasEnded(false)
+      // Event already dispatched, no need to dispatch again
+    } else {
+      onComplete?.()
+    }
   }
 
   const handleViewMuscleGroupStats = () => {
     setShowCompletionDialog(false)
     setShowMuscleGroupStats(true)
+    
+    // If program was ended, we'll navigate after viewing stats
+    // (programWasEnded flag remains set)
   }
 
   const handleCancelWorkout = () => {
@@ -1023,18 +931,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
   }
 
   const handleEndProgram = async () => {
-    if (endProgramConfirmation !== "End Program") return
-
-    if (!workout) {
-      setShowEndProgramDialog(false)
-      return
-    }
-
-    const activeProgram = await ProgramStateManager.getActiveProgram()
-    if (!activeProgram) {
-      setShowEndProgramDialog(false)
-      return
-    }
+    if (!activeProgram || !workout || endProgramConfirmation !== "End Program") return
 
     try {
       const wasAlreadyCompleted = WorkoutLogger.hasCompletedWorkout(
@@ -1066,8 +963,9 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
       setWorkout(updatedWorkout)
       await WorkoutLogger.saveCurrentWorkout(updatedWorkout, user?.id)
 
-      const completedWorkout = await WorkoutLogger.completeWorkout(updatedWorkout.id)
+      const completedWorkout = await WorkoutLogger.completeWorkout(updatedWorkout.id, user?.id)
       if (!completedWorkout) {
+        console.error("[handleEndProgram] Failed to complete current workout")
         return
       }
 
@@ -1141,9 +1039,18 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
 
       await ProgramStateManager.finalizeActiveProgram(user?.id, { endedEarly: true })
 
-      setProgramName("")
-      setCompletedWorkout(completedWorkout)
-      setShowCompletionDialog(true)
+      // Clear the active program to force program selection
+      await ProgramStateManager.clearActiveProgram()
+      console.log("[handleEndProgram] Program ended and cleared")
+
+      // Don't show completion dialog when ending program
+      // setShowCompletionDialog(true)  // REMOVE THIS
+      
+      // Immediately switch to train view
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('programEnded'))
+      }
+      
       setWorkout(null)
     } catch (error) {
       console.error("[v0] Failed to end program:", error)
@@ -1154,7 +1061,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
   }
 
   const getWorkoutSummary = () => {
-    if (!workout) return { completedSets: 0, skippedSets: 0, totalSets: 0, exercises: 0 }
+    if (!workout || !workout.exercises) return { completedSets: 0, skippedSets: 0, totalSets: 0, exercises: 0 }
 
     let completedSets = 0
     let skippedSets = 0
@@ -1183,7 +1090,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
 
   
   const getWorkoutProgress = (): number => {
-    if (!workout) return 0
+    if (!workout || !workout.exercises) return 0
     const totalSets = workout.exercises.reduce((sum, ex) => sum + ex.sets.length, 0)
     const completedSets = workout.exercises.reduce((sum, ex) => sum + ex.sets.filter((s) => s.completed).length, 0)
     return totalSets > 0 ? (completedSets / totalSets) * 100 : 0
@@ -1382,7 +1289,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
 
     // Check completed history first, then in-progress workouts
     const completedWorkout = WorkoutLogger.getCompletedWorkout(week, day, user?.id)
-    const inProgressWorkout = WorkoutLogger.getInProgressWorkout(week, day, user?.id)
+    const inProgressWorkout = await WorkoutLogger.getInProgressWorkout(week, day, user?.id)
     const existingWorkout = completedWorkout || inProgressWorkout
 
     let loadedWorkout: WorkoutSession
@@ -1465,18 +1372,22 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
             oldNote: exercise.progressionNote,
             newNote: result.progressionNote,
             oldWeight: exercise.suggestedWeight,
-            newWeight: result.targetWeight
+            newWeight: result.targetWeight,
+            oldReps: exercise.performedReps,
+            newReps: previousPerformance?.actualReps || result.performedReps
           })
 
           // Update exercise with new progression data
+          // Copy actualReps from previous week (what user actually did), not template target
           return {
             ...exercise,
+            performedReps: previousPerformance?.actualReps?.toString() || exercise.performedReps,
             suggestedWeight: result.targetWeight,
             progressionNote: result.progressionNote,
             bounds: result.additionalData?.bounds,
             strategy: result.strategy,
             tier: result.additionalData?.tier,
-            baseVolume: result.targetWeight * result.targetReps,
+            baseVolume: result.targetWeight * result.performedReps,
             userOverridden: false
           }
         })
@@ -1524,7 +1435,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
           exerciseId: exercise.id,
           exerciseName: exercise.exerciseName,
           targetSets: result.targetSets || 3,
-          targetReps: result.targetReps.toString(),
+          performedReps: result.performedReps.toString(),
           targetRest: `${Math.floor(exercise.restTime / 60)} min`,
           muscleGroup: getExerciseMuscleGroup(exercise.exerciseName),
           equipmentType: exercise.equipmentType || "BARBELL",
@@ -1534,39 +1445,77 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
           bounds: result.additionalData?.bounds,
           strategy: result.strategy,
           tier: result.additionalData?.tier,
-          baseVolume: result.targetWeight * result.targetReps,
+          baseVolume: result.targetWeight * result.performedReps,
           userOverridden: false
         }
       })
 
+      // Check blocking logic BEFORE creating workout to prevent ghost data
       const scheduleKeys = Object.keys(template.schedule)
       const daysPerWeek = scheduleKeys.length
-
-      // Preview mode check: Don't sync to database if viewing future week
       const isCurrentWeekCompleted = WorkoutLogger.isWeekCompleted(activeProgram.currentWeek, daysPerWeek, user?.id)
-      const isPreviewMode = week > activeProgram.currentWeek && !isCurrentWeekCompleted
-      
-      loadedWorkout = WorkoutLogger.startWorkout(
-        workoutDay.name, 
-        transformedExercises, 
-        week, 
-        day, 
-        isPreviewMode ? undefined : user?.id  // Don't pass userId in preview mode to prevent DB sync
-      )
+      const weeksAhead = week - activeProgram.currentWeek
 
-      console.log("[v0] Created new workout:", {
-        id: loadedWorkout.id,
-        exerciseCount: loadedWorkout.exercises.length,
-      })
+      // Determine if this should be blocked or preview-only
+      let shouldCreateWorkout = true
+      let isPreviewMode = false
+
+      if (week > activeProgram.currentWeek) {
+        if (!isCurrentWeekCompleted) {
+          if (weeksAhead === 1) {
+            // Next week preview - create workout but don't persist
+            isPreviewMode = true
+          } else {
+            // Too far ahead - don't create workout at all
+            shouldCreateWorkout = false
+          }
+        }
+      }
+
+      if (shouldCreateWorkout) {
+        loadedWorkout = await WorkoutLogger.startWorkout(
+          workoutDay.name, 
+          transformedExercises, 
+          week, 
+          day, 
+          isPreviewMode ? undefined : user?.id  // Don't pass userId in preview mode to prevent DB sync
+        )
+
+        console.log("[v0] Created new workout:", {
+          id: loadedWorkout.id,
+          exerciseCount: loadedWorkout.exercises.length,
+          isPreviewMode
+        })
+      } else {
+        // Create a minimal workout object for display without persisting
+        loadedWorkout = {
+          id: `preview-${week}-${day}`,
+          workoutName: workoutDay.name,
+          week,
+          day,
+          exercises: transformedExercises.map(ex => ({
+            ...ex,
+            sets: Array.from({ length: ex.targetSets }, (_, i) => ({
+              id: `preview-set-${i}`,
+              reps: 0,
+              weight: 0,
+              completed: false,
+              skipped: false
+            }))
+          })),
+          completed: false,
+          startTime: Date.now(),
+          userId: user?.id
+        } as WorkoutSession
+      }
     }
-
-    const scheduleKeys = Object.keys(template.schedule)
-    const daysPerWeek = scheduleKeys.length
 
     // New blocking logic: Allow current week (any day order) + completed weeks
     // Preview next week (blocked but visible with suggested weights), fully block weeks 2+ ahead
     if (week > activeProgram.currentWeek) {
       // Trying to access a future week - check if current week is complete
+      const scheduleKeys = Object.keys(template.schedule)
+      const daysPerWeek = scheduleKeys.length
       const isCurrentWeekCompleted = WorkoutLogger.isWeekCompleted(activeProgram.currentWeek, daysPerWeek, user?.id)
       const weeksAhead = week - activeProgram.currentWeek
 
@@ -1618,21 +1567,21 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
     return colors[muscleGroup] || "bg-gray-100 text-gray-800 border-gray-200"
   }
 
-  const displayExercises = workout ? workout.exercises : []
+  const displayExercises = workout?.exercises ?? []
 
-  console.log("[v0] Rendering workout with", displayExercises.length, "exercises")
-  displayExercises.forEach((ex, idx) => {
+  console.log("[v0] Rendering workout with", displayExercises?.length || 0, "exercises")
+  displayExercises?.forEach((ex, idx) => {
     console.log(`[v0] Exercise ${idx + 1}: ${ex.exerciseName} - ${ex.sets?.length || 0} sets`)
   })
 
-  const groupedExercises = displayExercises.reduce((acc, exercise) => {
+  const groupedExercises = displayExercises?.reduce((acc, exercise) => {
     const muscleGroup = (exercise as any).muscleGroup || "Uncategorized"
     if (!acc[muscleGroup]) {
       acc[muscleGroup] = []
     }
     acc[muscleGroup].push(exercise)
     return acc
-  }, {} as { [key: string]: typeof displayExercises })
+  }, {} as { [key: string]: typeof displayExercises }) || {}
 
   const handleMuscleGroupStatsClose = () => {
     setShowMuscleGroupStats(false)

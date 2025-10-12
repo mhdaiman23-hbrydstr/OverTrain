@@ -52,7 +52,7 @@ const DEFAULT_PROGRESS: GlobalProgressionDefaults = {
   progressionMode: "weight_based",
 }
 
-const LAYOUT_HEIGHT = "h-[calc(100vh-220px)]"
+const LAYOUT_HEIGHT = "h-[calc(100vh-200px)]"
 
 export function AdminTemplateBuilder() {
   const [meta, setMeta] = useState<ProgramMeta>(DEFAULT_META)
@@ -527,7 +527,7 @@ export function AdminTemplateBuilder() {
         </Alert>
       )}
 
-      <div className="flex-1 gap-4 lg:grid lg:grid-cols-[minmax(0,1fr)_320px] lg:gap-6">
+      <div className="flex-1 gap-4 lg:grid lg:grid-cols-[minmax(0,1fr)_20rem] lg:gap-6">
         <div className="space-y-4 pr-1 lg:pr-4">
           <ProgramSummaryPanel meta={meta} onMetaChange={handleMetaChange} fieldErrors={validation.fieldErrors} />
           <SchedulePanel
@@ -573,6 +573,3 @@ export function AdminTemplateBuilder() {
     </div>
   )
 }
-
-
-

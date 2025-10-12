@@ -15,7 +15,7 @@ import type { ActiveProgram } from "./program-state"
 export interface ProgressedExerciseData {
   targetWeight: number
   targetSets: number
-  targetReps: string
+  performedReps: string
   progressionNote?: string
   hasPreviousData: boolean
 }
@@ -61,7 +61,7 @@ export class ProgressionCalculator {
       return {
         targetWeight: 0, // User enters their starting weight
         targetSets: weekData?.sets || 3,
-        targetReps: weekData?.repRange || "8-10",
+        performedReps: weekData?.repRange || "8-10",
         hasPreviousData: false,
       }
     }
@@ -94,7 +94,7 @@ export class ProgressionCalculator {
       return {
         targetWeight: 0,
         targetSets: weekData?.sets || 3,
-        targetReps: weekData?.repRange || "8-10",
+        performedReps: weekData?.repRange || "8-10",
         progressionNote: `Complete any workout from Week ${previousWeek} to see progressed targets`,
         hasPreviousData: false,
       }
@@ -114,7 +114,7 @@ export class ProgressionCalculator {
       return {
         targetWeight: 0,
         targetSets: weekData?.sets || 3,
-        targetReps: weekData?.repRange || "8-10",
+        performedReps: weekData?.repRange || "8-10",
         hasPreviousData: false,
       }
     }
@@ -131,7 +131,7 @@ export class ProgressionCalculator {
       return {
         targetWeight: 0,
         targetSets: weekData?.sets || 3,
-        targetReps: weekData?.repRange || "8-10",
+        performedReps: weekData?.repRange || "8-10",
         progressionNote: "No data from previous week",
         hasPreviousData: false,
       }
@@ -149,9 +149,9 @@ export class ProgressionCalculator {
     const targetSets = currentWeekData?.sets || 3
 
     // Determine if user hit all target reps in previous week
-    const targetRepsStr = previousExercise.targetReps || "8-10"
-    const targetRepsMax = Number.parseInt(targetRepsStr.split("-")[1] || targetRepsStr)
-    const allSetsCompletedWithGoodReps = completedSets.every((s) => s.reps >= targetRepsMax)
+    const performedRepsStr = previousExercise.performedReps || "8-10"
+    const performedRepsMax = Number.parseInt(performedRepsStr.split("-")[1] || performedRepsStr)
+    const allSetsCompletedWithGoodReps = completedSets.every((s) => s.reps >= performedRepsMax)
 
     // Get tier-based progression rules
     const tier = getExerciseTier(exerciseName, exerciseTemplate.category)
@@ -199,7 +199,7 @@ export class ProgressionCalculator {
     return {
       targetWeight: progressedWeight,
       targetSets,
-      targetReps: targetRepRange,
+      performedReps: targetRepRange,
       progressionNote: note,
       hasPreviousData: true,
     }
@@ -248,7 +248,7 @@ export class ProgressionCalculator {
       return {
         targetWeight: 0, // User enters their starting weight
         targetSets: weekData?.sets || 3,
-        targetReps: weekData?.repRange || "8-10",
+        performedReps: weekData?.repRange || "8-10",
         hasPreviousData: false,
         tier,
         strategy: "standard"
@@ -265,7 +265,7 @@ export class ProgressionCalculator {
       return {
         targetWeight: 0,
         targetSets: weekData?.sets || 3,
-        targetReps: weekData?.repRange || "8-10",
+        performedReps: weekData?.repRange || "8-10",
         progressionNote: `Complete any workout from Week ${currentWeek - 1} to see progressed targets`,
         hasPreviousData: false,
         tier,
@@ -304,7 +304,7 @@ export class ProgressionCalculator {
       return {
         targetWeight: idealWeight,
         targetSets,
-        targetReps: targetRepRange,
+        performedReps: targetRepRange,
         progressionNote: `Auto-calculated +${(idealWeight - lastWeight).toFixed(1)} from ${workoutSource}`,
         hasPreviousData: true,
         tier,
@@ -328,7 +328,7 @@ export class ProgressionCalculator {
     return {
       targetWeight: userWeightAdjustment,
       targetSets,
-      targetReps: targetRepRange,
+      performedReps: targetRepRange,
       progressionNote,
       hasPreviousData: true,
       tier,
@@ -363,7 +363,7 @@ export class ProgressionCalculator {
     return {
       targetWeight: deloadWeight,
       targetSets: Math.max(1, (exerciseTemplate.progressionTemplate.week1?.sets || 3) - 1), // Reduce sets by 1
-      targetReps: "6-8", // Lighter rep range for deload
+      performedReps: "6-8", // Lighter rep range for deload
       progressionNote: referenceWeight > 0 ? `Deload week (${Math.round((1 - 0.8) * 100)}% reduction from ${referenceWeight})` : "Deload week - use lighter weight",
       hasPreviousData: previousData !== null,
       tier,
@@ -500,7 +500,7 @@ export class ProgressionCalculator {
       engineUsed: progressionResult.engineUsed,
       strategy: progressionResult.strategy,
       targetWeight: progressionResult.targetWeight,
-      targetReps: progressionResult.targetReps,
+      performedReps: progressionResult.performedReps,
       note: progressionResult.progressionNote
     })
 
@@ -508,14 +508,14 @@ export class ProgressionCalculator {
     const adaptiveResult: AdaptiveProgressionResult = {
       targetWeight: progressionResult.targetWeight,
       targetSets: progressionResult.targetSets || this.getCurrentWeekSets(exerciseTemplate, currentWeek),
-      targetReps: this.formatRepRange(progressionResult.targetReps),
+      performedReps: this.formatRepRange(progressionResult.performedReps),
       progressionNote: progressionResult.progressionNote,
       hasPreviousData: !!previousPerformance,
       tier: getExerciseTier(exerciseName, exerciseTemplate.category),
       strategy: this.mapStrategy(progressionResult.strategy),
       adjustedReps: progressionResult.additionalData?.adjustedReps,
       bounds: progressionResult.additionalData?.bounds,
-      targetVolume: progressionResult.targetWeight * progressionResult.targetReps,
+      targetVolume: progressionResult.targetWeight * progressionResult.performedReps,
       userWeightAdjustment,
       perSetSuggestions: progressionResult.perSetSuggestions  // NEW: pass through per-set suggestions
     }
@@ -523,7 +523,7 @@ export class ProgressionCalculator {
     // Add percentage-specific data if available
     if (progressionResult.engineUsed === "percentage" && progressionResult.additionalData) {
       adaptiveResult.targetVolume = progressionResult.additionalData.percentage ?
-        (progressionResult.additionalData.oneRepMaxUsed || 0) * (progressionResult.additionalData.percentage / 100) * progressionResult.targetReps :
+        (progressionResult.additionalData.oneRepMaxUsed || 0) * (progressionResult.additionalData.percentage / 100) * progressionResult.performedReps :
         adaptiveResult.targetVolume
     }
 

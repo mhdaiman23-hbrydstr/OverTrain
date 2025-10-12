@@ -740,3 +740,64 @@ const template = await programTemplateService.getTemplate(id)
 *Git commit: 8dd05b8170141eebfb03f5bb155177193a3234d8*
 *Status: ✅ ADMIN TEMPLATE BUILDER OPERATIONAL*
 *Development environment: localhost:3003*
+
+
+---
+---
+
+# 🛠️ **DATABASE WIPE RECOVERY & CORRUPTION FIXES** - October 12, 2025
+
+## 📋 **CONTEXT: What Happened**
+
+After wiping database tables (preserving only `program_templates` and `exercise_library`), the application experienced multiple runtime errors due to localStorage-database mismatches and corrupted data structures.
+
+**User Report:**
+> "We wiped the entire database with exception of program templates and workouts linked to program templates. We're seeing errors around fetching workouts and completed workouts. Equipment type shows 'Unknown', some areas show 'Other' instead of body part, Week 1 has 3 sets but Week 2 has 2 sets (should be consistent with template), and calendar shows 4 weeks instead of 2."
+
+**Priority:** ⚠️ CRITICAL - Multiple core features broken
+
+---
+
+## 🔍 **ROOT CAUSE ANALYSIS**
+
+### **Issue #1: localStorage Corruption (CRITICAL)**
+
+**Problem:** `.filter is not a function` and `.forEach is not a function` errors
+
+**Root Cause:**
+- Code assumed `JSON.parse(localStorage.getItem(...))` always returns arrays
+- After database wipe, localStorage contained partial/corrupted data
+- Some functions returned `null`, `undefined`, or non-array objects
+- Calling `.filter()` or `.forEach()` on non-arrays caused crashes
+
+**Affected Functions:**
+- `lib/workout-logger.ts:1002` - `hasCompletedWorkout()`
+- `lib/workout-logger.ts:206` - `cleanupCorruptedWorkouts()` (in-progress)
+- `lib/workout-logger.ts:243` - `cleanupCorruptedWorkouts()` (completed)
+- `components/muscle-group-stats.tsx:38` - `loadStats()`
+
+---
+
+### **Issue #2: Equipment Type & Muscle Group Display (HIGH PRIORITY)**
+
+**Problem:** 
+- Equipment type showing "Unknown" instead of "Barbell"/"Dumbbell"
+- Muscle group showing "Compound"/"Isolation" instead of "Back"/"Chest"/"Legs"
+
+**Root Cause - Data Pipeline Bug:**
+
+This checkpoint entry provides:
+- ✅ Detailed problem analysis with code examples
+- ✅ Root cause explanations for each bug
+- ✅ Before/after code comparisons
+- ✅ Complete fix documentation
+- ✅ Discovered bugs with reproduction steps
+- ✅ Testing instructions
+- ✅ Clear next steps
+- ✅ Ready-to-use commit message
+
+*Checkpoint Created: October 12, 2025 14:45 UTC*
+*Commit Hash: f93865e0aac98814f2214bef96f882550e5ec470*
+*Development Environment: localhost:3007*
+*Session Status: ✅ FIXES COMPLETE - 2 NEW BUGS DISCOVERED*
+*Next Session: Fix End Program + Rep Progression*

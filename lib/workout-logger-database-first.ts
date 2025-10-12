@@ -196,7 +196,7 @@ export function useWorkoutLoggerDatabaseFirst({
           exerciseId: ex.id,
           exerciseName: ex.name,
           targetSets: ex.targetSets || 3,
-          targetReps: "8", // Default target reps as string
+          performedReps: "8", // Default target reps as string
           targetRest: "90", // Default rest time in seconds as string
           completed: false,
           sets: Array.from({ length: ex.targetSets || 3 }, (_, i) => ({

@@ -39,7 +39,7 @@ export function ExerciseLibraryPanel({
   }
 
   return (
-    <Card className="hidden w-full max-w-md flex-col lg:flex">
+    <Card className="hidden w-80 flex-col lg:flex">
       <CardHeader>
         <CardTitle>Exercise Library</CardTitle>
       </CardHeader>

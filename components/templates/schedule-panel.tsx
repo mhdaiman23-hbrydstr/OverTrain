@@ -49,7 +49,7 @@ export function SchedulePanel({
   const getError = (path: string) => fieldErrors[path]
 
   return (
-    <Card className="h-[560px]">
+    <Card className="h-[700px]">
       <CardHeader className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <CardTitle>Program Schedule</CardTitle>
         <div className="flex flex-wrap items-center gap-2">
@@ -164,7 +164,7 @@ export function SchedulePanel({
 
                       {day.exercises.length === 0 ? (
                         <div className="flex h-full items-center justify-center text-xs text-muted-foreground">
-                          Drop exercises here to start building this day.
+                          Drag exercises here to start building this day.
                         </div>
                       ) : (
                         <div className="space-y-3">
@@ -172,46 +172,43 @@ export function SchedulePanel({
                             <div key={exercise.id} className="rounded-md border border-border/40 bg-background p-3">
                               <div className="flex flex-col gap-3">
                                 <div className="flex items-start justify-between gap-3">
-                                  <div>
-                                    <div className="text-sm font-semibold leading-tight">{exercise.exerciseName}</div>
-                                    <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                                      <Badge variant="outline">#{index + 1}</Badge>
-                                      <Badge variant="outline">{exercise.category}</Badge>
-                                    </div>
-                                  </div>
                                   <div className="flex items-center gap-2">
+                                    <Badge variant="outline" className="text-xs">#{index + 1}</Badge>
+                                    <div className="text-sm font-semibold leading-tight">{exercise.exerciseName}</div>
+                                  </div>
+                                  <div className="flex items-center gap-1">
                                     <Button
                                       variant="outline"
                                       size="icon"
-                                      className="h-8 w-8"
+                                      className="h-6 w-6"
                                       onClick={(event) => {
                                         event.stopPropagation()
                                         onReorderExercise(day.id, exercise.id, "up")
                                       }}
                                     >
-                                      <ArrowUp className="h-4 w-4" />
+                                      <ArrowUp className="h-3 w-3" />
                                     </Button>
                                     <Button
                                       variant="outline"
                                       size="icon"
-                                      className="h-8 w-8"
+                                      className="h-6 w-6"
                                       onClick={(event) => {
                                         event.stopPropagation()
                                         onReorderExercise(day.id, exercise.id, "down")
                                       }}
                                     >
-                                      <ArrowDown className="h-4 w-4" />
+                                      <ArrowDown className="h-3 w-3" />
                                     </Button>
                                     <Button
                                       variant="destructive"
                                       size="icon"
-                                      className="h-8 w-8"
+                                      className="h-6 w-6"
                                       onClick={(event) => {
                                         event.stopPropagation()
                                         onRemoveExercise(day.id, exercise.id)
                                       }}
                                     >
-                                      <Trash2 className="h-4 w-4" />
+                                      <Trash2 className="h-3 w-3" />
                                     </Button>
                                   </div>
                                 </div>
@@ -237,7 +234,8 @@ export function SchedulePanel({
                                 </div>
 
                                 {!exercise.useGlobalProgression && (
-                                  <div className="grid gap-3 md:grid-cols-2">
+                                  <div className="max-h-60 overflow-y-auto">
+                                    <div className="grid gap-3 md:grid-cols-2">
                                     <div className="space-y-2">
                                       <Label>Working sets</Label>
                                       <Input
@@ -371,6 +369,7 @@ export function SchedulePanel({
                                       </div>
                                     </div>
                                   </div>
+                                  </div>
                                 )}
                               </div>
                             </div>
@@ -388,4 +387,3 @@ export function SchedulePanel({
     </Card>
   )
 }
-

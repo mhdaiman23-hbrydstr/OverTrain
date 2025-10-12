@@ -5,6 +5,7 @@ import { Suspense } from "react"
 import { AuthProvider } from "@/contexts/auth-context"
 import { Toaster } from "@/components/ui/toaster"
 import { TemplateCacheWarmer } from "@/components/template-cache-warmer"
+import { ThemeProvider } from "@/components/theme-provider"
 import "./globals.css"
 
 const outfit = Outfit({
@@ -31,12 +32,19 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className={`${outfit.variable} ${inter.variable} font-sans antialiased`}>
         <AuthProvider>
-          <TemplateCacheWarmer />
-          <Suspense fallback={null}>{children}</Suspense>
-          <Toaster />
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <TemplateCacheWarmer />
+            <Suspense fallback={null}>{children}</Suspense>
+            <Toaster />
+          </ThemeProvider>
         </AuthProvider>
       </body>
     </html>

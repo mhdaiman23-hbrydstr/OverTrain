@@ -1,0 +1,332 @@
+{
+  "template1": {
+    "name": "2-Week Test Program (DEV ONLY) v2",
+    "description": "2-week test program with proper UUID structure",
+    "gender": ["male", "female"],
+    "experienceLevel": ["beginner", "intermediate", "advanced"],
+    "daysPerWeek": 3,
+    "totalWeeks": 2,
+    "progressionType": "linear",
+    "isActive": true,
+    "days": [
+      {
+        "dayNumber": 1,
+        "dayName": "Test Workout A",
+        "exercises": [
+          {
+            "exerciseId": "0a1a634d-1a56-48bd-a485-f40dd6273253",
+            "exerciseName": "Barbell Squat",
+            "category": "compound",
+            "restTimeSeconds": 120,
+            "order": 1,
+            "tier": "tier1",
+            "useGlobalProgression": true,
+            "workingSets": 3,
+            "workingRepRange": "8-10",
+            "deloadSets": 2,
+            "deloadRepRange": "6-8",
+            "autoProgressionEnabled": true,
+            "progressionMode": "weight_based"
+          },
+          {
+            "exerciseId": "3b2438bf-eca7-4445-be14-c409f5a9eec5",
+            "exerciseName": "Bench Press (Flat)",
+            "category": "compound",
+            "restTimeSeconds": 120,
+            "order": 2,
+            "tier": "tier1",
+            "useGlobalProgression": true,
+            "workingSets": 3,
+            "workingRepRange": "8-10",
+            "deloadSets": 2,
+            "deloadRepRange": "6-8",
+            "autoProgressionEnabled": true,
+            "progressionMode": "weight_based"
+          },
+          {
+            "exerciseId": "10ba0801-6aa7-4f93-b18f-8d578885bccd",
+            "exerciseName": "Barbell Bent Over Row",
+            "category": "compound",
+            "restTimeSeconds": 120,
+            "order": 3,
+            "tier": "tier1",
+            "useGlobalProgression": true,
+            "workingSets": 3,
+            "workingRepRange": "8-10",
+            "deloadSets": 2,
+            "deloadRepRange": "6-8",
+            "autoProgressionEnabled": true,
+            "progressionMode": "weight_based"
+          }
+        ]
+      },
+      {
+        "dayNumber": 2,
+        "dayName": "Test Workout B",
+        "exercises": [
+          {
+            "exerciseId": "11903e7a-7358-4d7b-b5a0-352378216298",
+            "exerciseName": "Deadlift",
+            "category": "compound",
+            "restTimeSeconds": 180,
+            "order": 1,
+            "tier": "tier1",
+            "useGlobalProgression": true,
+            "workingSets": 3,
+            "workingRepRange": "5-8",
+            "deloadSets": 2,
+            "deloadRepRange": "3-5",
+            "autoProgressionEnabled": true,
+            "progressionMode": "weight_based"
+          },
+          {
+            "exerciseId": "b44628a3-1f85-4b5f-8855-25fb151e96e9",
+            "exerciseName": "Barbell Shoulder Press (Standing)",
+            "category": "compound",
+            "restTimeSeconds": 120,
+            "order": 2,
+            "tier": "tier1",
+            "useGlobalProgression": true,
+            "workingSets": 3,
+            "workingRepRange": "8-10",
+            "deloadSets": 2,
+            "deloadRepRange": "6-8",
+            "autoProgressionEnabled": true,
+            "progressionMode": "weight_based"
+          },
+          {
+            "exerciseId": "7296e9ef-cd09-4d25-be45-e0c533360fac",
+            "exerciseName": "Barbell Curl (Normal Grip)",
+            "category": "isolation",
+            "restTimeSeconds": 90,
+            "order": 3,
+            "tier": "tier2",
+            "useGlobalProgression": true,
+            "workingSets": 3,
+            "workingRepRange": "10-12",
+            "deloadSets": 2,
+            "deloadRepRange": "8-10",
+            "autoProgressionEnabled": true,
+            "progressionMode": "weight_based"
+          }
+        ]
+      },
+      {
+        "dayNumber": 3,
+        "dayName": "Test Workout C",
+        "exercises": [
+          {
+            "exerciseId": "fb594210-799d-478c-8cab-00b71ef25482",
+            "exerciseName": "Front Squat",
+            "category": "compound",
+            "restTimeSeconds": 120,
+            "order": 1,
+            "tier": "tier1",
+            "useGlobalProgression": true,
+            "workingSets": 3,
+            "workingRepRange": "8-10",
+            "deloadSets": 2,
+            "deloadRepRange": "6-8",
+            "autoProgressionEnabled": true,
+            "progressionMode": "weight_based"
+          },
+          {
+            "exerciseId": "9105b309-da43-4fbb-b88b-77db9ee8eeae",
+            "exerciseName": "Pullup (Normal Grip)",
+            "category": "compound",
+            "restTimeSeconds": 120,
+            "order": 2,
+            "tier": "tier1",
+            "useGlobalProgression": true,
+            "workingSets": 3,
+            "workingRepRange": "6-10",
+            "deloadSets": 2,
+            "deloadRepRange": "4-6",
+            "autoProgressionEnabled": true,
+            "progressionMode": "rep_based"
+          },
+          {
+            "exerciseId": "87674713-a261-4b1f-b97a-9a8ec492b833",
+            "exerciseName": "Dumbbell Lateral Raise",
+            "category": "isolation",
+            "restTimeSeconds": 90,
+            "order": 3,
+            "tier": "tier2",
+            "useGlobalProgression": true,
+            "workingSets": 3,
+            "workingRepRange": "12-15",
+            "deloadSets": 2,
+            "deloadRepRange": "10-12",
+            "autoProgressionEnabled": true,
+            "progressionMode": "weight_based"
+          }
+        ]
+      }
+    ]
+  },
+  "template2": {
+    "name": "3-Day Full Body Beginner v2",
+    "description": "3-day full body beginner program with proper UUID structure",
+    "gender": ["female"],
+    "experienceLevel": ["beginner"],
+    "daysPerWeek": 3,
+    "totalWeeks": 6,
+    "progressionType": "linear",
+    "isActive": true,
+    "days": [
+      {
+        "dayNumber": 1,
+        "dayName": "Full Body A",
+        "exercises": [
+          {
+            "exerciseId": "0a1a634d-1a56-48bd-a485-f40dd6273253",
+            "exerciseName": "Barbell Squat",
+            "category": "compound",
+            "restTimeSeconds": 120,
+            "order": 1,
+            "tier": "tier1",
+            "useGlobalProgression": true,
+            "workingSets": 3,
+            "workingRepRange": "10-12",
+            "deloadSets": 2,
+            "deloadRepRange": "8-10",
+            "autoProgressionEnabled": true,
+            "progressionMode": "weight_based"
+          },
+          {
+            "exerciseId": "3b2438bf-eca7-4445-be14-c409f5a9eec5",
+            "exerciseName": "Bench Press (Flat)",
+            "category": "compound",
+            "restTimeSeconds": 120,
+            "order": 2,
+            "tier": "tier1",
+            "useGlobalProgression": true,
+            "workingSets": 3,
+            "workingRepRange": "10-12",
+            "deloadSets": 2,
+            "deloadRepRange": "8-10",
+            "autoProgressionEnabled": true,
+            "progressionMode": "weight_based"
+          },
+          {
+            "exerciseId": "10ba0801-6aa7-4f93-b18f-8d578885bccd",
+            "exerciseName": "Barbell Bent Over Row",
+            "category": "compound",
+            "restTimeSeconds": 120,
+            "order": 3,
+            "tier": "tier1",
+            "useGlobalProgression": true,
+            "workingSets": 3,
+            "workingRepRange": "10-12",
+            "deloadSets": 2,
+            "deloadRepRange": "8-10",
+            "autoProgressionEnabled": true,
+            "progressionMode": "weight_based"
+          }
+        ]
+      },
+      {
+        "dayNumber": 2,
+        "dayName": "Full Body B",
+        "exercises": [
+          {
+            "exerciseId": "3f62c6d3-4f45-4da2-84ce-461c5492e5af",
+            "exerciseName": "Dumbbell RDL",
+            "category": "compound",
+            "restTimeSeconds": 150,
+            "order": 1,
+            "tier": "tier1",
+            "useGlobalProgression": true,
+            "workingSets": 3,
+            "workingRepRange": "10-12",
+            "deloadSets": 2,
+            "deloadRepRange": "8-10",
+            "autoProgressionEnabled": true,
+            "progressionMode": "weight_based"
+          },
+          {
+            "exerciseId": "9d234abd-3f96-4d03-821c-87362e33e673",
+            "exerciseName": "Bench Press (Incline)",
+            "category": "compound",
+            "restTimeSeconds": 120,
+            "order": 2,
+            "tier": "tier1",
+            "useGlobalProgression": true,
+            "workingSets": 3,
+            "workingRepRange": "10-12",
+            "deloadSets": 2,
+            "deloadRepRange": "8-10",
+            "autoProgressionEnabled": true,
+            "progressionMode": "weight_based"
+          },
+          {
+            "exerciseId": "87674713-a261-4b1f-b97a-9a8ec492b833",
+            "exerciseName": "Dumbbell Lateral Raise",
+            "category": "isolation",
+            "restTimeSeconds": 90,
+            "order": 3,
+            "tier": "tier2",
+            "useGlobalProgression": true,
+            "workingSets": 3,
+            "workingRepRange": "12-15",
+            "deloadSets": 2,
+            "deloadRepRange": "10-12",
+            "autoProgressionEnabled": true,
+            "progressionMode": "weight_based"
+          }
+        ]
+      },
+      {
+        "dayNumber": 3,
+        "dayName": "Full Body C",
+        "exercises": [
+          {
+            "exerciseId": "fb594210-799d-478c-8cab-00b71ef25482",
+            "exerciseName": "Front Squat",
+            "category": "compound",
+            "restTimeSeconds": 120,
+            "order": 1,
+            "tier": "tier1",
+            "useGlobalProgression": true,
+            "workingSets": 3,
+            "workingRepRange": "10-12",
+            "deloadSets": 2,
+            "deloadRepRange": "8-10",
+            "autoProgressionEnabled": true,
+            "progressionMode": "weight_based"
+          },
+          {
+            "exerciseId": "b44628a3-1f85-4b5f-8855-25fb151e96e9",
+            "exerciseName": "Barbell Shoulder Press (Standing)",
+            "category": "compound",
+            "restTimeSeconds": 120,
+            "order": 2,
+            "tier": "tier1",
+            "useGlobalProgression": true,
+            "workingSets": 3,
+            "workingRepRange": "10-12",
+            "deloadSets": 2,
+            "deloadRepRange": "8-10",
+            "autoProgressionEnabled": true,
+            "progressionMode": "weight_based"
+          },
+          {
+            "exerciseId": "7296e9ef-cd09-4d25-be45-e0c533360fac",
+            "exerciseName": "Barbell Curl (Normal Grip)",
+            "category": "isolation",
+            "restTimeSeconds": 90,
+            "order": 3,
+            "tier": "tier2",
+            "useGlobalProgression": true,
+            "workingSets": 3,
+            "workingRepRange": "12-15",
+            "deloadSets": 2,
+            "deloadRepRange": "10-12",
+            "autoProgressionEnabled": true,
+            "progressionMode": "weight_based"
+          }
+        ]
+      }
+    ]
+  }
+}

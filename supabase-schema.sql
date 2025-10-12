@@ -6,6 +6,8 @@ CREATE TABLE profiles (
   gender TEXT CHECK (gender IN ('male', 'female', 'Prefer not say')),
   experience TEXT CHECK (experience IN ('beginner', 'intermediate', 'advanced')),
   goals TEXT[],
+  one_rep_max JSONB DEFAULT '{}',
+  preferred_unit TEXT CHECK (preferred_unit IN ('metric', 'imperial')) DEFAULT 'metric',
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );

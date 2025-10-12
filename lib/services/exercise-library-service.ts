@@ -72,14 +72,24 @@ export class ExerciseLibraryService {
 
   async getExerciseByName(name: string): Promise<Exercise | null> {
     this.ensureSupabase()
-    const { data, error } = await supabase
-      .from('exercise_library')
-      .select('*')
-      .eq('name', name)
-      .single()
     
-    if (error && error.code !== 'PGRST116') throw error
-    return data ? this.mapExercise(data as ExerciseRow) : null
+    try {
+      const { data, error } = await supabase
+        .from('exercise_library')
+        .select('*')
+        .eq('name', name)
+        .maybeSingle() // Use maybeSingle() instead of single() to handle 0 or 1 results
+      
+      if (error) {
+        console.warn('[ExerciseLibraryService] Error fetching by name:', error)
+        return null
+      }
+      
+      return data ? this.mapExercise(data as ExerciseRow) : null
+    } catch (error) {
+      console.error('[ExerciseLibraryService] Failed to get exercise by name:', error)
+      return null
+    }
   }
 
   // Filtering operations

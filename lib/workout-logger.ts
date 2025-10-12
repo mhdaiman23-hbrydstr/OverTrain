@@ -8,6 +8,7 @@ export interface WorkoutSet {
   completed: boolean
   restStartTime?: number
   notes?: string
+  skipped?: boolean
 }
 
 export interface WorkoutExercise {
@@ -15,15 +16,18 @@ export interface WorkoutExercise {
   exerciseId: string
   exerciseName: string
   targetSets: number
-  targetReps: string
+  performedReps: string
   targetRest: string
   suggestedWeight?: number
   progressionNote?: string
+  muscleGroup?: string
+  equipmentType?: string
   sets: WorkoutSet[]
   completed: boolean
   startTime?: number
   endTime?: number
   notes?: string
+  skipped?: boolean
 }
 
 export interface WorkoutSession {
@@ -38,6 +42,7 @@ export interface WorkoutSession {
   completed: boolean
   week?: number
   day?: number
+  skipped?: boolean
 }
 
 export class WorkoutLogger implements SetSyncProvider {
@@ -200,8 +205,16 @@ export class WorkoutLogger implements SetSyncProvider {
     try {
       const inProgressRaw = localStorage.getItem(storageKeys.inProgress)
       if (inProgressRaw) {
-        const inProgressWorkouts: WorkoutSession[] = JSON.parse(inProgressRaw)
-        const cleanedInProgress = inProgressWorkouts.filter(workout => {
+        const inProgressWorkouts = JSON.parse(inProgressRaw)
+
+        // Guard against corrupted localStorage (must be an array)
+        if (!Array.isArray(inProgressWorkouts)) {
+          console.warn("[WorkoutLogger] In-progress workouts is not an array, resetting")
+          localStorage.removeItem(storageKeys.inProgress)
+          return
+        }
+
+        const cleanedInProgress = inProgressWorkouts.filter((workout: WorkoutSession) => {
           // Check if workout has required fields and valid exercises
           const isValid = workout.id &&
                          workout.workoutName &&
@@ -229,8 +242,16 @@ export class WorkoutLogger implements SetSyncProvider {
     try {
       const workoutsRaw = localStorage.getItem(storageKeys.workouts)
       if (workoutsRaw) {
-        const completedWorkouts: WorkoutSession[] = JSON.parse(workoutsRaw)
-        const cleanedWorkouts = completedWorkouts.filter(workout => {
+        const completedWorkouts = JSON.parse(workoutsRaw)
+
+        // Guard against corrupted localStorage (must be an array)
+        if (!Array.isArray(completedWorkouts)) {
+          console.warn("[WorkoutLogger] Completed workouts is not an array, resetting")
+          localStorage.removeItem(storageKeys.workouts)
+          return
+        }
+
+        const cleanedWorkouts = completedWorkouts.filter((workout: WorkoutSession) => {
           // Check if workout has required fields and valid exercises
           const isValid = workout.id &&
                          workout.workoutName &&
@@ -684,10 +705,12 @@ export class WorkoutLogger implements SetSyncProvider {
       exerciseId: string
       exerciseName: string
       targetSets: number
-      targetReps: string
+      performedReps: string
       targetRest: string
       suggestedWeight?: number
       progressionNote?: string
+      muscleGroup?: string
+      equipmentType?: string
     }[],
     week?: number,
     day?: number,
@@ -740,10 +763,12 @@ export class WorkoutLogger implements SetSyncProvider {
         exerciseId: ex.exerciseId,
         exerciseName: ex.exerciseName,
         targetSets: ex.targetSets,
-        targetReps: ex.targetReps,
+        performedReps: ex.performedReps,
         targetRest: ex.targetRest,
         suggestedWeight: ex.suggestedWeight,
         progressionNote: ex.progressionNote,
+        muscleGroup: ex.muscleGroup,
+        equipmentType: ex.equipmentType,
         sets: Array.from({ length: ex.targetSets }, (_, i) => ({
           id: Math.random().toString(36).substr(2, 9),
           reps: 0,
@@ -997,6 +1022,13 @@ export class WorkoutLogger implements SetSyncProvider {
     }
 
     const history = this.getWorkoutHistory(userId)
+
+    // Guard against corrupted localStorage (history must be an array)
+    if (!Array.isArray(history)) {
+      console.warn('[WorkoutLogger] History is not an array, treating as empty')
+      return false
+    }
+
     const completedWorkout = history.find((workout) => workout.week === week && workout.day === day && workout.completed)
 
     // Minimal debug logging (only in development)
@@ -1041,6 +1073,74 @@ export class WorkoutLogger implements SetSyncProvider {
       }
     }
     return true
+  }
+
+  /**
+   * Mark a workout as skipped (when ending program early)
+   * Creates a completed workout with all exercises/sets marked as skipped.
+   * Used by "End Program" to mark all future workouts as skipped.
+   * 
+   * @param params.templateDay - The workout template for the day
+   * @param params.week - Week number
+   * @param params.day - Day number
+   * @param params.userId - User ID
+   * @param params.templateId - Program template ID
+   * @param params.workoutName - Name of the workout (e.g., "Push Day A")
+   * @returns The created skipped workout session
+   */
+  static async skipWorkout(params: {
+    templateDay: any
+    week: number
+    day: number
+    userId?: string
+    templateId?: string
+    workoutName: string
+  }): Promise<WorkoutSession | null> {
+    const { templateDay, week, day, userId, templateId, workoutName } = params
+
+    // Create full exercise structure with all sets marked as skipped
+    // This maintains data structure consistency with real workouts
+    const exercises: WorkoutExercise[] = (templateDay.exercises || []).map((ex: any) => ({
+      id: Math.random().toString(36).substr(2, 9),
+      exerciseId: ex.exerciseId || ex.name,
+      exerciseName: ex.name,
+      targetSets: ex.sets || 3,
+      performedReps: ex.reps || "0",
+      targetRest: ex.rest || "60s",
+      // Create sets with 0 reps/weight (consistent with "End Workout" behavior)
+      sets: Array.from({ length: ex.sets || 3 }, () => ({
+        id: Math.random().toString(36).substr(2, 9),
+        reps: 0,
+        weight: 0,
+        completed: true,  // Mark as completed (allows week progression)
+        skipped: true,    // Flag for UI display (blue minus icon)
+      })),
+      completed: true,
+      skipped: true,
+    }))
+
+    // Create workout session matching the pattern from handleEndProgram
+    const skippedWorkout: WorkoutSession = {
+      id: Math.random().toString(36).substr(2, 9),
+      userId: userId || "anonymous",
+      programId: templateId,
+      workoutName,
+      startTime: Date.now(),
+      endTime: Date.now(),
+      exercises,
+      notes: "Workout skipped - program ended early",
+      completed: true,  // Mark as completed (allows week unlock)
+      week,
+      day,
+      skipped: true,    // Flag for UI/reporting
+    }
+
+    // Save to history (same path as regular completed workouts)
+    await this.saveWorkoutToHistory(skippedWorkout, userId)
+
+    console.log(`[WorkoutLogger] Skipped workout: Week ${week}, Day ${day} (${workoutName})`)
+
+    return skippedWorkout
   }
 
   // ============================================================================

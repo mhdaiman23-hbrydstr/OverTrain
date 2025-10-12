@@ -18,30 +18,13 @@ export function WorkoutCalendar({ onWorkoutClick, selectedWeek, selectedDay }: W
   const { user } = useAuth()
   const [activeProgram, setActiveProgram] = useState<ActiveProgram | null>(null)
   const [totalWeeks, setTotalWeeks] = useState(6)
+  const [completionStatus, setCompletionStatus] = useState<Map<string, boolean>>(new Map())
 
   useEffect(() => {
-    // Load latest data from database and clean up corrupted data first
+    // Load active program instantly (database-first architecture handles data loading in auth)
     if (user?.id) {
-      try {
-        // Clean up corrupted data and migrate from global to user-specific storage first
-        WorkoutLogger.migrateGlobalToUserSpecific(user.id)
-        WorkoutLogger.cleanupCorruptedWorkouts(user.id)
-        WorkoutLogger.validateAndRepairWorkoutIntegrity(user.id)
-
-        // Load latest workout data from database and wait for completion before loading active program
-        WorkoutLogger.loadFromDatabase(user.id, true).then(() => {
-          console.log("[Calendar] Database sync completed, loading active program")
-          loadActiveProgram() // Load after data sync is complete
-        }).catch(error => {
-          console.error("[Calendar] Failed to load from database:", error)
-          // Still load active program even if database sync fails
-          loadActiveProgram()
-        })
-      } catch (error) {
-        console.error("[Calendar] Failed to clean up workout data:", error)
-        // Still try to load active program even if cleanup fails
-        loadActiveProgram()
-      }
+      console.log("[Calendar] Loading active program instantly")
+      loadActiveProgram()
     }
 
     // Listen for program changes (database sync, program state changes)
@@ -52,8 +35,27 @@ export function WorkoutCalendar({ onWorkoutClick, selectedWeek, selectedDay }: W
 
     window.addEventListener("programChanged", handleProgramChange)
 
+    // Listen for workout completion (optimistic update - instant UI feedback)
+    const handleWorkoutCompleted = (event: Event) => {
+      const customEvent = event as CustomEvent<{ week: number; day: number; completed: boolean }>
+      const { week, day, completed } = customEvent.detail
+
+      console.log("[Calendar] Workout completed event received:", { week, day, completed })
+
+      // Apply optimistic update immediately using functional update (no dependency needed)
+      const key = `${week}-${day}`
+      setCompletionStatus(prev => {
+        const updatedMap = new Map(prev)
+        updatedMap.set(key, completed)
+        return updatedMap
+      })
+    }
+
+    window.addEventListener("workoutCompleted", handleWorkoutCompleted)
+
     return () => {
       window.removeEventListener("programChanged", handleProgramChange)
+      window.removeEventListener("workoutCompleted", handleWorkoutCompleted)
     }
   }, [user?.id])
 
@@ -144,14 +146,14 @@ export function WorkoutCalendar({ onWorkoutClick, selectedWeek, selectedDay }: W
           console.log("  Completed workout:", workout)
           console.log("=== End Week 2 Day 1 Debug ===")
         },
-        debugProgramProgress: () => {
+        debugProgramProgress: async () => {
           console.log("=== Program Progress Debug ===")
           if (!user?.id) {
             console.log("No user found")
             return
           }
 
-          const program = ProgramStateManager.getActiveProgram()
+          const program = await ProgramStateManager.getActiveProgram()
           if (!program) {
             console.log("No active program found")
             return
@@ -190,7 +192,7 @@ export function WorkoutCalendar({ onWorkoutClick, selectedWeek, selectedDay }: W
           console.log("=== End Program Progress Debug ===")
         },
         forceRefresh: () => loadActiveProgram(),
-        debugDay1Workout: () => {
+        debugDay1Workout: async () => {
           console.log("=== Day 1 Workout Debug ===")
           if (!activeProgram || !user?.id) {
             console.log("No active program or user")
@@ -219,7 +221,7 @@ export function WorkoutCalendar({ onWorkoutClick, selectedWeek, selectedDay }: W
           console.log("Calendar Day 1 shows:", day1WorkoutName)
 
           // Check what the workout logger shows for current workout
-          const currentWorkout = WorkoutLogger.getInProgressWorkout(activeProgram.currentWeek, activeProgram.currentDay, user.id)
+          const currentWorkout = await WorkoutLogger.getInProgressWorkout(activeProgram.currentWeek, activeProgram.currentDay, user.id)
           if (currentWorkout) {
             console.log("Current workout from logger:", {
               workoutName: currentWorkout.workoutName,
@@ -229,10 +231,10 @@ export function WorkoutCalendar({ onWorkoutClick, selectedWeek, selectedDay }: W
           }
 
           // Check what program state thinks the current workout should be
-          const expectedWorkout = ProgramStateManager.getCurrentWorkout()
+          const expectedWorkout = await ProgramStateManager.getCurrentWorkout()
           if (expectedWorkout) {
             console.log("Expected workout from program state:", {
-              workoutName: expectedWorkout.workoutName,
+              name: expectedWorkout.name,
               week: activeProgram.currentWeek,
               day: activeProgram.currentDay
             })
@@ -256,17 +258,18 @@ export function WorkoutCalendar({ onWorkoutClick, selectedWeek, selectedDay }: W
     }
   }, [activeProgram, user])
 
-  const loadActiveProgram = () => {
-    const program = ProgramStateManager.getActiveProgram()
+  const loadActiveProgram = async () => {
+    const program = await ProgramStateManager.getActiveProgram()
     setActiveProgram(program)
-    if (program) {
+    if (program && program.template) {
       const baseWeeks = program.template.weeks || 4
-      setTotalWeeks(baseWeeks + 2)
+      // Use exact week count from template (no +2 extension)
+      setTotalWeeks(baseWeeks)
       console.log("[Calendar] Active program loaded:", {
         name: program.template.name,
         currentWeek: program.currentWeek,
         currentDay: program.currentDay,
-        totalWeeks: baseWeeks + 2
+        totalWeeks: baseWeeks
       })
 
       // Only recalculate progress if it seems out of sync
@@ -315,8 +318,8 @@ export function WorkoutCalendar({ onWorkoutClick, selectedWeek, selectedDay }: W
           ProgramStateManager.recalculateProgress()
 
           // Reload the program after recalculation
-          setTimeout(() => {
-            const recalculatedProgram = ProgramStateManager.getActiveProgram()
+          setTimeout(async () => {
+            const recalculatedProgram = await ProgramStateManager.getActiveProgram()
             setActiveProgram(recalculatedProgram)
             console.log("[Calendar] Program after recalculation:", {
               currentWeek: recalculatedProgram?.currentWeek,
@@ -383,8 +386,12 @@ export function WorkoutCalendar({ onWorkoutClick, selectedWeek, selectedDay }: W
   }
 
   const getWorkoutStatus = (week: number, day: number) => {
-    // Always provide user ID to WorkoutLogger methods
-    const hasCompletedWorkout = WorkoutLogger.hasCompletedWorkout(week, day, user?.id)
+    // Check optimistic completion status first (instant updates)
+    const key = `${week}-${day}`
+    const optimisticCompleted = completionStatus.get(key)
+    
+    // Fall back to database check if no optimistic update
+    const hasCompletedWorkout = optimisticCompleted ?? WorkoutLogger.hasCompletedWorkout(week, day, user?.id)
 
     // Minimal debug logging (only for critical issues)
     if (week === 1 && day === 1 && process.env.NODE_ENV === "development") {

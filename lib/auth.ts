@@ -7,6 +7,12 @@ export interface User {
   gender?: "male" | "female" | "Prefer not say"
   experience?: "beginner" | "intermediate" | "advanced"
   goals?: string[]
+  oneRepMax?: {
+    squat?: number
+    benchPress?: number
+    deadlift?: number
+  }
+  preferredUnit?: "metric" | "imperial"
   createdAt: string
 }
 
@@ -100,6 +106,8 @@ export class AuthService {
       gender: profile?.gender,
       experience: profile?.experience,
       goals: profile?.goals,
+      oneRepMax: profile?.one_rep_max,
+      preferredUnit: profile?.preferred_unit || "metric",
       createdAt: data.user.created_at,
     }
 
@@ -183,6 +191,8 @@ export class AuthService {
         gender: profile?.gender,
         experience: profile?.experience,
         goals: profile?.goals,
+        oneRepMax: profile?.one_rep_max,
+        preferredUnit: profile?.preferred_unit || "metric",
         createdAt: session.user.created_at,
       }
 
@@ -212,6 +222,8 @@ export class AuthService {
         gender: updates.gender,
         experience: updates.experience,
         goals: updates.goals,
+        one_rep_max: updates.oneRepMax,
+        preferred_unit: updates.preferredUnit,
       })
       .eq('id', userId)
 
@@ -277,16 +289,13 @@ export class AuthService {
             WorkoutLogger.loadFromDatabase(userId, true), // Force refresh when no local data
           ])
         } else {
-          console.log('[Auth] Local data exists, preserving and syncing to database')
-          // Sync local data to database first, then load fresh data
-          await WorkoutLogger.syncToDatabase(userId)
-          await ProgramStateManager.syncToDatabase(userId)
-
-          // Also load fresh data from database to merge with local data
-          console.log('[Auth] Loading fresh data from database to merge with local data')
+          console.log('[Auth] Using safe loading (preserves local data)')
+          
+          // DATABASE-FIRST APPROACH: Load from database first, then cache to localStorage
+          console.log('[Auth] Loading fresh data from database (database is source of truth)')
           await Promise.all([
             ProgramStateManager.loadFromDatabase(userId),
-            WorkoutLogger.loadFromDatabase(userId, false), // Don't force refresh
+            WorkoutLogger.loadFromDatabase(userId, false), // false = don't block UI
           ])
         }
       }

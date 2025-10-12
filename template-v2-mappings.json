@@ -1,0 +1,135 @@
+{
+  "exerciseNameToUUID": {
+    "Barbell Squat": "0a1a634d-1a56-48bd-a485-f40dd6273253",
+    "Bench Press (Flat)": "3b2438bf-eca7-4445-be14-c409f5a9eec5",
+    "Barbell Bent Over Row": "10ba0801-6aa7-4f93-b18f-8d578885bccd",
+    "Deadlift": "deadlift-uuid-needed",
+    "Barbell Shoulder Press (Standing)": "b44628a3-1f85-4b5f-8855-25fb151e96e9",
+    "Barbell Curl (Normal Grip)": "7296e9ef-cd09-4d25-be45-e0c533360fac",
+    "Front Squat": "fb594210-799d-478c-8cab-00b71ef25482",
+    "Pullup (Normal Grip)": "9105b309-da43-4fbb-b88b-77db9ee8eeae",
+    "Dumbbell Lateral Raise": "87674713-a261-4b1f-b97a-9a8ec492b833",
+    "Dumbbell RDL": "dumbbell-rdl-uuid-needed",
+    "Bench Press (Incline)": "9d234abd-3f96-4d03-821c-87362e33e673"
+  },
+  "template1": {
+    "id": "test-2week-3day-program-v2",
+    "name": "2-Week Test Program (DEV ONLY) v2",
+    "exercises": [
+      {
+        "templateId": "test-squat-a1-v2",
+        "exerciseName": "Barbell Squat",
+        "exerciseLibraryId": "0a1a634d-1a56-48bd-a485-f40dd6273253",
+        "category": "compound"
+      },
+      {
+        "templateId": "test-bench-a1-v2", 
+        "exerciseName": "Bench Press (Flat)",
+        "exerciseLibraryId": "3b2438bf-eca7-4445-be14-c409f5a9eec5",
+        "category": "compound"
+      },
+      {
+        "templateId": "test-row-a1-v2",
+        "exerciseName": "Barbell Bent Over Row", 
+        "exerciseLibraryId": "10ba0801-6aa7-4f93-b18f-8d578885bccd",
+        "category": "compound"
+      },
+      {
+        "templateId": "test-deadlift-b1-v2",
+        "exerciseName": "Deadlift",
+        "exerciseLibraryId": "deadlift-uuid-needed",
+        "category": "compound"
+      },
+      {
+        "templateId": "test-ohp-b1-v2",
+        "exerciseName": "Barbell Shoulder Press (Standing)",
+        "exerciseLibraryId": "b44628a3-1f85-4b5f-8855-25fb151e96e9",
+        "category": "compound"
+      },
+      {
+        "templateId": "test-curls-b1-v2",
+        "exerciseName": "Barbell Curl (Normal Grip)",
+        "exerciseLibraryId": "7296e9ef-cd09-4d25-be45-e0c533360fac",
+        "category": "isolation"
+      },
+      {
+        "templateId": "test-squat-c1-v2",
+        "exerciseName": "Front Squat",
+        "exerciseLibraryId": "fb594210-799d-478c-8cab-00b71ef25482",
+        "category": "compound"
+      },
+      {
+        "templateId": "test-pullups-c1-v2",
+        "exerciseName": "Pullup (Normal Grip)",
+        "exerciseLibraryId": "9105b309-da43-4fbb-b88b-77db9ee8eeae",
+        "category": "compound"
+      },
+      {
+        "templateId": "test-lateral-c1-v2",
+        "exerciseName": "Dumbbell Lateral Raise",
+        "exerciseLibraryId": "87674713-a261-4b1f-b97a-9a8ec492b833",
+        "category": "isolation"
+      }
+    ]
+  },
+  "template2": {
+    "id": "fullbody-3day-beginner-female-v2",
+    "name": "3-Day Full Body Beginner v2",
+    "exercises": [
+      {
+        "templateId": "squat-f1-v2",
+        "exerciseName": "Barbell Squat",
+        "exerciseLibraryId": "0a1a634d-1a56-48bd-a485-f40dd6273253",
+        "category": "compound"
+      },
+      {
+        "templateId": "bench-f1-v2",
+        "exerciseName": "Bench Press (Flat)",
+        "exerciseLibraryId": "3b2438bf-eca7-4445-be14-c409f5a9eec5",
+        "category": "compound"
+      },
+      {
+        "templateId": "row-f1-v2",
+        "exerciseName": "Barbell Bent Over Row",
+        "exerciseLibraryId": "10ba0801-6aa7-4f93-b18f-8d578885bccd",
+        "category": "compound"
+      },
+      {
+        "templateId": "rdl-f1-v2",
+        "exerciseName": "Dumbbell RDL",
+        "exerciseLibraryId": "dumbbell-rdl-uuid-needed",
+        "category": "compound"
+      },
+      {
+        "templateId": "incline-f1-v2",
+        "exerciseName": "Bench Press (Incline)",
+        "exerciseLibraryId": "9d234abd-3f96-4d03-821c-87362e33e673",
+        "category": "compound"
+      },
+      {
+        "templateId": "lat-raises-f1-v2",
+        "exerciseName": "Dumbbell Lateral Raise",
+        "exerciseLibraryId": "87674713-a261-4b1f-b97a-9a8ec492b833",
+        "category": "isolation"
+      },
+      {
+        "templateId": "front-squat-f1-v2",
+        "exerciseName": "Front Squat",
+        "exerciseLibraryId": "fb594210-799d-478c-8cab-00b71ef25482",
+        "category": "compound"
+      },
+      {
+        "templateId": "ohp-f1-v2",
+        "exerciseName": "Barbell Shoulder Press (Standing)",
+        "exerciseLibraryId": "b44628a3-1f85-4b5f-8855-25fb151e96e9",
+        "category": "compound"
+      },
+      {
+        "templateId": "curls-f1-v2",
+        "exerciseName": "Barbell Curl (Normal Grip)",
+        "exerciseLibraryId": "7296e9ef-cd09-4d25-be45-e0c533360fac",
+        "category": "isolation"
+      }
+    ]
+  }
+}
