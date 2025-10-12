@@ -70,7 +70,9 @@ export function ProfileSection() {
         gender: formData.gender as "male" | "female" | "Prefer not say",
         experience: formData.experience as "beginner" | "intermediate" | "advanced",
         goals: formData.goals,
+        preferredUnit: preferredUnit,
       })
+      setInitialPreferredUnit(preferredUnit)
       setIsEditing(false)
     } catch (error) {
       console.error('Failed to save profile:', error)
@@ -84,6 +86,7 @@ export function ProfileSection() {
       experience: user?.experience || "",
       goals: user?.goals || [],
     })
+    setPreferredUnit(initialPreferredUnit)
     setIsEditing(false)
   }
 
@@ -254,6 +257,19 @@ export function ProfileSection() {
                         </div>
                       </RadioGroup>
                     </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="unit-selector">Preferred Unit</Label>
+                      <Select value={preferredUnit} onValueChange={handleUnitChange}>
+                        <SelectTrigger id="unit-selector" className="w-full">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="metric">Metric (kg)</SelectItem>
+                          <SelectItem value="imperial">Imperial (lbs)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </>
                 ) : (
                   <div className="space-y-3">
@@ -390,24 +406,6 @@ export function ProfileSection() {
                         )}
                       </div>
                     </div>
-                    <Separator />
-                    <div className="space-y-2">
-                      <span className="text-sm text-muted-foreground">One Rep Max (1RM)</span>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                        <div className="flex justify-between items-center p-2 bg-muted/50 rounded">
-                          <span className="text-xs font-medium">Squat</span>
-                          <span className="text-sm font-bold">{user.oneRepMax?.squat || 0} kg/lbs</span>
-                        </div>
-                        <div className="flex justify-between items-center p-2 bg-muted/50 rounded">
-                          <span className="text-xs font-medium">Bench Press</span>
-                          <span className="text-sm font-bold">{user.oneRepMax?.benchPress || 0} kg/lbs</span>
-                        </div>
-                        <div className="flex justify-between items-center p-2 bg-muted/50 rounded">
-                          <span className="text-xs font-medium">Deadlift</span>
-                          <span className="text-sm font-bold">{user.oneRepMax?.deadlift || 0} kg/lbs</span>
-                        </div>
-                      </div>
-                    </div>
                   </div>
                 )}
               </CardContent>
@@ -423,20 +421,6 @@ export function ProfileSection() {
                 <CardDescription>Enter your current personal records for the main lifts</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {/* Unit Selector */}
-                <div className="flex items-center gap-4">
-                  <Label htmlFor="unit-selector">Preferred Unit:</Label>
-                  <Select value={preferredUnit} onValueChange={handleUnitChange}>
-                    <SelectTrigger id="unit-selector" className="w-32">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="metric">Metric (kg)</SelectItem>
-                      <SelectItem value="imperial">Imperial (lbs)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="squat-1rm">Squat ({getUnitLabel()})</Label>
