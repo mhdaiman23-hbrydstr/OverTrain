@@ -630,19 +630,35 @@ export class WorkoutLogger implements SetSyncProvider {
 
       // Sync to database
       if (userId && supabase) {
-        await supabase
+        // Use update first, then insert if needed (avoids 409 conflicts)
+        const { error: updateError } = await supabase
           .from("in_progress_workouts")
-          .upsert({
-            id: workout.id,
-            user_id: userId,
-            program_id: workout.programId || null,
+          .update({
             workout_name: workout.workoutName,
             start_time: workout.startTime,
-            week: workout.week,
-            day: workout.day,
             exercises: workout.exercises,
             notes: workout.notes || null,
+            program_id: workout.programId || null,
           })
+          .eq('id', workout.id)
+          .eq('user_id', userId)
+
+        // If no rows updated, insert new workout
+        if (updateError?.code === 'PGRST116') {
+          await supabase
+            .from("in_progress_workouts")
+            .insert({
+              id: workout.id,
+              user_id: userId,
+              program_id: workout.programId || null,
+              workout_name: workout.workoutName,
+              start_time: workout.startTime,
+              week: workout.week,
+              day: workout.day,
+              exercises: workout.exercises,
+              notes: workout.notes || null,
+            })
+        }
       }
     } catch (error) {
       console.error("Failed to save workout:", error)
@@ -1189,9 +1205,12 @@ export class WorkoutLogger implements SetSyncProvider {
     // If online, try to sync immediately
     if (userId && supabase && ConnectionMonitor.isOnline()) {
       try {
+        // Use upsert to handle log/unlog/relog scenarios
         const { error } = await supabase
           .from("workout_sets")
-          .insert(setLog)
+          .upsert(setLog, {
+            onConflict: 'id'
+          })
 
         if (error) {
           console.error("[WorkoutLogger] Failed to log set to database, adding to queue:", error)
@@ -1954,28 +1973,41 @@ export class WorkoutLogger implements SetSyncProvider {
         if (inProgressWorkouts.length > 0) {
           console.log("[WorkoutLogger] Syncing", inProgressWorkouts.length, "in-progress workouts to database")
 
-          const { error } = await supabase
-            .from("in_progress_workouts")
-            .upsert(
-              inProgressWorkouts.map((w) => ({
-                id: w.id,
-                user_id: userId,
-                program_id: w.programId || null,
+          // Use individual updates/inserts to avoid bulk upsert conflicts
+          for (const w of inProgressWorkouts) {
+            const { data: updateData, error: updateError } = await supabase
+              .from("in_progress_workouts")
+              .update({
                 workout_name: w.workoutName,
                 start_time: w.startTime,
-                week: w.week || null,
-                day: w.day || null,
                 exercises: w.exercises,
                 notes: w.notes || null,
-              })),
-              { onConflict: 'id' }
-            )
+                program_id: w.programId || null,
+              })
+              .eq('id', w.id)
+              .eq('user_id', userId)
+              .select()
 
-          if (error) {
-            console.error("[WorkoutLogger] Failed to sync in-progress workouts:", error)
-          } else {
-            console.log("[WorkoutLogger] Successfully synced in-progress workouts")
+            // If no rows updated, insert
+            if (!updateError && (!updateData || updateData.length === 0)) {
+              await supabase
+                .from("in_progress_workouts")
+                .insert({
+                  id: w.id,
+                  user_id: userId,
+                  program_id: w.programId || null,
+                  workout_name: w.workoutName,
+                  start_time: w.startTime,
+                  week: w.week || null,
+                  day: w.day || null,
+                  exercises: w.exercises,
+                  notes: w.notes || null,
+                })
+                .select()
+            }
           }
+
+          console.log("[WorkoutLogger] Successfully synced", inProgressWorkouts.length, "in-progress workouts")
         }
       }
 

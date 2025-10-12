@@ -880,6 +880,23 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
   const handleEndWorkout = async () => {
     if (!workout || endWorkoutConfirmation !== "End Workout") return
 
+    // Validate this is the current active workout
+    const activeProgram = await ProgramStateManager.getActiveProgram()
+    if (!activeProgram) {
+      console.error("[handleEndWorkout] No active program found")
+      return
+    }
+
+    // Only allow ending the current week's workout
+    if (workout.week !== activeProgram.currentWeek || workout.day !== activeProgram.currentDay) {
+      toast({
+        title: "Cannot End Workout",
+        description: `You can only end the current active workout (Week ${activeProgram.currentWeek}, Day ${activeProgram.currentDay}). This is Week ${workout.week}, Day ${workout.day}.`,
+        variant: "destructive",
+      })
+      return
+    }
+
     // Mark all uncompleted sets as skipped (blue tick)
     const updatedWorkout: WorkoutSession = {
       ...workout,
@@ -899,7 +916,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
     await WorkoutLogger.saveCurrentWorkout(updatedWorkout, user?.id)
 
     // Complete the workout
-    const completedWorkout = await WorkoutLogger.completeWorkout(updatedWorkout.id)
+    const completedWorkout = await WorkoutLogger.completeWorkout(updatedWorkout.id, user?.id)
     if (completedWorkout) {
       // Validate that the completed workout has proper data
       const hasValidData = completedWorkout.exercises &&
@@ -931,7 +948,13 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
   }
 
   const handleEndProgram = async () => {
-    if (!activeProgram || !workout || endProgramConfirmation !== "End Program") return
+    if (!workout || endProgramConfirmation !== "End Program") return
+
+    const activeProgram = await ProgramStateManager.getActiveProgram()
+    if (!activeProgram) {
+      console.error("[handleEndProgram] No active program found")
+      return
+    }
 
     try {
       const wasAlreadyCompleted = WorkoutLogger.hasCompletedWorkout(
@@ -940,22 +963,26 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
         user?.id
       )
 
+      // Only mark uncompleted sets as skipped, preserve already completed sets
       const updatedWorkout: WorkoutSession = {
         ...workout,
-        skipped: true,
         exercises: workout.exercises.map((exercise) => ({
           ...exercise,
           completed: true,
-          skipped: true,
           sets: exercise.sets.map((set) => {
-            const updatedSet = { ...set }
-            if (!updatedSet.completed) {
-              updatedSet.completed = true
-              updatedSet.reps = 0
-              updatedSet.weight = 0
+            if (set.completed) {
+              // Keep completed sets as-is (preserves weight/reps)
+              return set
+            } else {
+              // Mark incomplete sets as skipped
+              return {
+                ...set,
+                completed: true,
+                reps: 0,
+                weight: 0,
+                skipped: true
+              }
             }
-            updatedSet.skipped = true
-            return updatedSet
           }),
         })),
       }
