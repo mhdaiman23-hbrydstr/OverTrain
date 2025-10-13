@@ -315,8 +315,8 @@ export class ProgramStateManager {
     // Fetch exercise metadata from database to get correct muscle group and equipment type
     const exerciseService = ExerciseLibraryService.getInstance()
     const exercises = await Promise.all(workout.exercises.map(async (exercise) => {
-      let muscleGroup = exercise.category  // Fallback to category ("compound"/"isolation")
-      let equipmentType = exercise.equipmentType  // Use template equipment if available
+      let muscleGroup: string = exercise.category  // Fallback to category ("compound"/"isolation")
+      let equipmentType: string | undefined = exercise.equipmentType  // Use template equipment if available
 
       // Try to fetch from exercise library for accurate data
       try {
@@ -603,18 +603,17 @@ export class ProgramStateManager {
 
       if (activeProgram) {
         // Upsert active program
-        const { error } = await supabase
+        const { error} = await supabase
           .from("active_programs")
           .upsert({
             user_id: userId,
-            template_id: activeProgram.templateId,
-            template_data: activeProgram.template,
-            start_date: activeProgram.startDate,
+            program_id: activeProgram.templateId,
+            program_name: activeProgram.template.name,
+            days_per_week: Object.keys(activeProgram.template.schedule).length,
+            total_weeks: activeProgram.template.weeks || 6,
+            start_date: new Date(activeProgram.startDate).toISOString(),
             current_week: activeProgram.currentWeek,
             current_day: activeProgram.currentDay,
-            completed_workouts: activeProgram.completedWorkouts,
-            total_workouts: activeProgram.totalWorkouts,
-            progress: activeProgram.progress,
           })
 
         if (error) {
@@ -673,15 +672,33 @@ export class ProgramStateManager {
         // PGRST116 = no rows returned
         logSupabaseError("[ProgramState] Failed to load active program:", activeProgramError)
       } else if (activeProgramData) {
+        // Load template from database or fallback
+        const template = await this.loadTemplate(activeProgramData.program_id)
+        if (!template) {
+          console.error("[ProgramState] Template not found for program:", activeProgramData.program_id)
+          return
+        }
+
+        // Calculate completed workouts and progress from actual workout data
+        const totalWorkouts = activeProgramData.days_per_week * activeProgramData.total_weeks
+        let completedWorkouts = 0
+        for (let week = 1; week <= activeProgramData.current_week; week++) {
+          for (let day = 1; day < (week === activeProgramData.current_week ? activeProgramData.current_day : activeProgramData.days_per_week + 1); day++) {
+            if (WorkoutLogger.hasCompletedWorkout(week, day, userId)) {
+              completedWorkouts++
+            }
+          }
+        }
+
         const activeProgram: ActiveProgram = {
-          templateId: activeProgramData.template_id,
-          template: activeProgramData.template_data || GYM_TEMPLATES.find((t) => t.id === activeProgramData.template_id)!,
-          startDate: activeProgramData.start_date,
+          templateId: activeProgramData.program_id,
+          template,
+          startDate: new Date(activeProgramData.start_date).getTime(),
           currentWeek: activeProgramData.current_week,
           currentDay: activeProgramData.current_day,
-          completedWorkouts: activeProgramData.completed_workouts,
-          totalWorkouts: activeProgramData.total_workouts,
-          progress: activeProgramData.progress,
+          completedWorkouts,
+          totalWorkouts,
+          progress: (completedWorkouts / totalWorkouts) * 100,
         }
 
         localStorage.setItem(this.ACTIVE_PROGRAM_KEY, JSON.stringify(activeProgram))
