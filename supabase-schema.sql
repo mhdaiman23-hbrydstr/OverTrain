@@ -8,6 +8,7 @@ CREATE TABLE profiles (
   goals TEXT[],
   one_rep_max JSONB DEFAULT '{}',
   preferred_unit TEXT CHECK (preferred_unit IN ('metric', 'imperial')) DEFAULT 'metric',
+  bodyweight DECIMAL(5,1),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );

@@ -334,7 +334,7 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
             </div>
           </div>
 
-          <div className="px-4 pt-6">
+          <div className="px-2 pt-4">
             <Tabs defaultValue="templates" className="w-full max-w-4xl mx-auto">
               <TabsList className="grid w-full grid-cols-3 h-auto p-1 bg-muted/50 rounded-lg">
               <TabsTrigger
