@@ -5,12 +5,12 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Plus, MoreVertical, AlertTriangle, Filter, Check } from "lucide-react"
+import { Plus, MoreVertical, AlertTriangle, Filter, Check, X } from "lucide-react"
 import { GYM_TEMPLATES, getTemplatesByFilter } from "@/lib/gym-templates"
 import { ProgramStateManager } from "@/lib/program-state"
 import { TemplateStorageManager } from "@/lib/template-storage"
 import { WorkoutLogger } from "@/lib/workout-logger"
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { TemplateDetailView } from "@/components/template-detail-view"
 import {
   AlertDialog,
@@ -238,93 +238,126 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
             <div className="flex items-center justify-between px-4 py-3 sm:py-4 max-w-4xl mx-auto">
               <h1 className="text-xl sm:text-2xl font-bold">Programs</h1>
               <div className="flex items-center gap-2">
-              <Sheet open={filterOpen} onOpenChange={setFilterOpen}>
-                <SheetTrigger asChild>
+              <Dialog open={filterOpen} onOpenChange={setFilterOpen}>
+                <DialogTrigger asChild>
                   <Button variant="outline" size="sm" className="relative bg-transparent">
                     <Filter className="h-4 w-4" />
                     {hasActiveFilters && <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-red-500" />}
                   </Button>
-                </SheetTrigger>
-                <SheetContent side="right" className="w-[300px]">
-                  <SheetHeader>
-                    <SheetTitle>Filter Programs</SheetTitle>
-                  </SheetHeader>
-                  <div className="mt-6 space-y-4">
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Experience Level</label>
-                      <Select value={experienceFilter} onValueChange={setExperienceFilter}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Experience" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">All Levels</SelectItem>
-                          <SelectItem value="beginner">Beginner</SelectItem>
-                          <SelectItem value="intermediate">Intermediate</SelectItem>
-                          <SelectItem value="advanced">Advanced</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Days per Week</label>
-                      <Select value={daysFilter} onValueChange={setDaysFilter}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Days/Week" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">All Days</SelectItem>
-                          <SelectItem value="3">3 Days</SelectItem>
-                          <SelectItem value="4">4 Days</SelectItem>
-                          <SelectItem value="6">6 Days</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Gender</label>
-                      <Select value={genderFilter} onValueChange={setGenderFilter}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Gender" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">All</SelectItem>
-                          <SelectItem value="male">Male</SelectItem>
-                          <SelectItem value="female">Female</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Duration</label>
-                      <Select value={durationFilter} onValueChange={setDurationFilter}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Duration" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">All Durations</SelectItem>
-                          <SelectItem value="8">8 Weeks</SelectItem>
-                          <SelectItem value="12">12 Weeks</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    {hasActiveFilters && (
-                      <Button
-                        variant="outline"
-                        className="w-full bg-transparent"
-                        onClick={() => {
-                          setExperienceFilter("all")
-                          setDaysFilter("all")
-                          setGenderFilter("all")
-                          setDurationFilter("all")
-                        }}
-                      >
-                        Clear All Filters
-                      </Button>
-                    )}
+                </DialogTrigger>
+                <DialogContent
+                  showCloseButton={false}
+                  className="w-full max-w-2xl border border-border/40 bg-background p-0 top-auto bottom-0 left-1/2 translate-x-[-50%] translate-y-0 rounded-t-3xl shadow-2xl sm:rounded-3xl sm:bottom-6"
+                >
+                  <div className="px-5 pt-4 sm:px-6">
+                    <span className="mx-auto block h-1.5 w-12 rounded-full bg-muted" />
                   </div>
-                </SheetContent>
-              </Sheet>
+                  <DialogHeader className="px-5 pb-2 text-left sm:px-6">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="space-y-1.5">
+                        <DialogTitle className="text-xl font-semibold">Filter Programs</DialogTitle>
+                        <DialogDescription>
+                          Refine templates by experience, schedule, duration, and gender.
+                        </DialogDescription>
+                      </div>
+                      <DialogClose asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="mt-1 h-8 w-8 rounded-full border border-border/60 bg-background/60 backdrop-blur"
+                          aria-label="Close filters"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </DialogClose>
+                    </div>
+                  </DialogHeader>
+                  <div className="flex flex-col gap-6 px-5 pb-6 sm:px-6">
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Experience Level</label>
+                        <Select value={experienceFilter} onValueChange={setExperienceFilter}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Experience" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">All Levels</SelectItem>
+                            <SelectItem value="beginner">Beginner</SelectItem>
+                            <SelectItem value="intermediate">Intermediate</SelectItem>
+                            <SelectItem value="advanced">Advanced</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Number of Days</label>
+                        <Select value={daysFilter} onValueChange={setDaysFilter}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Days per Week" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">All Days</SelectItem>
+                            <SelectItem value="3">3 Days</SelectItem>
+                            <SelectItem value="4">4 Days</SelectItem>
+                            <SelectItem value="6">6 Days</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Program Duration</label>
+                        <Select value={durationFilter} onValueChange={setDurationFilter}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Duration" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">All Durations</SelectItem>
+                            <SelectItem value="8">8 Weeks</SelectItem>
+                            <SelectItem value="12">12 Weeks</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Gender</label>
+                        <Select value={genderFilter} onValueChange={setGenderFilter}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Gender" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">All</SelectItem>
+                            <SelectItem value="male">Male</SelectItem>
+                            <SelectItem value="female">Female</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                      {hasActiveFilters ? (
+                        <Button
+                          variant="outline"
+                          className="w-full bg-transparent sm:w-auto"
+                          onClick={() => {
+                            setExperienceFilter("all")
+                            setDaysFilter("all")
+                            setGenderFilter("all")
+                            setDurationFilter("all")
+                          }}
+                        >
+                          Clear All Filters
+                        </Button>
+                      ) : (
+                        <span className="text-sm text-muted-foreground">No filters applied</span>
+                      )}
+
+                      <DialogClose asChild>
+                        <Button className="w-full sm:w-auto">Show Programs</Button>
+                      </DialogClose>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
 
               <Button size="sm" className="bg-orange-500 hover:bg-orange-600 text-white h-9 sm:h-10 px-4 sm:px-6" onClick={onAddProgram}>
                 <Plus className="h-4 w-4 mr-1 sm:mr-2" />
@@ -347,7 +380,7 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
                 value="my-templates"
                 className="data-[state=active]:bg-background data-[state=active]:shadow-sm"
               >
-                Custom Templates
+                My Programs
               </TabsTrigger>
               <TabsTrigger
                 value="history"
@@ -383,7 +416,7 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
 
                         <div className="flex items-center gap-2">
                           {isActive && (
-                            <Badge variant="secondary" className="text-xs font-medium px-2 py-1">
+                            <Badge className="text-xs font-medium px-2 py-1 bg-green-500 text-white border-transparent">
                               CURRENT
                             </Badge>
                           )}
