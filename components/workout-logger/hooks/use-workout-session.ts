@@ -55,7 +55,6 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
     strategy: string
     message?: string
   }>>({})
-  const [pendingOutOfBoundsWarnings, setPendingOutOfBoundsWarnings] = useState<Record<string, boolean>>({})
   const [outOfBoundsExercises, setOutOfBoundsExercises] = useState<Record<string, { min: number; max: number; setNumber: number }>>({})
 
   useEffect(() => {
@@ -483,67 +482,87 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
     const exercise = workout.exercises.find((ex) => ex.id === exerciseId)
     if (!exercise) return
 
-    // Simplified weight handling without 1RM features
-    if (field === "weight" && exercise.suggestedWeight) {
-      // Basic bounds checking if available
-      const tierRules = getTierRules(exercise.exerciseName, "isolation")
-      
-      // Check if weight is within bounds
-      const withinBounds = isWeightWithinBounds(
-        value,
-        exercise.suggestedWeight,
-        tierRules.adjustmentBounds
-      )
-      
-      if (!withinBounds) {
-        // OUT OF BOUNDS: Mark as overridden
-        console.log("[v0] Weight out of bounds, marking as override")
-        setUserOverrides(prev => ({ ...prev, [exerciseId]: true }))
-        setVolumeCompensation(prev => {
-          const updated = { ...prev }
-          delete updated[exerciseId]
-          return updated
-        })
-        setPendingOutOfBoundsWarnings(prev => ({ ...prev, [`${exerciseId}_${setId}`]: true }))
-      } else {
-        // WITHIN BOUNDS: Calculate volume compensation
-        const baseReps = parseInt(exercise.performedReps.split("-")[0]) || 10
-        const targetVolume = exercise.suggestedWeight * baseReps
-        
-        const compensation = calculateVolumeCompensation(
-          targetVolume,
+    const volumeKey = `${exerciseId}_${setId}`
+
+    let calculatedAdjustedReps: number | undefined
+    let shouldClearReps = false
+    let compensationDetails: { adjustedReps: number; strategy: string; message?: string } | null = null
+
+    if (field === "weight") {
+      if (exercise.suggestedWeight) {
+        const tierRules = getTierRules(exercise.exerciseName, "isolation")
+        const withinBounds = isWeightWithinBounds(
           value,
-          tierRules.maxRepAdjustment
+          exercise.suggestedWeight,
+          tierRules.adjustmentBounds
         )
-        
-        setVolumeCompensation(prev => ({
-          ...prev,
-          [exerciseId]: {
+
+        if (!withinBounds) {
+          console.log("[v0] Weight out of bounds, marking as override")
+          setUserOverrides((prev) => ({ ...prev, [exerciseId]: true }))
+
+          const bounds = tierRules.adjustmentBounds
+          const minBoundRaw = bounds.min
+          const maxBoundRaw = bounds.max
+          const minBound = typeof minBoundRaw === "number" ? minBoundRaw : Number(minBoundRaw)
+          const maxBound = typeof maxBoundRaw === "number" ? maxBoundRaw : Number(maxBoundRaw)
+
+          shouldClearReps = true
+
+          const message =
+            Number.isFinite(minBound) && Number.isFinite(maxBound)
+              ? `Weight outside recommended range (${minBound} - ${maxBound}). Adjust load to continue.`
+              : "Weight outside recommended range. Adjust load to continue."
+
+          compensationDetails = {
+            adjustedReps: 0,
+            strategy: "out_of_bounds",
+            message,
+          }
+        } else {
+          const baseReps = exercise.performedReps
+            ? Number.parseInt(exercise.performedReps.split("-")[0], 10) || 10
+            : 10
+          const targetVolume = exercise.suggestedWeight * baseReps
+
+          const compensation = calculateVolumeCompensation(
+            targetVolume,
+            value,
+            tierRules.maxRepAdjustment
+          )
+
+          calculatedAdjustedReps = compensation.adjustedReps
+          compensationDetails = {
             adjustedReps: compensation.adjustedReps,
             strategy: compensation.strategy,
-            message: compensation.message
+            message: compensation.message,
           }
-        }))
-        
-        // Keep progression note visible
-        setUserOverrides(prev => ({ ...prev, [exerciseId]: false }))
-        
-        // Clear any pending warning since we're within bounds
-        setPendingOutOfBoundsWarnings(prev => {
-          const updated = { ...prev }
-          delete updated[`${exerciseId}_${setId}`]
-          return updated
-        })
-      }
-    }
 
-    // Simplified rep adjustment without 1RM features
-    let calculatedAdjustedReps: number | undefined = undefined
-    let shouldClearReps = false
+          setUserOverrides((prev) => ({ ...prev, [exerciseId]: false }))
+        }
+      } else {
+        // No suggested weight means remove any previous compensation messaging
+        setUserOverrides((prev) => ({ ...prev, [exerciseId]: false }))
+      }
+
+      setVolumeCompensation((prev) => {
+        const updated = { ...prev }
+
+        if (compensationDetails) {
+          updated[exerciseId] = { ...compensationDetails }
+          updated[volumeKey] = { ...compensationDetails }
+        } else {
+          delete updated[exerciseId]
+          delete updated[volumeKey]
+        }
+
+        return updated
+      })
+    }
 
     // Handle manual reps changes (detect override)
     if (field === "reps") {
-      const compensation = volumeCompensation[exerciseId] || volumeCompensation[`${exerciseId}_${setId}`]
+      const compensation = volumeCompensation[exerciseId] || volumeCompensation[volumeKey]
       if (compensation && value !== compensation.adjustedReps) {
         // User manually overrode the volume-compensated reps
         console.log("[v0] Manual reps override detected")
@@ -639,26 +658,9 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
     }
   }
 
-  const handleWeightInputBlur = (exerciseId: string, setId: string) => {
+  const handleWeightInputBlur = (exerciseId: string, _setId: string) => {
     // Check bounds immediately on blur
     checkExerciseBoundsStatus(exerciseId)
-    
-    // Show toast if pending warning
-    const key = `${exerciseId}_${setId}`
-    if (pendingOutOfBoundsWarnings[key]) {
-      toast({
-        title: 'Weight out of range',
-        description: 'Please enter a reasonable weight for this exercise.',
-        variant: 'destructive',
-        duration: 4000
-      })
-      // Clear the flag after showing toast
-      setPendingOutOfBoundsWarnings(prev => {
-        const updated = { ...prev }
-        delete updated[key]
-        return updated
-      })
-    }
   }
 
   // Check if current active set of an exercise is out of bounds and update banner
@@ -1669,8 +1671,6 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
     setUserOverrides,
     volumeCompensation,
     setVolumeCompensation,
-    pendingOutOfBoundsWarnings,
-    setPendingOutOfBoundsWarnings,
     outOfBoundsExercises,
     setOutOfBoundsExercises,
     debounceTimerRef,
@@ -1707,3 +1707,4 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
     groupedExercises,
   }
 }
+
