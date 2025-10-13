@@ -665,7 +665,7 @@ export class ProgramStateManager {
       // Load active program
       const { data: activeProgramData, error: activeProgramError } = await supabase
         .from("active_programs")
-        .select("*")
+        .select("id, user_id, program_id, program_name, current_week, current_day, days_per_week, total_weeks, start_date, created_at, updated_at")
         .eq("user_id", userId)
         .single()
 

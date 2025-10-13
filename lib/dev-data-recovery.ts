@@ -179,7 +179,7 @@ export class DevDataRecovery {
 
         const { data: programs } = await supabase
           .from("active_programs")
-          .select("template_id, current_week, current_day")
+          .select("program_id, current_week, current_day")
           .eq("user_id", userId)
           .limit(1)
 
