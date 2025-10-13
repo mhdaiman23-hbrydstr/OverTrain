@@ -44,39 +44,39 @@
 }
 
 .dark {
-  /* Keep dark theme as fallback but default to light */
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.145 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.145 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.5 0.2 240);
-  --primary-foreground: oklch(1 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.65 0.2 40);
-  --destructive-foreground: oklch(1 0 0);
-  --border: oklch(0.269 0 0);
-  --input: oklch(0.269 0 0);
-  --ring: oklch(0.5 0.2 240);
-  --chart-1: oklch(0.5 0.2 240);
-  --chart-2: oklch(0.65 0.2 40);
-  --chart-3: oklch(0.6 0.2 140);
-  --chart-4: oklch(0.55 0.2 300);
-  --chart-5: oklch(0.45 0.2 20);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.5 0.2 240);
-  --sidebar-primary-foreground: oklch(1 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(0.269 0 0);
-  --sidebar-ring: oklch(0.5 0.2 240);
+  /* Soft dark mode - easier on the eyes with subtle blue undertones */
+  --background: oklch(0.18 0.01 240); /* Softer gray with subtle blue tint */
+  --foreground: oklch(0.95 0.01 240); /* Warm white text with blue tint */
+  --card: oklch(0.22 0.01 240); /* Slightly darker than background for depth */
+  --card-foreground: oklch(0.95 0.01 240);
+  --popover: oklch(0.22 0.01 240);
+  --popover-foreground: oklch(0.95 0.01 240);
+  --primary: oklch(0.65 0.15 240); /* Brighter, more vibrant blue */
+  --primary-foreground: oklch(0.08 0.01 240); /* Dark text on primary */
+  --secondary: oklch(0.25 0.01 240); /* Gentle secondary background */
+  --secondary-foreground: oklch(0.95 0.01 240);
+  --muted: oklch(0.25 0.01 240); /* Softer muted colors */
+  --muted-foreground: oklch(0.65 0.01 240); /* Less harsh muted text */
+  --accent: oklch(0.28 0.01 240); /* Subtle accent highlights */
+  --accent-foreground: oklch(0.95 0.01 240);
+  --destructive: oklch(0.75 0.15 40); /* Softer, warmer orange */
+  --destructive-foreground: oklch(0.08 0.01 240);
+  --border: oklch(0.28 0.01 240); /* Subtle borders with transparency */
+  --input: oklch(0.25 0.01 240); /* Softer input backgrounds */
+  --ring: oklch(0.65 0.15 240); /* Softer focus rings */
+  --chart-1: oklch(0.65 0.15 240); /* Brighter chart colors */
+  --chart-2: oklch(0.75 0.15 40);
+  --chart-3: oklch(0.7 0.15 140);
+  --chart-4: oklch(0.65 0.15 300);
+  --chart-5: oklch(0.55 0.15 20);
+  --sidebar: oklch(0.20 0.01 240); /* Slightly darker sidebar */
+  --sidebar-foreground: oklch(0.95 0.01 240);
+  --sidebar-primary: oklch(0.65 0.15 240);
+  --sidebar-primary-foreground: oklch(0.08 0.01 240);
+  --sidebar-accent: oklch(0.25 0.01 240);
+  --sidebar-accent-foreground: oklch(0.95 0.01 240);
+  --sidebar-border: oklch(0.28 0.01 240);
+  --sidebar-ring: oklch(0.65 0.15 240);
 }
 
 @theme inline {
@@ -168,7 +168,7 @@
   }
 
   .gradient-card {
-    background: linear-gradient(135deg, oklch(1 0 0), oklch(0.98 0 0));
+    background: linear-gradient(135deg, var(--card), var(--background));
   }
 
   .text-gradient {

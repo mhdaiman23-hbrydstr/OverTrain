@@ -235,7 +235,7 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
         <div className="w-full min-h-screen pb-20 lg:pb-4">
           {/* Sticky Header */}
           <div className="sticky top-0 bg-background/95 backdrop-blur-sm border-b border-border/50 z-[60] shadow-sm">
-            <div className="flex items-center justify-between px-4 py-3 sm:py-4">
+            <div className="flex items-center justify-between px-4 py-3 sm:py-4 max-w-4xl mx-auto">
               <h1 className="text-xl sm:text-2xl font-bold">Programs</h1>
               <div className="flex items-center gap-2">
               <Sheet open={filterOpen} onOpenChange={setFilterOpen}>
@@ -326,31 +326,32 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
                 </SheetContent>
               </Sheet>
 
-              <Button size="sm" className="bg-red-500 hover:bg-red-600 text-white h-9 sm:h-10" onClick={onAddProgram}>
-                <Plus className="h-4 w-4 mr-1" />
+              <Button size="sm" className="bg-orange-500 hover:bg-orange-600 text-white h-9 sm:h-10 px-4 sm:px-6" onClick={onAddProgram}>
+                <Plus className="h-4 w-4 mr-1 sm:mr-2" />
                 NEW
               </Button>
               </div>
             </div>
           </div>
 
-          <Tabs defaultValue="templates" className="w-full">
-            <TabsList className="w-full justify-start rounded-none border-b border-border bg-transparent p-0">
+          <div className="px-2 pt-4">
+            <Tabs defaultValue="templates" className="w-full max-w-4xl mx-auto">
+              <TabsList className="grid w-full grid-cols-3 h-auto p-1 bg-muted/50 rounded-lg">
               <TabsTrigger
                 value="templates"
-                className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
+                className="data-[state=active]:bg-background data-[state=active]:shadow-sm"
               >
                 Templates
               </TabsTrigger>
               <TabsTrigger
                 value="my-templates"
-                className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
+                className="data-[state=active]:bg-background data-[state=active]:shadow-sm"
               >
-                My Templates
+                Custom Templates
               </TabsTrigger>
               <TabsTrigger
                 value="history"
-                className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
+                className="data-[state=active]:bg-background data-[state=active]:shadow-sm"
               >
                 History
               </TabsTrigger>
@@ -500,7 +501,8 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
                 )}
               </div>
             </TabsContent>
-          </Tabs>
+            </Tabs>
+          </div>
         </div>
       )}
     </div>

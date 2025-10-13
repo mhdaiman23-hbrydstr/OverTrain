@@ -57,7 +57,7 @@ export function ProfileFeedbackSection() {
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <Button
-              variant={feedbackType === "general" ? "default" : "outline"}
+              variant={feedbackType === "general" ? "secondary" : "outline"}
               className="h-auto p-4 justify-start"
               onClick={() => setFeedbackType("general")}
             >
@@ -68,7 +68,7 @@ export function ProfileFeedbackSection() {
               </div>
             </Button>
             <Button
-              variant={feedbackType === "bug" ? "default" : "outline"}
+              variant={feedbackType === "bug" ? "secondary" : "outline"}
               className="h-auto p-4 justify-start"
               onClick={() => setFeedbackType("bug")}
             >
@@ -79,7 +79,7 @@ export function ProfileFeedbackSection() {
               </div>
             </Button>
             <Button
-              variant={feedbackType === "feature" ? "default" : "outline"}
+              variant={feedbackType === "feature" ? "secondary" : "outline"}
               className="h-auto p-4 justify-start"
               onClick={() => setFeedbackType("feature")}
             >
