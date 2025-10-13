@@ -103,24 +103,17 @@ export class ProgramStateManager {
     const migratedId = this.migrateTemplateId(templateId)
 
     try {
-      // Try database first (new system)
       const dbTemplate = await programTemplateService.getTemplate(migratedId)
       if (dbTemplate) {
         console.log('[ProgramState] Loaded template from database:', migratedId)
         return dbTemplate
       }
     } catch (error) {
-      console.warn('[ProgramState] Failed to load from database, using fallback:', error)
+      console.error('[ProgramState] Failed to load template from database:', error)
+      return null
     }
 
-    // Fallback to hardcoded templates (backwards compatibility)
-    const hardcodedTemplate = GYM_TEMPLATES.find((t) => t.id === templateId)
-    if (hardcodedTemplate) {
-      console.log('[ProgramState] Loaded template from hardcoded GYM_TEMPLATES:', templateId)
-      return hardcodedTemplate
-    }
-
-    console.error('[ProgramState] Template not found in database or GYM_TEMPLATES:', templateId)
+    console.error('[ProgramState] Template not found in database:', templateId)
     return null
   }
 
@@ -131,20 +124,18 @@ export class ProgramStateManager {
    */
   static async getAllTemplates(): Promise<GymTemplate[]> {
     try {
-      // Load templates from database
       const dbTemplates = await programTemplateService.getAllGymTemplates()
-      
+
       if (dbTemplates.length > 0) {
         console.log(`[ProgramState] Loaded ${dbTemplates.length} templates from database`)
         return dbTemplates
       }
-      
-      // Only show hardcoded templates if database returns nothing (emergency fallback)
-      console.warn('[ProgramState] No database templates found, using hardcoded fallback')
-      return GYM_TEMPLATES
+
+      console.warn('[ProgramState] No templates found in database')
+      return []
     } catch (error) {
-      console.error('[ProgramState] Failed to load database templates, using hardcoded fallback:', error)
-      return GYM_TEMPLATES
+      console.error('[ProgramState] Failed to load templates from database:', error)
+      return []
     }
   }
 
@@ -602,8 +593,8 @@ export class ProgramStateManager {
       const activeProgram = await this.getActiveProgram()
 
       if (activeProgram) {
-        // Upsert active program
-        const { error} = await supabase
+        // Upsert active program with NEW schema
+        const { error } = await supabase
           .from("active_programs")
           .upsert({
             user_id: userId,
@@ -666,24 +657,26 @@ export class ProgramStateManager {
         .from("active_programs")
         .select("id, user_id, program_id, program_name, current_week, current_day, days_per_week, total_weeks, start_date, created_at, updated_at")
         .eq("user_id", userId)
-        .single()
+        .maybeSingle()
 
       if (activeProgramError && activeProgramError.code !== "PGRST116") {
         // PGRST116 = no rows returned
         logSupabaseError("[ProgramState] Failed to load active program:", activeProgramError)
       } else if (activeProgramData) {
-        // Load template from database or fallback
+        // Load template from database ONLY (no hardcoded fallback)
         const template = await this.loadTemplate(activeProgramData.program_id)
         if (!template) {
-          console.error("[ProgramState] Template not found for program:", activeProgramData.program_id)
+          console.error("[ProgramState] Template not found in database:", activeProgramData.program_id)
           return
         }
 
-        // Calculate completed workouts and progress from actual workout data
+        // Recalculate completedWorkouts from actual workout history
         const totalWorkouts = activeProgramData.days_per_week * activeProgramData.total_weeks
         let completedWorkouts = 0
+
         for (let week = 1; week <= activeProgramData.current_week; week++) {
-          for (let day = 1; day < (week === activeProgramData.current_week ? activeProgramData.current_day : activeProgramData.days_per_week + 1); day++) {
+          for (let day = 1; day <= activeProgramData.days_per_week; day++) {
+            if (week === activeProgramData.current_week && day >= activeProgramData.current_day) break
             if (WorkoutLogger.hasCompletedWorkout(week, day, userId)) {
               completedWorkouts++
             }

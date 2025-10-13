@@ -142,13 +142,6 @@ export function ExerciseGroups({
                       </div>
                     </div>
 
-                    {volumeCompensation[exercise.id] && !userOverrides[exercise.id] && (
-                      <div className="bg-green-50 border border-green-200 rounded-md px-3 py-2 mb-3 text-xs text-green-800">
-                        <div className="font-semibold">Volume Compensation Active</div>
-                        <div>{volumeCompensation[exercise.id].message || `Adjusted to ${volumeCompensation[exercise.id].adjustedReps} reps`}</div>
-                      </div>
-                    )}
-
                     <div className="grid grid-cols-12 gap-2 sm:gap-3 text-xs sm:text-sm text-muted-foreground uppercase tracking-wider pb-2">
                       <div className="col-span-1 text-center">
                         <span>#</span>
@@ -284,4 +277,3 @@ export function ExerciseGroups({
     </div>
   )
 }
-
