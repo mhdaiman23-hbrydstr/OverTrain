@@ -657,7 +657,7 @@ export class ProgramStateManager {
         .from("active_programs")
         .select("id, user_id, program_id, program_name, current_week, current_day, days_per_week, total_weeks, start_date, created_at, updated_at")
         .eq("user_id", userId)
-        .single()
+        .maybeSingle()
 
       if (activeProgramError && activeProgramError.code !== "PGRST116") {
         // PGRST116 = no rows returned

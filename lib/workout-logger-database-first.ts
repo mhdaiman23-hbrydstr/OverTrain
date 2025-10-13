@@ -122,7 +122,9 @@ export function useWorkoutLoggerDatabaseFirst({
           .from('in_progress_workouts')
           .select('*')
           .eq('user_id', userId)
-          .single()
+          .order('start_time', { descending: true })
+          .limit(1)
+          .maybeSingle()
 
         if (dbWorkout && !dbError) {
           console.log('[WorkoutLogger] 🔄 Resuming workout from database')
@@ -148,7 +150,9 @@ export function useWorkoutLoggerDatabaseFirst({
       const stored = localStorage.getItem(STORAGE_KEY)
       if (stored) {
         const workouts: WorkoutSession[] = JSON.parse(stored)
-        const activeWorkout = workouts.find(w => !w.completed)
+        const activeWorkout = workouts
+          .filter(w => !w.completed)
+          .sort((a, b) => (b.startTime || 0) - (a.startTime || 0))[0]
         
         if (activeWorkout) {
           console.log('[WorkoutLogger] 📱 Resuming workout from localStorage')
