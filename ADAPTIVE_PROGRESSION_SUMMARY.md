@@ -133,7 +133,7 @@ ProgressionCalculator.calculateAdaptiveProgression(
 // Tier utilities
 getExerciseTier(exerciseName: string, category: "compound" | "isolation")
 determineProgressionStrategy(userWeight, targetWeight, targetVolume, tierRules)
-calculateVolumeCompensation(targetVolume, userWeight, maxRepAdjustment)
+calculateVolumeCompensation(targetVolume, userWeight, baselineReps, maxRepAdjustment)
 ```
 
 ---

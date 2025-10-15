@@ -11,6 +11,7 @@ export interface SavedTemplate extends GymTemplate {
 export interface ProgramHistory {
   id: string
   templateId: string
+  instanceId?: string
   name: string
   startDate: string
   endDate?: string
@@ -99,8 +100,10 @@ export class TemplateStorageManager {
     // End any currently active program
     this.endActiveProgram()
 
+    const id = `program-${Date.now()}`
     const newProgram: ProgramHistory = {
-      id: `program-${Date.now()}`,
+      id,
+      instanceId: id,
       templateId,
       name: templateName,
       startDate: new Date().toISOString(),

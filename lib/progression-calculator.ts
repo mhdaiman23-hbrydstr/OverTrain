@@ -458,7 +458,7 @@ export class ProgressionCalculator {
    * Calculate adaptive progression using the new ProgressionRouter system
    * This is the recommended method for new implementations
    */
-  static calculateAdaptiveProgressionWithRouter(
+  static async calculateAdaptiveProgressionWithRouter(
     exerciseId: string,
     exerciseName: string,
     currentWeek: number,
@@ -468,7 +468,7 @@ export class ProgressionCalculator {
     userProfile: { experience: "beginner" | "intermediate" | "advanced"; gender: "male" | "female" },
     userWeightAdjustment?: number,
     oneRepMaxes?: any[]
-  ): AdaptiveProgressionResult {
+  ): Promise<AdaptiveProgressionResult> {
     console.log("[ProgressionCalculator] calculateAdaptiveProgressionWithRouter called:", {
       exerciseId,
       exerciseName,
@@ -494,7 +494,7 @@ export class ProgressionCalculator {
     }
 
     // Route to appropriate engine
-    const progressionResult: ProgressionResult = ProgressionRouter.calculateProgression(progressionInput)
+    const progressionResult: ProgressionResult = await ProgressionRouter.calculateProgression(progressionInput)
 
     console.log("[ProgressionCalculator] Router result:", {
       engineUsed: progressionResult.engineUsed,

@@ -1,5 +1,9 @@
-export function getExerciseMuscleGroup(exerciseName: string): string {
-  const name = exerciseName.toLowerCase()
+export function getExerciseMuscleGroup(exerciseName?: string): string {
+  const raw = typeof exerciseName === 'string' ? exerciseName : ''
+  const name = raw.trim().toLowerCase()
+  if (!name) {
+    return "OTHER"
+  }
 
   // Leg exercises
   if (name.includes("squat") || name.includes("leg extension") || name.includes("leg curl") || name.includes("calf")) {

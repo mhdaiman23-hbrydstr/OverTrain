@@ -56,8 +56,15 @@ export function MuscleGroupStats({ open, onClose }: MuscleGroupStatsProps) {
       const weekData = weeklyMuscleData.get(weekNumber)!
 
       workout.exercises.forEach((exercise) => {
-        const muscleGroup = getExerciseMuscleGroup(exercise.exerciseName)
-        const completedSets = exercise.sets.filter((set) => set.completed && set.reps > 0).length
+        // Prefer DB-provided muscle group when available; otherwise fall back to heuristic.
+        const safeName = typeof (exercise as any)?.exerciseName === 'string'
+          ? (exercise as any).exerciseName
+          : (typeof (exercise as any)?.name === 'string' ? (exercise as any).name : '')
+
+        const muscleGroup: string = (exercise as any)?.muscle_group ?? getExerciseMuscleGroup(safeName)
+
+        const setsArray = Array.isArray((exercise as any)?.sets) ? (exercise as any).sets : []
+        const completedSets = setsArray.filter((set: any) => set?.completed && (set?.reps ?? 0) > 0).length
 
         weekData.set(muscleGroup, (weekData.get(muscleGroup) || 0) + completedSets)
       })
