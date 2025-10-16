@@ -1,0 +1,591 @@
+
+PS S:\Program Files\LiftLog> npm test
+
+> my-v0-project@0.1.0 test
+> vitest run
+
+
+ RUN  v2.1.9 S:/Program Files/LiftLog
+
+ ❯ tests/one-rm-context.test.tsx (0)
+5:12:04 PM [vite] warning: Duplicate member "syncToDatabase" in class body
+2230|     * Sync local data to database (preserve current work before loading fresh data)
+2231|     */
+2232|    static async syncToDatabase(userId: string): Promise<void> {
+  |                 ^
+2233|      if (!supabase) return
+2234|
+
+  Plugin: vite:esbuild
+stderr | lib/services/exercise-resolver.test.ts > ExerciseResolver > Batch resolution > should resolve multiple exercises                                          
+[ExerciseResolver] Error resolving exercise: Error: Supabase client not initialized - check environment variables                                                  
+    at ExerciseLibraryService.ensureSupabase (S:\Program Files\LiftLog\lib\services\exercise-library-service.ts:35:26)
+    at ExerciseLibraryService.getExerciseByName (S:\Program Files\LiftLog\lib\services\exercise-library-service.ts:77:10)
+    at ExerciseResolver.resolve (S:\Program Files\LiftLog\lib\services\exercise-resolver.ts:54:52)
+    at S:\Program Files\LiftLog\lib\services\exercise-resolver.ts:104:35
+    at Array.map (<anonymous>)
+    at ExerciseResolver.resolveMany (S:\Program Files\LiftLog\lib\services\exercise-resolver.ts:103:29)
+    at S:\Program Files\LiftLog\lib\services\exercise-resolver.test.ts:122:38
+    at file:///S:/Program%20Files/LiftLog/node_modules/@vitest/runner/dist/index.js:146:14
+    at file:///S:/Program%20Files/LiftLog/node_modules/@vitest/runner/dist/index.js:533:11
+    at runWithTimeout (file:///S:/Program%20Files/LiftLog/node_modules/@vitest/runner/dist/index.js:39:7)
+[ExerciseResolver] Error resolving exercise: Error: Supabase client not initialized - check environment variables
+    at ExerciseLibraryService.ensureSupabase (S:\Program Files\LiftLog\lib\services\exercise-library-service.ts:35:26)
+    at ExerciseLibraryService.getExerciseByName (S:\Program Files\LiftLog\lib\services\exercise-library-service.ts:77:10)
+    at ExerciseResolver.resolve (S:\Program Files\LiftLog\lib\services\exercise-resolver.ts:54:52)
+    at S:\Program Files\LiftLog\lib\services\exercise-resolver.ts:104:35
+    at Array.map (<anonymous>)
+    at ExerciseResolver.resolveMany (S:\Program Files\LiftLog\lib\services\exercise-resolver.ts:103:29)
+    at S:\Program Files\LiftLog\lib\services\exercise-resolver.test.ts:122:38
+    at file:///S:/Program%20Files/LiftLog/node_modules/@vitest/runner/dist/index.js:146:14
+    at file:///S:/Program%20Files/LiftLog/node_modules/@vitest/runner/dist/index.js:533:11
+    at runWithTimeout (file:///S:/Program%20Files/LiftLog/node_modules/@vitest/runner/dist/index.js:39:7)
+[ExerciseResolver] Error resolving exercise: Error: Supabase client not initialized - check environment variables
+    at ExerciseLibraryService.ensureSupabase (S:\Program Files\LiftLog\lib\services\exercise-library-service.ts:35:26)
+    at ExerciseLibraryService.getExerciseByName (S:\Program Files\LiftLog\lib\services\exercise-library-service.ts:77:10)
+    at ExerciseResolver.resolve (S:\Program Files\LiftLog\lib\services\exercise-resolver.ts:54:52)
+    at S:\Program Files\LiftLog\lib\services\exercise-resolver.ts:104:35
+    at Array.map (<anonymous>)
+    at ExerciseResolver.resolveMany (S:\Program Files\LiftLog\lib\services\exercise-resolver.ts:103:29)
+    at S:\Program Files\LiftLog\lib\services\exercise-resolver.test.ts:122:38
+    at file:///S:/Program%20Files/LiftLog/node_modules/@vitest/runner/dist/index.js:146:14
+    at file:///S:/Program%20Files/LiftLog/node_modules/@vitest/runner/dist/index.js:533:11
+    at runWithTimeout (file:///S:/Program%20Files/LiftLog/node_modules/@vitest/runner/dist/index.js:39:7)
+
+stdout | tests/database-first-workout-logger.test.ts > DataSyncService > saveWorkoutOptimistic > should save workout to localStorage instantly and queue for databa
+stdout | tests/database-first-workout-logger.test.ts > DataSyncService > saveWorkoutOptimistic > should save workout to localStorage instantly and queue for database sync                                                                                                                                                            
+[DataSync] ✅ Instant localStorage update for workout test-workout-1                                                                                               
+[DataSync] ✅ Sync queue empty                                                                                                                                     
+[DataSync] 🔄 Workout test-workout-1 queued for database sync (ID: workout-test-workout-1-1760533924792)                                                           
+
+stderr | tests/database-first-workout-logger.test.ts > DataSyncService > saveWorkoutOptimistic > should handle localStorage errors gracefully
+[DataSync] ❌ localStorage update failed: Error: Storage quota exceeded
+    at Object.<anonymous> (S:\Program Files\LiftLog\tests\database-first-workout-logger.test.ts:108:15)
+    at Object.mockCall (file:///S:/Program%20Files/LiftLog/node_modules/@vitest/spy/dist/index.js:61:17)
+    at Object.spy [as setItem] (file:///S:/Program%20Files/LiftLog/node_modules/tinyspy/dist/index.js:45:80)
+    at Function.saveWorkoutOptimistic (S:\Program Files\LiftLog\lib\data-sync-service.ts:58:20)
+    at S:\Program Files\LiftLog\tests\database-first-workout-logger.test.ts:124:44
+    at file:///S:/Program%20Files/LiftLog/node_modules/@vitest/runner/dist/index.js:146:14
+    at file:///S:/Program%20Files/LiftLog/node_modules/@vitest/runner/dist/index.js:533:11
+    at runWithTimeout (file:///S:/Program%20Files/LiftLog/node_modules/@vitest/runner/dist/index.js:39:7)
+    at runTest (file:///S:/Program%20Files/LiftLog/node_modules/@vitest/runner/dist/index.js:1056:17)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+
+stdout | tests/database-first-workout-logger.test.ts > DataSyncService > saveSetOptimistic > should save set instantly and queue for database sync
+[DataSync] ✅ Instant set update for set set-1
+
+stderr | tests/database-first-workout-logger.test.ts > DataSyncService > saveSetOptimistic > should save set instantly and queue for database sync
+[DataSync] Set sync failed: TypeError: __vite_ssr_import_0__.supabase.from(...).upsert is not a function
+    at Function.logSetToDatabase (S:\Program Files\LiftLog\lib\data-sync-service.ts:399:10)
+    at Function.saveSetOptimistic (S:\Program Files\LiftLog\lib\data-sync-service.ts:133:12)
+    at S:\Program Files\LiftLog\tests\database-first-workout-logger.test.ts:170:44
+    at file:///S:/Program%20Files/LiftLog/node_modules/@vitest/runner/dist/index.js:146:14
+    at file:///S:/Program%20Files/LiftLog/node_modules/@vitest/runner/dist/index.js:533:11
+    at runWithTimeout (file:///S:/Program%20Files/LiftLog/node_modules/@vitest/runner/dist/index.js:39:7)
+    at runTest (file:///S:/Program%20Files/LiftLog/node_modules/@vitest/runner/dist/index.js:1056:17)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at runSuite (file:///S:/Program%20Files/LiftLog/node_modules/@vitest/runner/dist/index.js:1205:15)
+    at runSuite (file:///S:/Program%20Files/LiftLog/node_modules/@vitest/runner/dist/index.js:1205:15)
+
+stdout | tests/database-first-workout-logger.test.ts > DataSyncService > forceSyncAll > should process all pending sync operations                                 
+[DataSync] 🔄 Force syncing all pending operations...                                                                                                              
+[DataSync] 🔄 Processing 1 queued operations...                                                                                                                    
+[DataSync] 🔄 Queueing retry 1/3: sync-1                                                                                                                           
+                                                                                                                                                                   
+stderr | tests/database-first-workout-logger.test.ts > DataSyncService > forceSyncAll > should process all pending sync operations
+[DataSync] Workout sync failed: TypeError: __vite_ssr_import_0__.supabase.from(...).upsert is not a function
+    at Function.syncWorkoutToDatabase (S:\Program Files\LiftLog\lib\data-sync-service.ts:350:10)
+    at Function.executeSyncOperation (S:\Program Files\LiftLog\lib\data-sync-service.ts:315:27)
+    at Function.processSyncQueue (S:\Program Files\LiftLog\lib\data-sync-service.ts:266:36)
+    at Function.forceSyncAll (S:\Program Files\LiftLog\lib\data-sync-service.ts:185:16)
+    at S:\Program Files\LiftLog\tests\database-first-workout-logger.test.ts:211:29
+    at file:///S:/Program%20Files/LiftLog/node_modules/@vitest/runner/dist/index.js:146:14
+    at file:///S:/Program%20Files/LiftLog/node_modules/@vitest/runner/dist/index.js:533:11
+    at runWithTimeout (file:///S:/Program%20Files/LiftLog/node_modules/@vitest/runner/dist/index.js:39:7)
+    at runTest (file:///S:/Program%20Files/LiftLog/node_modules/@vitest/runner/dist/index.js:1056:17)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+
+stdout | tests/workout-logger.smoke.test.tsx > WorkoutLoggerComponent smoke test > renders the workout logger UI
+Rendering workout with 0 exercises
+💾 RAW LOCALSTORAGE CHECK: {
+  inProgressKey: 'liftlog_in_progress_workouts',
+  rawValue: null,
+  parsed: null
+}
+📥 COMPONENT LOAD - Existing workout from localStorage: {
+  id: 'workout-1-1',
+  week: 1,
+  day: 1,
+  exerciseCount: 1,
+  exercises: [
+    {
+      name: 'Back Squat',
+      setsCount: 2,
+      hasSets: true,
+      firstSetState: [Object]
+    }
+  ],
+  fullWorkout: {
+    id: 'workout-1-1',
+    userId: 'user-1',
+    workoutName: 'Mock Workout',
+    startTime: 1760533925404,
+    week: 1,
+    day: 1,
+    exercises: [ [Object] ],
+    notes: '',
+    completed: false
+  }
+}
+Checking if workout should be blocked: { existingWorkoutWeek: 1, activeProgramWeek: 1, activeProgramDay: 1 }
+Workout not blocked - current or past week
+Rendering workout with 1 exercises
+Exercise 1: Back Squat - 2 sets
+
+stdout | tests/database-first-workout-logger.test.ts > DataSyncService > forceSyncAll > should process all pending sync operations
+[DataSync] 📊 Sync completed: 0 success, 2 remaining
+[DataSync] ✅ Force sync completed
+
+stderr | tests/database-first-workout-logger.test.ts > useWorkoutLoggerDatabaseFirst > initialization > should load existing workout from database
+[WorkoutLogger] Failed to load workout: TypeError: __vite_ssr_import_1__.supabase.from(...).select(...).eq(...).order is not a function
+    at loadExistingWorkout (S:\Program Files\LiftLog\lib\workout-logger-database-first.ts:125:12)
+    at S:\Program Files\LiftLog\lib\workout-logger-database-first.ts:111:5
+    at Object.react_stack_bottom_frame (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:25989:20)
+    at runWithFiberInDEV (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:874:13)
+    at commitHookEffectListMount (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:13249:29)
+    at commitHookPassiveMountEffects (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:13336:11)
+    at commitPassiveMountOnFiber (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:15484:13)
+    at recursivelyTraversePassiveMountEffects (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:15439:11)
+    at commitPassiveMountOnFiber (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:15519:11)
+    at flushPassiveEffects (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:18432:9)
+
+stderr | tests/database-first-workout-logger.test.ts > useWorkoutLoggerDatabaseFirst > initialization > should fallback to localStorage if database has no workout
+[WorkoutLogger] Failed to load workout: TypeError: __vite_ssr_import_1__.supabase.from(...).select(...).eq(...).order is not a function
+    at loadExistingWorkout (S:\Program Files\LiftLog\lib\workout-logger-database-first.ts:125:12)
+    at S:\Program Files\LiftLog\lib\workout-logger-database-first.ts:111:5
+    at Object.react_stack_bottom_frame (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:25989:20)
+    at runWithFiberInDEV (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:874:13)
+    at commitHookEffectListMount (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:13249:29)
+    at commitHookPassiveMountEffects (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:13336:11)
+    at commitPassiveMountOnFiber (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:15484:13)
+    at recursivelyTraversePassiveMountEffects (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:15439:11)
+    at commitPassiveMountOnFiber (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:15519:11)
+    at flushPassiveEffects (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:18432:9)
+
+stdout | tests/database-first-workout-logger.test.ts > useWorkoutLoggerDatabaseFirst > startWorkout > should start a new workout and save it
+[DataSync] ✅ Instant localStorage update for workout workout-1760533925877
+[DataSync] ✅ Sync queue empty
+[DataSync] 🔄 Workout workout-1760533925877 queued for database sync (ID: workout-workout-1760533925877-1760533925877)
+[WorkoutLogger] ✅ Workout started successfully
+
+stderr | tests/database-first-workout-logger.test.ts > useWorkoutLoggerDatabaseFirst > startWorkout > should start a new workout and save it
+[WorkoutLogger] Failed to load workout: TypeError: __vite_ssr_import_1__.supabase.from(...).select(...).eq(...).order is not a function
+    at loadExistingWorkout (S:\Program Files\LiftLog\lib\workout-logger-database-first.ts:125:12)
+    at S:\Program Files\LiftLog\lib\workout-logger-database-first.ts:111:5
+    at Object.react_stack_bottom_frame (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:25989:20)
+    at runWithFiberInDEV (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:874:13)
+    at commitHookEffectListMount (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:13249:29)
+    at commitHookPassiveMountEffects (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:13336:11)
+    at commitPassiveMountOnFiber (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:15484:13)
+    at recursivelyTraversePassiveMountEffects (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:15439:11)
+    at commitPassiveMountOnFiber (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:15519:11)
+    at flushPassiveEffects (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:18432:9)
+
+stderr | tests/database-first-workout-logger.test.ts > useWorkoutLoggerDatabaseFirst > startWorkout > should throw error for invalid workout name
+[WorkoutLogger] Failed to load workout: TypeError: __vite_ssr_import_1__.supabase.from(...).select(...).eq(...).order is not a function
+    at loadExistingWorkout (S:\Program Files\LiftLog\lib\workout-logger-database-first.ts:125:12)
+    at S:\Program Files\LiftLog\lib\workout-logger-database-first.ts:111:5
+    at Object.react_stack_bottom_frame (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:25989:20)
+    at runWithFiberInDEV (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:874:13)
+    at commitHookEffectListMount (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:13249:29)
+    at commitHookPassiveMountEffects (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:13336:11)
+    at commitPassiveMountOnFiber (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:15484:13)
+    at recursivelyTraversePassiveMountEffects (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:15439:11)
+    at commitPassiveMountOnFiber (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:15519:11)
+    at flushPassiveEffects (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:18432:9)
+[WorkoutLogger] Start workout error: Workout name is required
+
+stderr | tests/database-first-workout-logger.test.ts > useWorkoutLoggerDatabaseFirst > completeSet > should complete a set and update workout
+[WorkoutLogger] Failed to load workout: TypeError: __vite_ssr_import_1__.supabase.from(...).select(...).eq(...).order is not a function
+    at loadExistingWorkout (S:\Program Files\LiftLog\lib\workout-logger-database-first.ts:125:12)
+    at S:\Program Files\LiftLog\lib\workout-logger-database-first.ts:111:5
+    at Object.react_stack_bottom_frame (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:25989:20)
+    at runWithFiberInDEV (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:874:13)
+    at commitHookEffectListMount (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:13249:29)
+    at commitHookPassiveMountEffects (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:13336:11)
+    at commitPassiveMountOnFiber (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:15484:13)
+    at recursivelyTraversePassiveMountEffects (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:15439:11)
+    at commitPassiveMountOnFiber (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:15519:11)
+    at flushPassiveEffects (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:18432:9)
+
+stderr | tests/database-first-workout-logger.test.ts > useWorkoutLoggerDatabaseFirst > completeSet > should throw error when no active workout
+[WorkoutLogger] Failed to load workout: TypeError: __vite_ssr_import_1__.supabase.from(...).select(...).eq(...).order is not a function
+    at loadExistingWorkout (S:\Program Files\LiftLog\lib\workout-logger-database-first.ts:125:12)
+    at S:\Program Files\LiftLog\lib\workout-logger-database-first.ts:111:5
+    at Object.react_stack_bottom_frame (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:25989:20)
+    at runWithFiberInDEV (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:874:13)
+    at commitHookEffectListMount (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:13249:29)
+    at commitHookPassiveMountEffects (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:13336:11)
+    at commitPassiveMountOnFiber (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:15484:13)
+    at recursivelyTraversePassiveMountEffects (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:15439:11)
+    at commitPassiveMountOnFiber (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:15519:11)
+    at flushPassiveEffects (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:18432:9)
+
+stderr | tests/database-first-workout-logger.test.ts > useWorkoutLoggerDatabaseFirst > completeWorkout > should complete the current workout
+[WorkoutLogger] Failed to load workout: TypeError: __vite_ssr_import_1__.supabase.from(...).select(...).eq(...).order is not a function
+    at loadExistingWorkout (S:\Program Files\LiftLog\lib\workout-logger-database-first.ts:125:12)
+    at S:\Program Files\LiftLog\lib\workout-logger-database-first.ts:111:5
+    at Object.react_stack_bottom_frame (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:25989:20)
+    at runWithFiberInDEV (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:874:13)
+    at commitHookEffectListMount (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:13249:29)
+    at commitHookPassiveMountEffects (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:13336:11)
+    at commitPassiveMountOnFiber (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:15484:13)
+    at recursivelyTraversePassiveMountEffects (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:15439:11)
+    at commitPassiveMountOnFiber (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:15519:11)
+    at flushPassiveEffects (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:18432:9)
+
+stderr | tests/database-first-workout-logger.test.ts > useWorkoutLoggerDatabaseFirst > abandonWorkout > should abandon the current workout
+[WorkoutLogger] Failed to load workout: TypeError: __vite_ssr_import_1__.supabase.from(...).select is not a function
+    at loadExistingWorkout (S:\Program Files\LiftLog\lib\workout-logger-database-first.ts:123:12)
+    at S:\Program Files\LiftLog\lib\workout-logger-database-first.ts:111:5
+    at Object.react_stack_bottom_frame (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:25989:20)
+    at runWithFiberInDEV (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:874:13)
+    at commitHookEffectListMount (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:13249:29)
+    at commitHookPassiveMountEffects (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:13336:11)
+    at commitPassiveMountOnFiber (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:15484:13)
+    at recursivelyTraversePassiveMountEffects (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:15439:11)
+    at commitPassiveMountOnFiber (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:15519:11)
+    at flushPassiveEffects (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:18432:9)
+
+stdout | tests/database-first-workout-logger.test.ts > useWorkoutLoggerDatabaseFirst > sync functionality > should force sync all pending operations
+[DataSync] 🔄 Force syncing all pending operations...
+[DataSync] ✅ Sync queue empty
+[DataSync] ✅ Force sync completed
+[WorkoutLogger] 🔄 Manual sync triggered
+
+stderr | tests/database-first-workout-logger.test.ts > useWorkoutLoggerDatabaseFirst > sync functionality > should force sync all pending operations
+[WorkoutLogger] Failed to load workout: TypeError: __vite_ssr_import_1__.supabase.from(...).select(...).eq(...).order is not a function
+    at loadExistingWorkout (S:\Program Files\LiftLog\lib\workout-logger-database-first.ts:125:12)
+    at S:\Program Files\LiftLog\lib\workout-logger-database-first.ts:111:5
+    at Object.react_stack_bottom_frame (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:25989:20)
+    at runWithFiberInDEV (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:874:13)
+    at commitHookEffectListMount (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:13249:29)
+    at commitHookPassiveMountEffects (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:13336:11)
+    at commitPassiveMountOnFiber (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:15484:13)
+    at recursivelyTraversePassiveMountEffects (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:15439:11)
+    at commitPassiveMountOnFiber (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:15519:11)
+    at flushPassiveEffects (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:18432:9)
+
+stdout | tests/database-first-workout-logger.test.ts > useWorkoutLoggerDatabaseFirst > sync functionality > should clear sync queue
+[DataSync] 🗑️ Sync queue cleared
+[WorkoutLogger] 🗑️ Sync queue cleared
+
+stderr | tests/database-first-workout-logger.test.ts > useWorkoutLoggerDatabaseFirst > sync functionality > should clear sync queue
+[WorkoutLogger] Failed to load workout: TypeError: __vite_ssr_import_1__.supabase.from(...).select(...).eq(...).order is not a function
+    at loadExistingWorkout (S:\Program Files\LiftLog\lib\workout-logger-database-first.ts:125:12)
+    at S:\Program Files\LiftLog\lib\workout-logger-database-first.ts:111:5
+    at Object.react_stack_bottom_frame (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:25989:20)
+    at runWithFiberInDEV (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:874:13)
+    at commitHookEffectListMount (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:13249:29)
+    at commitHookPassiveMountEffects (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:13336:11)
+    at commitPassiveMountOnFiber (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:15484:13)
+    at recursivelyTraversePassiveMountEffects (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:15439:11)
+    at commitPassiveMountOnFiber (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:15519:11)
+    at flushPassiveEffects (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:18432:9)
+
+stderr | tests/database-first-workout-logger.test.ts > useWorkoutLoggerDatabaseFirst > utility functions > should format duration correctly
+[WorkoutLogger] Failed to load workout: TypeError: __vite_ssr_import_1__.supabase.from(...).select(...).eq(...).order is not a function
+    at loadExistingWorkout (S:\Program Files\LiftLog\lib\workout-logger-database-first.ts:125:12)
+    at S:\Program Files\LiftLog\lib\workout-logger-database-first.ts:111:5
+    at Object.react_stack_bottom_frame (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:25989:20)
+    at runWithFiberInDEV (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:874:13)
+    at commitHookEffectListMount (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:13249:29)
+    at commitHookPassiveMountEffects (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:13336:11)
+    at commitPassiveMountOnFiber (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:15484:13)
+    at recursivelyTraversePassiveMountEffects (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:15439:11)
+    at commitPassiveMountOnFiber (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:15519:11)
+    at flushPassiveEffects (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:18432:9)
+
+stderr | tests/database-first-workout-logger.test.ts > useWorkoutLoggerDatabaseFirst > utility functions > should calculate completion stats
+[WorkoutLogger] Failed to load workout: TypeError: __vite_ssr_import_1__.supabase.from(...).select(...).eq(...).order is not a function
+    at loadExistingWorkout (S:\Program Files\LiftLog\lib\workout-logger-database-first.ts:125:12)
+    at S:\Program Files\LiftLog\lib\workout-logger-database-first.ts:111:5
+    at Object.react_stack_bottom_frame (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:25989:20)
+    at runWithFiberInDEV (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:874:13)
+    at commitHookEffectListMount (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:13249:29)
+    at commitHookPassiveMountEffects (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:13336:11)
+    at commitPassiveMountOnFiber (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:15484:13)
+    at recursivelyTraversePassiveMountEffects (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:15439:11)
+    at commitPassiveMountOnFiber (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:15519:11)
+    at flushPassiveEffects (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:18432:9)
+
+stdout | tests/database-first-workout-logger.test.ts > Integration Tests > offline functionality > should work offline and queue operations
+[DataSync] ✅ Instant localStorage update for workout workout-1760533925951
+[DataSync] ✅ Sync queue empty
+[DataSync] 🔄 Workout workout-1760533925951 queued for database sync (ID: workout-workout-1760533925951-1760533925951)
+[WorkoutLogger] ✅ Workout started successfully
+
+stderr | tests/database-first-workout-logger.test.ts > Integration Tests > offline functionality > should work offline and queue operations
+[WorkoutLogger] Failed to load workout: TypeError: __vite_ssr_import_1__.supabase.from(...).select(...).eq(...).order is not a function
+    at loadExistingWorkout (S:\Program Files\LiftLog\lib\workout-logger-database-first.ts:125:12)
+    at S:\Program Files\LiftLog\lib\workout-logger-database-first.ts:111:5
+    at Object.react_stack_bottom_frame (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:25989:20)
+    at runWithFiberInDEV (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:874:13)
+    at commitHookEffectListMount (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:13249:29)
+    at commitHookPassiveMountEffects (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:13336:11)
+    at commitPassiveMountOnFiber (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:15484:13)
+    at recursivelyTraversePassiveMountEffects (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:15439:11)
+    at commitPassiveMountOnFiber (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:15519:11)
+    at flushPassiveEffects (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:18432:9)
+
+stderr | tests/database-first-workout-logger.test.ts > Integration Tests > error handling > should handle database errors gracefully
+[WorkoutLogger] Failed to load workout: TypeError: __vite_ssr_import_1__.supabase.from(...).select(...).eq(...).order is not a function
+    at loadExistingWorkout (S:\Program Files\LiftLog\lib\workout-logger-database-first.ts:125:12)
+    at S:\Program Files\LiftLog\lib\workout-logger-database-first.ts:111:5
+    at Object.react_stack_bottom_frame (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:25989:20)
+    at runWithFiberInDEV (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:874:13)
+    at commitHookEffectListMount (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:13249:29)
+    at commitHookPassiveMountEffects (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:13336:11)
+    at commitPassiveMountOnFiber (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:15484:13)
+    at recursivelyTraversePassiveMountEffects (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:15439:11)
+    at commitPassiveMountOnFiber (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:15519:11)
+    at flushPassiveEffects (S:\Program Files\LiftLog\node_modules\react-dom\cjs\react-dom-client.development.js:18432:9)
+
+ ❯ tests/database-first-workout-logger.test.ts (19) 1172ms
+   ✓ DataSyncService (5) 1035ms
+   ❯ useWorkoutLoggerDatabaseFirst (12)
+     ❯ initialization (2)
+       × should load existing workout from database
+       × should fallback to localStorage if database has no workout
+     ✓ startWorkout (2)
+     ❯ completeSet (2)
+       × should complete a set and update workout
+       ✓ should throw error when no active workout
+     ❯ completeWorkout (1)
+       × should complete the current workout
+     ❯ abandonWorkout (1)
+       × should abandon the current workout
+     ✓ sync functionality (2)
+     ❯ utility functions (2)
+       ✓ should format duration correctly
+       × should calculate completion stats
+   ❯ Integration Tests (2)
+     ✓ offline functionality (1)
+     ❯ error handling (1)
+       × should handle database errors gracefully
+ ❯ tests/one-rm-context.test.tsx (0)
+ ✓ tests/progression-router.registry.test.ts (5)
+ ✓ tests/workout-logger-components.test.tsx (17) 857ms
+ ✓ tests/workout-logger.smoke.test.tsx (1)
+ ❯ lib/services/exercise-resolver.test.ts (10)
+   ✓ ExerciseResolver (10)
+   ❯ ExerciseResolver Integration Tests (0)
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯ Failed Suites 2 ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/one-rm-context.test.tsx [ tests/one-rm-context.test.tsx ]
+Error: Failed to resolve import "@/components/workout-logger/contexts/one-rm-context" from "tests/one-rm-context.test.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: S:/Program Files/LiftLog/tests/one-rm-context.test.tsx:3:67
+  2  |  import { describe, it, expect } from "vitest";
+  3  |  import { renderHook, act } from "@testing-library/react";
+  4  |  import { OneRmProvider, useOneRepMaxes } from "@/components/workout-logger/contexts/one-rm-context";
+     |                                                 ^
+  5  |  describe("OneRmContext", () => {
+  6  |    const mockEntries = [
+ ❯ TransformPluginContext._formatError ../../Program%20Files/LiftLog/node_modules/vite/dist/node/chunks/dep-D_zLpgQd.js:49258:41
+ ❯ TransformPluginContext.error ../../Program%20Files/LiftLog/node_modules/vite/dist/node/chunks/dep-D_zLpgQd.js:49253:16
+ ❯ normalizeUrl ../../Program%20Files/LiftLog/node_modules/vite/dist/node/chunks/dep-D_zLpgQd.js:64306:23
+ ❯ ../../Program%20Files/LiftLog/node_modules/vite/dist/node/chunks/dep-D_zLpgQd.js:64438:39
+ ❯ TransformPluginContext.transform ../../Program%20Files/LiftLog/node_modules/vite/dist/node/chunks/dep-D_zLpgQd.js:64365:7
+ ❯ PluginContainer.transform ../../Program%20Files/LiftLog/node_modules/vite/dist/node/chunks/dep-D_zLpgQd.js:49099:18
+ ❯ loadAndTransform ../../Program%20Files/LiftLog/node_modules/vite/dist/node/chunks/dep-D_zLpgQd.js:51977:27
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/9]⎯
+
+ FAIL  lib/services/exercise-resolver.test.ts > ExerciseResolver Integration Tests
+Error: No test found in suite ExerciseResolver Integration Tests
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/9]⎯
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯ Failed Tests 7 ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/database-first-workout-logger.test.ts > useWorkoutLoggerDatabaseFirst > initialization > should load existing workout from database
+AssertionError: expected null to match object { id: 'workout-1', …(3) }
+
+- Expected:
+Object {
+  "id": "workout-1",
+  "programId": "test-program-1",
+  "userId": "test-user-123",
+  "workoutName": "Test Workout",
+}
+
++ Received:
+null
+
+ ❯ tests/database-first-workout-logger.test.ts:269:38
+    267|       })
+    268|
+    269|       expect(result.current.workout).toMatchObject({
+       |                                      ^
+    270|         id: 'workout-1',
+    271|         userId: mockUserId,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/9]⎯
+
+ FAIL  tests/database-first-workout-logger.test.ts > useWorkoutLoggerDatabaseFirst > initialization > should fallback to localStorage if database has no workout   
+AssertionError: expected null to match object { id: 'workout-2', …(1) }
+
+- Expected:
+Object {
+  "id": "workout-2",
+  "workoutName": "Local Workout",
+}
+
++ Received:
+null
+
+ ❯ tests/database-first-workout-logger.test.ts:317:38
+    315|       })
+    316|
+    317|       expect(result.current.workout).toMatchObject({
+       |                                      ^
+    318|         id: 'workout-2',
+    319|         workoutName: 'Local Workout'
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/9]⎯
+
+ FAIL  tests/database-first-workout-logger.test.ts > useWorkoutLoggerDatabaseFirst > completeSet > should complete a set and update workout
+Error: No active workout
+ ❯ Object.completeSet lib/workout-logger-database-first.ts:244:13
+    242|   ) => {
+    243|     if (!workout) {
+    244|       throw new Error('No active workout')
+       |             ^
+    245|     }
+    246|
+ ❯ tests/database-first-workout-logger.test.ts:414:30
+ ❯ node_modules/@testing-library/react/dist/act-compat.js:48:24
+ ❯ process.env.NODE_ENV.exports.act node_modules/react/cjs/react.development.js:814:22
+ ❯ Proxy.<anonymous> node_modules/@testing-library/react/dist/act-compat.js:47:25
+ ❯ tests/database-first-workout-logger.test.ts:413:13
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/9]⎯
+
+ FAIL  tests/database-first-workout-logger.test.ts > useWorkoutLoggerDatabaseFirst > completeWorkout > should complete the current workout
+Error: No active workout
+ ❯ Object.completeWorkout lib/workout-logger-database-first.ts:292:13
+    290|   const completeWorkout = useCallback(async (notes?: string) => {
+    291|     if (!workout) {
+    292|       throw new Error('No active workout')
+       |             ^
+    293|     }
+    294|
+ ❯ tests/database-first-workout-logger.test.ts:472:30
+ ❯ node_modules/@testing-library/react/dist/act-compat.js:48:24
+ ❯ process.env.NODE_ENV.exports.act node_modules/react/cjs/react.development.js:814:22
+ ❯ Proxy.<anonymous> node_modules/@testing-library/react/dist/act-compat.js:47:25
+ ❯ tests/database-first-workout-logger.test.ts:471:13
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/9]⎯
+
+ FAIL  tests/database-first-workout-logger.test.ts > useWorkoutLoggerDatabaseFirst > abandonWorkout > should abandon the current workout
+Error: No active workout
+ ❯ Object.abandonWorkout lib/workout-logger-database-first.ts:337:13
+    335|   const abandonWorkout = useCallback(async () => {
+    336|     if (!workout) {
+    337|       throw new Error('No active workout')
+       |             ^
+    338|     }
+    339|
+ ❯ tests/database-first-workout-logger.test.ts:520:30
+ ❯ node_modules/@testing-library/react/dist/act-compat.js:48:24
+ ❯ process.env.NODE_ENV.exports.act node_modules/react/cjs/react.development.js:814:22
+ ❯ Proxy.<anonymous> node_modules/@testing-library/react/dist/act-compat.js:47:25
+ ❯ tests/database-first-workout-logger.test.ts:519:13
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/9]⎯
+
+ FAIL  tests/database-first-workout-logger.test.ts > useWorkoutLoggerDatabaseFirst > utility functions > should calculate completion stats
+AssertionError: expected { totalSets: +0, …(3) } to match object { Object (totalSets, completedSets, ...) }
+
+- Expected
++ Received
+
+  Object {
+-   "completedSets": 2,
+-   "completionPercentage": 66.66666666666666,
+-   "totalSets": 3,
+-   "totalWeight": 2430,
++   "completedSets": 0,
++   "completionPercentage": 0,
++   "totalSets": 0,
++   "totalWeight": 0,
+  }
+
+ ❯ tests/database-first-workout-logger.test.ts:615:21
+    613|       const stats = result.current.getCompletionStats()
+    614|
+    615|       expect(stats).toMatchObject({
+       |                     ^
+    616|         totalSets: 3,
+    617|         completedSets: 2,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/9]⎯
+
+ FAIL  tests/database-first-workout-logger.test.ts > Integration Tests > error handling > should handle database errors gracefully
+AssertionError: expected 'Failed to load existing workout' to be null
+
+- Expected:
+null
+
++ Received:
+"Failed to load existing workout"
+
+ ❯ tests/database-first-workout-logger.test.ts:678:36
+    676|
+    677|       // Should fallback to localStorage and not crash
+    678|       expect(result.current.error).toBeNull()
+       |                                    ^
+    679|     })
+    680|   })
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/9]⎯
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯ Unhandled Errors ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+
+Vitest caught 1 unhandled error during the test run.
+This might cause false positive tests. Resolve unhandled errors to make sure your tests are not affected.
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+TypeError: WorkoutLogger.ensureDatabaseLoaded is not a function
+ ❯ initializeWorkoutData components/workout-logger/hooks/use-workout-session.ts:99:27
+     97|   useEffect(() => {
+     98|     const initializeWorkoutData = async () => {
+     99|       await WorkoutLogger.ensureDatabaseLoaded(user?.id, { force: true })
+       |                           ^
+    100|
+    101|       console.log("===== STORAGE DEBUG =====")
+ ❯ components/workout-logger/hooks/use-workout-session.ts:188:5
+ ❯ Object.react_stack_bottom_frame node_modules/react-dom/cjs/react-dom-client.development.js:25989:20
+ ❯ runWithFiberInDEV node_modules/react-dom/cjs/react-dom-client.development.js:874:13
+ ❯ commitHookEffectListMount node_modules/react-dom/cjs/react-dom-client.development.js:13249:29
+ ❯ commitHookPassiveMountEffects node_modules/react-dom/cjs/react-dom-client.development.js:13336:11
+ ❯ commitPassiveMountOnFiber node_modules/react-dom/cjs/react-dom-client.development.js:15484:13
+ ❯ recursivelyTraversePassiveMountEffects node_modules/react-dom/cjs/react-dom-client.development.js:15439:11
+ ❯ commitPassiveMountOnFiber node_modules/react-dom/cjs/react-dom-client.development.js:15476:11
+ ❯ recursivelyTraversePassiveMountEffects node_modules/react-dom/cjs/react-dom-client.development.js:15439:11
+
+This error originated in "tests/workout-logger.smoke.test.tsx" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.   
+The latest test that might've caused the error is "renders the workout logger UI". It might mean one of the following:
+- The error was thrown, while Vitest was running this test.
+- If the error occurred after the test had been completed, this was the last documented test before it was thrown.
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+
+ Test Files  3 failed | 3 passed (6)
+      Tests  7 failed | 45 passed (52)
+     Errors  1 error
+   Start at  17:12:02
+   Duration  3.81s (transform 957ms, setup 1.11s, collect 3.96s, tests 2.21s, environment 6.23s, prepare 1.69s)
+
+

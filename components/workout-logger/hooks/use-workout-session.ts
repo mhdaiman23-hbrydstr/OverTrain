@@ -6,7 +6,15 @@ import { useToast } from "@/hooks/use-toast"
 import { ProgramStateManager } from "@/lib/program-state"
 import { getExerciseMuscleGroup } from "@/lib/exercise-muscle-groups"
 import { ProgressionRouter, type ProgressionInput } from "@/lib/progression-router"
-import { getTierRules, isWeightWithinBounds, calculateVolumeCompensation } from "@/lib/progression-tiers"
+import {
+  getTierRules,
+  isWeightWithinBounds,
+  calculateVolumeCompensation,
+  calculateWeightBounds,
+  PROGRESSION_TIERS,
+  type TierRules,
+  type ProgressionTier,
+} from "@/lib/progression-tiers"
 import { ConnectionMonitor } from "@/lib/connection-monitor"
 import { WorkoutLogger, type WorkoutSession } from "@/lib/workout-logger"
 import type { WorkoutLoggerProps } from "@/components/workout-logger/types"
@@ -57,17 +65,48 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
   }>>({})
   const [outOfBoundsExercises, setOutOfBoundsExercises] = useState<Record<string, { min: number; max: number; setNumber: number }>>({})
 
+  const resolveCategory = (exerciseName: string): "compound" | "isolation" => {
+    const name = exerciseName.toLowerCase()
+    const compoundKeywords = [
+      "squat",
+      "deadlift",
+      "press",
+      "row",
+      "pull-up",
+      "chin-up",
+      "dip",
+      "lunge",
+      "clean",
+      "snatch",
+      "thruster"
+    ]
+
+    return compoundKeywords.some((keyword) => name.includes(keyword)) ? "compound" : "isolation"
+  }
+
+  const resolveTierRules = (exercise: WorkoutSession["exercises"][number]): TierRules => {
+    const tierName = (exercise as any).tier as ProgressionTier | undefined
+    if (tierName && PROGRESSION_TIERS[tierName]) {
+      return PROGRESSION_TIERS[tierName]
+    }
+
+    const category = resolveCategory(exercise.exerciseName)
+    return getTierRules(exercise.exerciseName, category)
+  }
+
   useEffect(() => {
     const initializeWorkoutData = async () => {
-      console.log("[v0] ===== STORAGE DEBUG =====")
+      await WorkoutLogger.ensureDatabaseLoaded(user?.id, { force: true })
+
+      console.log("===== STORAGE DEBUG =====")
 
       // Log in-progress workouts
       const inProgressRaw = localStorage.getItem("liftlog_in_progress_workouts")
       if (inProgressRaw) {
         const inProgressWorkouts = JSON.parse(inProgressRaw)
-        console.log("[v0] IN-PROGRESS WORKOUTS:", inProgressWorkouts.length)
+        console.log("IN-PROGRESS WORKOUTS:", inProgressWorkouts.length)
         inProgressWorkouts.forEach((w: WorkoutSession, idx: number) => {
-          console.log(`[v0] In-Progress ${idx + 1}:`, {
+          console.log(`In-Progress ${idx + 1}:`, {
             id: w.id,
             name: w.workoutName,
             week: w.week,
@@ -80,16 +119,16 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
           })
         })
       } else {
-        console.log("[v0] IN-PROGRESS WORKOUTS: None")
+        console.log("IN-PROGRESS WORKOUTS: None")
       }
 
       // Log workout history
       const historyRaw = localStorage.getItem("liftlog_workouts")
       if (historyRaw) {
         const historyWorkouts = JSON.parse(historyRaw)
-        console.log("[v0] WORKOUT HISTORY:", historyWorkouts.length)
+        console.log("WORKOUT HISTORY:", historyWorkouts.length)
         historyWorkouts.forEach((w: WorkoutSession, idx: number) => {
-          console.log(`[v0] History ${idx + 1}:`, {
+          console.log(`History ${idx + 1}:`, {
             id: w.id,
             name: w.workoutName,
             week: w.week,
@@ -102,12 +141,12 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
           })
         })
       } else {
-        console.log("[v0] WORKOUT HISTORY: None")
+        console.log("WORKOUT HISTORY: None")
       }
 
-      console.log("[v0] ===== END STORAGE DEBUG =====")
+      console.log("===== END STORAGE DEBUG =====")
 
-      await ProgramStateManager.recalculateProgress()
+      await ProgramStateManager.recalculateProgress({ silent: true })
 
       if (inProgressRaw && historyRaw) {
         const inProgressWorkouts = JSON.parse(inProgressRaw)
@@ -127,7 +166,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
             )
 
             if (isEmpty) {
-              console.log("[v0] Removing empty in-progress workout for week", inProgress.week, "day", inProgress.day)
+              console.log("Removing empty in-progress workout for week", inProgress.week, "day", inProgress.day)
               return false // Remove this workout
             }
           }
@@ -138,7 +177,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
         if (cleanedInProgress.length !== inProgressWorkouts.length) {
           localStorage.setItem("liftlog_in_progress_workouts", JSON.stringify(cleanedInProgress))
           console.log(
-            "[v0] Cleaned up",
+            "Cleaned up",
             inProgressWorkouts.length - cleanedInProgress.length,
             "empty in-progress workouts",
           )
@@ -152,7 +191,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
   useEffect(() => {
     const loadProgramData = async () => {
       // First, check raw localStorage data
-      console.log("[v0] 💾 RAW LOCALSTORAGE CHECK:", {
+      console.log("💾 RAW LOCALSTORAGE CHECK:", {
         inProgressKey: 'liftlog_in_progress_workouts',
         rawValue: localStorage.getItem('liftlog_in_progress_workouts'),
         parsed: (() => {
@@ -172,7 +211,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
 
       const existingWorkout = await WorkoutLogger.getCurrentWorkout()
       if (existingWorkout) {
-        console.log("[v0] 📥 COMPONENT LOAD - Existing workout from localStorage:", {
+        console.log("📥 COMPONENT LOAD - Existing workout from localStorage:", {
           id: existingWorkout.id,
           week: existingWorkout.week,
           day: existingWorkout.day,
@@ -211,7 +250,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
         )
       ) {
         console.log(
-          "[v0] 🔄 MOUNT - In-progress workout needs progression refresh, recalculating..."
+          "🔄 MOUNT - In-progress workout needs progression refresh, recalculating..."
         )
 
         const scheduleKeys = Object.keys(activeProgram.template.schedule)
@@ -229,7 +268,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
           : undefined
 
         if (workoutDay?.exercises?.length) {
-          const refreshedExercises = existingWorkout.exercises.map((exercise) => {
+          const refreshedExercises = await Promise.all(existingWorkout.exercises.map(async (exercise) => {
             const templateExercise = workoutDay.exercises.find(
               (te) =>
                 te.exerciseName === exercise.exerciseName ||
@@ -238,7 +277,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
 
             if (!templateExercise) {
               console.log(
-                "[v0] MOUNT - Template exercise not found for:",
+                "MOUNT - Template exercise not found for:",
                 exercise.exerciseName
               )
               return exercise
@@ -253,7 +292,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
 
             if (!previousPerformance) {
               console.log(
-                "[v0] MOUNT - No previous performance for:",
+                "MOUNT - No previous performance for:",
                 exercise.exerciseName
               )
               return exercise
@@ -273,9 +312,9 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
               oneRepMaxes: routerOneRepMaxes,
             }
 
-            const result = ProgressionRouter.calculateProgression(progressionInput)
+            const result = await ProgressionRouter.calculateProgression(progressionInput)
 
-            console.log("[v0] MOUNT - Refreshed progression for", exercise.exerciseName, {
+            console.log("MOUNT - Refreshed progression for", exercise.exerciseName, {
               suggestedWeight: result.targetWeight,
               progressionNote: result.progressionNote,
             })
@@ -308,7 +347,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
               progressionNote: result.progressionNote,
               sets: updatedSets ?? exercise.sets,
             }
-          })
+          }))
 
           const refreshedWorkout = {
             ...existingWorkout,
@@ -318,11 +357,11 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
           WorkoutLogger.saveCurrentWorkout(refreshedWorkout, user?.id)
             .then(() => {
               console.log(
-                "[v0] MOUNT - Saved refreshed workout with updated progression"
+                "MOUNT - Saved refreshed workout with updated progression"
               )
             })
             .catch((error) => {
-              console.error("[v0] MOUNT - Failed to save refreshed workout:", error)
+              console.error("MOUNT - Failed to save refreshed workout:", error)
             })
 
           setWorkout(refreshedWorkout)
@@ -342,7 +381,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
       setShowProgressionBanner(false)
       setProgressionBannerMessage("")
 
-      console.log("[v0] Checking if workout should be blocked:", {
+      console.log("Checking if workout should be blocked:", {
         existingWorkoutWeek: existingWorkout.week,
         activeProgramWeek: week,
         activeProgramDay: day,
@@ -352,25 +391,30 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
         // Workout from a future week - check if current week is complete
         const scheduleKeys = Object.keys(activeProgram.template.schedule)
         const daysPerWeek = scheduleKeys.length
-        const isCurrentWeekCompleted = WorkoutLogger.isWeekCompleted(week, daysPerWeek, user?.id)
+        const isCurrentWeekCompleted = WorkoutLogger.isWeekCompleted(
+          week,
+          daysPerWeek,
+          user?.id,
+          activeProgram?.instanceId
+        )
         const weeksAhead = existingWorkout.week - week
 
         if (!isCurrentWeekCompleted) {
           setIsWorkoutBlocked(true)
           setIsFullyBlocked(weeksAhead >= 2)
           setBlockedMessage("No data from previous week")
-          console.log("[v0] Workout blocked - current week not completed, weeksAhead:", weeksAhead)
+          console.log("Workout blocked - current week not completed, weeksAhead:", weeksAhead)
         } else {
           setIsWorkoutBlocked(false)
           setIsFullyBlocked(false)
           setBlockedMessage("")
-          console.log("[v0] Workout not blocked - current week completed")
+          console.log("Workout not blocked - current week completed")
         }
       } else {
         setIsWorkoutBlocked(false)
         setIsFullyBlocked(false)
         setBlockedMessage("")
-        console.log("[v0] Workout not blocked - current or past week")
+        console.log("Workout not blocked - current or past week")
         }
       } else if (initialWorkout) {
         const activeProgram = await ProgramStateManager.getActiveProgram()
@@ -378,7 +422,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
         const day = activeProgram?.currentDay
 
         const newWorkout = await WorkoutLogger.startWorkout(initialWorkout.name, initialWorkout.exercises, week, day, user?.id)
-        console.log("[v0] 🆕 COMPONENT NEW WORKOUT - Created from initialWorkout:", {
+        console.log("🆕 COMPONENT NEW WORKOUT - Created from initialWorkout:", {
           id: newWorkout.id,
           week: newWorkout.week,
           day: newWorkout.day,
@@ -397,11 +441,11 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
         setBlockedMessage("")
       } else {
         // No existing workout and no initialWorkout prop - load current workout from program
-        console.log("[v0] No existing workout or initialWorkout, loading current workout from program")
+        console.log("No existing workout or initialWorkout, loading current workout from program")
         const currentWorkout = await ProgramStateManager.getCurrentWorkout()
         
         if (!currentWorkout) {
-          console.warn("[v0] No current workout available from program - this is normal if no active program exists")
+          console.warn("No current workout available from program - this is normal if no active program exists")
           return
         }
 
@@ -410,7 +454,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
         const day = activeProgram?.currentDay
 
         const newWorkout = await WorkoutLogger.startWorkout(currentWorkout.name, currentWorkout.exercises, week, day, user?.id)
-        console.log("[v0] 🆕 COMPONENT NEW WORKOUT - Created from current program workout:", {
+        console.log("🆕 COMPONENT NEW WORKOUT - Created from current program workout:", {
           id: newWorkout.id,
           week: newWorkout.week,
           day: newWorkout.day,
@@ -430,20 +474,33 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
   // Listen for program state changes
   useEffect(() => {
     const handleProgramChange = async () => {
-      console.log("[v0] Program state changed, reloading workout...")
+      console.log("Program state changed, reloading workout...")
       const activeProgram = await ProgramStateManager.getActiveProgram()
-      
+
       if (activeProgram) {
         setProgramName(activeProgram.template.name)
 
-        // Get the current workout based on updated program state
+        const week = activeProgram.currentWeek
+        const day = activeProgram.currentDay
+
+        // CRITICAL FIX: Check if an in-progress workout already exists for the current week/day
+        // before creating a new one. This prevents loading the wrong day after completion.
+        const existingInProgress = await WorkoutLogger.getInProgressWorkout(week, day, user?.id)
+
+        if (existingInProgress) {
+          console.log("Found existing in-progress workout for week", week, "day", day, "- using it instead of creating new one")
+          setWorkout(existingInProgress)
+          setIsWorkoutBlocked(false)
+          setIsFullyBlocked(false)
+          setBlockedMessage("")
+          return
+        }
+
+        // No existing workout found - create a new one from program template
         const currentWorkout = await ProgramStateManager.getCurrentWorkout()
         if (currentWorkout) {
-          const week = activeProgram?.currentWeek
-          const day = activeProgram?.currentDay
-
           const newWorkout = await WorkoutLogger.startWorkout(currentWorkout.name, currentWorkout.exercises, week, day, user?.id)
-          console.log("[v0] Loaded new workout after program change:", {
+          console.log("Loaded new workout after program change:", {
             week,
             day,
             workoutName: newWorkout.workoutName,
@@ -459,7 +516,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
 
     window.addEventListener("programChanged", handleProgramChange)
     return () => window.removeEventListener("programChanged", handleProgramChange)
-  }, [])
+  }, [user?.id])
 
   // Legacy enrichment event listener removed - all templates now use proper UUIDs with complete metadata
 
@@ -477,7 +534,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
   const handleSetUpdate = (exerciseId: string, setId: string, field: "reps" | "weight", value: number) => {
     if (!workout || !workout.exercises) return
 
-    console.log("[v0] handleSetUpdate called:", { exerciseId, setId, field, value, isWorkoutBlocked })
+    console.log("handleSetUpdate called:", { exerciseId, setId, field, value, isWorkoutBlocked })
 
     const exercise = workout.exercises.find((ex) => ex.id === exerciseId)
     if (!exercise) return
@@ -490,7 +547,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
 
     if (field === "weight") {
       if (exercise.suggestedWeight) {
-        const tierRules = getTierRules(exercise.exerciseName, "isolation")
+        const tierRules = resolveTierRules(exercise)
         const withinBounds = isWeightWithinBounds(
           value,
           exercise.suggestedWeight,
@@ -498,20 +555,19 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
         )
 
         if (!withinBounds) {
-          console.log("[v0] Weight out of bounds, marking as override")
+          console.log("Weight out of bounds, marking as override")
           setUserOverrides((prev) => ({ ...prev, [exerciseId]: true }))
 
-          const bounds = tierRules.adjustmentBounds
-          const minBoundRaw = bounds.min
-          const maxBoundRaw = bounds.max
-          const minBound = typeof minBoundRaw === "number" ? minBoundRaw : Number(minBoundRaw)
-          const maxBound = typeof maxBoundRaw === "number" ? maxBoundRaw : Number(maxBoundRaw)
+          const { min: minBound, max: maxBound } = calculateWeightBounds(
+            exercise.suggestedWeight,
+            tierRules.adjustmentBounds
+          )
 
           shouldClearReps = true
 
           const message =
             Number.isFinite(minBound) && Number.isFinite(maxBound)
-              ? `Weight outside recommended range (${minBound} - ${maxBound}). Adjust load to continue.`
+              ? `Weight outside recommended range (${minBound.toFixed(1)} - ${maxBound.toFixed(1)}). Adjust load to continue.`
               : "Weight outside recommended range. Adjust load to continue."
 
           compensationDetails = {
@@ -528,6 +584,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
           const compensation = calculateVolumeCompensation(
             targetVolume,
             value,
+            baseReps,
             tierRules.maxRepAdjustment
           )
 
@@ -565,12 +622,12 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
       const compensation = volumeCompensation[exerciseId] || volumeCompensation[volumeKey]
       if (compensation && value !== compensation.adjustedReps) {
         // User manually overrode the volume-compensated reps
-        console.log("[v0] Manual reps override detected")
+        console.log("Manual reps override detected")
         setUserOverrides(prev => ({ ...prev, [exerciseId]: true }))
       }
     }
 
-    console.log("[v0] Current workout before update:", {
+    console.log("Current workout before update:", {
       id: workout.id,
       exerciseCount: workout.exercises.length,
     })
@@ -592,12 +649,12 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
       
       const updatedWorkout = await WorkoutLogger.updateSet(workout, exerciseId, setId, updates, user?.id, true) // Skip DB sync initially
 
-      console.log("[v0] updatedWorkout returned:", updatedWorkout ? "exists" : "null")
+      console.log("updatedWorkout returned:", updatedWorkout ? "exists" : "null")
 
       if (updatedWorkout) {
         const exercise = updatedWorkout.exercises.find((ex) => ex.id === exerciseId)
         const set = exercise?.sets.find((s) => s.id === setId)
-        console.log("[v0] Updated set value:", {
+        console.log("Updated set value:", {
           exerciseId,
           setId,
           field,
@@ -606,7 +663,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
         })
 
         setWorkout(updatedWorkout)
-        console.log("[v0] setWorkout called with updated workout")
+        console.log("setWorkout called with updated workout")
 
         // Debounce database sync for 500ms
         if (debounceTimerRef.current) {
@@ -614,15 +671,15 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
         }
 
         debounceTimerRef.current = setTimeout(() => {
-          console.log("[v0] Debounced sync triggered for weight/reps update")
+          console.log("Debounced sync triggered for weight/reps update")
           if (ConnectionMonitor.isOnline()) {
             WorkoutLogger.saveCurrentWorkout(updatedWorkout, user?.id)
               .catch((error: unknown) => {
                 // Handle 409 conflicts gracefully - they just mean the record already exists
                 if (error && typeof error === 'object' && 'message' in error && typeof error.message === 'string' && error.message.includes('409')) {
-                  console.log("[v0] Workout already exists in database (this is normal)")
+                  console.log("Workout already exists in database (this is normal)")
                 } else {
-                  console.error("[v0] Failed to sync workout to database:", error)
+                  console.error("Failed to sync workout to database:", error)
                 }
               })
           } else {
@@ -632,16 +689,16 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
                 await WorkoutLogger.saveCurrentWorkout(updatedWorkout, user?.id)
               } catch (error: unknown) {
                 if (error && typeof error === 'object' && 'message' in error && typeof error.message === 'string' && error.message.includes('409')) {
-                  console.log("[v0] Workout already exists in database (this is normal)")
+                  console.log("Workout already exists in database (this is normal)")
                 } else {
-                  console.error("[v0] Failed to sync queued workout:", error)
+                  console.error("Failed to sync queued workout:", error)
                 }
               }
             })
           }
         }, 500)
       } else {
-        console.log("[v0] ERROR: updatedWorkout is null, not updating state")
+        console.log("ERROR: updatedWorkout is null, not updating state")
       }
     }
 
@@ -687,7 +744,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
 
     // Simplified bounds check without 1RM features
     if (activeSet.weight > 0 && exercise.suggestedWeight) {
-      const tierRules = getTierRules(exercise.exerciseName, "isolation")
+      const tierRules = resolveTierRules(exercise)
       const withinBounds = isWeightWithinBounds(
         activeSet.weight,
         exercise.suggestedWeight,
@@ -695,12 +752,12 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
       )
 
       if (!withinBounds) {
-        const bounds = tierRules.adjustmentBounds
+        const { min, max } = calculateWeightBounds(exercise.suggestedWeight, tierRules.adjustmentBounds)
         setOutOfBoundsExercises(prev => ({
           ...prev,
           [exerciseId]: { 
-            min: typeof bounds.min === 'number' ? bounds.min : Number(bounds.min), 
-            max: typeof bounds.max === 'number' ? bounds.max : Number(bounds.max), 
+            min,
+            max,
             setNumber 
           }
         }))
@@ -788,14 +845,14 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
                            completedWorkout.exercises.every(ex => ex.sets && ex.sets.length > 0)
 
         if (!hasValidData) {
-          console.error("[v0] Completed workout has invalid data, not proceeding with program advancement")
+          console.error("Completed workout has invalid data, not proceeding with program advancement")
           setIsCompletingWorkout(false)
           return
         }
 
         // Batch all state updates and sync together, only dispatch event once at the end
         if (!wasAlreadyCompleted) {
-          await ProgramStateManager.completeWorkout(user?.id, { skipEvent: true })
+          await ProgramStateManager.completeWorkout(user?.id)
         }
 
         // Sync to database (batched operation)
@@ -803,7 +860,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
           try {
             await WorkoutLogger.syncToDatabase(user.id)
           } catch (error) {
-            console.error("[v0] Failed to sync to database:", error)
+            console.error("Failed to sync to database:", error)
             // Still show completion dialog even if sync fails
           }
         }
@@ -835,7 +892,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
         setShowCompletionDialog(true)
       }
     } catch (error) {
-      console.error("[v0] Error completing workout:", error)
+      console.error("Error completing workout:", error)
     } finally {
       setIsCompletingWorkout(false)
     }
@@ -882,23 +939,6 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
   const handleEndWorkout = async () => {
     if (!workout || endWorkoutConfirmation !== "End Workout") return
 
-    // Validate this is the current active workout
-    const activeProgram = await ProgramStateManager.getActiveProgram()
-    if (!activeProgram) {
-      console.error("[handleEndWorkout] No active program found")
-      return
-    }
-
-    // Only allow ending the current week's workout
-    if (workout.week !== activeProgram.currentWeek || workout.day !== activeProgram.currentDay) {
-      toast({
-        title: "Cannot End Workout",
-        description: `You can only end the current active workout (Week ${activeProgram.currentWeek}, Day ${activeProgram.currentDay}). This is Week ${workout.week}, Day ${workout.day}.`,
-        variant: "destructive",
-      })
-      return
-    }
-
     // Mark all uncompleted sets as skipped (blue tick)
     const updatedWorkout: WorkoutSession = {
       ...workout,
@@ -926,7 +966,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
                          completedWorkout.exercises.every(ex => ex.sets && ex.sets.length > 0)
 
       if (!hasValidData) {
-        console.error("[v0] Completed workout has invalid data, not proceeding with program advancement")
+        console.error("Completed workout has invalid data, not proceeding with program advancement")
         return
       }
 
@@ -939,7 +979,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
           window.dispatchEvent(new Event("programChanged"))
 
         } catch (error) {
-          console.error("[v0] Failed to sync to database, but workout is saved locally:", error)
+          console.error("Failed to sync to database, but workout is saved locally:", error)
         }
       }
 
@@ -990,13 +1030,16 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
       }
 
       setWorkout(updatedWorkout)
+      console.log("[handleEndProgram] Saving workout with ID:", updatedWorkout.id, "userId:", user?.id)
       await WorkoutLogger.saveCurrentWorkout(updatedWorkout, user?.id)
 
+      console.log("[handleEndProgram] Attempting to complete workout with ID:", updatedWorkout.id, "userId:", user?.id)
       const completedWorkout = await WorkoutLogger.completeWorkout(updatedWorkout.id, user?.id)
       if (!completedWorkout) {
-        console.error("[handleEndProgram] Failed to complete current workout")
+        console.error("[handleEndProgram] Failed to complete current workout. WorkoutID:", updatedWorkout.id, "UserID:", user?.id)
         return
       }
+      console.log("[handleEndProgram] Successfully completed workout")
 
       completedWorkout.skipped = true
       completedWorkout.exercises?.forEach((exercise) => {
@@ -1041,7 +1084,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
         }
 
         for (let dayNumber = dayStart; dayNumber <= daysPerWeek; dayNumber++) {
-          if (WorkoutLogger.hasCompletedWorkout(week, dayNumber, user?.id)) {
+          if (WorkoutLogger.hasCompletedWorkout(week, dayNumber, user?.id, templateSource.instanceId)) {
             continue
           }
 
@@ -1057,6 +1100,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
             day: dayNumber,
             userId: user?.id ?? undefined,
             templateId: templateSource.templateId,
+            programInstanceId: templateSource.instanceId,
             workoutName: templateDay.name,
           })
         }
@@ -1072,18 +1116,20 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
       await ProgramStateManager.clearActiveProgram()
       console.log("[handleEndProgram] Program ended and cleared")
 
-      // Don't show completion dialog when ending program
-      // setShowCompletionDialog(true)  // REMOVE THIS
-      
-      // Immediately switch to train view
+      // Set workout to null immediately
+      setWorkout(null)
+      setShowEndProgramDialog(false)
+      setEndProgramConfirmation("")
+
+      // Dispatch programEnded event to trigger train section navigation
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new CustomEvent('programEnded'))
       }
-      
-      setWorkout(null)
+
+      // Call onCancel to close the workout logger and return to train view
+      onCancel?.()
     } catch (error) {
-      console.error("[v0] Failed to end program:", error)
-    } finally {
+      console.error("Failed to end program:", error)
       setEndProgramConfirmation("")
       setShowEndProgramDialog(false)
     }
@@ -1272,22 +1318,28 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
     setReplaceExerciseId(null)
   }
 
-  const handleStartNextWorkout = () => {
+  const handleStartNextWorkout = async () => {
     setShowCompletionDialog(false)
     setCompletedWorkout(null)
 
     if (completedWorkout?.week && completedWorkout?.day) {
       WorkoutLogger.clearCurrentWorkout(completedWorkout.week, completedWorkout.day, user?.id)
     }
-    
-    // Instead of reloading, trigger program state change event
-    // This will cause the component to re-render with the next workout
+
+    // Check if program still exists - if not, the program was completed
+    const activeProgram = await ProgramStateManager.getActiveProgram()
+
+    if (!activeProgram) {
+      // Program was completed and removed - navigate away
+      console.log("[handleStartNextWorkout] Program completed, closing workout logger")
+      setWorkout(null)
+      onCancel?.() // Navigate back to train view which will show CTA
+      return
+    }
+
+    // Program still exists - load next workout
     window.dispatchEvent(new Event("programChanged"))
-    
-    // Force a re-render by updating the workout state
     setWorkout(null)
-    
-    // Call onComplete to notify parent component
     onComplete?.()
   }
 
@@ -1295,12 +1347,12 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
     const activeProgram = await ProgramStateManager.getActiveProgram()
     if (!activeProgram) return
 
-    console.log("[v0] User clicked on week", week, "day", day)
+    console.log("User clicked on week", week, "day", day)
 
     // Use the template from activeProgram instead of getTemplateById
     const template = activeProgram.template
     if (!template) {
-      console.error("[v0] No template in active program")
+      console.error("No template in active program")
       return
     }
 
@@ -1311,20 +1363,25 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
     // Only save if it's an in-progress workout, not a completed one
     if (workout && !workout.completed) {
       WorkoutLogger.saveCurrentWorkout(workout, user?.id)
-      console.log("[v0] Saved in-progress workout before switching")
+      console.log("Saved in-progress workout before switching")
     } else if (workout && workout.completed) {
-      console.log("[v0] Skipping save - this is a completed workout (read-only)")
+      console.log("Skipping save - this is a completed workout (read-only)")
     }
 
     // Check completed history first, then in-progress workouts
-    const completedWorkout = WorkoutLogger.getCompletedWorkout(week, day, user?.id)
+    const completedWorkout = WorkoutLogger.getCompletedWorkout(
+      week,
+      day,
+      user?.id,
+      activeProgram.instanceId
+    )
     const inProgressWorkout = await WorkoutLogger.getInProgressWorkout(week, day, user?.id)
     const existingWorkout = completedWorkout || inProgressWorkout
 
     let loadedWorkout: WorkoutSession
 
     if (existingWorkout) {
-      console.log("[v0] Found existing workout for week", week, "day", day, ":", {
+      console.log("Found existing workout for week", week, "day", day, ":", {
         id: existingWorkout.id,
         completed: existingWorkout.completed,
         source: completedWorkout ? 'COMPLETED_HISTORY' : 'IN_PROGRESS',
@@ -1340,7 +1397,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
       
       // If this is a completed workout, make it read-only
       if (completedWorkout) {
-        console.log("[v0] ⚠️ Loading COMPLETED workout - this should be READ-ONLY")
+        console.log("⚠️ Loading COMPLETED workout - this should be READ-ONLY")
       }
 
       // Check if we need to refresh progression data
@@ -1355,10 +1412,10 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
         )
 
       if (needsProgressionRefresh) {
-        console.log("[v0] In-progress workout needs progression refresh - recalculating...")
+        console.log("In-progress workout needs progression refresh - recalculating...")
         
         // Recalculate progression for each exercise
-        const refreshedExercises = existingWorkout.exercises.map((exercise) => {
+        const refreshedExercises = await Promise.all(existingWorkout.exercises.map(async (exercise) => {
           // Find the template exercise to get progression data
           const templateExercise = workoutDay.exercises.find(te => 
             te.exerciseName === exercise.exerciseName || 
@@ -1366,7 +1423,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
           )
           
           if (!templateExercise) {
-            console.log("[v0] Template exercise not found for:", exercise.exerciseName)
+            console.log("Template exercise not found for:", exercise.exerciseName)
             return exercise // Keep original if template not found
           }
 
@@ -1379,7 +1436,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
           )
           
           if (!previousPerformance) {
-            console.log("[v0] No previous performance found for:", exercise.exerciseName)
+            console.log("No previous performance found for:", exercise.exerciseName)
             return exercise // Keep original if no previous data
           }
           
@@ -1395,9 +1452,9 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
             oneRepMaxes: routerOneRepMaxes
           }
           
-          const result = ProgressionRouter.calculateProgression(progressionInput)
+          const result = await ProgressionRouter.calculateProgression(progressionInput)
           
-          console.log("[v0] Refreshed progression for", exercise.exerciseName, ":", {
+          console.log("Refreshed progression for", exercise.exerciseName, ":", {
             oldNote: exercise.progressionNote,
             newNote: result.progressionNote,
             oldWeight: exercise.suggestedWeight,
@@ -1419,25 +1476,25 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
             baseVolume: result.targetWeight * result.performedReps,
             userOverridden: false
           }
-        })
+        }))
 
         // Update the existing workout with refreshed progression
         existingWorkout.exercises = refreshedExercises
         
         // Save the updated workout (async but don't await to avoid blocking UI)
         WorkoutLogger.saveCurrentWorkout(existingWorkout, user?.id).then(() => {
-          console.log("[v0] Saved workout with refreshed progression data")
+          console.log("Saved workout with refreshed progression data")
         }).catch((error) => {
-          console.error("[v0] Failed to save refreshed workout:", error)
+          console.error("Failed to save refreshed workout:", error)
         })
       }
 
       loadedWorkout = existingWorkout
     } else {
-      console.log("[v0] No existing workout found, creating new one for week", week, "day", day)
+      console.log("No existing workout found, creating new one for week", week, "day", day)
 
       const weekKey = `week${week}`
-      const transformedExercises = workoutDay.exercises.map((exercise) => {
+      const transformedExercises = await Promise.all(workoutDay.exercises.map(async (exercise) => {
         // Use ProgressionRouter for advanced progression calculation with volume compensation
         const previousPerformance = ProgressionRouter.getPreviousPerformance(
           exercise.id,
@@ -1458,7 +1515,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
           oneRepMaxes: routerOneRepMaxes
         }
         
-        const result = ProgressionRouter.calculateProgression(progressionInput)
+        const result = await ProgressionRouter.calculateProgression(progressionInput)
 
         return {
           exerciseId: exercise.id,
@@ -1477,12 +1534,17 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
           baseVolume: result.targetWeight * result.performedReps,
           userOverridden: false
         }
-      })
+      }))
 
       // Check blocking logic BEFORE creating workout to prevent ghost data
       const scheduleKeys = Object.keys(template.schedule)
       const daysPerWeek = scheduleKeys.length
-      const isCurrentWeekCompleted = WorkoutLogger.isWeekCompleted(activeProgram.currentWeek, daysPerWeek, user?.id)
+      const isCurrentWeekCompleted = WorkoutLogger.isWeekCompleted(
+        activeProgram.currentWeek,
+        daysPerWeek,
+        user?.id,
+        activeProgram.instanceId
+      )
       const weeksAhead = week - activeProgram.currentWeek
 
       // Determine if this should be blocked or preview-only
@@ -1510,7 +1572,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
           isPreviewMode ? undefined : user?.id  // Don't pass userId in preview mode to prevent DB sync
         )
 
-        console.log("[v0] Created new workout:", {
+        console.log("Created new workout:", {
           id: loadedWorkout.id,
           exerciseCount: loadedWorkout.exercises.length,
           isPreviewMode
@@ -1545,7 +1607,12 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
       // Trying to access a future week - check if current week is complete
       const scheduleKeys = Object.keys(template.schedule)
       const daysPerWeek = scheduleKeys.length
-      const isCurrentWeekCompleted = WorkoutLogger.isWeekCompleted(activeProgram.currentWeek, daysPerWeek, user?.id)
+      const isCurrentWeekCompleted = WorkoutLogger.isWeekCompleted(
+        activeProgram.currentWeek,
+        daysPerWeek,
+        user?.id,
+        activeProgram.instanceId
+      )
       const weeksAhead = week - activeProgram.currentWeek
 
       if (!isCurrentWeekCompleted) {
@@ -1554,13 +1621,13 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
           setIsWorkoutBlocked(true)
           setIsFullyBlocked(false)
           setBlockedMessage("Complete current week to unlock this workout")
-          console.log("[v0] Workout partially blocked - current week not completed, showing preview for week", week)
+          console.log("Workout partially blocked - current week not completed, showing preview for week", week)
         } else {
           // For weeks 2+ ahead, fully block
           setIsWorkoutBlocked(true)
           setIsFullyBlocked(true)
           setBlockedMessage("Complete previous weeks before accessing this workout")
-          console.log("[v0] Workout fully blocked - too many weeks ahead:", weeksAhead)
+          console.log("Workout fully blocked - too many weeks ahead:", weeksAhead)
         }
       } else {
         // Current week is complete, allow access to next week
@@ -1598,9 +1665,9 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
 
   const displayExercises = workout?.exercises ?? []
 
-  console.log("[v0] Rendering workout with", displayExercises?.length || 0, "exercises")
+  console.log("Rendering workout with", displayExercises?.length || 0, "exercises")
   displayExercises?.forEach((ex, idx) => {
-    console.log(`[v0] Exercise ${idx + 1}: ${ex.exerciseName} - ${ex.sets?.length || 0} sets`)
+    console.log(`Exercise ${idx + 1}: ${ex.exerciseName} - ${ex.sets?.length || 0} sets`)
   })
 
   const groupedExercises = displayExercises?.reduce((acc, exercise) => {

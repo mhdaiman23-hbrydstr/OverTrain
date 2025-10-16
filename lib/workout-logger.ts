@@ -34,6 +34,7 @@ export interface WorkoutSession {
   id: string
   userId: string
   programId?: string
+  programInstanceId?: string
   workoutName: string
   startTime: number
   endTime?: number
@@ -48,6 +49,9 @@ export interface WorkoutSession {
 export class WorkoutLogger implements SetSyncProvider {
   private static readonly STORAGE_KEY = "liftlog_workouts"
   private static readonly IN_PROGRESS_KEY = "liftlog_in_progress_workouts"
+  private static readonly DATABASE_LOAD_KEY = "liftlog_workouts_db_loaded_at"
+  private static readonly DATABASE_STALE_MS = 5_000
+  private static databaseLoadPromise: Promise<void> | null = null
 
   static getUserStorageKeys(userId?: string): { workouts: string; inProgress: string } {
     // Always try to get current user ID if not provided
@@ -73,6 +77,59 @@ export class WorkoutLogger implements SetSyncProvider {
       workouts: this.STORAGE_KEY,
       inProgress: this.IN_PROGRESS_KEY
     }
+  }
+
+  private static getCurrentUserId(): string | undefined {
+    if (typeof window === "undefined") return undefined
+    try {
+      const storedUser = localStorage.getItem("liftlog_user")
+      const currentUser = storedUser ? JSON.parse(storedUser) : null
+      return currentUser?.id
+    } catch {
+      return undefined
+    }
+  }
+
+  private static markDatabaseLoaded(): void {
+    if (typeof window === "undefined") return
+    localStorage.setItem(this.DATABASE_LOAD_KEY, Date.now().toString())
+  }
+
+  private static getLastDatabaseLoad(): number | undefined {
+    if (typeof window === "undefined") return undefined
+    const stored = localStorage.getItem(this.DATABASE_LOAD_KEY)
+    if (!stored) return undefined
+    const parsed = Number.parseInt(stored, 10)
+    return Number.isNaN(parsed) ? undefined : parsed
+  }
+
+  static async ensureDatabaseLoaded(userId?: string, options?: { force?: boolean }): Promise<void> {
+    if (!supabase || typeof window === "undefined") return
+
+    const resolvedUserId = userId ?? this.getCurrentUserId()
+    if (!resolvedUserId) return
+
+    if (!options?.force) {
+      const lastLoaded = this.getLastDatabaseLoad()
+      if (lastLoaded && Date.now() - lastLoaded < this.DATABASE_STALE_MS) {
+        return
+      }
+      if (this.databaseLoadPromise) {
+        await this.databaseLoadPromise
+        return
+      }
+    }
+
+    this.databaseLoadPromise = this.loadFromDatabase(resolvedUserId, options?.force ?? false)
+      .catch((error) => {
+        console.error("[WorkoutLogger] Database preload failed:", error)
+      })
+      .finally(() => {
+        this.markDatabaseLoaded()
+        this.databaseLoadPromise = null
+      })
+
+    await this.databaseLoadPromise
   }
 
   // Register as set sync provider when module loads
@@ -188,6 +245,74 @@ export class WorkoutLogger implements SetSyncProvider {
       console.log(`[WorkoutLogger] Migration completed. Total items migrated: ${migratedCount}`)
       // Note: Not clearing global data immediately to allow for rollback
     }
+  }
+
+  static tagWorkoutsWithInstance(instanceId: string, templateId: string, userId?: string): void {
+    if (typeof window === "undefined") return
+    if (!instanceId || !templateId) return
+
+    if (!userId) {
+      try {
+        const storedUser = localStorage.getItem("liftlog_user")
+        const currentUser = storedUser ? JSON.parse(storedUser) : null
+        userId = currentUser?.id
+      } catch {
+        // Ignore parse errors and treat as anonymous
+      }
+    }
+
+    const storageKeys = this.getUserStorageKeys(userId)
+    const active = this.getActiveProgram()
+    const instanceStart = typeof active?.startDate === 'number' ? active.startDate : undefined
+
+    const assign = (key: string) => {
+      const stored = localStorage.getItem(key)
+      if (!stored) return
+
+      let changed = false
+      const workouts: WorkoutSession[] = JSON.parse(stored)
+      const updated = workouts.map((workout) => {
+        const withinInstanceWindow =
+          typeof workout?.startTime === 'number' &&
+          typeof instanceStart === 'number' &&
+          workout.startTime >= instanceStart
+
+        // If a workout was previously tagged to this instance but predates the
+        // instance start, clear the tag so it doesn't leak into the new run.
+        if (
+          workout.programInstanceId === instanceId &&
+          typeof instanceStart === 'number' &&
+          (typeof workout.startTime !== 'number' || workout.startTime < instanceStart)
+        ) {
+          changed = true
+          return {
+            ...workout,
+            programInstanceId: undefined,
+          }
+        }
+
+        if (
+          !workout.programInstanceId &&
+          (workout.programId === templateId || !workout.programId) &&
+          withinInstanceWindow
+        ) {
+          changed = true
+          return {
+            ...workout,
+            programId: workout.programId || templateId,
+            programInstanceId: instanceId,
+          }
+        }
+        return workout
+      })
+
+      if (changed) {
+        localStorage.setItem(key, JSON.stringify(updated))
+      }
+    }
+
+    assign(storageKeys.workouts)
+    assign(storageKeys.inProgress)
   }
 
   /**
@@ -570,6 +695,10 @@ export class WorkoutLogger implements SetSyncProvider {
   static getInProgressWorkout(week: number, day: number, userId?: string): WorkoutSession | null {
     if (typeof window === "undefined") return null
 
+    const activeProgram = this.getActiveProgram()
+    const instanceId = activeProgram?.instanceId
+    const templateId = activeProgram?.templateId
+
     const storageKeys = this.getUserStorageKeys(userId)
 
     try {
@@ -577,7 +706,27 @@ export class WorkoutLogger implements SetSyncProvider {
       if (!stored) return null
 
       const workouts: WorkoutSession[] = JSON.parse(stored)
-      return workouts.find((w) => w.week === week && w.day === day) || null
+      const matchIndex = workouts.findIndex(
+        (w) => w.week === week && w.day === day && this.matchesInstance(w, instanceId, templateId)
+      )
+
+      if (matchIndex === -1) {
+        return null
+      }
+
+      const match = workouts[matchIndex]
+      if (instanceId && !match.programInstanceId) {
+        const updated = {
+          ...match,
+          programId: match.programId || templateId,
+          programInstanceId: instanceId,
+        }
+        workouts[matchIndex] = updated
+        localStorage.setItem(storageKeys.inProgress, JSON.stringify(workouts))
+        return updated
+      }
+
+      return match
     } catch {
       return null
     }
@@ -610,9 +759,48 @@ export class WorkoutLogger implements SetSyncProvider {
     }
   }
 
+  private static matchesInstance(
+    workout: WorkoutSession,
+    instanceId?: string,
+    templateId?: string
+  ): boolean {
+    // Legacy case: no instance tracking yet, fall back to template match.
+    if (!instanceId) {
+      if (!templateId) return true
+      return workout.programId === templateId || !workout.programId
+    }
+
+    // Prefer explicit instance matches.
+    if (!workout.programInstanceId) {
+      return false
+    }
+
+    return workout.programInstanceId === instanceId
+  }
+
   static async saveCurrentWorkout(workout: WorkoutSession, userId?: string): Promise<void> {
     if (typeof window === "undefined") return
     if (!workout.week || !workout.day) return
+
+    const activeProgram = this.getActiveProgram()
+    const templateId = activeProgram?.templateId
+    const instanceId = workout.programInstanceId || activeProgram?.instanceId
+
+    let normalizedWorkout = workout
+
+    if (instanceId && !normalizedWorkout.programInstanceId) {
+      normalizedWorkout = {
+        ...normalizedWorkout,
+        programInstanceId: instanceId,
+      }
+    }
+
+    if (templateId && !normalizedWorkout.programId) {
+      normalizedWorkout = {
+        ...normalizedWorkout,
+        programId: templateId,
+      }
+    }
 
     const storageKeys = this.getUserStorageKeys(userId)
 
@@ -621,10 +809,17 @@ export class WorkoutLogger implements SetSyncProvider {
       let workouts: WorkoutSession[] = stored ? JSON.parse(stored) : []
 
       // Remove existing workout for this week/day
-      workouts = workouts.filter((w) => !(w.week === workout.week && w.day === workout.day))
+      workouts = workouts.filter(
+        (w) =>
+          !(
+            w.week === normalizedWorkout.week &&
+            w.day === normalizedWorkout.day &&
+            this.matchesInstance(w, instanceId, templateId)
+          )
+      )
 
       // Add updated workout
-      workouts.push(workout)
+      workouts.push(normalizedWorkout)
 
       localStorage.setItem(storageKeys.inProgress, JSON.stringify(workouts))
 
@@ -634,13 +829,14 @@ export class WorkoutLogger implements SetSyncProvider {
         const { error: updateError } = await supabase
           .from("in_progress_workouts")
           .update({
-            workout_name: workout.workoutName,
-            start_time: workout.startTime,
-            exercises: workout.exercises,
-            notes: workout.notes || null,
-            program_id: workout.programId || null,
+            workout_name: normalizedWorkout.workoutName,
+            start_time: normalizedWorkout.startTime,
+            exercises: normalizedWorkout.exercises,
+            notes: normalizedWorkout.notes || null,
+            program_id: normalizedWorkout.programId || null,
+            program_instance_id: normalizedWorkout.programInstanceId || null,
           })
-          .eq('id', workout.id)
+          .eq('id', normalizedWorkout.id)
           .eq('user_id', userId)
 
         // If no rows updated, insert new workout
@@ -648,15 +844,16 @@ export class WorkoutLogger implements SetSyncProvider {
           await supabase
             .from("in_progress_workouts")
             .insert({
-              id: workout.id,
+              id: normalizedWorkout.id,
               user_id: userId,
-              program_id: workout.programId || null,
-              workout_name: workout.workoutName,
-              start_time: workout.startTime,
-              week: workout.week,
-              day: workout.day,
-              exercises: workout.exercises,
-              notes: workout.notes || null,
+              program_id: normalizedWorkout.programId || null,
+              program_instance_id: normalizedWorkout.programInstanceId || null,
+              workout_name: normalizedWorkout.workoutName,
+              start_time: normalizedWorkout.startTime,
+              week: normalizedWorkout.week,
+              day: normalizedWorkout.day,
+              exercises: normalizedWorkout.exercises,
+              notes: normalizedWorkout.notes || null,
             })
         }
       }
@@ -686,9 +883,20 @@ export class WorkoutLogger implements SetSyncProvider {
         const stored = localStorage.getItem(storageKeys.inProgress)
         if (!stored) return
 
+        const activeProgram = this.getActiveProgram()
+        const instanceId = activeProgram?.instanceId
+        const templateId = activeProgram?.templateId
+
         let workouts: WorkoutSession[] = JSON.parse(stored)
-        const workoutToDelete = workouts.find((w) => w.week === week && w.day === day)
-        workouts = workouts.filter((w) => !(w.week === week && w.day === day))
+        const matchIndex = workouts.findIndex(
+          (w) => w.week === week && w.day === day && this.matchesInstance(w, instanceId, templateId)
+        )
+
+        if (matchIndex === -1) {
+          return
+        }
+
+        const [workoutToDelete] = workouts.splice(matchIndex, 1)
         localStorage.setItem(storageKeys.inProgress, JSON.stringify(workouts))
 
         // Delete from database
@@ -732,6 +940,10 @@ export class WorkoutLogger implements SetSyncProvider {
     day?: number,
     userId?: string,
   ): WorkoutSession {
+    const activeProgram = this.getActiveProgram()
+    const templateId = activeProgram?.templateId
+    const instanceId = activeProgram?.instanceId
+
     if (week && day) {
       const existing = this.getInProgressWorkout(week, day)
       if (existing) {
@@ -770,6 +982,8 @@ export class WorkoutLogger implements SetSyncProvider {
     const workout: WorkoutSession = {
       id: Math.random().toString(36).substr(2, 9),
       userId: userId || "anonymous",
+      programId: templateId,
+      programInstanceId: instanceId,
       workoutName,
       startTime: Date.now(),
       week,
@@ -923,6 +1137,16 @@ export class WorkoutLogger implements SetSyncProvider {
       }
     }
 
+    const activeProgram = this.getActiveProgram()
+    const templateId = activeProgram?.templateId
+    const instanceId = workout.programInstanceId || activeProgram?.instanceId
+
+    const normalizedWorkout: WorkoutSession = {
+      ...workout,
+      programId: workout.programId || templateId,
+      programInstanceId: instanceId,
+    }
+
     const storageKeys = this.getUserStorageKeys(userId)
 
     try {
@@ -930,8 +1154,8 @@ export class WorkoutLogger implements SetSyncProvider {
       const workouts: WorkoutSession[] = existing ? JSON.parse(existing) : []
 
       // Remove existing workout with same ID to prevent duplicates
-      const filteredWorkouts = workouts.filter(w => w.id !== workout.id)
-      filteredWorkouts.push(workout)
+      const filteredWorkouts = workouts.filter(w => w.id !== normalizedWorkout.id)
+      filteredWorkouts.push(normalizedWorkout)
       localStorage.setItem(storageKeys.workouts, JSON.stringify(filteredWorkouts))
 
       // Sync to database using connection monitor
@@ -942,17 +1166,18 @@ export class WorkoutLogger implements SetSyncProvider {
             await supabase
               .from("workouts")
               .upsert({
-                id: workout.id,
+                id: normalizedWorkout.id,
                 user_id: userId,
-                program_id: workout.programId || null,
-                workout_name: workout.workoutName,
-                start_time: workout.startTime,
-                end_time: workout.endTime || null,
-                exercises: workout.exercises,
-                notes: workout.notes || null,
-                completed: workout.completed,
-                week: workout.week || null,
-                day: workout.day || null,
+                program_id: normalizedWorkout.programId || null,
+                program_instance_id: normalizedWorkout.programInstanceId || null,
+                workout_name: normalizedWorkout.workoutName,
+                start_time: normalizedWorkout.startTime,
+                end_time: normalizedWorkout.endTime || null,
+                exercises: normalizedWorkout.exercises,
+                notes: normalizedWorkout.notes || null,
+                completed: normalizedWorkout.completed,
+                week: normalizedWorkout.week || null,
+                day: normalizedWorkout.day || null,
               },
               { onConflict: 'id' })
             console.log("[WorkoutLogger] Completed workout synced to database")
@@ -986,13 +1211,6 @@ export class WorkoutLogger implements SetSyncProvider {
     try {
       const stored = localStorage.getItem(storageKeys.workouts)
       const history = stored ? JSON.parse(stored) : []
-
-      // Minimal debug logging (only in development)
-      if (process.env.NODE_ENV === "development" && history.length > 0) {
-        const week1Workouts = history.filter(w => w.week === 1)
-        console.log(`[WorkoutLogger] User ${userId} - Week 1 workouts: ${week1Workouts.length}/${history.length}`)
-      }
-
       return history
     } catch (error) {
       console.error("[WorkoutLogger] Error parsing workout history:", error)
@@ -1000,12 +1218,38 @@ export class WorkoutLogger implements SetSyncProvider {
     }
   }
 
-  static getCompletedWorkout(week: number, day: number, userId?: string): WorkoutSession | null {
+  static getCompletedWorkout(
+    week: number,
+    day: number,
+    userId?: string,
+    programInstanceId?: string
+  ): WorkoutSession | null {
+    const activeProgram = this.getActiveProgram()
+    const instanceId = programInstanceId ?? activeProgram?.instanceId
+    const templateId = activeProgram?.templateId
+
+    if (instanceId && templateId) {
+      this.tagWorkoutsWithInstance(instanceId, templateId, userId)
+    }
+
     const history = this.getWorkoutHistory(userId)
-    return history.find((workout) => workout.week === week && workout.day === day && workout.completed) || null
+    return (
+      history.find(
+        (workout) =>
+          workout.week === week &&
+          workout.day === day &&
+          workout.completed &&
+          this.matchesInstance(workout, instanceId, templateId)
+      ) || null
+    )
   }
 
-  static getWorkout(week: number, day: number, userId?: string): WorkoutSession | null {
+  static getWorkout(
+    week: number,
+    day: number,
+    userId?: string,
+    programInstanceId?: string
+  ): WorkoutSession | null {
     // Get current user ID if not provided
     if (!userId && typeof window !== "undefined") {
       try {
@@ -1018,14 +1262,19 @@ export class WorkoutLogger implements SetSyncProvider {
     }
 
     // First check completed workouts in history
-    const completed = this.getCompletedWorkout(week, day, userId)
+    const completed = this.getCompletedWorkout(week, day, userId, programInstanceId)
     if (completed) return completed
 
     // Then check in-progress workouts
     return this.getInProgressWorkout(week, day, userId)
   }
 
-  static hasCompletedWorkout(week: number, day: number, userId?: string): boolean {
+  static hasCompletedWorkout(
+    week: number,
+    day: number,
+    userId?: string,
+    programInstanceId?: string
+  ): boolean {
     // Get current user ID if not provided
     if (!userId) {
       try {
@@ -1037,6 +1286,14 @@ export class WorkoutLogger implements SetSyncProvider {
       }
     }
 
+    const activeProgram = this.getActiveProgram()
+    const instanceId = programInstanceId ?? activeProgram?.instanceId
+    const templateId = activeProgram?.templateId
+
+    if (instanceId && templateId) {
+      this.tagWorkoutsWithInstance(instanceId, templateId, userId)
+    }
+
     const history = this.getWorkoutHistory(userId)
 
     // Guard against corrupted localStorage (history must be an array)
@@ -1045,7 +1302,13 @@ export class WorkoutLogger implements SetSyncProvider {
       return false
     }
 
-    const completedWorkout = history.find((workout) => workout.week === week && workout.day === day && workout.completed)
+    const completedWorkout = history.find(
+      (workout) =>
+        workout.week === week &&
+        workout.day === day &&
+        workout.completed &&
+        this.matchesInstance(workout, instanceId, templateId)
+    )
 
     // Minimal debug logging (only in development)
     if (week === 1 && day === 1 && process.env.NODE_ENV === "development") {
@@ -1071,7 +1334,12 @@ export class WorkoutLogger implements SetSyncProvider {
     return !!completedWorkout
   }
 
-  static isWeekCompleted(week: number, daysPerWeek: number, userId?: string): boolean {
+  static isWeekCompleted(
+    week: number,
+    daysPerWeek: number,
+    userId?: string,
+    programInstanceId?: string
+  ): boolean {
     // Get current user ID if not provided
     if (!userId) {
       try {
@@ -1084,7 +1352,7 @@ export class WorkoutLogger implements SetSyncProvider {
     }
 
     for (let day = 1; day <= daysPerWeek; day++) {
-      if (!this.hasCompletedWorkout(week, day, userId)) {
+      if (!this.hasCompletedWorkout(week, day, userId, programInstanceId)) {
         return false
       }
     }
@@ -1110,9 +1378,15 @@ export class WorkoutLogger implements SetSyncProvider {
     day: number
     userId?: string
     templateId?: string
+    programInstanceId?: string
     workoutName: string
   }): Promise<WorkoutSession | null> {
-    const { templateDay, week, day, userId, templateId, workoutName } = params
+    const { templateDay, week, day, userId, templateId, programInstanceId, workoutName } = params
+
+    const activeProgram = this.getActiveProgram()
+    const instanceId =
+      programInstanceId ??
+      (templateId && activeProgram?.templateId === templateId ? activeProgram.instanceId : activeProgram?.instanceId)
 
     // Create full exercise structure with all sets marked as skipped
     // This maintains data structure consistency with real workouts
@@ -1140,6 +1414,7 @@ export class WorkoutLogger implements SetSyncProvider {
       id: Math.random().toString(36).substr(2, 9),
       userId: userId || "anonymous",
       programId: templateId,
+      programInstanceId: instanceId,
       workoutName,
       startTime: Date.now(),
       endTime: Date.now(),
@@ -1700,96 +1975,6 @@ export class WorkoutLogger implements SetSyncProvider {
     }
   }
 
-  // ============================================================================
-  // SUPABASE SYNC METHODS
-  // ============================================================================
-
-  static async syncToDatabase(userId: string): Promise<void> {
-    if (!supabase) {
-      console.log("[WorkoutLogger] Supabase not configured, skipping sync")
-      return
-    }
-
-    try {
-      // First resolve any conflicts
-      await this.resolveSetConflicts(userId)
-
-      // Then sync any queued sets
-      await this.syncQueuedSets()
-
-      // Sync completed workouts
-      const workouts = this.getWorkoutHistory()
-      if (workouts.length > 0) {
-        // Remove duplicates by ID (keep latest)
-        const uniqueWorkouts = Array.from(
-          new Map(workouts.map(w => [w.id, w])).values()
-        )
-
-        const { error } = await supabase
-          .from("workouts")
-          .upsert(
-            uniqueWorkouts.map((w) => ({
-              id: w.id,
-              user_id: userId,
-              program_id: w.programId || null,
-              workout_name: w.workoutName,
-              start_time: w.startTime,
-              end_time: w.endTime || null,
-              exercises: w.exercises,
-              notes: w.notes || null,
-              completed: w.completed,
-              week: w.week || null,
-              day: w.day || null,
-            })),
-            { onConflict: 'id' }
-          )
-
-        if (error) {
-          console.error("[WorkoutLogger] Failed to sync workouts:", error)
-        } else {
-          console.log("[WorkoutLogger] Synced", uniqueWorkouts.length, "workouts to database")
-        }
-      }
-
-      // Sync in-progress workouts
-      const stored = localStorage.getItem(this.IN_PROGRESS_KEY)
-      if (stored) {
-        const inProgressWorkouts: WorkoutSession[] = JSON.parse(stored)
-        if (inProgressWorkouts.length > 0) {
-          // Remove duplicates by ID (keep latest)
-          const uniqueInProgress = Array.from(
-            new Map(inProgressWorkouts.map(w => [w.id, w])).values()
-          )
-
-          const { error } = await supabase
-            .from("in_progress_workouts")
-            .upsert(
-              uniqueInProgress.map((w) => ({
-                id: w.id,
-                user_id: userId,
-                program_id: w.programId || null,
-                workout_name: w.workoutName,
-                start_time: w.startTime,
-                week: w.week || null,
-                day: w.day || null,
-                exercises: w.exercises,
-                notes: w.notes || null,
-              })),
-              { onConflict: 'id' }
-            )
-
-          if (error) {
-            console.error("[WorkoutLogger] Failed to sync in-progress workouts:", error)
-          } else {
-            console.log("[WorkoutLogger] Synced", uniqueInProgress.length, "in-progress workouts to database")
-          }
-        }
-      }
-    } catch (error) {
-      console.error("[WorkoutLogger] Sync to database failed:", error)
-    }
-  }
-
   static async loadFromDatabase(userId: string, forceRefresh: boolean = false): Promise<void> {
     if (!supabase) {
       console.log("[WorkoutLogger] Supabase not configured, skipping load")
@@ -1841,6 +2026,7 @@ export class WorkoutLogger implements SetSyncProvider {
           id: w.id,
           userId: w.user_id,
           programId: w.program_id || undefined,
+          programInstanceId: (w as any).program_instance_id || undefined,
           workoutName: w.workout_name,
           startTime: w.start_time,
           endTime: w.end_time || undefined,
@@ -1889,6 +2075,7 @@ export class WorkoutLogger implements SetSyncProvider {
           id: w.id,
           userId: w.user_id,
           programId: w.program_id || undefined,
+          programInstanceId: (w as any).program_instance_id || undefined,
           workoutName: w.workout_name,
           startTime: w.start_time,
           week: w.week || undefined,
@@ -1918,8 +2105,19 @@ export class WorkoutLogger implements SetSyncProvider {
       console.log("[WorkoutLogger] Database loading completed. Total records loaded:", totalLoaded)
 
       if (!hasDatabaseData) {
-        console.log("[WorkoutLogger] No data found in database, keeping local data")
+        if (forceRefresh) {
+          const storageKeys = this.getUserStorageKeys(userId)
+          localStorage.removeItem(storageKeys.workouts)
+          localStorage.removeItem(storageKeys.inProgress)
+          localStorage.removeItem(this.STORAGE_KEY)
+          localStorage.removeItem(this.IN_PROGRESS_KEY)
+          console.log("[WorkoutLogger] No data found in database. Cleared local caches (force refresh)")
+        } else {
+          console.log("[WorkoutLogger] No data found in database, keeping local data")
+        }
       }
+
+      this.markDatabaseLoaded()
     } catch (error) {
       console.error("[WorkoutLogger] Load from database failed:", error)
       console.log("[WorkoutLogger] Will continue with local data only")
@@ -1983,6 +2181,7 @@ export class WorkoutLogger implements SetSyncProvider {
                 exercises: w.exercises,
                 notes: w.notes || null,
                 program_id: w.programId || null,
+                program_instance_id: w.programInstanceId || null,
               })
               .eq('id', w.id)
               .eq('user_id', userId)
@@ -1996,6 +2195,7 @@ export class WorkoutLogger implements SetSyncProvider {
                   id: w.id,
                   user_id: userId,
                   program_id: w.programId || null,
+                  program_instance_id: w.programInstanceId || null,
                   workout_name: w.workoutName,
                   start_time: w.startTime,
                   week: w.week || null,
@@ -2025,6 +2225,7 @@ export class WorkoutLogger implements SetSyncProvider {
                 id: w.id,
                 user_id: userId,
                 program_id: w.programId || null,
+                program_instance_id: w.programInstanceId || null,
                 workout_name: w.workoutName,
                 start_time: w.startTime,
                 end_time: w.endTime || null,
@@ -2044,6 +2245,8 @@ export class WorkoutLogger implements SetSyncProvider {
           }
         }
       }
+
+      this.markDatabaseLoaded()
     } catch (error) {
       console.error("[WorkoutLogger] syncToDatabase failed:", error)
     }
@@ -2069,4 +2272,13 @@ export class WorkoutLogger implements SetSyncProvider {
       console.error("[WorkoutLogger] Periodic sync failed:", error)
     }
   }
+  /**
+   * Clear all in-progress workouts (used when starting a brand-new instance)
+   */
+  static clearInProgress(userId?: string): void {
+    if (typeof window === "undefined") return
+    const storageKeys = this.getUserStorageKeys(userId)
+    localStorage.removeItem(storageKeys.inProgress)
+  }
+
 }

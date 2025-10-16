@@ -52,6 +52,10 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
 
   useEffect(() => {
     const loadData = async () => {
+      // Kick off template load immediately to reduce perceived delay
+      setTemplatesLoading(true)
+      const templatesPromise = ProgramStateManager.getAllTemplates()
+
       const history = TemplateStorageManager.getProgramHistory()
       setProgramHistory(history)
 
@@ -65,10 +69,8 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
       const workouts = WorkoutLogger.getWorkoutHistory()
       setWorkoutHistory(workouts)
 
-      // Load templates (database + hardcoded)
-      setTemplatesLoading(true)
       try {
-        const templates = await ProgramStateManager.getAllTemplates()
+        const templates = await templatesPromise
         setAllTemplates(templates)
       } catch (error) {
         console.error('[ProgramsSection] Failed to load templates:', error)

@@ -131,18 +131,18 @@ export function WorkoutCalendar({ onWorkoutClick, selectedWeek, selectedDay }: W
 
           console.log("Week 1 completions:")
           for (let day = 1; day <= 3; day++) {
-            const completed = WorkoutLogger.hasCompletedWorkout(1, day, user.id)
+            const completed = WorkoutLogger.hasCompletedWorkout(1, day, user.id, activeProgram.instanceId)
             console.log(`  Week 1 Day ${day}: ${completed}`)
           }
 
           console.log("Week 2 completions:")
           for (let day = 1; day <= 3; day++) {
-            const completed = WorkoutLogger.hasCompletedWorkout(2, day, user.id)
+            const completed = WorkoutLogger.hasCompletedWorkout(2, day, user.id, activeProgram.instanceId)
             console.log(`  Week 2 Day ${day}: ${completed}`)
           }
 
           console.log("Week 2 Day 1 details:")
-          const workout = WorkoutLogger.getCompletedWorkout(2, 1, user.id)
+          const workout = WorkoutLogger.getCompletedWorkout(2, 1, user.id, activeProgram.instanceId)
           console.log("  Completed workout:", workout)
           console.log("=== End Week 2 Day 1 Debug ===")
         },
@@ -173,8 +173,8 @@ export function WorkoutCalendar({ onWorkoutClick, selectedWeek, selectedDay }: W
           for (let week = 1; week <= Math.max(4, program.currentWeek); week++) {
             console.log(`\nWeek ${week}:`)
             for (let day = 1; day <= daysPerWeek; day++) {
-              const completed = WorkoutLogger.hasCompletedWorkout(week, day, user.id)
-              const workout = WorkoutLogger.getCompletedWorkout(week, day, user.id)
+              const completed = WorkoutLogger.hasCompletedWorkout(week, day, user.id, program.instanceId)
+              const workout = WorkoutLogger.getCompletedWorkout(week, day, user.id, program.instanceId)
               console.log(`  Day ${day}: ${completed ? '✅ COMPLETED' : '❌ INCOMPLETE'}`)
               if (completed && workout) {
                 console.log(`    Exercise count: ${workout.exercises.length}`)
@@ -185,7 +185,7 @@ export function WorkoutCalendar({ onWorkoutClick, selectedWeek, selectedDay }: W
 
           // Show week completion status
           for (let week = 1; week <= Math.max(4, program.currentWeek); week++) {
-            const isWeekComplete = WorkoutLogger.isWeekCompleted(week, daysPerWeek, user.id)
+            const isWeekComplete = WorkoutLogger.isWeekCompleted(week, daysPerWeek, user.id, program.instanceId)
             console.log(`\nWeek ${week} is ${isWeekComplete ? '✅ COMPLETE' : '❌ INCOMPLETE'}`)
           }
 
@@ -244,7 +244,7 @@ export function WorkoutCalendar({ onWorkoutClick, selectedWeek, selectedDay }: W
           console.log("Completion status:")
           for (let week = 1; week <= Math.max(3, activeProgram.currentWeek); week++) {
             for (let day = 1; day <= 3; day++) {
-              const completed = WorkoutLogger.hasCompletedWorkout(week, day, user.id)
+              const completed = WorkoutLogger.hasCompletedWorkout(week, day, user.id, activeProgram.instanceId)
               if (completed || (week === activeProgram.currentWeek && day === activeProgram.currentDay)) {
                 console.log(`  Week ${week} Day ${day}: ${completed ? '✅ COMPLETED' : '❌ INCOMPLETE'}`)
               }
@@ -275,7 +275,12 @@ export function WorkoutCalendar({ onWorkoutClick, selectedWeek, selectedDay }: W
       // Only recalculate progress if it seems out of sync
       if (user?.id) {
         // Check if current workout is already completed (indicating we should advance)
-        const currentWorkoutCompleted = WorkoutLogger.hasCompletedWorkout(program.currentWeek, program.currentDay, user.id)
+        const currentWorkoutCompleted = WorkoutLogger.hasCompletedWorkout(
+          program.currentWeek,
+          program.currentDay,
+          user.id,
+          program.instanceId
+        )
 
         // Also check if all previous weeks are completed
         let shouldRecalculate = false
@@ -286,7 +291,7 @@ export function WorkoutCalendar({ onWorkoutClick, selectedWeek, selectedDay }: W
           // Check if we're on the wrong week/day
           let foundFirstIncomplete = false
           for (let week = 1; week < program.currentWeek; week++) {
-            if (!WorkoutLogger.isWeekCompleted(week, 3, user.id)) {
+            if (!WorkoutLogger.isWeekCompleted(week, 3, user.id, program.instanceId)) {
               console.log(`[Calendar] Week ${week} is not complete but we're on week ${program.currentWeek}, should recalculate`)
               shouldRecalculate = true
               foundFirstIncomplete = true
@@ -297,7 +302,7 @@ export function WorkoutCalendar({ onWorkoutClick, selectedWeek, selectedDay }: W
           if (!foundFirstIncomplete && program.currentWeek > 1) {
             // Check if all previous weeks are actually complete
             const allPreviousComplete = Array.from({ length: program.currentWeek - 1 }, (_, w) => w + 1)
-              .every(week => WorkoutLogger.isWeekCompleted(week, 3, user.id))
+              .every(week => WorkoutLogger.isWeekCompleted(week, 3, user.id, program.instanceId))
 
             if (!allPreviousComplete) {
               console.log("[Calendar] Not all previous weeks are complete, should recalculate")
@@ -315,7 +320,7 @@ export function WorkoutCalendar({ onWorkoutClick, selectedWeek, selectedDay }: W
 
         if (shouldRecalculate) {
           console.log("[Calendar] Recalculating progress to sync with database...")
-          ProgramStateManager.recalculateProgress()
+          await ProgramStateManager.recalculateProgress({ silent: true })
 
           // Reload the program after recalculation
           setTimeout(async () => {
@@ -377,7 +382,7 @@ export function WorkoutCalendar({ onWorkoutClick, selectedWeek, selectedDay }: W
     if (week !== currentWeek) return null
 
     for (let day = 1; day <= daysPerWeek; day++) {
-      const hasCompleted = WorkoutLogger.hasCompletedWorkout(week, day, user?.id)
+      const hasCompleted = WorkoutLogger.hasCompletedWorkout(week, day, user?.id, activeProgram?.instanceId)
       if (!hasCompleted) {
         return day
       }
@@ -391,7 +396,9 @@ export function WorkoutCalendar({ onWorkoutClick, selectedWeek, selectedDay }: W
     const optimisticCompleted = completionStatus.get(key)
     
     // Fall back to database check if no optimistic update
-    const hasCompletedWorkout = optimisticCompleted ?? WorkoutLogger.hasCompletedWorkout(week, day, user?.id)
+    const hasCompletedWorkout =
+      optimisticCompleted ??
+      WorkoutLogger.hasCompletedWorkout(week, day, user?.id, activeProgram?.instanceId)
 
     // Minimal debug logging (only for critical issues)
     if (week === 1 && day === 1 && process.env.NODE_ENV === "development") {
@@ -416,7 +423,7 @@ export function WorkoutCalendar({ onWorkoutClick, selectedWeek, selectedDay }: W
           shouldMarkAsCurrent: day === firstIncompleteDay,
           allWeekCompletions: Array.from({ length: daysPerWeek }, (_, d) => ({
             day: d + 1,
-            completed: WorkoutLogger.hasCompletedWorkout(week, d + 1, user?.id)
+            completed: WorkoutLogger.hasCompletedWorkout(week, d + 1, user?.id, activeProgram?.instanceId)
           }))
         })
       }

@@ -13,40 +13,51 @@ import { ConnectionMonitor } from '@/lib/connection-monitor'
 import { useWorkoutLoggerDatabaseFirst } from '@/lib/workout-logger-database-first'
 import type { WorkoutSession, WorkoutSet } from '@/lib/workout-logger'
 
+type SelectResult = { data: any; error: any }
+
+const createSelectChain = (result: SelectResult = { data: null, error: null }) => {
+  const chain: any = {}
+  chain.select = vi.fn(() => chain)
+  chain.eq = vi.fn(() => chain)
+  chain.order = vi.fn(() => chain)
+  chain.limit = vi.fn(() => chain)
+  chain.maybeSingle = vi.fn().mockResolvedValue(result)
+  chain.single = vi.fn().mockResolvedValue(result)
+  return chain
+}
+
+const createTableQuery = (options: {
+  selectResult?: SelectResult
+  upsertResult?: { data: any; error: any }
+  insertResult?: { data: any; error: any }
+  updateResult?: { data: any; error: any }
+  deleteResult?: { data: any; error: any }
+} = {}) => {
+  const selectChain = createSelectChain(options.selectResult)
+  return {
+    select: vi.fn(() => selectChain),
+    upsert: vi.fn().mockResolvedValue(options.upsertResult ?? { data: null, error: null }),
+    insert: vi.fn().mockResolvedValue(options.insertResult ?? { data: null, error: null }),
+    update: vi.fn(() => ({
+      eq: vi.fn().mockResolvedValue(options.updateResult ?? { data: null, error: null }),
+    })),
+    delete: vi.fn(() => ({
+      eq: vi.fn().mockResolvedValue(options.deleteResult ?? { data: null, error: null }),
+    })),
+  }
+}
+
+const resetSupabaseFrom = () => {
+  (supabase.from as Mock).mockImplementation(() => createTableQuery())
+}
+
 // Mock dependencies
 vi.mock('@/lib/supabase', () => ({
   supabase: {
-    from: vi.fn(() => ({
-      select: vi.fn(() => ({
-        eq: vi.fn(() => ({
-          single: vi.fn(),
-          data: null,
-          error: null
-        })),
-        data: null,
-        error: null
-      })),
-      insert: vi.fn(() => ({
-        data: null,
-        error: null
-      })),
-      update: vi.fn(() => ({
-        eq: vi.fn(() => ({
-          data: null,
-          error: null
-        })),
-        data: null,
-        error: null
-      })),
-      delete: vi.fn(() => ({
-        eq: vi.fn(() => ({
-          data: null,
-          error: null
-        })),
-        data: null,
-        error: null
-      }))
-    }))
+    from: vi.fn(() => createTableQuery()),
+    auth: {
+      getSession: vi.fn().mockResolvedValue({ data: null, error: null })
+    }
   }
 }))
 
@@ -58,19 +69,46 @@ vi.mock('@/lib/connection-monitor', () => ({
   }
 }))
 
+const storageState = new Map<string, string>()
+const STORAGE_KEY = 'workout-logger-database-first'
+const SYNC_QUEUE_KEY = 'liftlog_sync_queue'
+
 // Mock localStorage
 const localStorageMock = {
-  getItem: vi.fn(),
-  setItem: vi.fn(),
-  removeItem: vi.fn(),
-  clear: vi.fn()
+  getItem: vi.fn((key: string) => (storageState.has(key) ? storageState.get(key)! : null)),
+  setItem: vi.fn((key: string, value: string) => {
+    storageState.set(key, value)
+  }),
+  removeItem: vi.fn((key: string) => {
+    storageState.delete(key)
+  }),
+  clear: vi.fn(() => {
+    storageState.clear()
+  })
 }
 Object.defineProperty(window, 'localStorage', { value: localStorageMock })
 
+const resetLocalStorageMock = () => {
+  localStorageMock.getItem.mockImplementation((key: string) => (storageState.has(key) ? storageState.get(key)! : null))
+  localStorageMock.setItem.mockImplementation((key: string, value: string) => {
+    storageState.set(key, value)
+  })
+  localStorageMock.removeItem.mockImplementation((key: string) => {
+    storageState.delete(key)
+  })
+  localStorageMock.clear.mockImplementation(() => {
+    storageState.clear()
+  })
+}
+
+resetLocalStorageMock()
+
 describe('DataSyncService', () => {
   beforeEach(() => {
-    localStorageMock.clear()
+    storageState.clear()
     vi.clearAllMocks()
+    resetLocalStorageMock()
+    resetSupabaseFrom()
   })
 
   describe('saveWorkoutOptimistic', () => {
@@ -206,11 +244,11 @@ describe('DataSyncService', () => {
         }
       ]
 
-      localStorageMock.getItem.mockReturnValue(JSON.stringify(mockSyncQueue))
+      storageState.set(SYNC_QUEUE_KEY, JSON.stringify(mockSyncQueue))
 
       await DataSyncService.forceSyncAll()
 
-      expect(localStorageMock.setItem).toHaveBeenCalled()
+      expect(JSON.parse(storageState.get(SYNC_QUEUE_KEY) ?? '[]')).toEqual([])
     })
   })
 })
@@ -220,12 +258,17 @@ describe('useWorkoutLoggerDatabaseFirst', () => {
   const mockProgramId = 'test-program-1'
 
   beforeEach(() => {
-    localStorageMock.clear()
+    storageState.clear()
     vi.clearAllMocks()
+    resetLocalStorageMock()
+    resetSupabaseFrom()
   })
 
   afterEach(() => {
-    vi.restoreAllMocks()
+    storageState.clear()
+    vi.clearAllMocks()
+    resetLocalStorageMock()
+    resetSupabaseFrom()
   })
 
   describe('initialization', () => {
@@ -247,13 +290,11 @@ describe('useWorkoutLoggerDatabaseFirst', () => {
         error: null
       }
 
-      ;(supabase.from as Mock).mockReturnValue({
-        select: vi.fn().mockReturnValue({
-          eq: vi.fn().mockReturnValue({
-            single: vi.fn().mockResolvedValue(mockSupabaseQuery)
-          })
+      ;(supabase.from as Mock).mockImplementationOnce(() =>
+        createTableQuery({
+          selectResult: mockSupabaseQuery
         })
-      })
+      )
 
       const { result } = renderHook(() => 
         useWorkoutLoggerDatabaseFirst({
@@ -288,20 +329,18 @@ describe('useWorkoutLoggerDatabaseFirst', () => {
         day: 1
       }
 
-      localStorageMock.getItem.mockReturnValue(JSON.stringify([mockLocalStorageWorkout]))
+      storageState.set(STORAGE_KEY, JSON.stringify([mockLocalStorageWorkout]))
 
       const mockSupabaseQuery = {
         data: null,
         error: { message: 'No rows found' }
       }
 
-      ;(supabase.from as Mock).mockReturnValue({
-        select: vi.fn().mockReturnValue({
-          eq: vi.fn().mockReturnValue({
-            single: vi.fn().mockResolvedValue(mockSupabaseQuery)
-          })
+      ;(supabase.from as Mock).mockImplementationOnce(() =>
+        createTableQuery({
+          selectResult: mockSupabaseQuery
         })
-      })
+      )
 
       const { result } = renderHook(() => 
         useWorkoutLoggerDatabaseFirst({
@@ -390,7 +429,7 @@ describe('useWorkoutLoggerDatabaseFirst', () => {
         day: 1
       }
 
-      localStorageMock.getItem.mockReturnValue(JSON.stringify([mockWorkout]))
+      storageState.set(STORAGE_KEY, JSON.stringify([mockWorkout]))
 
       const { result } = renderHook(() => 
         useWorkoutLoggerDatabaseFirst({
@@ -455,7 +494,7 @@ describe('useWorkoutLoggerDatabaseFirst', () => {
         day: 1
       }
 
-      localStorageMock.getItem.mockReturnValue(JSON.stringify([mockWorkout]))
+      storageState.set(STORAGE_KEY, JSON.stringify([mockWorkout]))
 
       const { result } = renderHook(() => 
         useWorkoutLoggerDatabaseFirst({
@@ -495,15 +534,16 @@ describe('useWorkoutLoggerDatabaseFirst', () => {
         day: 1
       }
 
-      localStorageMock.getItem.mockReturnValue(JSON.stringify([mockWorkout]))
+      storageState.set(STORAGE_KEY, JSON.stringify([mockWorkout]))
 
       const mockSupabaseDelete = {
         eq: vi.fn().mockResolvedValue({ data: null, error: null })
       }
 
-      ;(supabase.from as Mock).mockReturnValue({
-        delete: vi.fn().mockReturnValue(mockSupabaseDelete)
-      })
+      ;(supabase.from as Mock).mockImplementationOnce(() => createTableQuery())
+      ;(supabase.from as Mock).mockImplementationOnce(() => ({
+        delete: vi.fn(() => mockSupabaseDelete)
+      }))
 
       const { result } = renderHook(() => 
         useWorkoutLoggerDatabaseFirst({
@@ -574,7 +614,7 @@ describe('useWorkoutLoggerDatabaseFirst', () => {
       expect(result.current.formatDuration(3600000)).toBe('1h 0m 0s')
     })
 
-    it('should calculate completion stats', () => {
+    it('should calculate completion stats', async () => {
       const mockWorkout: WorkoutSession = {
         id: 'workout-1',
         userId: mockUserId,
@@ -601,7 +641,7 @@ describe('useWorkoutLoggerDatabaseFirst', () => {
         day: 1
       }
 
-      localStorageMock.getItem.mockReturnValue(JSON.stringify([mockWorkout]))
+      storageState.set(STORAGE_KEY, JSON.stringify([mockWorkout]))
 
       const { result } = renderHook(() => 
         useWorkoutLoggerDatabaseFirst({
@@ -609,6 +649,10 @@ describe('useWorkoutLoggerDatabaseFirst', () => {
           programId: mockProgramId
         })
       )
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false)
+      })
 
       const stats = result.current.getCompletionStats()
 
@@ -624,8 +668,10 @@ describe('useWorkoutLoggerDatabaseFirst', () => {
 
 describe('Integration Tests', () => {
   beforeEach(() => {
-    localStorageMock.clear()
+    storageState.clear()
     vi.clearAllMocks()
+    resetLocalStorageMock()
+    resetSupabaseFrom()
   })
 
   describe('offline functionality', () => {
@@ -655,13 +701,11 @@ describe('Integration Tests', () => {
         error: { message: 'Database connection failed' }
       }
 
-      ;(supabase.from as Mock).mockReturnValue({
-        select: vi.fn().mockReturnValue({
-          eq: vi.fn().mockReturnValue({
-            single: vi.fn().mockResolvedValue(mockSupabaseQuery)
-          })
+      ;(supabase.from as Mock).mockImplementationOnce(() =>
+        createTableQuery({
+          selectResult: mockSupabaseQuery
         })
-      })
+      )
 
       const { result } = renderHook(() => 
         useWorkoutLoggerDatabaseFirst({

@@ -2,6 +2,7 @@ import { LinearProgressionEngine, type LinearProgressionInput, type LinearProgre
 import { PercentageProgressionEngine, type PercentageProgressionInput, type PercentageProgressionResult, type OneRepMax } from "./progression-engines/percentage-engine"
 import { WorkoutLogger } from "./workout-logger"
 import { getTierRules } from "./progression-tiers"
+import { ProgressionTierResolver } from "./progression-tier-resolver"
 import type { ExerciseTemplate, GymTemplate } from "./gym-templates"
 import type { ActiveProgram } from "./program-state"
 
@@ -125,8 +126,9 @@ export interface ProgressionOverride {
 export class ProgressionRouter {
   /**
    * Route progression calculation to the appropriate engine based on template, user override, and exercise type
+   * NEW: Now async to support database tier resolution
    */
-  static calculateProgression(input: ProgressionInput): ProgressionResult {
+  static async calculateProgression(input: ProgressionInput): Promise<ProgressionResult> {
     const { exercise, activeProgram, currentWeek, userProfile, previousPerformance, userWeightAdjustment, oneRepMaxes = [] } = input
 
     const progressionDecision = resolveProgressionStrategy(activeProgram.template)
@@ -145,56 +147,81 @@ export class ProgressionRouter {
     })
     // Check for user override first
     if (activeProgram.progressionOverride?.enabled) {
-      return this.handleOverride(input)
+      return await this.handleOverride(input)
     }
     // Handle different progression strategies
     switch (progressionDecision.strategy) {
       case "percentage":
         return this.routeToPercentageEngine(input)
       case "hybrid":
-        return this.routeHybrid(input)
+        return await this.routeHybrid(input)
       case "linear":
       default:
-        return this.routeToLinearEngine(input)
+        return await this.routeToLinearEngine(input)
     }
   }
 
   /**
    * Handle user-defined progression override
    */
-  private static handleOverride(input: ProgressionInput): ProgressionResult {
+  private static async handleOverride(input: ProgressionInput): Promise<ProgressionResult> {
     const { activeProgram } = input
     const override = activeProgram.progressionOverride!
 
     // Add safety checks for beginners
     if (input.userProfile.experience === "beginner" && override.overrideType === "percentage") {
       console.warn("[ProgressionRouter] Beginner user attempting percentage-based progression - applying safety restrictions")
-      return this.routeToLinearEngine(input, "Beginner safety: Using linear progression")
+      return await this.routeToLinearEngine(input, "Beginner safety: Using linear progression")
     }
 
     switch (override.overrideType) {
       case "percentage":
         return this.routeToPercentageEngine(input, override.customRules?.percentage)
       case "hybrid":
-        return this.routeHybrid(input, override.customRules?.hybrid)
+        return await this.routeHybrid(input, override.customRules?.hybrid)
       case "linear":
       default:
-        return this.routeToLinearEngine(input, undefined, override.customRules?.linear)
+        return await this.routeToLinearEngine(input, undefined, override.customRules?.linear)
     }
   }
 
   /**
    * Route to linear progression engine
+   * NEW: Uses ProgressionTierResolver for database-backed tier rules with fallback
    */
-  private static routeToLinearEngine(
+  private static async routeToLinearEngine(
     input: ProgressionInput,
     safetyNote?: string,
     customLinearRules?: { weeklyIncrease: number; minIncrement: number }
-  ): ProgressionResult {
+  ): Promise<ProgressionResult> {
     const { exercise, currentWeek, previousPerformance, userWeightAdjustment } = input
 
-    // Get tier rules (modified by custom rules if provided)
-    const baseTierRules = getTierRules(exercise.exerciseName, exercise.category)
+    // NEW: Resolve tier rules from database with fallback to heuristic
+    let tierResolution
+    let baseTierRules
+
+    if (customLinearRules) {
+      // If custom rules provided, use heuristic as base (skip DB lookup for performance)
+      baseTierRules = getTierRules(exercise.exerciseName, exercise.category)
+      console.log('[ProgressionRouter] Using custom linear rules, skipping DB tier lookup')
+    } else {
+      // Resolve tier from database or heuristic
+      tierResolution = await ProgressionTierResolver.resolveTierRules(
+        exercise.exerciseLibraryId,
+        exercise.exerciseName,
+        exercise.category
+      )
+      baseTierRules = tierResolution.tierRules
+
+      console.log('[ProgressionRouter] Tier resolution:', {
+        exerciseName: exercise.exerciseName,
+        source: tierResolution.source,
+        tierName: tierResolution.tierName,
+        tierRules: tierResolution.tierRules
+      })
+    }
+
+    // Apply custom rules if provided
     const tierRules = customLinearRules ? {
       ...baseTierRules,
       weeklyIncrease: customLinearRules.weeklyIncrease,
@@ -216,18 +243,29 @@ export class ProgressionRouter {
     const currentWeekData = exercise.progressionTemplate[weekKey] || exercise.progressionTemplate.week1
     const targetSets = currentWeekData?.sets || 3
 
+    // Build progression note with tier source info
+    let progressionNote = result.progressionNote
+    if (tierResolution) {
+      const tierSource = tierResolution.source === 'database' ? '🗄️ DB' : '🧮 Heuristic'
+      const tierLabel = tierResolution.tierName ? ` [${tierResolution.tierName}]` : ''
+      progressionNote = `${tierSource}${tierLabel}: ${progressionNote}`
+    }
+    if (safetyNote) {
+      progressionNote = `${safetyNote} | ${progressionNote}`
+    }
+
     return {
       targetWeight: result.targetWeight,
       performedReps: result.performedReps,
       targetSets,
-      progressionNote: safetyNote ? `${safetyNote} | ${result.progressionNote}` : result.progressionNote,
+      progressionNote,
       strategy: result.strategy,
       engineUsed: "linear",
       additionalData: {
         adjustedReps: result.adjustedReps,
         bounds: result.bounds,
         weeklyIncrease: result.weeklyIncrease,
-        tier: exercise.tier
+        tier: tierResolution?.tierName || exercise.tier
       },
       perSetSuggestions: result.perSetSuggestions  // NEW: pass through per-set suggestions
     }
@@ -285,10 +323,10 @@ export class ProgressionRouter {
   /**
    * Route hybrid progression (linear for compounds, percentage for accessories or vice versa)
    */
-  private static routeHybrid(
+  private static async routeHybrid(
     input: ProgressionInput,
     customHybridRules?: { compoundProgression: "linear" | "percentage"; accessoryProgression: "linear" | "percentage"; compoundExercises: string[] }
-  ): ProgressionResult {
+  ): Promise<ProgressionResult> {
     const { exercise } = input
 
     // Default hybrid rules: compounds use linear, accessories use percentage
@@ -309,14 +347,14 @@ export class ProgressionRouter {
       if (hybridRules.compoundProgression === "percentage") {
         return this.routeToPercentageEngine(input)
       } else {
-        return this.routeToLinearEngine(input)
+        return await this.routeToLinearEngine(input)
       }
     } else {
       // Use accessory progression method
       if (hybridRules.accessoryProgression === "percentage") {
         return this.routeToPercentageEngine(input)
       } else {
-        return this.routeToLinearEngine(input)
+        return await this.routeToLinearEngine(input)
       }
     }
   }
@@ -382,6 +420,21 @@ export class ProgressionRouter {
     currentDay?: number
   ): ProgressionInput["previousPerformance"] | null {
     const previousWeek = currentWeek - 1
+
+    // Only use history from the current active instance to guarantee a fresh
+    // start when the user restarts the same template. Read the active program
+    // synchronously from localStorage (same approach as WorkoutLogger).
+    let instanceId: string | undefined
+    try {
+      if (typeof window !== 'undefined') {
+        const stored = localStorage.getItem('liftlog_active_program')
+        const program = stored ? JSON.parse(stored) : null
+        instanceId = program?.instanceId
+      }
+    } catch {
+      // ignore parsing errors; fall back to no previous performance
+    }
+
     const history = WorkoutLogger.getWorkoutHistory()
     
     console.log(`[ProgressionRouter] 🔍 getPreviousPerformance called:`, {
@@ -393,8 +446,10 @@ export class ProgressionRouter {
       historyLength: history.length
     })
     
-    // Filter for previous week's completed workouts
-    let previousWeekWorkouts = history.filter(w => w.week === previousWeek && w.completed)
+    // Filter for previous week's completed workouts within the current instance only
+    let previousWeekWorkouts = history.filter(
+      (w) => w.week === previousWeek && w.completed && (!!instanceId ? w.programInstanceId === instanceId : false)
+    )
 
     console.log(`[ProgressionRouter] Found ${previousWeekWorkouts.length} workouts for Week ${previousWeek}`)
     

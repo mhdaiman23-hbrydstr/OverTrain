@@ -133,21 +133,47 @@ export function isWeightWithinBounds(weight: number, baseWeight: number, adjustm
 export function calculateVolumeCompensation(
   targetVolume: number,
   userWeight: number,
+  baselineReps: number,
   maxRepAdjustment: number
 ): { adjustedReps: number; strategy: "volume_compensated" | "multi_week"; message?: string } {
-  const adjustedReps = Math.round(targetVolume / userWeight)
-  const repDifference = Math.abs(adjustedReps - Math.round(targetVolume / (targetVolume / Math.round(targetVolume / userWeight))))
+  if (!Number.isFinite(targetVolume) || !Number.isFinite(userWeight) || userWeight <= 0 || baselineReps <= 0) {
+    return {
+      adjustedReps: Math.max(1, Math.round(baselineReps)),
+      strategy: "volume_compensated"
+    }
+  }
+
+  const idealWeight = targetVolume / baselineReps
+  const rawReps = targetVolume / userWeight
+  const percentDiff = idealWeight === 0
+    ? 0
+    : ((userWeight - idealWeight) / idealWeight) * 100
+
+  // One rep of adjustment for every ~1% change in load (rounded to nearest percent)
+  const repSteps = Math.round(Math.abs(percentDiff))
+
+  if (repSteps === 0) {
+    return {
+      adjustedReps: Math.max(1, Math.round(rawReps)),
+      strategy: "volume_compensated"
+    }
+  }
+
+  const direction = percentDiff >= 0 ? -1 : 1 // Heavier load -> reduce reps, lighter load -> increase reps
+  let adjustedReps = baselineReps + direction * repSteps
+  const repDifference = Math.abs(adjustedReps - baselineReps)
 
   if (repDifference > maxRepAdjustment) {
+    const limitedReps = baselineReps + direction * maxRepAdjustment
     return {
-      adjustedReps: Math.round(targetVolume / userWeight),
+      adjustedReps: Math.max(1, limitedReps),
       strategy: "multi_week",
       message: `Weight adjustment too large. Consider progressing over multiple weeks.`
     }
   }
 
   return {
-    adjustedReps,
+    adjustedReps: Math.max(1, adjustedReps),
     strategy: "volume_compensated"
   }
 }
@@ -178,7 +204,15 @@ export function determineProgressionStrategy(
   }
 
   // Calculate volume compensation
-  const compensation = calculateVolumeCompensation(targetVolume, userWeight, tierRules.maxRepAdjustment)
+  const baselineReps = targetWeight > 0
+    ? Math.max(1, Math.round(targetVolume / targetWeight))
+    : 1
+  const compensation = calculateVolumeCompensation(
+    targetVolume,
+    userWeight,
+    baselineReps,
+    tierRules.maxRepAdjustment
+  )
 
   if (compensation.strategy === "multi_week") {
     return {
@@ -190,7 +224,7 @@ export function determineProgressionStrategy(
     }
   }
 
-  if (compensation.adjustedReps !== Math.round(targetVolume / targetWeight)) {
+  if (compensation.adjustedReps !== baselineReps) {
     return {
       strategy: "volume_compensated",
       suggestedWeight: userWeight,

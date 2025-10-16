@@ -273,7 +273,12 @@ export class LinearProgressionEngine {
     }
 
     // Calculate volume compensation
-    const compensation = calculateVolumeCompensation(targetVolume, targetWeight, tierRules.maxRepAdjustment)
+    const compensation = calculateVolumeCompensation(
+      targetVolume,
+      targetWeight,
+      performedReps,
+      tierRules.maxRepAdjustment
+    )
 
     if (compensation.strategy === "multi_week") {
       return {

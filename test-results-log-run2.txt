@@ -1,0 +1,439 @@
+
+PS S:\Program Files\LiftLog> npm test
+
+> my-v0-project@0.1.0 test
+> vitest run
+
+
+ RUN  v2.1.9 S:/Program Files/LiftLog
+
+stdout | tests/database-first-workout-logger.test.ts > DataSyncService > saveWorkoutOptimistic > should save workout to localStorage i
+stdout | tests/database-first-workout-logger.test.ts > DataSyncService > saveWorkoutOptimistic > should save workout to localStorage instantly and queue for database sync
+[DataSync] ✅ Instant localStorage update for workout test-workout-1
+[DataSync] ✅ Sync queue empty
+[DataSync] 🔄 Workout test-workout-1 queued for database sync (ID: workout-test-workout-1-1760536676336)
+
+stderr | tests/database-first-workout-logger.test.ts > DataSyncService > saveWorkoutOptimistic > should handle localStorage errors gra
+stderr | tests/database-first-workout-logger.test.ts > DataSyncService > saveWorkoutOptimistic > should handle localStorage errors gracefully                                                                                                                               
+[DataSync] ❌ localStorage update failed: Error: Storage quota exceeded                                                               
+    at Object.<anonymous> (S:\Program Files\LiftLog\tests\database-first-workout-logger.test.ts:120:15)
+    at Object.mockCall (file:///S:/Program%20Files/LiftLog/node_modules/@vitest/spy/dist/index.js:61:17)
+    at Object.spy [as setItem] (file:///S:/Program%20Files/LiftLog/node_modules/tinyspy/dist/index.js:45:80)
+    at Function.saveWorkoutOptimistic (S:\Program Files\LiftLog\lib\data-sync-service.ts:58:20)
+    at S:\Program Files\LiftLog\tests\database-first-workout-logger.test.ts:136:44
+    at file:///S:/Program%20Files/LiftLog/node_modules/@vitest/runner/dist/index.js:146:14
+    at file:///S:/Program%20Files/LiftLog/node_modules/@vitest/runner/dist/index.js:533:11
+    at runWithTimeout (file:///S:/Program%20Files/LiftLog/node_modules/@vitest/runner/dist/index.js:39:7)
+    at runTest (file:///S:/Program%20Files/LiftLog/node_modules/@vitest/runner/dist/index.js:1056:17)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+
+stdout | tests/database-first-workout-logger.test.ts > DataSyncService > saveSetOptimistic > should save set instantly and queue for d
+stdout | tests/database-first-workout-logger.test.ts > DataSyncService > saveSetOptimistic > should save set instantly and queue for database sync
+[DataSync] ✅ Instant set update for set set-1
+
+stdout | tests/database-first-workout-logger.test.ts > DataSyncService > forceSyncAll > should process all pending sync operations    
+[DataSync] 🔄 Force syncing all pending operations...
+[DataSync] 🔄 Processing 1 queued operations...
+[DataSync] ✅ Sync success: workout sync-1
+[DataSync] 📊 Sync completed: 1 success, 0 remaining
+[DataSync] ✅ Force sync completed
+
+stdout | tests/database-first-workout-logger.test.ts > useWorkoutLoggerDatabaseFirst > initialization > should load existing workout f
+stdout | tests/database-first-workout-logger.test.ts > useWorkoutLoggerDatabaseFirst > initialization > should load existing workout from database
+[WorkoutLogger] 🔄 Resuming workout from database
+
+stdout | tests/database-first-workout-logger.test.ts > useWorkoutLoggerDatabaseFirst > initialization > should fallback to localStorag
+stdout | tests/database-first-workout-logger.test.ts > useWorkoutLoggerDatabaseFirst > initialization > should fallback to localStorage if database has no workout
+[WorkoutLogger] 📱 Resuming workout from localStorage
+[DataSync] ✅ Instant localStorage update for workout workout-2
+[DataSync] 🔄 Processing 1 queued operations...
+[DataSync] 🔄 Workout workout-2 queued for database sync (ID: workout-workout-2-1760536676459)
+[DataSync] 📊 Sync completed: 0 success, 1 remaining
+
+stderr | tests/database-first-workout-logger.test.ts > useWorkoutLoggerDatabaseFirst > initialization > should fallback to localStorag
+stderr | tests/database-first-workout-logger.test.ts > useWorkoutLoggerDatabaseFirst > initialization > should fallback to localStorage if database has no workout
+[DataSync] Unknown operation type: undefined
+[DataSync] ❌ Max retries exceeded: workout-2
+
+stdout | tests/database-first-workout-logger.test.ts > useWorkoutLoggerDatabaseFirst > startWorkout > should start a new workout and s
+stdout | tests/database-first-workout-logger.test.ts > useWorkoutLoggerDatabaseFirst > startWorkout > should start a new workout and save it
+[DataSync] ✅ Instant localStorage update for workout workout-1760536676531
+[DataSync] 🔄 Processing 1 queued operations...
+[DataSync] 🔄 Workout workout-1760536676531 queued for database sync (ID: workout-workout-1760536676531-1760536676531)
+[WorkoutLogger] 📱 Resuming workout from localStorage
+[DataSync] ✅ Instant localStorage update for workout workout-2
+[DataSync] 🔄 Processing 1 queued operations...
+[DataSync] 🔄 Workout workout-2 queued for database sync (ID: workout-workout-2-1760536676531)
+[DataSync] 📊 Sync completed: 0 success, 1 remaining
+[WorkoutLogger] ✅ Workout started successfully
+[DataSync] 📊 Sync completed: 0 success, 1 remaining
+
+stderr | tests/database-first-workout-logger.test.ts > useWorkoutLoggerDatabaseFirst > startWorkout > should start a new workout and s
+stderr | tests/database-first-workout-logger.test.ts > useWorkoutLoggerDatabaseFirst > startWorkout > should start a new workout and save it
+[DataSync] Unknown operation type: undefined
+[DataSync] Unknown operation type: undefined
+[DataSync] ❌ Max retries exceeded: workout-2
+[DataSync] ❌ Max retries exceeded: workout-2
+
+stdout | tests/database-first-workout-logger.test.ts > useWorkoutLoggerDatabaseFirst > startWorkout > should throw error for invalid w
+stdout | tests/database-first-workout-logger.test.ts > useWorkoutLoggerDatabaseFirst > startWorkout > should throw error for invalid workout name
+[WorkoutLogger] 📱 Resuming workout from localStorage
+[DataSync] ✅ Instant localStorage update for workout workout-2
+[DataSync] 🔄 Processing 1 queued operations...
+[DataSync] 🔄 Workout workout-2 queued for database sync (ID: workout-workout-2-1760536676536)
+[DataSync] 📊 Sync completed: 0 success, 1 remaining
+
+stderr | tests/database-first-workout-logger.test.ts > useWorkoutLoggerDatabaseFirst > startWorkout > should throw error for invalid w
+stderr | tests/database-first-workout-logger.test.ts > useWorkoutLoggerDatabaseFirst > startWorkout > should throw error for invalid workout name
+[WorkoutLogger] Start workout error: Workout name is required
+[DataSync] Unknown operation type: undefined
+[DataSync] ❌ Max retries exceeded: workout-2
+
+stdout | tests/database-first-workout-logger.test.ts > useWorkoutLoggerDatabaseFirst > completeSet > should complete a set and update 
+stdout | tests/database-first-workout-logger.test.ts > useWorkoutLoggerDatabaseFirst > completeSet > should complete a set and update workout
+[WorkoutLogger] 📱 Resuming workout from localStorage
+[DataSync] ✅ Instant localStorage update for workout workout-1
+[DataSync] 🔄 Processing 1 queued operations...
+[DataSync] 🔄 Workout workout-1 queued for database sync (ID: workout-workout-1-1760536676542)
+[DataSync] 📊 Sync completed: 0 success, 1 remaining
+
+stderr | tests/database-first-workout-logger.test.ts > useWorkoutLoggerDatabaseFirst > completeSet > should complete a set and update 
+stderr | tests/database-first-workout-logger.test.ts > useWorkoutLoggerDatabaseFirst > completeSet > should complete a set and update workout
+[DataSync] Unknown operation type: undefined
+[DataSync] ❌ Max retries exceeded: workout-1
+
+stdout | tests/database-first-workout-logger.test.ts > useWorkoutLoggerDatabaseFirst > completeSet > should complete a set and update 
+stdout | tests/database-first-workout-logger.test.ts > useWorkoutLoggerDatabaseFirst > completeSet > should complete a set and update workout
+[DataSync] ✅ Instant set update for set set-1
+
+stdout | tests/database-first-workout-logger.test.ts > useWorkoutLoggerDatabaseFirst > completeSet > should throw error when no active
+stdout | tests/database-first-workout-logger.test.ts > useWorkoutLoggerDatabaseFirst > completeSet > should throw error when no active workout
+[WorkoutLogger] 📱 Resuming workout from localStorage
+[DataSync] ✅ Instant localStorage update for workout workout-1
+[DataSync] 🔄 Processing 1 queued operations...
+[DataSync] 🔄 Workout workout-1 queued for database sync (ID: workout-workout-1-1760536676622)
+[DataSync] 📊 Sync completed: 0 success, 1 remaining
+
+stderr | tests/database-first-workout-logger.test.ts > useWorkoutLoggerDatabaseFirst > completeSet > should throw error when no active
+stderr | tests/database-first-workout-logger.test.ts > useWorkoutLoggerDatabaseFirst > completeSet > should throw error when no active workout
+[DataSync] Unknown operation type: undefined
+[DataSync] ❌ Max retries exceeded: workout-1
+
+stdout | tests/database-first-workout-logger.test.ts > useWorkoutLoggerDatabaseFirst > completeWorkout > should complete the current w
+stdout | tests/database-first-workout-logger.test.ts > useWorkoutLoggerDatabaseFirst > completeWorkout > should complete the current workout
+[WorkoutLogger] 📱 Resuming workout from localStorage
+[DataSync] ✅ Instant localStorage update for workout workout-1
+[DataSync] 🔄 Processing 1 queued operations...
+[DataSync] 🔄 Workout workout-1 queued for database sync (ID: workout-workout-1-1760536676626)
+[DataSync] 📊 Sync completed: 0 success, 1 remaining
+
+stderr | tests/database-first-workout-logger.test.ts > useWorkoutLoggerDatabaseFirst > completeWorkout > should complete the current w
+stderr | tests/database-first-workout-logger.test.ts > useWorkoutLoggerDatabaseFirst > completeWorkout > should complete the current workout
+[DataSync] Unknown operation type: undefined
+[DataSync] ❌ Max retries exceeded: workout-1
+
+stdout | tests/database-first-workout-logger.test.ts > useWorkoutLoggerDatabaseFirst > completeWorkout > should complete the current w
+stdout | tests/database-first-workout-logger.test.ts > useWorkoutLoggerDatabaseFirst > completeWorkout > should complete the current workout
+[DataSync] ✅ Instant localStorage update for workout workout-1
+[DataSync] 🔄 Processing 1 queued operations...
+[DataSync] 🔄 Workout workout-1 queued for database sync (ID: workout-workout-1-1760536676693)
+[DataSync] 📊 Sync completed: 0 success, 1 remaining
+[WorkoutLogger] ✅ Workout completed successfully
+
+stderr | tests/database-first-workout-logger.test.ts > useWorkoutLoggerDatabaseFirst > completeWorkout > should complete the current w
+stderr | tests/database-first-workout-logger.test.ts > useWorkoutLoggerDatabaseFirst > completeWorkout > should complete the current workout
+[DataSync] Unknown operation type: undefined
+[DataSync] ❌ Max retries exceeded: workout-1
+
+stdout | tests/database-first-workout-logger.test.ts > useWorkoutLoggerDatabaseFirst > abandonWorkout > should abandon the current wor
+stdout | tests/database-first-workout-logger.test.ts > useWorkoutLoggerDatabaseFirst > abandonWorkout > should abandon the current workout
+[WorkoutLogger] 📱 Resuming workout from localStorage
+[DataSync] ✅ Instant localStorage update for workout workout-1
+[DataSync] 🔄 Processing 1 queued operations...
+[DataSync] 🔄 Workout workout-1 queued for database sync (ID: workout-workout-1-1760536676698)
+[DataSync] 📊 Sync completed: 0 success, 1 remaining
+
+stderr | tests/database-first-workout-logger.test.ts > useWorkoutLoggerDatabaseFirst > abandonWorkout > should abandon the current wor
+stderr | tests/database-first-workout-logger.test.ts > useWorkoutLoggerDatabaseFirst > abandonWorkout > should abandon the current workout
+[DataSync] Unknown operation type: undefined
+[DataSync] ❌ Max retries exceeded: workout-1
+
+stdout | tests/database-first-workout-logger.test.ts > useWorkoutLoggerDatabaseFirst > abandonWorkout > should abandon the current wor
+stdout | tests/database-first-workout-logger.test.ts > useWorkoutLoggerDatabaseFirst > abandonWorkout > should abandon the current workout
+[WorkoutLogger] 🗑️ Workout abandoned
+
+stdout | tests/database-first-workout-logger.test.ts > useWorkoutLoggerDatabaseFirst > sync functionality > should force sync all pend
+stdout | tests/database-first-workout-logger.test.ts > useWorkoutLoggerDatabaseFirst > sync functionality > should force sync all pending operations
+[DataSync] 🔄 Force syncing all pending operations...
+[DataSync] 🔄 Processing 1 queued operations...
+[WorkoutLogger] 📱 Resuming workout from localStorage
+[DataSync] ✅ Instant localStorage update for workout workout-1
+[DataSync] 🔄 Processing 1 queued operations...
+[DataSync] 🔄 Workout workout-1 queued for database sync (ID: workout-workout-1-1760536676777)
+[DataSync] 📊 Sync completed: 0 success, 1 remaining
+[DataSync] 📊 Sync completed: 0 success, 1 remaining
+[DataSync] ✅ Force sync completed
+[WorkoutLogger] 🔄 Manual sync triggered
+
+stderr | tests/database-first-workout-logger.test.ts > useWorkoutLoggerDatabaseFirst > sync functionality > should force sync all pend
+stderr | tests/database-first-workout-logger.test.ts > useWorkoutLoggerDatabaseFirst > sync functionality > should force sync all pending operations
+[DataSync] Unknown operation type: undefined
+[DataSync] Unknown operation type: undefined
+[DataSync] ❌ Max retries exceeded: workout-1
+[DataSync] ❌ Max retries exceeded: workout-1
+
+stdout | tests/database-first-workout-logger.test.ts > useWorkoutLoggerDatabaseFirst > sync functionality > should clear sync queue   
+[DataSync] 🗑️ Sync queue cleared
+[WorkoutLogger] 🗑️ Sync queue cleared
+[WorkoutLogger] 📱 Resuming workout from localStorage
+[DataSync] ✅ Instant localStorage update for workout workout-1
+[DataSync] 🔄 Processing 1 queued operations...
+[DataSync] 🔄 Workout workout-1 queued for database sync (ID: workout-workout-1-1760536676783)
+[DataSync] 📊 Sync completed: 0 success, 1 remaining
+
+stderr | tests/database-first-workout-logger.test.ts > useWorkoutLoggerDatabaseFirst > sync functionality > should clear sync queue   
+An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+[DataSync] Unknown operation type: undefined
+An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+[DataSync] ❌ Max retries exceeded: workout-1
+
+stdout | tests/database-first-workout-logger.test.ts > useWorkoutLoggerDatabaseFirst > utility functions > should format duration corr
+stdout | tests/database-first-workout-logger.test.ts > useWorkoutLoggerDatabaseFirst > utility functions > should format duration correctly
+[WorkoutLogger] 📱 Resuming workout from localStorage
+[DataSync] ✅ Instant localStorage update for workout workout-1
+[DataSync] 🔄 Processing 1 queued operations...
+[DataSync] 🔄 Workout workout-1 queued for database sync (ID: workout-workout-1-1760536676787)
+[DataSync] 📊 Sync completed: 0 success, 1 remaining
+
+stderr | tests/database-first-workout-logger.test.ts > useWorkoutLoggerDatabaseFirst > utility functions > should format duration corr
+stderr | tests/database-first-workout-logger.test.ts > useWorkoutLoggerDatabaseFirst > utility functions > should format duration correctly
+An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+[DataSync] Unknown operation type: undefined
+An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+[DataSync] ❌ Max retries exceeded: workout-1
+
+stdout | tests/database-first-workout-logger.test.ts > useWorkoutLoggerDatabaseFirst > utility functions > should calculate completion
+stdout | tests/database-first-workout-logger.test.ts > useWorkoutLoggerDatabaseFirst > utility functions > should calculate completion stats
+[WorkoutLogger] 📱 Resuming workout from localStorage
+[DataSync] ✅ Instant localStorage update for workout workout-1
+[DataSync] 🔄 Processing 1 queued operations...
+[DataSync] 🔄 Workout workout-1 queued for database sync (ID: workout-workout-1-1760536676792)
+[DataSync] 📊 Sync completed: 0 success, 1 remaining
+
+stderr | tests/database-first-workout-logger.test.ts > useWorkoutLoggerDatabaseFirst > utility functions > should calculate completion
+stderr | tests/database-first-workout-logger.test.ts > useWorkoutLoggerDatabaseFirst > utility functions > should calculate completion stats
+An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+[DataSync] Unknown operation type: undefined
+An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+[DataSync] ❌ Max retries exceeded: workout-1
+
+stdout | tests/database-first-workout-logger.test.ts > Integration Tests > offline functionality > should work offline and queue opera
+stdout | tests/database-first-workout-logger.test.ts > Integration Tests > offline functionality > should work offline and queue operations
+[DataSync] ✅ Instant localStorage update for workout workout-1760536676799
+[DataSync] 🔄 Processing 1 queued operations...
+[DataSync] 🔄 Workout workout-1760536676799 queued for database sync (ID: workout-workout-1760536676799-1760536676799)
+[WorkoutLogger] 📱 Resuming workout from localStorage
+[DataSync] ✅ Instant localStorage update for workout workout-1
+[DataSync] 🔄 Processing 1 queued operations...
+[DataSync] 🔄 Workout workout-1 queued for database sync (ID: workout-workout-1-1760536676800)
+[DataSync] 📊 Sync completed: 0 success, 1 remaining
+[WorkoutLogger] ✅ Workout started successfully
+[DataSync] 📊 Sync completed: 0 success, 1 remaining
+
+stderr | tests/database-first-workout-logger.test.ts > Integration Tests > offline functionality > should work offline and queue opera
+stderr | tests/database-first-workout-logger.test.ts > Integration Tests > offline functionality > should work offline and queue operations
+[DataSync] Unknown operation type: undefined
+[DataSync] Unknown operation type: undefined
+[DataSync] ❌ Max retries exceeded: workout-1
+[DataSync] ❌ Max retries exceeded: workout-1
+
+stdout | tests/database-first-workout-logger.test.ts > Integration Tests > error handling > should handle database errors gracefully  
+[WorkoutLogger] 📱 Resuming workout from localStorage
+[DataSync] ✅ Instant localStorage update for workout workout-1
+[DataSync] 🔄 Processing 1 queued operations...
+[DataSync] 🔄 Workout workout-1 queued for database sync (ID: workout-workout-1-1760536676805)
+[DataSync] 📊 Sync completed: 0 success, 1 remaining
+
+stderr | tests/database-first-workout-logger.test.ts > Integration Tests > error handling > should handle database errors gracefully  
+[DataSync] Unknown operation type: undefined
+[DataSync] ❌ Max retries exceeded: workout-1
+
+stdout | tests/workout-logger.smoke.test.tsx > WorkoutLoggerComponent smoke test > renders the workout logger UI
+Rendering workout with 0 exercises
+💾 RAW LOCALSTORAGE CHECK: {
+  inProgressKey: 'liftlog_in_progress_workouts',
+  rawValue: null,
+  parsed: null
+}
+===== STORAGE DEBUG =====
+IN-PROGRESS WORKOUTS: None
+WORKOUT HISTORY: None
+===== END STORAGE DEBUG =====
+📥 COMPONENT LOAD - Existing workout from localStorage: {
+  id: 'workout-1-1',
+  week: 1,
+  day: 1,
+  exerciseCount: 1,
+  exercises: [
+    {
+      name: 'Back Squat',
+      setsCount: 2,
+      hasSets: true,
+      firstSetState: [Object]
+    }
+  ],
+  fullWorkout: {
+    id: 'workout-1-1',
+    userId: 'user-1',
+    workoutName: 'Mock Workout',
+    startTime: 1760536676922,
+    week: 1,
+    day: 1,
+    exercises: [ [Object] ],
+    notes: '',
+    completed: false
+  }
+}
+Checking if workout should be blocked: { existingWorkoutWeek: 1, activeProgramWeek: 1, activeProgramDay: 1 }
+Workout not blocked - current or past week
+Rendering workout with 1 exercises
+Exercise 1: Back Squat - 2 sets
+
+ ❯ tests/database-first-workout-logger.test.ts (19) 546ms
+   ✓ DataSyncService (5)
+   ❯ useWorkoutLoggerDatabaseFirst (12) 444ms
+     ✓ initialization (2)
+     ✓ startWorkout (2)
+     ✓ completeSet (2)
+     ✓ completeWorkout (1)
+     ✓ abandonWorkout (1)
+     ✓ sync functionality (2)
+     ❯ utility functions (2)
+       ✓ should format duration correctly
+       × should calculate completion stats
+   ✓ Integration Tests (2)
+ ❯ tests/one-rm-context.test.tsx (0)
+ ✓ tests/progression-router.registry.test.ts (5)
+ ✓ tests/workout-logger-components.test.tsx (17) 905ms
+ ✓ tests/workout-logger.smoke.test.tsx (1)
+ ✓ lib/services/exercise-resolver.test.ts (10)
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯ Failed Suites 1 ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/one-rm-context.test.tsx [ tests/one-rm-context.test.tsx ]
+Error: Failed to resolve import "@/components/workout-logger/contexts/one-rm-context" from "tests/one-rm-context.test.tsx". Does the f
+Error: Failed to resolve import "@/components/workout-logger/contexts/one-rm-context" from "tests/one-rm-context.test.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: S:/Program Files/LiftLog/tests/one-rm-context.test.tsx:3:67
+  2  |  import { describe, it, expect } from "vitest";
+  3  |  import { renderHook, act } from "@testing-library/react";
+  4  |  import { OneRmProvider, useOneRepMaxes } from "@/components/workout-logger/contexts/one-rm-context";
+     |                                                 ^
+  5  |  describe("OneRmContext", () => {
+  6  |    const mockEntries = [
+ ❯ TransformPluginContext._formatError ../../Program%20Files/LiftLog/node_modules/vite/dist/node/chunks/dep-D_zLpgQd.js:49258:41      
+ ❯ TransformPluginContext.error ../../Program%20Files/LiftLog/node_modules/vite/dist/node/chunks/dep-D_zLpgQd.js:49253:16
+ ❯ normalizeUrl ../../Program%20Files/LiftLog/node_modules/vite/dist/node/chunks/dep-D_zLpgQd.js:64306:23
+ ❯ ../../Program%20Files/LiftLog/node_modules/vite/dist/node/chunks/dep-D_zLpgQd.js:64438:39
+ ❯ TransformPluginContext.transform ../../Program%20Files/LiftLog/node_modules/vite/dist/node/chunks/dep-D_zLpgQd.js:64365:7
+ ❯ PluginContainer.transform ../../Program%20Files/LiftLog/node_modules/vite/dist/node/chunks/dep-D_zLpgQd.js:49099:18
+ ❯ loadAndTransform ../../Program%20Files/LiftLog/node_modules/vite/dist/node/chunks/dep-D_zLpgQd.js:51977:27
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/database-first-workout-logger.test.ts > useWorkoutLoggerDatabaseFirst > utility functions > should calculate completion s
+ FAIL  tests/database-first-workout-logger.test.ts > useWorkoutLoggerDatabaseFirst > utility functions > should calculate completion stats
+AssertionError: expected { totalSets: +0, …(3) } to match object { Object (totalSets, completedSets, ...) }
+
+- Expected
++ Received
+
+  Object {
+-   "completedSets": 2,
+-   "completionPercentage": 66.66666666666666,
+-   "totalSets": 3,
+-   "totalWeight": 2430,
++   "completedSets": 0,
++   "completionPercentage": 0,
++   "totalSets": 0,
++   "totalWeight": 0,
+  }
+
+ ❯ tests/database-first-workout-logger.test.ts:626:21
+    624|       const stats = result.current.getCompletionStats()
+    625|
+    626|       expect(stats).toMatchObject({
+       |                     ^
+    627|         totalSets: 3,
+    628|         completedSets: 2,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+ Test Files  2 failed | 4 passed (6)
+      Tests  1 failed | 51 passed (52)
+   Start at  17:57:54
+   Duration  3.46s (transform 705ms, setup 1.19s, collect 3.14s, tests 1.61s, environment 5.69s, prepare 1.16s)
+
+

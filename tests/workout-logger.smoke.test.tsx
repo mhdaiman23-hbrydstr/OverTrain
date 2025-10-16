@@ -81,6 +81,7 @@ const activeProgram = {
   completedWorkouts: 0,
   totalWorkouts: 1,
   progress: 0,
+  instanceId: "program-test",
 }
 
 let storedWorkout = buildWorkout("Mock Workout", initialExercises)
@@ -150,6 +151,8 @@ vi.mock("@/lib/workout-logger", () => {
       getCompletedWorkout: vi.fn(() => null),
       getInProgressWorkout: vi.fn(() => null),
       skipWorkout: vi.fn(async () => null),
+      ensureDatabaseLoaded: vi.fn().mockResolvedValue(undefined),
+      tagWorkoutsWithInstance: vi.fn(),
       getUserStorageKeys: vi.fn(() => ({
         workouts: "liftlog_workouts_user-1",
         inProgress: "liftlog_in_progress_workouts_user-1",

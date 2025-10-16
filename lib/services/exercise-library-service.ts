@@ -5,6 +5,7 @@ export interface Exercise {
   name: string
   muscleGroup: string
   equipmentType: string
+  linearProgressionTierId?: string | null  // UUID reference to linear_progression_tiers
   created_at?: string
   updated_at?: string
 }
@@ -15,6 +16,7 @@ interface ExerciseRow {
   name: string
   muscle_group: string
   equipment_type: string
+  linear_progression_tier_id?: string | null
   created_at?: string
   updated_at?: string
 }
@@ -40,6 +42,7 @@ export class ExerciseLibraryService {
       name: row.name,
       muscleGroup: row.muscle_group,
       equipmentType: row.equipment_type,
+      linearProgressionTierId: row.linear_progression_tier_id,
       created_at: row.created_at,
       updated_at: row.updated_at,
     }
