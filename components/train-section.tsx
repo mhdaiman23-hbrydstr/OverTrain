@@ -80,6 +80,19 @@ export function TrainSection({ onStartWorkout, onAddProgram }: TrainSectionProps
       loadProgramData()
     }
 
+    const handleProgramEnded = async () => {
+      console.log("[TrainSection] Program ended event received, showing CTA...")
+      // Immediately clear state to show CTA
+      setActiveProgram(null)
+      setCurrentWorkout(null)
+      setIsLoading(false)
+
+      // Force refresh from database to ensure no stale data
+      setTimeout(() => {
+        loadProgramData()
+      }, 100) // Small delay to let database update complete
+    }
+
     const handleVisibilityChange = () => {
       if (!document.hidden) {
         console.log("[TrainSection] Tab became visible, reloading program data...")
@@ -89,11 +102,13 @@ export function TrainSection({ onStartWorkout, onAddProgram }: TrainSectionProps
 
     window.addEventListener("storage", handleStorageChange)
     window.addEventListener("programChanged", handleProgramChange)
+    window.addEventListener("programEnded", handleProgramEnded)
     document.addEventListener("visibilitychange", handleVisibilityChange)
 
     return () => {
       window.removeEventListener("storage", handleStorageChange)
       window.removeEventListener("programChanged", handleProgramChange)
+      window.removeEventListener("programEnded", handleProgramEnded)
       document.removeEventListener("visibilitychange", handleVisibilityChange)
     }
   }, [])

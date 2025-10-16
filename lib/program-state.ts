@@ -283,16 +283,25 @@ export class ProgramStateManager {
       if (!stored) return null
 
       let program = JSON.parse(stored) as ActiveProgram
+
+      // Validate essential program fields
+      if (!program.templateId || !program.instanceId) {
+        console.error('[ProgramState] Active program missing essential fields, clearing corrupted data')
+        this.clearActiveProgram()
+        return null
+      }
+
       program = this.ensureActiveProgramInstance(program)
 
       // If template is missing or corrupted, reload it from database
       if (!program.template || !program.template.schedule) {
         console.warn('[ProgramState] Active program missing template data, reloading from database...')
-        
+
         // Load template from database (or fallback to hardcoded)
         const template = await this.loadTemplate(program.templateId)
         if (!template) {
           console.error("[ProgramState] Template not found for active program:", program.templateId)
+          this.clearActiveProgram()
           return null
         }
         program.template = template
@@ -316,6 +325,8 @@ export class ProgramStateManager {
       return program
     } catch (error) {
       console.error("[v0] Error loading active program:", error)
+      // Clear corrupted data on error
+      this.clearActiveProgram()
       return null
     }
   }
@@ -409,8 +420,8 @@ export class ProgramStateManager {
     if (typeof window === "undefined") return
     localStorage.removeItem(this.ACTIVE_PROGRAM_KEY)
     localStorage.removeItem(this.PROGRAM_PROGRESS_KEY)
-    localStorage.removeItem(this.PROGRAM_HISTORY_KEY)
-    localStorage.removeItem(this.DATABASE_LOAD_KEY)
+    // NOTE: Do NOT clear program history here - that should persist
+    console.log("[ProgramState] Cleared active program from localStorage")
   }
 
   /**
@@ -609,43 +620,50 @@ export class ProgramStateManager {
       this.saveProgramHistory(history)
     }
 
+    // Clear localStorage
     localStorage.removeItem(this.ACTIVE_PROGRAM_KEY)
     localStorage.removeItem(this.PROGRAM_PROGRESS_KEY)
 
-    if (typeof window !== "undefined") {
-      window.dispatchEvent(new Event("programChanged"))
-    }
-
+    // Delete from database FIRST before dispatching events
     if (resolvedUserId && supabase) {
       try {
         await supabase.from("active_programs").delete().eq("user_id", resolvedUserId)
+        console.log("[ProgramState] Removed active program from database")
       } catch (error) {
         logSupabaseError("[ProgramState] Failed to remove active program from database:", error)
       }
+    }
 
-      if (history.length > 0) {
-        try {
-          await supabase
-            .from("program_history")
-            .upsert(
-              history.map((h) => ({
-                id: h.id,
-                user_id: resolvedUserId,
-                template_id: h.templateId,
-                instance_id: this.normalizeInstanceId(h.instanceId ?? h.id),
-                name: h.name,
-                start_date: h.startDate,
-                end_date: h.endDate || null,
-                completion_rate: h.completionRate,
-                total_workouts: h.totalWorkouts,
-                completed_workouts: h.completedWorkouts,
-                is_active: h.isActive,
-              }))
-            )
-        } catch (error) {
-          logSupabaseError("[ProgramState] Failed to sync program history:", error)
-        }
+    // Sync program history to database
+    if (resolvedUserId && supabase && history.length > 0) {
+      try {
+        await supabase
+          .from("program_history")
+          .upsert(
+            history.map((h) => ({
+              id: h.id,
+              user_id: resolvedUserId,
+              template_id: h.templateId,
+              instance_id: this.normalizeInstanceId(h.instanceId ?? h.id),
+              name: h.name,
+              start_date: h.startDate,
+              end_date: h.endDate || null,
+              completion_rate: h.completionRate,
+              total_workouts: h.totalWorkouts,
+              completed_workouts: h.completedWorkouts,
+              is_active: h.isActive,
+            }))
+          )
+        console.log("[ProgramState] Synced program history to database")
+      } catch (error) {
+        logSupabaseError("[ProgramState] Failed to sync program history:", error)
       }
+    }
+
+    // Dispatch programEnded event (NOT programChanged) to trigger immediate UI updates
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("programEnded"))
+      console.log("[ProgramState] Dispatched programEnded event")
     }
   }
   static async recalculateProgress(options?: { silent?: boolean }): Promise<void> {
@@ -848,7 +866,7 @@ export class ProgramStateManager {
     try {
       await WorkoutLogger.ensureDatabaseLoaded(userId, { force: true })
 
-      // Load active program
+      // Load active program from database
       const { data: activeProgramData, error: activeProgramError } = await supabase
         .from("active_programs")
         .select("id, user_id, program_id, program_name, instance_id, current_week, current_day, days_per_week, total_weeks, start_date, created_at, updated_at")
@@ -859,6 +877,7 @@ export class ProgramStateManager {
         // PGRST116 = no rows returned
         logSupabaseError("[ProgramState] Failed to load active program:", activeProgramError)
       } else if (activeProgramData) {
+        console.log("[ProgramState] Found active program in database:", activeProgramData.program_id)
         // Load template from database ONLY (no hardcoded fallback)
         const template = await this.loadTemplate(activeProgramData.program_id)
         if (!template) {

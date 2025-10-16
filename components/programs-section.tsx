@@ -83,13 +83,20 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
 
     loadData()
 
+    const handleProgramEnded = () => {
+      console.log("[ProgramsSection] Program ended event received, refreshing program list...")
+      loadData()
+    }
+
     if (typeof window !== "undefined") {
       window.addEventListener("programChanged", loadData)
+      window.addEventListener("programEnded", handleProgramEnded)
     }
 
     return () => {
       if (typeof window !== "undefined") {
         window.removeEventListener("programChanged", loadData)
+        window.removeEventListener("programEnded", handleProgramEnded)
       }
     }
   }, [])
@@ -401,7 +408,7 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
                   </div>
                 ) : (
                   filteredTemplates.map((template) => {
-                    const isActive = activeProgram?.template.id === template.id
+                    const isActive = activeProgram?.templateId === template.id
 
                     return (
                       <div

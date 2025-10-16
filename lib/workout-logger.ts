@@ -780,7 +780,10 @@ export class WorkoutLogger implements SetSyncProvider {
 
   static async saveCurrentWorkout(workout: WorkoutSession, userId?: string): Promise<void> {
     if (typeof window === "undefined") return
-    if (!workout.week || !workout.day) return
+    if (!workout.week || !workout.day) {
+      console.error("[WorkoutLogger.saveCurrentWorkout] Missing week/day:", { week: workout.week, day: workout.day })
+      return
+    }
 
     const activeProgram = this.getActiveProgram()
     const templateId = activeProgram?.templateId
@@ -803,10 +806,12 @@ export class WorkoutLogger implements SetSyncProvider {
     }
 
     const storageKeys = this.getUserStorageKeys(userId)
+    console.log("[WorkoutLogger.saveCurrentWorkout] Using storage key:", storageKeys.inProgress, "for workout ID:", normalizedWorkout.id)
 
     try {
       const stored = localStorage.getItem(storageKeys.inProgress)
       let workouts: WorkoutSession[] = stored ? JSON.parse(stored) : []
+      console.log("[WorkoutLogger.saveCurrentWorkout] Found", workouts.length, "existing in-progress workouts")
 
       // Remove existing workout for this week/day
       workouts = workouts.filter(
@@ -820,8 +825,10 @@ export class WorkoutLogger implements SetSyncProvider {
 
       // Add updated workout
       workouts.push(normalizedWorkout)
+      console.log("[WorkoutLogger.saveCurrentWorkout] After adding workout, total in-progress:", workouts.length)
 
       localStorage.setItem(storageKeys.inProgress, JSON.stringify(workouts))
+      console.log("[WorkoutLogger.saveCurrentWorkout] Saved to localStorage successfully")
 
       // Sync to database
       if (userId && supabase) {
@@ -1099,11 +1106,20 @@ export class WorkoutLogger implements SetSyncProvider {
 
     try {
       const stored = localStorage.getItem(storageKeys.inProgress)
-      if (!stored) return null
+      if (!stored) {
+        console.error(`[WorkoutLogger.completeWorkout] No in-progress workouts found in localStorage (key: ${storageKeys.inProgress})`)
+        return null
+      }
 
       const workouts: WorkoutSession[] = JSON.parse(stored)
+      console.log(`[WorkoutLogger.completeWorkout] Found ${workouts.length} in-progress workouts, looking for ID: ${workoutId}`)
+      console.log(`[WorkoutLogger.completeWorkout] Available workout IDs:`, workouts.map(w => w.id))
+      
       const workout = workouts.find((w) => w.id === workoutId)
-      if (!workout) return null
+      if (!workout) {
+        console.error(`[WorkoutLogger.completeWorkout] Workout ID ${workoutId} not found in in-progress workouts`)
+        return null
+      }
 
       workout.completed = true
       workout.endTime = Date.now()
@@ -1118,7 +1134,7 @@ export class WorkoutLogger implements SetSyncProvider {
 
       return workout
     } catch (error) {
-      console.error("Failed to complete workout:", error)
+      console.error("[WorkoutLogger.completeWorkout] Failed to complete workout:", error)
       return null
     }
   }
