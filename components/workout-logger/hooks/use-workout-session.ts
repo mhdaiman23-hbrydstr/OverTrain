@@ -475,7 +475,16 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
   useEffect(() => {
     const handleProgramChange = async () => {
       console.log("Program state changed, reloading workout...")
-      const activeProgram = await ProgramStateManager.getActiveProgram()
+
+      // CRITICAL FIX: Force refresh program state from database to avoid using stale cached data
+      // This ensures we get the LATEST week/day after workout completion
+      const activeProgram = await ProgramStateManager.getActiveProgram({ refreshTemplate: false, skipDatabaseLoad: false })
+
+      console.log("Program state after refresh:", {
+        currentWeek: activeProgram?.currentWeek,
+        currentDay: activeProgram?.currentDay,
+        timestamp: new Date().toISOString()
+      })
 
       if (activeProgram) {
         setProgramName(activeProgram.template.name)
