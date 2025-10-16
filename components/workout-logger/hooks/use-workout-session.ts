@@ -476,16 +476,29 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
     const handleProgramChange = async () => {
       console.log("Program state changed, reloading workout...")
       const activeProgram = await ProgramStateManager.getActiveProgram()
-      
+
       if (activeProgram) {
         setProgramName(activeProgram.template.name)
 
-        // Get the current workout based on updated program state
+        const week = activeProgram.currentWeek
+        const day = activeProgram.currentDay
+
+        // CRITICAL FIX: Check if an in-progress workout already exists for the current week/day
+        // before creating a new one. This prevents loading the wrong day after completion.
+        const existingInProgress = await WorkoutLogger.getInProgressWorkout(week, day, user?.id)
+
+        if (existingInProgress) {
+          console.log("Found existing in-progress workout for week", week, "day", day, "- using it instead of creating new one")
+          setWorkout(existingInProgress)
+          setIsWorkoutBlocked(false)
+          setIsFullyBlocked(false)
+          setBlockedMessage("")
+          return
+        }
+
+        // No existing workout found - create a new one from program template
         const currentWorkout = await ProgramStateManager.getCurrentWorkout()
         if (currentWorkout) {
-          const week = activeProgram?.currentWeek
-          const day = activeProgram?.currentDay
-
           const newWorkout = await WorkoutLogger.startWorkout(currentWorkout.name, currentWorkout.exercises, week, day, user?.id)
           console.log("Loaded new workout after program change:", {
             week,
@@ -503,7 +516,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
 
     window.addEventListener("programChanged", handleProgramChange)
     return () => window.removeEventListener("programChanged", handleProgramChange)
-  }, [])
+  }, [user?.id])
 
   // Legacy enrichment event listener removed - all templates now use proper UUIDs with complete metadata
 
@@ -839,7 +852,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
 
         // Batch all state updates and sync together, only dispatch event once at the end
         if (!wasAlreadyCompleted) {
-          await ProgramStateManager.completeWorkout(user?.id, { skipEvent: true })
+          await ProgramStateManager.completeWorkout(user?.id)
         }
 
         // Sync to database (batched operation)
@@ -925,23 +938,6 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
 
   const handleEndWorkout = async () => {
     if (!workout || endWorkoutConfirmation !== "End Workout") return
-
-    // Validate this is the current active workout
-    const activeProgram = await ProgramStateManager.getActiveProgram()
-    if (!activeProgram) {
-      console.error("[handleEndWorkout] No active program found")
-      return
-    }
-
-    // Only allow ending the current week's workout
-    if (workout.week !== activeProgram.currentWeek || workout.day !== activeProgram.currentDay) {
-      toast({
-        title: "Cannot End Workout",
-        description: `You can only end the current active workout (Week ${activeProgram.currentWeek}, Day ${activeProgram.currentDay}). This is Week ${workout.week}, Day ${workout.day}.`,
-        variant: "destructive",
-      })
-      return
-    }
 
     // Mark all uncompleted sets as skipped (blue tick)
     const updatedWorkout: WorkoutSession = {
@@ -1034,13 +1030,16 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
       }
 
       setWorkout(updatedWorkout)
+      console.log("[handleEndProgram] Saving workout with ID:", updatedWorkout.id, "userId:", user?.id)
       await WorkoutLogger.saveCurrentWorkout(updatedWorkout, user?.id)
 
+      console.log("[handleEndProgram] Attempting to complete workout with ID:", updatedWorkout.id, "userId:", user?.id)
       const completedWorkout = await WorkoutLogger.completeWorkout(updatedWorkout.id, user?.id)
       if (!completedWorkout) {
-        console.error("[handleEndProgram] Failed to complete current workout")
+        console.error("[handleEndProgram] Failed to complete current workout. WorkoutID:", updatedWorkout.id, "UserID:", user?.id)
         return
       }
+      console.log("[handleEndProgram] Successfully completed workout")
 
       completedWorkout.skipped = true
       completedWorkout.exercises?.forEach((exercise) => {
@@ -1117,18 +1116,20 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
       await ProgramStateManager.clearActiveProgram()
       console.log("[handleEndProgram] Program ended and cleared")
 
-      // Don't show completion dialog when ending program
-      // setShowCompletionDialog(true)  // REMOVE THIS
-      
-      // Immediately switch to train view
+      // Set workout to null immediately
+      setWorkout(null)
+      setShowEndProgramDialog(false)
+      setEndProgramConfirmation("")
+
+      // Dispatch programEnded event to trigger train section navigation
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new CustomEvent('programEnded'))
       }
-      
-      setWorkout(null)
+
+      // Call onCancel to close the workout logger and return to train view
+      onCancel?.()
     } catch (error) {
       console.error("Failed to end program:", error)
-    } finally {
       setEndProgramConfirmation("")
       setShowEndProgramDialog(false)
     }
@@ -1317,22 +1318,28 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
     setReplaceExerciseId(null)
   }
 
-  const handleStartNextWorkout = () => {
+  const handleStartNextWorkout = async () => {
     setShowCompletionDialog(false)
     setCompletedWorkout(null)
 
     if (completedWorkout?.week && completedWorkout?.day) {
       WorkoutLogger.clearCurrentWorkout(completedWorkout.week, completedWorkout.day, user?.id)
     }
-    
-    // Instead of reloading, trigger program state change event
-    // This will cause the component to re-render with the next workout
+
+    // Check if program still exists - if not, the program was completed
+    const activeProgram = await ProgramStateManager.getActiveProgram()
+
+    if (!activeProgram) {
+      // Program was completed and removed - navigate away
+      console.log("[handleStartNextWorkout] Program completed, closing workout logger")
+      setWorkout(null)
+      onCancel?.() // Navigate back to train view which will show CTA
+      return
+    }
+
+    // Program still exists - load next workout
     window.dispatchEvent(new Event("programChanged"))
-    
-    // Force a re-render by updating the workout state
     setWorkout(null)
-    
-    // Call onComplete to notify parent component
     onComplete?.()
   }
 
