@@ -1006,12 +1006,19 @@ export class WorkoutLogger implements SetSyncProvider {
         progressionNote: ex.progressionNote,
         muscleGroup: ex.muscleGroup,
         equipmentType: ex.equipmentType,
-        sets: Array.from({ length: ex.targetSets }, (_, i) => ({
-          id: Math.random().toString(36).substr(2, 9),
-          reps: 0,
-          weight: ex.suggestedWeight || 0, // Pre-fill with suggested weight from progression
-          completed: false,
-        })),
+        sets: Array.from({ length: ex.targetSets }, (_, i) => {
+          // Parse reps from performedReps string (e.g. "10" or "10-12" -> 10)
+          const defaultReps = ex.performedReps
+            ? parseInt(ex.performedReps.toString().split('-')[0]) || 0
+            : 0
+
+          return {
+            id: Math.random().toString(36).substr(2, 9),
+            reps: defaultReps, // Pre-fill with reps from previous performance
+            weight: ex.suggestedWeight || 0, // Pre-fill with suggested weight from progression
+            completed: false,
+          }
+        }),
         completed: false,
       })),
       completed: false,
