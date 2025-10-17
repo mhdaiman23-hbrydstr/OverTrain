@@ -351,6 +351,16 @@ export class ProgramStateManager {
 
     const instanceId = this.generateInstanceId()
 
+    // CRITICAL FIX: Clear in-progress workouts FIRST, before creating new program
+    // This ensures the workout logger doesn't load stale data from previous program
+    const resolvedUserId = userId ?? this.getCurrentUserId()
+    try {
+      WorkoutLogger.clearInProgress(resolvedUserId)
+      console.log("[ProgramState] Cleared in-progress workouts before starting new program")
+    } catch (error) {
+      console.warn("[ProgramState] Failed to clear in-progress workouts:", error)
+    }
+
     const activeProgram: ActiveProgram = {
       templateId,
       template,
@@ -366,8 +376,6 @@ export class ProgramStateManager {
 
     this.saveActiveProgram(activeProgram)
     console.log("[v0] Set active program:", activeProgram)
-
-    window.dispatchEvent(new Event("programChanged"))
 
     const history = this.getProgramHistory()
     const newHistoryEntry: ProgramHistoryEntry = {
@@ -400,18 +408,12 @@ export class ProgramStateManager {
     this.saveProgramHistory(history)
 
     // Sync to database
-    const resolvedUserId = userId ?? this.getCurrentUserId()
     if (resolvedUserId) {
       await this.syncToDatabase(resolvedUserId)
     }
 
-    // Brand-new instance starts fresh: clear any lingering in-progress workouts
-    // from previous runs so the logger mounts empty at Week 1 Day 1.
-    try {
-      WorkoutLogger.clearInProgress(resolvedUserId)
-    } catch {
-      // non-fatal
-    }
+    // Dispatch programChanged event AFTER all state is set up
+    window.dispatchEvent(new Event("programChanged"))
 
     return activeProgram
   }
