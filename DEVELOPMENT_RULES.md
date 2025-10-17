@@ -156,6 +156,151 @@ private static saveActiveProgram(program: ActiveProgram): void {
 }
 ```
 
+### Pattern 4: Optimistic UI with Background Sync
+
+**For instant UX, use fire-and-forget background sync AFTER data is safe:**
+
+```typescript
+// ✅ CORRECT - Optimistic UI pattern
+async function handleCompleteWorkout() {
+  // 1. Save to localStorage (instant, synchronous)
+  await WorkoutLogger.completeWorkout(workoutId, userId)
+
+  // 2. Start background sync (non-blocking)
+  if (userId) {
+    WorkoutLogger.syncToDatabase(userId)
+      .then(() => console.log("Background sync completed"))
+      .catch((error) => console.error("Background sync failed (will retry):", error))
+  }
+
+  // 3. Navigate immediately (data already safe in localStorage)
+  onComplete?.()
+}
+
+// ❌ WRONG - Blocking the user
+async function handleCompleteWorkout() {
+  await WorkoutLogger.completeWorkout(workoutId, userId)
+  await WorkoutLogger.syncToDatabase(userId) // User waits for network!
+  onComplete?.() // Slow UX
+}
+```
+
+**Key Rules:**
+- ✅ Save to localStorage FIRST (instant, synchronous)
+- ✅ Start database sync in background (fire-and-forget with .then/.catch)
+- ✅ Navigate immediately - don't wait for network
+- ✅ Data is safe in localStorage, sync retries automatically
+- ❌ Never block the user waiting for database operations
+
+### Pattern 5: UPDATE/INSERT Pattern for Database Sync
+
+**When syncing existing records, check if UPDATE affected rows:**
+
+```typescript
+// ✅ CORRECT - Check if update affected rows
+if (userId && supabase) {
+  // Try UPDATE first, get result to check if rows were affected
+  const { data: updateData, error: updateError } = await supabase
+    .from("in_progress_workouts")
+    .update({...})
+    .eq('id', workoutId)
+    .eq('user_id', userId)
+    .select()  // ← CRITICAL: Get updated rows
+
+  // If no rows updated, INSERT new record
+  if (updateError || !updateData || updateData.length === 0) {
+    await supabase.from("in_progress_workouts").insert({...})
+  }
+}
+
+// ❌ WRONG - Only checking error code
+if (userId && supabase) {
+  const { error: updateError } = await supabase
+    .from("in_progress_workouts")
+    .update({...})
+    .eq('id', workoutId)
+    .eq('user_id', userId)
+    // Missing .select() - can't check if rows were affected!
+
+  // This condition is NEVER true when UPDATE succeeds with 0 rows!
+  if (updateError?.code === 'PGRST116') {
+    await supabase.from("in_progress_workouts").insert({...})
+  }
+}
+```
+
+**Why this matters:**
+- Supabase UPDATE succeeds with 0 rows affected (no error thrown)
+- Without `.select()`, you can't detect that no rows were updated
+- INSERT never runs, data never syncs to database
+
+### Pattern 6: Program Completion Detection
+
+**Auto-finalize programs when all workouts are complete:**
+
+```typescript
+// ✅ CORRECT - Check for completion and finalize
+async function recalculateProgress() {
+  let foundIncomplete = false
+
+  for (let week = 1; week <= maxWeeks; week++) {
+    for (let day = 1; day <= daysPerWeek; day++) {
+      if (!WorkoutLogger.hasCompletedWorkout(week, day, userId, instanceId)) {
+        activeProgram.currentWeek = week
+        activeProgram.currentDay = day
+        foundIncomplete = true
+        break
+      }
+    }
+    if (foundIncomplete) break
+  }
+
+  // If all workouts complete, finalize the program
+  if (!foundIncomplete) {
+    console.log("All workouts completed! Finalizing program...")
+    await this.finalizeActiveProgram(userId, { endedEarly: false })
+    return // Exit early - program is now finalized
+  }
+
+  await this.saveActiveProgram(activeProgram)
+}
+
+// ❌ WRONG - Just log and do nothing
+if (!foundIncomplete) {
+  console.log("All workouts appear to be completed, staying at current position")
+}
+// Program stays active forever, shows empty workout page
+```
+
+### Pattern 7: Database Cleanup on Program End
+
+**Always clean up related data when ending a program:**
+
+```typescript
+// ✅ CORRECT - Clean both localStorage AND database
+static async clearInProgress(userId?: string): Promise<void> {
+  const storageKeys = this.getUserStorageKeys(userId)
+
+  // Clear from localStorage
+  localStorage.removeItem(storageKeys.inProgress)
+
+  // Also delete from database
+  if (userId && supabase) {
+    await supabase
+      .from("in_progress_workouts")
+      .delete()
+      .eq("user_id", userId)
+  }
+}
+
+// ❌ WRONG - Only clearing localStorage
+static clearInProgress(userId?: string): void {
+  const storageKeys = this.getUserStorageKeys(userId)
+  localStorage.removeItem(storageKeys.inProgress)
+  // Missing database cleanup - orphaned records remain!
+}
+```
+
 ---
 
 ## 🚨 Common Anti-Patterns to Avoid
@@ -374,6 +519,41 @@ liftlog_user                    // Current authenticated user
 **Fix**: Comprehensive analysis and single cohesive fix
 **Lesson**: Stop, analyze completely, then implement comprehensive fix
 
+### Mistake 4: In-Progress Workouts Not Syncing (Oct 2025)
+**Problem**: New workouts saved to localStorage but never appeared in database
+**Root Cause**: Two issues compounding:
+1. `startWorkout()` called `saveCurrentWorkout()` without passing `userId`
+2. `saveCurrentWorkout()` UPDATE/INSERT logic only checked for error code `PGRST116`, but Supabase UPDATE succeeds with 0 rows (no error), so INSERT never ran
+**Fix**:
+1. Pass `userId` to `saveCurrentWorkout()` in `startWorkout()`
+2. Add `.select()` to UPDATE query and check if `updateData.length === 0`
+**Lesson**:
+- Always pass required parameters to functions
+- Supabase UPDATE succeeds with 0 rows - must use `.select()` to check if rows were affected
+- Test database state, not just localStorage
+
+### Mistake 5: Completed Programs Staying Active (Oct 2025)
+**Problem**: Programs with 100% completion stayed active, showing empty workout page
+**Root Cause**: `recalculateProgress()` logged "All workouts completed" but didn't finalize the program
+**Fix**: Call `finalizeActiveProgram()` when no incomplete workouts found
+**Lesson**: Detect terminal states and transition properly - don't just log and ignore
+
+### Mistake 6: Orphaned In-Progress Workouts (Oct 2025)
+**Problem**: In-progress workouts remained in database after program ended
+**Root Cause**: `clearInProgress()` only cleared localStorage, not database
+**Fix**: Made function async and added database deletion with `supabase.delete()`
+**Lesson**: When clearing data, always clear BOTH localStorage AND database
+
+### Mistake 7: Blocking UX with await syncToDatabase() (Oct 2025)
+**Problem**: Users had to wait for network operations before navigation
+**Root Cause**: `await WorkoutLogger.syncToDatabase()` blocked navigation
+**Fix**: Use fire-and-forget pattern with `.then()/.catch()` for background sync
+**Lesson**:
+- Save to localStorage first (instant)
+- Start background sync (non-blocking)
+- Navigate immediately - data is already safe
+- Never make users wait for network operations
+
 ---
 
 ## ✅ Before Every Commit
@@ -415,8 +595,8 @@ Run through this final checklist:
 
 ---
 
-*Last Updated: 2025-10-17*
-*Version: 1.0*
+*Last Updated: 2025-10-18*
+*Version: 1.1 - Added Patterns 4-7 and Mistakes 4-7 from workout completion flow fixes*
 
 ---
 
