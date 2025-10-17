@@ -355,7 +355,7 @@ export class ProgramStateManager {
     // This ensures the workout logger doesn't load stale data from previous program
     const resolvedUserId = userId ?? this.getCurrentUserId()
     try {
-      WorkoutLogger.clearInProgress(resolvedUserId)
+      await WorkoutLogger.clearInProgress(resolvedUserId)
       console.log("[ProgramState] Cleared in-progress workouts before starting new program")
     } catch (error) {
       console.warn("[ProgramState] Failed to clear in-progress workouts:", error)
@@ -663,7 +663,7 @@ export class ProgramStateManager {
     activeProgram.progress = 100
 
     WorkoutLogger.tagWorkoutsWithInstance(activeProgram.instanceId, activeProgram.templateId, resolvedUserId)
-    WorkoutLogger.clearInProgress(resolvedUserId)
+    await WorkoutLogger.clearInProgress(resolvedUserId)
 
     const history = this.getProgramHistory()
     let historyUpdated = false

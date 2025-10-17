@@ -2328,12 +2328,45 @@ export class WorkoutLogger implements SetSyncProvider {
     }
   }
   /**
-   * Clear all in-progress workouts (used when starting a brand-new instance)
+   * Clear all in-progress workouts (used when starting a brand-new instance or ending program)
    */
-  static clearInProgress(userId?: string): void {
+  static async clearInProgress(userId?: string): Promise<void> {
     if (typeof window === "undefined") return
+
+    // Get current user ID if not provided
+    if (!userId) {
+      try {
+        const storedUser = localStorage.getItem("liftlog_user")
+        const currentUser = storedUser ? JSON.parse(storedUser) : null
+        userId = currentUser?.id
+      } catch {
+        // Fallback to anonymous
+      }
+    }
+
     const storageKeys = this.getUserStorageKeys(userId)
+
+    // Clear from localStorage
     localStorage.removeItem(storageKeys.inProgress)
+    console.log("[WorkoutLogger] Cleared in-progress workouts from localStorage")
+
+    // Also delete from database
+    if (userId && supabase) {
+      try {
+        const { error } = await supabase
+          .from("in_progress_workouts")
+          .delete()
+          .eq("user_id", userId)
+
+        if (error) {
+          console.error("[WorkoutLogger] Failed to delete in-progress workouts from database:", error)
+        } else {
+          console.log("[WorkoutLogger] Deleted all in-progress workouts from database")
+        }
+      } catch (error) {
+        console.error("[WorkoutLogger] Error deleting in-progress workouts from database:", error)
+      }
+    }
   }
 
   /**
