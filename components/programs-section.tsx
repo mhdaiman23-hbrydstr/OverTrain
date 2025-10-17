@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Spinner } from "@/components/ui/spinner"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Plus, MoreVertical, AlertTriangle, Filter, Check, X } from "lucide-react"
@@ -401,7 +402,12 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
 
             <TabsContent value="templates" className="mt-0">
               <div className="divide-y divide-border">
-                {filteredTemplates.length === 0 ? (
+                {templatesLoading ? (
+                  <div className="px-4 py-12 text-center">
+                    <Spinner size="lg" className="mx-auto mb-4" />
+                    <p className="text-sm text-muted-foreground">Loading programs...</p>
+                  </div>
+                ) : filteredTemplates.length === 0 ? (
                   <div className="px-4 py-12 text-center text-muted-foreground">
                     <p>No programs match your filters</p>
                     <p className="text-sm mt-2">Try adjusting your filter criteria</p>

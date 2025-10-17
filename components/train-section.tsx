@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
+import { Spinner } from "@/components/ui/spinner"
 import { Calendar, Clock, Dumbbell, Plus, Play } from "lucide-react"
 import { ProgramStateManager, type ActiveProgram } from "@/lib/program-state"
 
@@ -128,7 +129,7 @@ export function TrainSection({ onStartWorkout, onAddProgram }: TrainSectionProps
     return (
       <div className="min-h-screen bg-background p-4 pb-20 flex items-center justify-center">
         <div className="text-center space-y-4">
-          <Dumbbell className="h-12 w-12 text-primary mx-auto animate-pulse" />
+          <Spinner size="xl" className="mx-auto" />
           <div className="text-lg font-medium">Loading your program...</div>
         </div>
       </div>

@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import { Spinner } from "@/components/ui/spinner"
 import { Plus, Minus, Calendar } from "lucide-react"
 import { ProgramStateManager, type ActiveProgram } from "@/lib/program-state"
 import { WorkoutLogger } from "@/lib/workout-logger"
@@ -19,6 +20,7 @@ export function WorkoutCalendar({ onWorkoutClick, selectedWeek, selectedDay }: W
   const [activeProgram, setActiveProgram] = useState<ActiveProgram | null>(null)
   const [totalWeeks, setTotalWeeks] = useState(6)
   const [completionStatus, setCompletionStatus] = useState<Map<string, boolean>>(new Map())
+  const [isLoading, setIsLoading] = useState(true)
 
   // CRITICAL FIX: Prevent infinite recalculation loops
   const isRecalculatingRef = useRef(false)
@@ -270,8 +272,10 @@ export function WorkoutCalendar({ onWorkoutClick, selectedWeek, selectedDay }: W
   }, [activeProgram, user])
 
   const loadActiveProgram = async () => {
+    setIsLoading(true)
     const program = await ProgramStateManager.getActiveProgram()
     setActiveProgram(program)
+    setIsLoading(false)
     if (program && program.template) {
       const baseWeeks = program.template.weeks || 4
       // Use exact week count from template (no +2 extension)
@@ -343,6 +347,19 @@ export function WorkoutCalendar({ onWorkoutClick, selectedWeek, selectedDay }: W
     } else {
       console.log("[Calendar] No active program found")
     }
+  }
+
+  if (isLoading) {
+    return (
+      <Card className="mb-4">
+        <CardContent className="p-4 text-center">
+          <div className="flex flex-col items-center justify-center gap-3">
+            <Spinner size="md" />
+            <span className="text-sm text-muted-foreground">Loading calendar...</span>
+          </div>
+        </CardContent>
+      </Card>
+    )
   }
 
   if (!activeProgram) {

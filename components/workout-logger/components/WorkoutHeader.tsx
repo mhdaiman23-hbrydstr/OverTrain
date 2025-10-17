@@ -3,8 +3,10 @@
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Progress } from "@/components/ui/progress"
+import { Spinner } from "@/components/ui/spinner"
 import { Calendar, MoreVertical, FileText, BarChart3, Plus, Check, AlertTriangle } from "lucide-react"
 import { ConnectionStatus } from "@/components/workout-logger/hooks/use-connection-status"
+import { useState } from "react"
 
 interface WorkoutHeaderProps {
   programName?: string
@@ -36,6 +38,18 @@ export function WorkoutHeader({
   onOpenEndWorkout,
   onOpenEndProgram,
 }: WorkoutHeaderProps) {
+  const [isCalendarLoading, setIsCalendarLoading] = useState(false)
+
+  const handleCalendarToggle = async () => {
+    setIsCalendarLoading(true)
+    try {
+      await onToggleCalendar()
+    } finally {
+      // Small delay to show spinner even for fast operations
+      setTimeout(() => setIsCalendarLoading(false), 200)
+    }
+  }
+
   return (
     <div className="sticky top-0 bg-background border-b border-border/50 z-[60] shadow-sm backdrop-blur-sm bg-background/95">
       <div className="w-full px-4 py-3 sm:py-4">
@@ -59,10 +73,11 @@ export function WorkoutHeader({
             <Button
               variant="ghost"
               size="sm"
-              onClick={onToggleCalendar}
+              onClick={handleCalendarToggle}
+              disabled={isCalendarLoading}
               className={`h-9 w-9 sm:h-10 sm:w-10 p-0 ${showCalendar ? "bg-muted" : ""}`}
             >
-              <Calendar className="h-4 w-4" />
+              {isCalendarLoading ? <Spinner size="sm" /> : <Calendar className="h-4 w-4" />}
             </Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
