@@ -146,7 +146,10 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
 
       console.log("===== END STORAGE DEBUG =====")
 
+      // CRITICAL FIX: Wait for progress recalculation to complete before loading workout
+      // This ensures currentWeek/currentDay are correct when component loads
       await ProgramStateManager.recalculateProgress({ silent: true })
+      console.log("[MOUNT] Progress recalculation completed")
 
       if (inProgressRaw && historyRaw) {
         const inProgressWorkouts = JSON.parse(inProgressRaw)

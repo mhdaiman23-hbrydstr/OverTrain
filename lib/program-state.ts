@@ -468,6 +468,26 @@ export class ProgramStateManager {
       return null
     }
 
+    // Import ProgressionRouter dynamically to avoid circular dependencies
+    const { ProgressionRouter } = await import("./progression-router")
+
+    // Get current user profile for progression calculation
+    let userProfile = { experience: "beginner" as const, gender: "male" as const }
+    try {
+      if (typeof window !== "undefined") {
+        const storedUser = localStorage.getItem("liftlog_user")
+        if (storedUser) {
+          const currentUser = JSON.parse(storedUser)
+          userProfile = {
+            experience: (currentUser.experience as "beginner" | "intermediate" | "advanced") || "beginner",
+            gender: (currentUser.gender as "male" | "female") || "male"
+          }
+        }
+      }
+    } catch (error) {
+      console.warn("[ProgramState] Could not load user profile:", error)
+    }
+
     // Convert gym template format to workout logger format
     // Fetch exercise metadata from database to get correct muscle group and equipment type
     const exerciseService = ExerciseLibraryService.getInstance()
@@ -494,19 +514,67 @@ export class ProgramStateManager {
         ? (weekData as { sets: number }).sets
         : exercise.progressionTemplate.week1?.sets || 3
 
-      // performedReps logic:
-      // Week 1: Empty - user inputs manually
-      // Week 2+: Filled by progression engine based on previous week's actual performance
-      const performedReps = ""
+      // CRITICAL FIX: Calculate progression using ProgressionRouter to get perSetSuggestions
+      let suggestedWeight: number | undefined
+      let progressionNote: string | undefined
+      let perSetSuggestions: any[] | undefined
+      let performedReps = ""
+
+      try {
+        // Get previous performance if not Week 1
+        const previousPerformance = activeProgram.currentWeek > 1
+          ? ProgressionRouter.getPreviousPerformance(
+              exercise.id,
+              exercise.exerciseName,
+              activeProgram.currentWeek,
+              activeProgram.currentDay
+            )
+          : null
+
+        // Calculate progression
+        const progressionResult = await ProgressionRouter.calculateProgression({
+          exercise,
+          activeProgram,
+          currentWeek: activeProgram.currentWeek,
+          userProfile,
+          previousPerformance: previousPerformance || undefined,
+          oneRepMaxes: [] // Empty array for now
+        })
+
+        suggestedWeight = progressionResult.targetWeight
+        progressionNote = progressionResult.progressionNote
+        perSetSuggestions = progressionResult.perSetSuggestions
+
+        // Set performedReps from progression result
+        if (typeof progressionResult.performedReps === 'number') {
+          performedReps = progressionResult.performedReps.toString()
+        } else if (previousPerformance?.actualReps) {
+          performedReps = previousPerformance.actualReps.toString()
+        }
+
+        console.log(`[ProgramState.getCurrentWorkout] Progression for ${exercise.exerciseName}:`, {
+          week: activeProgram.currentWeek,
+          suggestedWeight,
+          performedReps,
+          hasPerSetSuggestions: !!perSetSuggestions,
+          perSetSuggestionsCount: perSetSuggestions?.length || 0
+        })
+      } catch (error) {
+        console.error(`[ProgramState] Failed to calculate progression for "${exercise.exerciseName}":`, error)
+        // Continue with empty values
+      }
 
       return {
         exerciseId: exercise.exerciseName.toLowerCase().replace(/\s+/g, "-"),
         exerciseName: exercise.exerciseName,
         targetSets,
-        performedReps,  // Empty initially, progression engine fills this for Week 2+
+        performedReps,  // Now filled from progression engine for Week 2+
         targetRest: exercise.restTime,
         muscleGroup,
         equipmentType,
+        suggestedWeight,  // NEW: Include suggested weight
+        progressionNote,  // NEW: Include progression note
+        perSetSuggestions,  // NEW: Include per-set suggestions for reps pre-filling
       }
     }))
 

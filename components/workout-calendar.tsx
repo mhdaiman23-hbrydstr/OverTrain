@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Plus, Minus, Calendar } from "lucide-react"
@@ -19,6 +19,11 @@ export function WorkoutCalendar({ onWorkoutClick, selectedWeek, selectedDay }: W
   const [activeProgram, setActiveProgram] = useState<ActiveProgram | null>(null)
   const [totalWeeks, setTotalWeeks] = useState(6)
   const [completionStatus, setCompletionStatus] = useState<Map<string, boolean>>(new Map())
+
+  // CRITICAL FIX: Prevent infinite recalculation loops
+  const isRecalculatingRef = useRef(false)
+  const lastRecalculationTimeRef = useRef<number>(0)
+  const RECALC_DEBOUNCE_MS = 2000 // Don't recalculate more than once every 2 seconds
 
   useEffect(() => {
     // Load active program instantly (database-first architecture handles data loading in auth)
@@ -75,13 +80,19 @@ export function WorkoutCalendar({ onWorkoutClick, selectedWeek, selectedDay }: W
     }
   }, [user?.id])
 
-  // Periodic refresh to keep calendar in sync with database
+  // CRITICAL FIX: Periodic refresh without forced recalculation
+  // Only refresh UI data from localStorage, don't trigger recalc on every tick
   useEffect(() => {
     if (!user?.id) return
 
     const refreshInterval = setInterval(() => {
-      console.log("[Calendar] Periodic refresh - checking for updates")
-      loadActiveProgram()
+      console.log("[Calendar] Periodic refresh - updating UI from cache")
+      // Just reload the active program state, don't force recalculation
+      ProgramStateManager.getActiveProgram({ skipDatabaseLoad: true }).then(program => {
+        if (program) {
+          setActiveProgram(program)
+        }
+      })
     }, 15000) // Refresh every 15 seconds
 
     return () => clearInterval(refreshInterval)
@@ -272,8 +283,25 @@ export function WorkoutCalendar({ onWorkoutClick, selectedWeek, selectedDay }: W
         totalWeeks: baseWeeks
       })
 
-      // Only recalculate progress if it seems out of sync
+      // CRITICAL FIX: Only recalculate progress if:
+      // 1. Not already recalculating (prevent infinite loop)
+      // 2. Enough time has passed since last recalculation (debounce)
+      // 3. Current workout is actually completed (indicating we should advance)
       if (user?.id) {
+        const now = Date.now()
+        const timeSinceLastRecalc = now - lastRecalculationTimeRef.current
+
+        // Skip if already recalculating or debounce period hasn't passed
+        if (isRecalculatingRef.current) {
+          console.log("[Calendar] Recalculation already in progress, skipping")
+          return
+        }
+
+        if (timeSinceLastRecalc < RECALC_DEBOUNCE_MS) {
+          console.log(`[Calendar] Debounce active (${timeSinceLastRecalc}ms < ${RECALC_DEBOUNCE_MS}ms), skipping recalculation`)
+          return
+        }
+
         // Check if current workout is already completed (indicating we should advance)
         const currentWorkoutCompleted = WorkoutLogger.hasCompletedWorkout(
           program.currentWeek,
@@ -282,55 +310,27 @@ export function WorkoutCalendar({ onWorkoutClick, selectedWeek, selectedDay }: W
           program.instanceId
         )
 
-        // Also check if all previous weeks are completed
-        let shouldRecalculate = false
         if (currentWorkoutCompleted) {
-          console.log("[Calendar] Current workout is already completed, should advance")
-          shouldRecalculate = true
-        } else {
-          // Check if we're on the wrong week/day
-          let foundFirstIncomplete = false
-          for (let week = 1; week < program.currentWeek; week++) {
-            if (!WorkoutLogger.isWeekCompleted(week, 3, user.id, program.instanceId)) {
-              console.log(`[Calendar] Week ${week} is not complete but we're on week ${program.currentWeek}, should recalculate`)
-              shouldRecalculate = true
-              foundFirstIncomplete = true
-              break
-            }
-          }
+          console.log("[Calendar] Current workout is already completed, recalculating to advance...")
 
-          if (!foundFirstIncomplete && program.currentWeek > 1) {
-            // Check if all previous weeks are actually complete
-            const allPreviousComplete = Array.from({ length: program.currentWeek - 1 }, (_, w) => w + 1)
-              .every(week => WorkoutLogger.isWeekCompleted(week, 3, user.id, program.instanceId))
+          // Set recalculation guard
+          isRecalculatingRef.current = true
+          lastRecalculationTimeRef.current = now
 
-            if (!allPreviousComplete) {
-              console.log("[Calendar] Not all previous weeks are complete, should recalculate")
-              shouldRecalculate = true
-            }
-          }
-        }
+          try {
+            await ProgramStateManager.recalculateProgress({ silent: true })
 
-        console.log("[Calendar] Checking if recalculation needed:", {
-          currentWeek: program.currentWeek,
-          currentDay: program.currentDay,
-          currentWorkoutCompleted,
-          shouldRecalculate
-        })
-
-        if (shouldRecalculate) {
-          console.log("[Calendar] Recalculating progress to sync with database...")
-          await ProgramStateManager.recalculateProgress({ silent: true })
-
-          // Reload the program after recalculation
-          setTimeout(async () => {
+            // Reload the program after recalculation
             const recalculatedProgram = await ProgramStateManager.getActiveProgram()
             setActiveProgram(recalculatedProgram)
             console.log("[Calendar] Program after recalculation:", {
               currentWeek: recalculatedProgram?.currentWeek,
               currentDay: recalculatedProgram?.currentDay
             })
-          }, 100)
+          } finally {
+            // Always clear the guard, even if recalculation fails
+            isRecalculatingRef.current = false
+          }
         } else {
           console.log("[Calendar] Program state appears consistent, no recalculation needed")
         }
