@@ -15,6 +15,7 @@ export class ConnectionMonitor {
   private static syncQueue: Array<() => Promise<void>> = []
   private static isProcessingQueue = false
   private static setSyncProvider?: SetSyncProvider
+  private static activeSyncs: Set<Promise<void>> = new Set()
 
   static initialize() {
     if (typeof window === 'undefined') return
@@ -80,14 +81,27 @@ export class ConnectionMonitor {
     })
   }
 
-  static addToQueue(syncFn: () => Promise<void>) {
-    this.syncQueue.push(syncFn)
-    console.log('[ConnectionMonitor] Added to sync queue, total:', this.syncQueue.length)
+  static addToQueue(syncFn: () => Promise<void>): Promise<void> {
+    // Create tracked promise that won't be cancelled
+    const syncPromise = (async () => {
+      this.syncQueue.push(syncFn)
+      console.log('[ConnectionMonitor] Added to sync queue, total:', this.syncQueue.length)
 
-    // If online, process immediately
-    if (this.isOnline() && !this.isProcessingQueue) {
-      this.processQueue()
-    }
+      // If online, process immediately
+      if (this.isOnline() && !this.isProcessingQueue) {
+        await this.processQueue()
+      }
+    })()
+
+    // Track active sync
+    this.activeSyncs.add(syncPromise)
+
+    // Clean up when done
+    syncPromise.finally(() => {
+      this.activeSyncs.delete(syncPromise)
+    })
+
+    return syncPromise // Allow callers to await if needed
   }
 
   private static async processQueue() {
@@ -199,6 +213,37 @@ export class ConnectionMonitor {
       } catch (error) {
         console.error('[ConnectionMonitor] Failed to force sync sets:', error)
       }
+    }
+  }
+
+  /**
+   * Get count of active sync operations
+   * Used for debugging and verification
+   */
+  static getActiveSyncCount(): number {
+    return this.activeSyncs.size + this.syncQueue.length
+  }
+
+  /**
+   * Optional: Wait for syncs if caller needs verification
+   * Non-blocking - returns immediately if no syncs pending
+   */
+  static async waitForPendingSyncs(timeoutMs: number = 2000): Promise<boolean> {
+    if (this.activeSyncs.size === 0 && this.syncQueue.length === 0) {
+      return true // Nothing to wait for
+    }
+
+    console.log(`[ConnectionMonitor] Waiting for ${this.activeSyncs.size} active syncs, ${this.syncQueue.length} queued`)
+
+    try {
+      await Promise.race([
+        Promise.all(Array.from(this.activeSyncs)),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), timeoutMs))
+      ])
+      return true // All syncs completed
+    } catch {
+      console.warn('[ConnectionMonitor] Sync wait timed out (syncs continue in background)')
+      return false // Timeout (syncs still running)
     }
   }
 }

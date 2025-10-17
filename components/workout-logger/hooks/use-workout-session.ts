@@ -877,22 +877,24 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
           await ProgramStateManager.completeWorkout(user?.id)
         }
 
-        // Step 5: CRITICAL - Sync to database BEFORE dispatching events
-        // This ensures data integrity before any UI navigation
+        // Step 5: Start database sync in background (non-blocking)
+        // Data is already safe in localStorage, so UI can proceed immediately
         if (user?.id) {
-          try {
-            await WorkoutLogger.syncToDatabase(user.id)
-            console.log("[handleCompleteWorkout] Database sync completed successfully")
-          } catch (error) {
-            console.error("Failed to sync to database:", error)
-            // Still proceed with completion but log the error
-            // User gets their completion, but we note the sync issue
-          }
+          // Fire-and-forget background sync
+          // Promise keeps running even if component unmounts
+          WorkoutLogger.syncToDatabase(user.id)
+            .then(() => {
+              console.log("[handleCompleteWorkout] Background database sync completed")
+            })
+            .catch((error) => {
+              console.error("[handleCompleteWorkout] Background sync failed (will retry):", error)
+              // ConnectionMonitor will retry automatically
+            })
         }
 
-        // Step 6: Only dispatch events AFTER database sync is complete
-        // This prevents race conditions where navigation happens before data is saved
-        
+        // Step 6: Dispatch events IMMEDIATELY (optimistic UI)
+        // Data is safe in localStorage, sync happens in background
+
         // Dispatch workout completed event
         window.dispatchEvent(new CustomEvent("workoutCompleted", {
           detail: {
@@ -905,11 +907,11 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
         // Dispatch program changed event (triggers navigation to next workout)
         window.dispatchEvent(new Event("programChanged"))
 
-        // Step 7: Show completion dialog last
+        // Step 7: Show completion dialog immediately
         setCompletedWorkout(completedWorkout)
         setShowCompletionDialog(true)
 
-        console.log("[handleCompleteWorkout] Workout completion flow completed with database sync")
+        console.log("[handleCompleteWorkout] Workout completion flow completed (sync in background)")
       }
     } catch (error) {
       console.error("Error completing workout:", error)
@@ -996,18 +998,25 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
         await ProgramStateManager.completeWorkout(user?.id)
       }
 
-      // Sync to database
+      // Start database sync in background (non-blocking)
+      // Data is already safe in localStorage, so navigation can proceed immediately
       if (user?.id) {
-        try {
-          await WorkoutLogger.syncToDatabase(user.id)
-        } catch (error) {
-          console.error("Failed to sync to database:", error)
-        }
+        // Fire-and-forget background sync
+        // Promise keeps running even if component unmounts
+        WorkoutLogger.syncToDatabase(user.id)
+          .then(() => {
+            console.log("[handleEndWorkout] Background database sync completed")
+          })
+          .catch((error) => {
+            console.error("[handleEndWorkout] Background sync failed (will retry):", error)
+            // ConnectionMonitor will retry automatically
+          })
       }
 
     }
 
-    // Close dialog and navigate directly to next workout (no completion dialog)
+    // Close dialog and navigate IMMEDIATELY (optimistic UI)
+    // Data is safe in localStorage, sync happens in background
     setShowEndWorkoutDialog(false)
     setEndWorkoutConfirmation("")
 
