@@ -1066,8 +1066,8 @@ export class WorkoutLogger implements SetSyncProvider {
       })),
     })
 
-    this.saveCurrentWorkout(workout)
-    console.log("[v0] Saved workout to localStorage")
+    this.saveCurrentWorkout(workout, userId)
+    console.log("[v0] Saved workout to localStorage and database")
     return workout
   }
 
