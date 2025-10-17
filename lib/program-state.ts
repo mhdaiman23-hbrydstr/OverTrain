@@ -778,9 +778,11 @@ export class ProgramStateManager {
       if (foundIncomplete) break
     }
 
-    // If all workouts are completed (unlikely in practice), stay at current position
+    // If all workouts are completed, finalize the program
     if (!foundIncomplete) {
-      console.log("[ProgramState] All workouts appear to be completed, staying at current position")
+      console.log("[ProgramState] All workouts completed! Finalizing program...")
+      await this.finalizeActiveProgram(userId, { endedEarly: false })
+      return // Exit early - program is now finalized
     }
 
     await this.saveActiveProgram(activeProgram)
