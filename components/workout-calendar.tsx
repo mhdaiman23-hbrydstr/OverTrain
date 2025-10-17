@@ -303,12 +303,17 @@ export function WorkoutCalendar({ onWorkoutClick, selectedWeek, selectedDay }: W
         }
 
         // Check if current workout is already completed (indicating we should advance)
-        const currentWorkoutCompleted = WorkoutLogger.hasCompletedWorkout(
-          program.currentWeek,
-          program.currentDay,
-          user.id,
-          program.instanceId
-        )
+        // CRITICAL FIX: Use optimistic status first to avoid flickering during transitions
+        const key = `${program.currentWeek}-${program.currentDay}`
+        const optimisticCompleted = completionStatus.get(key)
+        const currentWorkoutCompleted =
+          optimisticCompleted ??
+          WorkoutLogger.hasCompletedWorkout(
+            program.currentWeek,
+            program.currentDay,
+            user.id,
+            program.instanceId
+          )
 
         if (currentWorkoutCompleted) {
           console.log("[Calendar] Current workout is already completed, recalculating to advance...")
