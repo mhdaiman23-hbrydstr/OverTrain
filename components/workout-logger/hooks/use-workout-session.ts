@@ -1026,13 +1026,16 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
     }
 
     try {
+      // Show immediate loading state for user feedback
+      setIsCompletingWorkout(true)
+
       const wasAlreadyCompleted = WorkoutLogger.hasCompletedWorkout(
         activeProgram.currentWeek,
         activeProgram.currentDay,
         user?.id
       )
 
-      // Only mark uncompleted sets as skipped, preserve already completed sets
+      // STEP 1: Complete current workout immediately (what user sees)
       const updatedWorkout: WorkoutSession = {
         ...workout,
         exercises: workout.exercises.map((exercise) => ({
@@ -1083,70 +1086,41 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
         await ProgramStateManager.completeWorkout(user?.id)
       }
 
-      let programForSkipping = await ProgramStateManager.getActiveProgram()
-      const templateSource = programForSkipping ?? activeProgram
-      const template = templateSource.template
-      const templateWeekCount = template.weeks || 6
-      const scheduleKeys = Object.keys(template.schedule).sort((a, b) => {
-        const numA = Number.parseInt(a.replace(/[^0-9]/g, ""), 10)
-        const numB = Number.parseInt(b.replace(/[^0-9]/g, ""), 10)
-        return numA - numB
-      })
-      const daysPerWeek = scheduleKeys.length
-
-      const startWeek = programForSkipping ? programForSkipping.currentWeek : activeProgram.currentWeek
-
-      for (let week = startWeek; week <= templateWeekCount; week++) {
-        let dayStart: number
-        if (programForSkipping) {
-          dayStart = week === startWeek ? programForSkipping.currentDay : 1
-        } else if (week === activeProgram.currentWeek) {
-          dayStart = activeProgram.currentDay + 1
-        } else {
-          dayStart = 1
-        }
-
-        if (dayStart > daysPerWeek) {
-          continue
-        }
-
-        for (let dayNumber = dayStart; dayNumber <= daysPerWeek; dayNumber++) {
-          if (WorkoutLogger.hasCompletedWorkout(week, dayNumber, user?.id, templateSource.instanceId)) {
-            continue
-          }
-
-          const dayKey = scheduleKeys[dayNumber - 1]
-          const templateDay = template.schedule[dayKey]
-          if (!templateDay) {
-            continue
-          }
-
-          await WorkoutLogger.skipWorkout({
-            templateDay,
-            week,
-            day: dayNumber,
-            userId: user?.id ?? undefined,
-            templateId: templateSource.templateId,
-            programInstanceId: templateSource.instanceId,
-            workoutName: templateDay.name,
-          })
-        }
-      }
-
-      if (user?.id) {
-        await WorkoutLogger.syncToDatabase(user.id)
-      }
-
-      await ProgramStateManager.finalizeActiveProgram(user?.id, { endedEarly: true })
-
-      // Clear the active program to force program selection
-      await ProgramStateManager.clearActiveProgram()
-      console.log("[handleEndProgram] Program ended and cleared")
-
-      // Set workout to null immediately
-      setWorkout(null)
+      // STEP 2: Show immediate success dialog to user
+      setIsCompletingWorkout(false)
       setShowEndProgramDialog(false)
       setEndProgramConfirmation("")
+      
+      // Show success dialog immediately
+      toast({
+        title: 'Program ended',
+        description: 'Marking remaining workouts as completed in the background...',
+      })
+
+      // STEP 3: Process remaining workouts in background
+      // This happens without blocking the user
+      processRemainingWorkoutsInBackground(activeProgram, user?.id).catch(error => {
+        console.error("[handleEndProgram] Background processing failed:", error)
+        toast({
+          title: 'Background processing error',
+          description: 'Some workouts may not be marked as completed. Please check your program history.',
+          variant: 'destructive'
+        })
+      })
+
+      // STEP 4: Finalize program state immediately (don't wait for background)
+      // This ensures UI remains responsive
+      finalizeProgramState(user?.id).catch(error => {
+        console.error("[handleEndProgram] Failed to finalize program state:", error)
+        toast({
+          title: 'Program state error',
+          description: 'Please refresh and check your program status.',
+          variant: 'destructive'
+        })
+      })
+
+      // STEP 5: Clear the active program and navigate immediately
+      setWorkout(null)
 
       // Dispatch programEnded event to trigger train section navigation
       if (typeof window !== 'undefined') {
@@ -1159,6 +1133,140 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
       console.error("Failed to end program:", error)
       setEndProgramConfirmation("")
       setShowEndProgramDialog(false)
+      setIsCompletingWorkout(false)
+      toast({
+        title: 'Failed to end program',
+        description: 'Please try again.',
+        variant: 'destructive'
+      })
+    }
+  }
+
+  // Background processing function for remaining workouts
+  const processRemainingWorkoutsInBackground = async (activeProgram: any, userId?: string) => {
+    if (!activeProgram) return
+
+    console.log("[processRemainingWorkoutsInBackground] Starting background processing")
+    
+    const template = activeProgram.template
+    const templateWeekCount = template.weeks || 6
+    const scheduleKeys = Object.keys(template.schedule).sort((a, b) => {
+      const numA = Number.parseInt(a.replace(/[^0-9]/g, ""), 10)
+      const numB = Number.parseInt(b.replace(/[^0-9]/g, ""), 10)
+      return numA - numB
+    })
+    const daysPerWeek = scheduleKeys.length
+    const currentWeek = activeProgram.currentWeek
+    const currentDay = activeProgram.currentDay
+
+    // Collect all workouts to skip in this program run
+    const workoutsToSkip: Array<{
+      templateDay: any
+      week: number
+      day: number
+      userId?: string
+      templateId?: string
+      programInstanceId?: string
+      workoutName: string
+    }> = []
+
+    // Calculate remaining workouts from current position
+    for (let week = currentWeek; week <= templateWeekCount; week++) {
+      let dayStart: number
+      
+      if (week === currentWeek) {
+        // Current week: start from the day after current day
+        dayStart = currentDay + 1
+      } else {
+        // Future weeks: start from day 1
+        dayStart = 1
+      }
+
+      if (dayStart > daysPerWeek) {
+        continue // No days to process in this week
+      }
+
+      for (let dayNumber = dayStart; dayNumber <= daysPerWeek; dayNumber++) {
+        // Check if workout is already completed
+        if (WorkoutLogger.hasCompletedWorkout(week, dayNumber, userId, activeProgram.instanceId)) {
+          continue // Skip already completed workouts
+        }
+
+        const dayKey = scheduleKeys[dayNumber - 1]
+        const templateDay = template.schedule[dayKey]
+        if (!templateDay) {
+          console.warn(`[processRemainingWorkoutsInBackground] No template found for day ${dayKey}`)
+          continue
+        }
+
+        workoutsToSkip.push({
+          templateDay,
+          week,
+          day: dayNumber,
+          userId,
+          templateId: activeProgram.templateId,
+          programInstanceId: activeProgram.instanceId,
+          workoutName: templateDay.name,
+        })
+      }
+    }
+
+    console.log(`[processRemainingWorkoutsInBackground] Found ${workoutsToSkip.length} workouts to skip`)
+
+    // Process workouts in batches to avoid overwhelming the database
+    const batchSize = 5
+    for (let i = 0; i < workoutsToSkip.length; i += batchSize) {
+      const batch = workoutsToSkip.slice(i, i + batchSize)
+      
+      console.log(`[processRemainingWorkoutsInBackground] Processing batch ${Math.floor(i/batchSize)+1}/${Math.ceil(workoutsToSkip.length/batchSize)}`)
+      
+      try {
+        // Process all workouts in this batch concurrently
+        await Promise.all(batch.map(async (workoutData) => {
+          await WorkoutLogger.skipWorkout(workoutData)
+          return workoutData
+        }))
+
+        // Small delay between batches to prevent overwhelming
+        if (i + batchSize < workoutsToSkip.length) {
+          await new Promise(resolve => setTimeout(resolve, 100))
+        }
+      } catch (error) {
+        console.error(`[processRemainingWorkoutsInBackground] Batch ${Math.floor(i/batchSize)+1} failed:`, error)
+        // Continue with next batch even if current batch fails
+      }
+    }
+
+    // Final sync to ensure all data is persisted
+    if (userId) {
+      try {
+        await WorkoutLogger.syncToDatabase(userId)
+        console.log("[processRemainingWorkoutsInBackground] Final database sync completed")
+      } catch (error) {
+        console.error("[processRemainingWorkoutsInBackground] Final sync failed:", error)
+      }
+    }
+
+    console.log("[processRemainingWorkoutsInBackground] Background processing completed")
+  }
+
+  // Finalize program state (clear program, etc.)
+  const finalizeProgramState = async (userId?: string) => {
+    try {
+      // Sync any remaining data first
+      if (userId) {
+        await WorkoutLogger.syncToDatabase(userId)
+      }
+
+      // Finalize the active program
+      await ProgramStateManager.finalizeActiveProgram(userId, { endedEarly: true })
+
+      // Clear the active program to force program selection
+      await ProgramStateManager.clearActiveProgram()
+      console.log("[finalizeProgramState] Program state finalized and cleared")
+    } catch (error) {
+      console.error("[finalizeProgramState] Failed to finalize program state:", error)
+      throw error
     }
   }
 
@@ -1485,9 +1593,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
             oldNote: exercise.progressionNote,
             newNote: result.progressionNote,
             oldWeight: exercise.suggestedWeight,
-            newWeight: result.targetWeight,
-            oldReps: exercise.templateRecommendedReps,
-            newReps: previousPerformance?.actualReps || result.templateRecommendedReps
+            newWeight: result.targetWeight
           })
 
           // Update exercise with new progression data
