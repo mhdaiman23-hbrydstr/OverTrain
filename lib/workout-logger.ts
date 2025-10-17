@@ -833,8 +833,8 @@ export class WorkoutLogger implements SetSyncProvider {
 
       // Sync to database
       if (userId && supabase) {
-        // Use update first, then insert if needed (avoids 409 conflicts)
-        const { error: updateError } = await supabase
+        // Try update first, get result to check if rows were affected
+        const { data: updateData, error: updateError } = await supabase
           .from("in_progress_workouts")
           .update({
             workout_name: normalizedWorkout.workoutName,
@@ -846,10 +846,13 @@ export class WorkoutLogger implements SetSyncProvider {
           })
           .eq('id', normalizedWorkout.id)
           .eq('user_id', userId)
+          .select()  // Get updated rows to check if any were affected
 
-        // If no rows updated, insert new workout
-        if (updateError?.code === 'PGRST116') {
-          await supabase
+        // If no rows updated (either error or empty result), insert new workout
+        if (updateError || !updateData || updateData.length === 0) {
+          console.log("[WorkoutLogger.saveCurrentWorkout] No existing workout found, inserting new one")
+
+          const { error: insertError } = await supabase
             .from("in_progress_workouts")
             .insert({
               id: normalizedWorkout.id,
@@ -863,6 +866,14 @@ export class WorkoutLogger implements SetSyncProvider {
               exercises: normalizedWorkout.exercises,
               notes: normalizedWorkout.notes || null,
             })
+
+          if (insertError) {
+            console.error("[WorkoutLogger.saveCurrentWorkout] Failed to insert workout:", insertError)
+          } else {
+            console.log("[WorkoutLogger.saveCurrentWorkout] Successfully inserted workout to database")
+          }
+        } else {
+          console.log("[WorkoutLogger.saveCurrentWorkout] Successfully updated workout in database")
         }
       }
     } catch (error) {
