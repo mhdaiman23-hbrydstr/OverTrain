@@ -869,6 +869,20 @@ export class WorkoutLogger implements SetSyncProvider {
     }
   }
 
+  static async clearInProgressWorkoutsForWeek(week: number, userId?: string): Promise<void> {
+    if (typeof window === "undefined") return
+
+    const storageKeys = this.getUserStorageKeys(userId)
+    const stored = localStorage.getItem(storageKeys.inProgress)
+    if (!stored) return
+
+    const workouts: WorkoutSession[] = JSON.parse(stored)
+    const filtered = workouts.filter(w => w.week !== week)
+
+    console.log(`[WorkoutLogger] Cleared ${workouts.length - filtered.length} in-progress workouts from week ${week}`)
+    localStorage.setItem(storageKeys.inProgress, JSON.stringify(filtered))
+  }
+
   static async clearCurrentWorkout(week?: number, day?: number, userId?: string): Promise<void> {
     if (typeof window === "undefined") return
 
@@ -942,6 +956,13 @@ export class WorkoutLogger implements SetSyncProvider {
       progressionNote?: string
       muscleGroup?: string
       equipmentType?: string
+      perSetSuggestions?: Array<{  // NEW: per-set weight and rep suggestions from previous week
+        weight: number
+        reps: number
+        baseWeight: number
+        baseReps: number
+        bounds: { min: number; max: number }
+      }>
     }[],
     week?: number,
     day?: number,
@@ -1007,15 +1028,25 @@ export class WorkoutLogger implements SetSyncProvider {
         muscleGroup: ex.muscleGroup,
         equipmentType: ex.equipmentType,
         sets: Array.from({ length: ex.targetSets }, (_, i) => {
-          // Parse reps from performedReps string (e.g. "10" or "10-12" -> 10)
-          const defaultReps = ex.performedReps
-            ? parseInt(ex.performedReps.toString().split('-')[0]) || 0
-            : 0
+          // Use per-set suggestions if available (Week 2+), otherwise parse from performedReps string (Week 1)
+          let defaultReps = 0
+          let defaultWeight = ex.suggestedWeight || 0
+
+          if (ex.perSetSuggestions && ex.perSetSuggestions[i]) {
+            // Week 2+: Use actual reps from previous week's performance
+            defaultReps = ex.perSetSuggestions[i].reps
+            defaultWeight = ex.perSetSuggestions[i].weight
+            console.log(`[WorkoutLogger] Set ${i + 1} pre-filled from previous week: ${defaultWeight} lbs × ${defaultReps} reps`)
+          } else if (ex.performedReps) {
+            // Week 1: Parse from template reps string (e.g. "10" or "8-12" -> 8)
+            defaultReps = parseInt(ex.performedReps.toString().split('-')[0]) || 0
+            console.log(`[WorkoutLogger] Set ${i + 1} using template reps: ${defaultReps}`)
+          }
 
           return {
             id: Math.random().toString(36).substr(2, 9),
-            reps: defaultReps, // Pre-fill with reps from previous performance
-            weight: ex.suggestedWeight || 0, // Pre-fill with suggested weight from progression
+            reps: defaultReps, // Pre-fill with reps from previous performance or template
+            weight: defaultWeight, // Pre-fill with suggested weight from progression
             completed: false,
           }
         }),
@@ -2302,6 +2333,71 @@ export class WorkoutLogger implements SetSyncProvider {
     if (typeof window === "undefined") return
     const storageKeys = this.getUserStorageKeys(userId)
     localStorage.removeItem(storageKeys.inProgress)
+  }
+
+  /**
+   * Clear all in-progress workouts for a specific week
+   * Used when advancing to a new week to clean up orphaned workouts
+   */
+  static async clearInProgressWorkoutsForWeek(week: number, userId?: string): Promise<void> {
+    if (typeof window === "undefined") return
+
+    // Get current user ID if not provided
+    if (!userId) {
+      try {
+        const storedUser = localStorage.getItem("liftlog_user")
+        const currentUser = storedUser ? JSON.parse(storedUser) : null
+        userId = currentUser?.id
+      } catch {
+        // Fallback to anonymous if localStorage is not available
+      }
+    }
+
+    const activeProgram = this.getActiveProgram()
+    const instanceId = activeProgram?.instanceId
+    const templateId = activeProgram?.templateId
+
+    const storageKeys = this.getUserStorageKeys(userId)
+
+    try {
+      const stored = localStorage.getItem(storageKeys.inProgress)
+      if (!stored) return
+
+      const workouts: WorkoutSession[] = JSON.parse(stored)
+      console.log(`[WorkoutLogger] Before cleanup: ${workouts.length} in-progress workouts`)
+
+      // Filter out workouts from the specified week that match the current instance
+      const filteredWorkouts = workouts.filter(
+        (w) => !(w.week === week && this.matchesInstance(w, instanceId, templateId))
+      )
+
+      const removedCount = workouts.length - filteredWorkouts.length
+      
+      if (removedCount > 0) {
+        console.log(`[WorkoutLogger] Clearing ${removedCount} in-progress workouts from week ${week}`)
+        localStorage.setItem(storageKeys.inProgress, JSON.stringify(filteredWorkouts))
+
+        // Also delete from database
+        if (userId && supabase) {
+          const workoutsToDelete = workouts.filter(
+            (w) => w.week === week && this.matchesInstance(w, instanceId, templateId)
+          )
+
+          for (const workout of workoutsToDelete) {
+            await supabase
+              .from("in_progress_workouts")
+              .delete()
+              .eq("id", workout.id)
+              .eq("user_id", userId)
+          }
+          console.log(`[WorkoutLogger] Deleted ${workoutsToDelete.length} workouts from database`)
+        }
+      } else {
+        console.log(`[WorkoutLogger] No in-progress workouts found for week ${week}`)
+      }
+    } catch (error) {
+      console.error("[WorkoutLogger] Failed to clear in-progress workouts for week:", error)
+    }
   }
 
 }

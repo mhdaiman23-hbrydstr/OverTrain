@@ -492,6 +492,13 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
         const week = activeProgram.currentWeek
         const day = activeProgram.currentDay
 
+        // CLEANUP FIX: Clear orphaned in-progress workouts from previous weeks
+        // This prevents loading stale workouts when advancing to a new week
+        if (workout && workout.week && workout.week < week) {
+          console.log(`Clearing orphaned in-progress workouts from week ${workout.week} (now on week ${week})`)
+          await WorkoutLogger.clearInProgressWorkoutsForWeek(workout.week, user?.id)
+        }
+
         // CRITICAL FIX: Check if an in-progress workout already exists for the current week/day
         // before creating a new one. This prevents loading the wrong day after completion.
         const existingInProgress = await WorkoutLogger.getInProgressWorkout(week, day, user?.id)
@@ -1536,6 +1543,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
           equipmentType: exercise.equipmentType || "BARBELL",
           suggestedWeight: result.targetWeight,
           progressionNote: result.progressionNote,
+          perSetSuggestions: result.perSetSuggestions,  // NEW: Pass per-set suggestions for reps pre-filling
           // Add progression metadata for volume compensation
           bounds: result.additionalData?.bounds,
           strategy: result.strategy,
