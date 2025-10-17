@@ -144,7 +144,7 @@ export class ProgramStateManager {
     localStorage.setItem(this.PROGRAM_HISTORY_KEY, JSON.stringify(history))
   }
 
-  private static ensureActiveProgramInstance(program: ActiveProgram): ActiveProgram {
+  private static async ensureActiveProgramInstance(program: ActiveProgram): Promise<ActiveProgram> {
     if (program.instanceId) {
       return program
     }
@@ -165,7 +165,7 @@ export class ProgramStateManager {
       }
     }
 
-    this.saveActiveProgram(program)
+    await this.saveActiveProgram(program)
     WorkoutLogger.tagWorkoutsWithInstance(instanceId, program.templateId)
 
     return program
@@ -291,7 +291,7 @@ export class ProgramStateManager {
         return null
       }
 
-      program = this.ensureActiveProgramInstance(program)
+      program = await this.ensureActiveProgramInstance(program)
 
       // If template is missing or corrupted, reload it from database
       if (!program.template || !program.template.schedule) {
@@ -306,7 +306,7 @@ export class ProgramStateManager {
         }
         program.template = template
         // Save the corrected program back to localStorage
-        this.saveActiveProgram(program)
+        await this.saveActiveProgram(program)
         console.log('[ProgramState] Template reloaded successfully from database')
       }
 
@@ -317,7 +317,7 @@ export class ProgramStateManager {
         if (freshTemplate) {
           // Preserve program progress, only update template
           program.template = freshTemplate
-          this.saveActiveProgram(program)
+          await this.saveActiveProgram(program)
           console.log('[ProgramState] Template refreshed with latest database version')
         }
       }
@@ -374,7 +374,7 @@ export class ProgramStateManager {
       progressionOverride,
     }
 
-    this.saveActiveProgram(activeProgram)
+    await this.saveActiveProgram(activeProgram)
     console.log("[v0] Set active program:", activeProgram)
 
     const history = this.getProgramHistory()
@@ -459,7 +459,7 @@ export class ProgramStateManager {
     if (currentDay > scheduleKeys.length) {
       // Reset to first day if we've completed the cycle
       activeProgram.currentDay = 1
-      this.saveActiveProgram(activeProgram)
+      await this.saveActiveProgram(activeProgram)
     }
 
     const dayKey = scheduleKeys[activeProgram.currentDay - 1]
@@ -547,20 +547,15 @@ export class ProgramStateManager {
         progressionNote = progressionResult.progressionNote
         perSetSuggestions = progressionResult.perSetSuggestions
 
-        // Set performedReps from progression result
-        if (typeof progressionResult.performedReps === 'number') {
-          performedReps = progressionResult.performedReps.toString()
+        // Set templateRecommendedReps from progression result (for display only)
+        if (typeof progressionResult.templateRecommendedReps === 'number') {
+          performedReps = progressionResult.templateRecommendedReps.toString()
         } else if (previousPerformance?.actualReps) {
           performedReps = previousPerformance.actualReps.toString()
         }
 
-        console.log(`[ProgramState.getCurrentWorkout] Progression for ${exercise.exerciseName}:`, {
-          week: activeProgram.currentWeek,
-          suggestedWeight,
-          performedReps,
-          hasPerSetSuggestions: !!perSetSuggestions,
-          perSetSuggestionsCount: perSetSuggestions?.length || 0
-        })
+        // NOTE: templateRecommendedReps is for display only (template preview)
+        // It is NOT logged or used in actual workout sessions
       } catch (error) {
         console.error(`[ProgramState] Failed to calculate progression for "${exercise.exerciseName}":`, error)
         // Continue with empty values
@@ -570,7 +565,7 @@ export class ProgramStateManager {
         exerciseId: exercise.exerciseName.toLowerCase().replace(/\s+/g, "-"),
         exerciseName: exercise.exerciseName,
         targetSets,
-        performedReps,  // Now filled from progression engine for Week 2+
+        templateRecommendedReps: performedReps,  // RENAMED: Display only, not used for calculations
         targetRest: exercise.restTime,
         muscleGroup,
         equipmentType,
@@ -636,7 +631,7 @@ export class ProgramStateManager {
       console.log("[v0] Advanced to next incomplete day:", nextDay)
     }
 
-    this.saveActiveProgram(activeProgram)
+    await this.saveActiveProgram(activeProgram)
 
     window.dispatchEvent(new Event("programChanged"))
 
@@ -788,15 +783,44 @@ export class ProgramStateManager {
       console.log("[ProgramState] All workouts appear to be completed, staying at current position")
     }
 
-    this.saveActiveProgram(activeProgram)
+    await this.saveActiveProgram(activeProgram)
     if (!options?.silent) {
       window.dispatchEvent(new Event("programChanged"))
     }
   }
 
-  private static saveActiveProgram(program: ActiveProgram): void {
+  private static async saveActiveProgram(program: ActiveProgram): Promise<void> {
     if (typeof window === "undefined") return
+
+    // Save to localStorage first (fast, synchronous)
     localStorage.setItem(this.ACTIVE_PROGRAM_KEY, JSON.stringify(program))
+
+    // Sync to database (critical for multi-device + page refresh)
+    const userId = this.getCurrentUserId()
+    if (userId && supabase) {
+      try {
+        await supabase
+          .from("active_programs")
+          .upsert({
+            user_id: userId,
+            program_id: program.templateId,
+            instance_id: program.instanceId,
+            program_name: program.template.name,
+            days_per_week: Object.keys(program.template.schedule).length,
+            total_weeks: program.template.weeks || 6,
+            start_date: new Date(program.startDate).toISOString(),
+            current_week: program.currentWeek,
+            current_day: program.currentDay,
+          }, { onConflict: 'user_id' })  // One active program per user
+        console.log("[ProgramState] Synced active program to database:", {
+          week: program.currentWeek,
+          day: program.currentDay
+        })
+      } catch (error) {
+        logSupabaseError("[ProgramState] Failed to sync program state to database:", error)
+        // Don't throw - localStorage is already updated
+      }
+    }
   }
 
   static getProgramProgress(): ProgramProgress[] {
@@ -858,6 +882,35 @@ export class ProgramStateManager {
       const activeProgram = await this.getActiveProgram({ skipDatabaseLoad: true })
 
       if (activeProgram) {
+        // Refresh session first to ensure we have a valid auth token
+        const { data: { session }, error: sessionError } = await supabase.auth.refreshSession()
+
+        if (sessionError || !session) {
+          console.error("[ProgramState] Session expired or invalid - user needs to re-login:", sessionError?.message)
+          console.error("[ProgramState] Skipping database sync until user re-authenticates")
+          return
+        }
+
+        console.log("[ProgramState] Session refreshed successfully")
+
+        // Check if user is authenticated
+        const { data: { user: authUser } } = await supabase.auth.getUser()
+        console.log("[ProgramState] Current authenticated user:", authUser?.id)
+        console.log("[ProgramState] Trying to sync with user_id:", userId)
+
+        if (!authUser) {
+          console.error("[ProgramState] No authenticated user found - cannot sync to database")
+          return
+        }
+
+        if (authUser.id !== userId) {
+          console.error("[ProgramState] Auth user ID mismatch!", {
+            authUserId: authUser.id,
+            providedUserId: userId
+          })
+          return
+        }
+
         // Upsert active program with NEW schema
         const { error } = await supabase
           .from("active_programs")
@@ -982,7 +1035,7 @@ export class ProgramStateManager {
           progress: (completedWorkouts / totalWorkouts) * 100,
         }
 
-        this.saveActiveProgram(activeProgram)
+        await this.saveActiveProgram(activeProgram)
         WorkoutLogger.tagWorkoutsWithInstance(instanceId, activeProgram.templateId, userId)
 
         console.log("[ProgramState] Loaded active program from database")

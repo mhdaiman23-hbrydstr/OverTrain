@@ -324,9 +324,10 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
 
             const suggestedWeight = result.targetWeight ?? 0
 
-            // Extract default reps from performedReps string (e.g., "8-10" -> 8)
-            const defaultReps = result.performedReps 
-              ? parseInt(result.performedReps.toString().split('-')[0]) || 0
+            // Extract default reps from templateRecommendedReps string (e.g., "8-10" -> 8)
+            // NOTE: This is NOT used for pre-filling sets anymore
+            const defaultReps = result.templateRecommendedReps
+              ? parseInt(result.templateRecommendedReps.toString().split('-')[0]) || 0
               : 0
 
             const updatedSets = exercise.sets?.map((set) => {
@@ -595,8 +596,8 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
             message,
           }
         } else {
-          const baseReps = exercise.performedReps
-            ? Number.parseInt(exercise.performedReps.split("-")[0], 10) || 10
+          const baseReps = exercise.templateRecommendedReps
+            ? Number.parseInt(exercise.templateRecommendedReps.split("-")[0], 10) || 10
             : 10
           const targetVolume = exercise.suggestedWeight * baseReps
 
@@ -958,14 +959,15 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
   const handleEndWorkout = async () => {
     if (!workout || endWorkoutConfirmation !== "End Workout") return
 
-    // Mark all uncompleted sets as skipped (blue tick)
+    // Mark all uncompleted sets as skipped and completed
     const updatedWorkout: WorkoutSession = {
       ...workout,
       exercises: workout.exercises.map((exercise) => ({
         ...exercise,
-        completed: true,
+        completed: true, // Mark exercise as completed
         sets: exercise.sets.map((set) => {
           if (!set.completed) {
+            // Mark incomplete sets as skipped with completed=true
             return { ...set, completed: true, reps: 0, weight: 0, skipped: true }
           }
           return set
@@ -976,36 +978,36 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
     setWorkout(updatedWorkout)
     await WorkoutLogger.saveCurrentWorkout(updatedWorkout, user?.id)
 
-    // Complete the workout
-    const completedWorkout = await WorkoutLogger.completeWorkout(updatedWorkout.id, user?.id)
-    if (completedWorkout) {
-      // Validate that the completed workout has proper data
-      const hasValidData = completedWorkout.exercises &&
-                         completedWorkout.exercises.length > 0 &&
-                         completedWorkout.exercises.every(ex => ex.sets && ex.sets.length > 0)
+    // Check if workout was already completed BEFORE we complete it
+    const wasAlreadyCompleted = WorkoutLogger.hasCompletedWorkout(workout.week || 1, workout.day || 1, user?.id)
 
-      if (!hasValidData) {
-        console.error("Completed workout has invalid data, not proceeding with program advancement")
-        return
+    // COMPLETE the workout (moves to history and advances program)
+    const completedWorkout = await WorkoutLogger.completeWorkout(updatedWorkout.id, user?.id)
+
+    if (completedWorkout) {
+      // Advance program to next workout (only if not already completed)
+      if (!wasAlreadyCompleted) {
+        await ProgramStateManager.completeWorkout(user?.id)
       }
 
       // Sync to database
       if (user?.id) {
         try {
           await WorkoutLogger.syncToDatabase(user.id)
-
-          // Notify calendar that data has changed
-          window.dispatchEvent(new Event("programChanged"))
-
         } catch (error) {
-          console.error("Failed to sync to database, but workout is saved locally:", error)
+          console.error("Failed to sync to database:", error)
         }
       }
 
-      setCompletedWorkout(completedWorkout)
-      setShowEndWorkoutDialog(false)
-      setShowCompletionDialog(true)
     }
+
+    // Close dialog and navigate directly to next workout (no completion dialog)
+    setShowEndWorkoutDialog(false)
+    setEndWorkoutConfirmation("")
+
+    // Navigate to next workout - parent will trigger programChanged event
+    // Don't dispatch programChanged here to avoid intermediate reload of current (now completed) workout
+    onComplete?.()
   }
 
   const handleEndProgram = async () => {
@@ -1478,21 +1480,21 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
             newNote: result.progressionNote,
             oldWeight: exercise.suggestedWeight,
             newWeight: result.targetWeight,
-            oldReps: exercise.performedReps,
-            newReps: previousPerformance?.actualReps || result.performedReps
+            oldReps: exercise.templateRecommendedReps,
+            newReps: previousPerformance?.actualReps || result.templateRecommendedReps
           })
 
           // Update exercise with new progression data
           // Copy actualReps from previous week (what user actually did), not template target
           return {
             ...exercise,
-            performedReps: previousPerformance?.actualReps?.toString() || exercise.performedReps,
+            templateRecommendedReps: previousPerformance?.actualReps?.toString() || exercise.templateRecommendedReps,
             suggestedWeight: result.targetWeight,
             progressionNote: result.progressionNote,
             bounds: result.additionalData?.bounds,
             strategy: result.strategy,
             tier: result.additionalData?.tier,
-            baseVolume: result.targetWeight * result.performedReps,
+            baseVolume: result.targetWeight * result.templateRecommendedReps,
             userOverridden: false
           }
         }))
@@ -1540,7 +1542,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
           exerciseId: exercise.id,
           exerciseName: exercise.exerciseName,
           targetSets: result.targetSets || 3,
-          performedReps: result.performedReps.toString(),
+          templateRecommendedReps: result.templateRecommendedReps.toString(),
           targetRest: `${Math.floor(exercise.restTime / 60)} min`,
           muscleGroup: getExerciseMuscleGroup(exercise.exerciseName),
           equipmentType: exercise.equipmentType || "BARBELL",
@@ -1551,7 +1553,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
           bounds: result.additionalData?.bounds,
           strategy: result.strategy,
           tier: result.additionalData?.tier,
-          baseVolume: result.targetWeight * result.performedReps,
+          baseVolume: result.targetWeight * result.templateRecommendedReps,
           userOverridden: false
         }
       }))
