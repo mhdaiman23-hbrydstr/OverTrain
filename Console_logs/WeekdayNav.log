@@ -1,0 +1,1014 @@
+main-app.js?v=1760724475719:1170 Download the React DevTools for a better development experience: https://react.dev/link/react-devtools
+S:\Program Files\LiftLog\lib\session-manager.ts:272 [SessionManager] Dev tools available at window.SessionManager
+S:\Program Files\LiftLog\lib\workout-logger.ts:163 [WorkoutLogger] Development tools available at window.WorkoutLoggerDev
+S:\Program Files\LiftLog\lib\services\program-template-service.ts:371 [ProgramTemplateService] Warming cache...
+S:\Program Files\LiftLog\lib\session-manager.ts:47 [SessionManager] 🔐 Starting session monitoring...
+S:\Program Files\LiftLog\lib\session-manager.ts:73 [SessionManager] ✅ Session monitoring active
+S:\Program Files\LiftLog\lib\session-manager.ts:51 [SessionManager] Auth state changed: SIGNED_IN
+S:\Program Files\LiftLog\lib\session-manager.ts:61 [SessionManager] 🔓 User signed in
+S:\Program Files\LiftLog\lib\session-manager.ts:51 [SessionManager] Auth state changed: INITIAL_SESSION
+S:\Program Files\LiftLog\lib\session-manager.ts:125 [SessionManager] Session check: {expiresIn: '59 minutes', expiresAt: '11:07:56 PM', userId: '6bf0e5d0...'}
+S:\Program Files\LiftLog\contexts\auth-context.tsx:63 [Auth] Loading comprehensive user application data for: 6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c
+S:\Program Files\LiftLog\app\page.tsx:74 [HomePage] Data loading status: Loading your workout data...
+S:\Program Files\LiftLog\app\page.tsx:74 [HomePage] Data loading status: Checking for data recovery...
+S:\Program Files\LiftLog\contexts\auth-context.tsx:78 [Auth] Development mode: checking for port change scenario
+S:\Program Files\LiftLog\lib\workout-logger.ts:2039 [WorkoutLogger] Loading user data from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2046 [WorkoutLogger] Testing database access...
+S:\Program Files\LiftLog\lib\dev-data-recovery.ts:208 [DevDataRecovery] Development tools available at window.DevDataRecovery
+S:\Program Files\LiftLog\lib\dev-data-recovery.ts:163 [DevDataRecovery] === Recovery Statistics ===
+S:\Program Files\LiftLog\lib\dev-data-recovery.ts:169 [DevDataRecovery] Local storage:
+S:\Program Files\LiftLog\lib\dev-data-recovery.ts:170   Workouts data: Missing
+S:\Program Files\LiftLog\lib\dev-data-recovery.ts:171   Program data: Present (5722 chars)
+S:\Program Files\LiftLog\lib\services\program-template-service.ts:382 [ProgramTemplateService] Cache warmed with 2 templates
+S:\Program Files\LiftLog\components\template-cache-warmer.tsx:20 [TemplateCacheWarmer] Cache warmed successfully
+S:\Program Files\LiftLog\lib\workout-logger.ts:2062 [WorkoutLogger] Loading completed workouts...
+S:\Program Files\LiftLog\lib\workout-logger.ts:2077 [WorkoutLogger] Found 3 workouts in database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2078 [WorkoutLogger] Sample workout data: {id: 'thgcfsn28', user_id: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c', program_id: '0f1a9e64-fd05-4b88-94c0-2f79ce754b28', workout_name: 'Full Body Accessory', start_time: 1760706091886, …}
+S:\Program Files\LiftLog\lib\workout-logger.ts:2101 [WorkoutLogger] Loaded 3 workouts from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2113 [WorkoutLogger] Loading in-progress workouts...
+S:\Program Files\LiftLog\lib\dev-data-recovery.ts:186 [DevDataRecovery] Database:
+S:\Program Files\LiftLog\lib\dev-data-recovery.ts:187   Recent workouts: 3
+S:\Program Files\LiftLog\lib\dev-data-recovery.ts:188   Active programs: 1
+S:\Program Files\LiftLog\lib\dev-data-recovery.ts:191   Recent workout details: (3) [{…}, {…}, {…}]
+S:\Program Files\LiftLog\lib\dev-data-recovery.ts:194   Active program details: {program_id: '0f1a9e64-fd05-4b88-94c0-2f79ce754b28', current_week: 1, current_day: 3}
+S:\Program Files\LiftLog\lib\dev-data-recovery.ts:198 [DevDataRecovery] === End Recovery Statistics ===
+S:\Program Files\LiftLog\lib\dev-data-recovery.ts:15 [DevDataRecovery] Checking for port change scenario...
+S:\Program Files\LiftLog\lib\dev-data-recovery.ts:23 [DevDataRecovery] Local storage status: {hasLocalWorkoutData: true, hasLocalInProgressData: false, hasLocalProgramData: true, userId: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c'}
+S:\Program Files\LiftLog\lib\auth.ts:252 [Auth] Loading user data from database (forceRefresh: false )...
+S:\Program Files\LiftLog\lib\dev-data-recovery.ts:15 [DevDataRecovery] Checking for port change scenario...
+S:\Program Files\LiftLog\lib\dev-data-recovery.ts:23 [DevDataRecovery] Local storage status: {hasLocalWorkoutData: true, hasLocalInProgressData: false, hasLocalProgramData: true, userId: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c'}
+S:\Program Files\LiftLog\lib\auth.ts:279 [Auth] Using safe loading (preserves local data)
+S:\Program Files\LiftLog\lib\auth.ts:296 [Auth] Using safe loading (preserves local data)
+S:\Program Files\LiftLog\lib\auth.ts:299 [Auth] Loading fresh data from database (database is source of truth)
+S:\Program Files\LiftLog\lib\workout-logger.ts:2039 [WorkoutLogger] Loading user data from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2046 [WorkoutLogger] Testing database access...
+S:\Program Files\LiftLog\lib\workout-logger.ts:2039 [WorkoutLogger] Loading user data from database (forceRefresh: false )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2046 [WorkoutLogger] Testing database access...
+S:\Program Files\LiftLog\lib\workout-logger.ts:2127 [WorkoutLogger] Found 1 in-progress workouts in database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2149 [WorkoutLogger] Loaded 1 in-progress workouts from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2160 [WorkoutLogger] Database loading completed. Total records loaded: 4
+S:\Program Files\LiftLog\lib\workout-logger.ts:2062 [WorkoutLogger] Loading completed workouts...
+S:\Program Files\LiftLog\lib\program-state.ts:974 [ProgramState] Found active program in database: 0f1a9e64-fd05-4b88-94c0-2f79ce754b28
+S:\Program Files\LiftLog\lib\program-state.ts:237 [ProgramState] Loaded template from database: 0f1a9e64-fd05-4b88-94c0-2f79ce754b28
+S:\Program Files\LiftLog\lib\workout-logger.ts:1370 [WorkoutLogger] Week 1 Day 1 completion: {found: false, userId: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c'}
+S:\Program Files\LiftLog\lib\program-state.ts:1012 [ProgramState] Loaded active program from database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2077 [WorkoutLogger] Found 3 workouts in database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2078 [WorkoutLogger] Sample workout data: {id: 'thgcfsn28', user_id: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c', program_id: '0f1a9e64-fd05-4b88-94c0-2f79ce754b28', workout_name: 'Full Body Accessory', start_time: 1760706091886, …}
+S:\Program Files\LiftLog\lib\workout-logger.ts:2101 [WorkoutLogger] Loaded 3 workouts from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2113 [WorkoutLogger] Loading in-progress workouts...
+S:\Program Files\LiftLog\lib\workout-logger.ts:2062 [WorkoutLogger] Loading completed workouts...
+S:\Program Files\LiftLog\lib\program-state.ts:1043 [ProgramState] Loaded program history from database
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1689 Rendering workout with 0 exercises
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1689 Rendering workout with 0 exercises
+S:\Program Files\LiftLog\lib\workout-logger.ts:2039 [WorkoutLogger] Loading user data from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2046 [WorkoutLogger] Testing database access...
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:197 💾 RAW LOCALSTORAGE CHECK: {inProgressKey: 'liftlog_in_progress_workouts', rawValue: null, parsed: null}
+S:\Program Files\LiftLog\lib\workout-logger.ts:2039 [WorkoutLogger] Loading user data from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2046 [WorkoutLogger] Testing database access...
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:197 💾 RAW LOCALSTORAGE CHECK: {inProgressKey: 'liftlog_in_progress_workouts', rawValue: null, parsed: null}
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:448 No existing workout or initialWorkout, loading current workout from program
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:448 No existing workout or initialWorkout, loading current workout from program
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1689 Rendering workout with 0 exercises
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1689 Rendering workout with 0 exercises
+S:\Program Files\LiftLog\lib\workout-logger.ts:2127 [WorkoutLogger] Found 1 in-progress workouts in database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2149 [WorkoutLogger] Loaded 1 in-progress workouts from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2160 [WorkoutLogger] Database loading completed. Total records loaded: 4
+S:\Program Files\LiftLog\lib\workout-logger.ts:2077 [WorkoutLogger] Found 3 workouts in database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2078 [WorkoutLogger] Sample workout data: {id: 'thgcfsn28', user_id: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c', program_id: '0f1a9e64-fd05-4b88-94c0-2f79ce754b28', workout_name: 'Full Body Accessory', start_time: 1760706091886, …}
+S:\Program Files\LiftLog\lib\workout-logger.ts:2103 [WorkoutLogger] Preserving local workouts, found 5372 characters of local data
+S:\Program Files\LiftLog\lib\workout-logger.ts:2113 [WorkoutLogger] Loading in-progress workouts...
+S:\Program Files\LiftLog\lib\workout-logger.ts:2062 [WorkoutLogger] Loading completed workouts...
+S:\Program Files\LiftLog\lib\progression-router.ts:135 [ProgressionRouter] Routing progression calculation: {exerciseName: 'Pullup (Normal Grip)', category: 'compound', templateSchemeType: 'linear', templateConfigType: undefined, resolvedStrategy: 'linear', …}
+S:\Program Files\LiftLog\lib\progression-tier-resolver.ts:35 [ProgressionTierResolver] Resolving tier for: Pullup (Normal Grip) {exerciseLibraryId: '9105b309-da43-4fbb-b88b-77db9ee8eeae', category: 'compound', hasExerciseId: true}
+S:\Program Files\LiftLog\lib\progression-router.ts:135 [ProgressionRouter] Routing progression calculation: {exerciseName: 'Dumbbell Lateral Raise', category: 'isolation', templateSchemeType: 'linear', templateConfigType: undefined, resolvedStrategy: 'linear', …}
+S:\Program Files\LiftLog\lib\progression-tier-resolver.ts:35 [ProgressionTierResolver] Resolving tier for: Dumbbell Lateral Raise {exerciseLibraryId: '87674713-a261-4b1f-b97a-9a8ec492b833', category: 'isolation', hasExerciseId: true}
+S:\Program Files\LiftLog\lib\program-state.ts:974 [ProgramState] Found active program in database: 0f1a9e64-fd05-4b88-94c0-2f79ce754b28
+S:\Program Files\LiftLog\lib\program-state.ts:237 [ProgramState] Loaded template from database: 0f1a9e64-fd05-4b88-94c0-2f79ce754b28
+S:\Program Files\LiftLog\lib\workout-logger.ts:1370 [WorkoutLogger] Week 1 Day 1 completion: {found: true, userId: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c'}
+S:\Program Files\LiftLog\lib\program-state.ts:1012 [ProgramState] Loaded active program from database
+S:\Program Files\LiftLog\lib\progression-router.ts:135 [ProgressionRouter] Routing progression calculation: {exerciseName: 'Front Squat', category: 'compound', templateSchemeType: 'linear', templateConfigType: undefined, resolvedStrategy: 'linear', …}
+S:\Program Files\LiftLog\lib\progression-tier-resolver.ts:35 [ProgressionTierResolver] Resolving tier for: Front Squat {exerciseLibraryId: 'fb594210-799d-478c-8cab-00b71ef25482', category: 'compound', hasExerciseId: true}
+S:\Program Files\LiftLog\lib\workout-logger.ts:2127 [WorkoutLogger] Found 1 in-progress workouts in database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2151 [WorkoutLogger] Preserving local in-progress workouts, found 1687 characters of local data
+S:\Program Files\LiftLog\lib\workout-logger.ts:2160 [WorkoutLogger] Database loading completed. Total records loaded: 4
+S:\Program Files\LiftLog\lib\workout-logger.ts:2062 [WorkoutLogger] Loading completed workouts...
+S:\Program Files\LiftLog\lib\workout-logger.ts:2077 [WorkoutLogger] Found 3 workouts in database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2078 [WorkoutLogger] Sample workout data: {id: 'thgcfsn28', user_id: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c', program_id: '0f1a9e64-fd05-4b88-94c0-2f79ce754b28', workout_name: 'Full Body Accessory', start_time: 1760706091886, …}
+S:\Program Files\LiftLog\lib\workout-logger.ts:2101 [WorkoutLogger] Loaded 3 workouts from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2113 [WorkoutLogger] Loading in-progress workouts...
+S:\Program Files\LiftLog\lib\progression-router.ts:135 [ProgressionRouter] Routing progression calculation: {exerciseName: 'Front Squat', category: 'compound', templateSchemeType: 'linear', templateConfigType: undefined, resolvedStrategy: 'linear', …}
+S:\Program Files\LiftLog\lib\progression-tier-resolver.ts:35 [ProgressionTierResolver] Resolving tier for: Front Squat {exerciseLibraryId: 'fb594210-799d-478c-8cab-00b71ef25482', category: 'compound', hasExerciseId: true}
+S:\Program Files\LiftLog\lib\progression-router.ts:135 [ProgressionRouter] Routing progression calculation: {exerciseName: 'Pullup (Normal Grip)', category: 'compound', templateSchemeType: 'linear', templateConfigType: undefined, resolvedStrategy: 'linear', …}
+S:\Program Files\LiftLog\lib\progression-tier-resolver.ts:35 [ProgressionTierResolver] Resolving tier for: Pullup (Normal Grip) {exerciseLibraryId: '9105b309-da43-4fbb-b88b-77db9ee8eeae', category: 'compound', hasExerciseId: true}
+S:\Program Files\LiftLog\lib\progression-router.ts:135 [ProgressionRouter] Routing progression calculation: {exerciseName: 'Dumbbell Lateral Raise', category: 'isolation', templateSchemeType: 'linear', templateConfigType: undefined, resolvedStrategy: 'linear', …}
+S:\Program Files\LiftLog\lib\progression-tier-resolver.ts:35 [ProgressionTierResolver] Resolving tier for: Dumbbell Lateral Raise {exerciseLibraryId: '87674713-a261-4b1f-b97a-9a8ec492b833', category: 'isolation', hasExerciseId: true}
+S:\Program Files\LiftLog\lib\program-state.ts:1043 [ProgramState] Loaded program history from database
+S:\Program Files\LiftLog\lib\auth.ts:307 [Auth] User data loaded successfully
+S:\Program Files\LiftLog\app\page.tsx:74 [HomePage] Data loading status: Validating workout data...
+S:\Program Files\LiftLog\lib\workout-logger.ts:200 [WorkoutLogger] Starting migration from global to user-specific keys for user: 6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c
+S:\Program Files\LiftLog\lib\workout-logger.ts:328 [WorkoutLogger] Starting cleanup of corrupted workouts...
+S:\Program Files\LiftLog\lib\workout-logger.ts:404 [WorkoutLogger] Cleanup completed. Total items removed: 0
+S:\Program Files\LiftLog\lib\workout-logger.ts:413 [WorkoutLogger] Starting workout data integrity validation...
+S:\Program Files\LiftLog\lib\workout-logger.ts:610 [WorkoutLogger] Workout data integrity validation completed. Validated 4 workouts, repaired 0 issues.
+S:\Program Files\LiftLog\app\page.tsx:74 [HomePage] Data loading status: Loading active programs...
+S:\Program Files\LiftLog\lib\workout-logger.ts:2039 [WorkoutLogger] Loading user data from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2046 [WorkoutLogger] Testing database access...
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1689 Rendering workout with 0 exercises
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1689 Rendering workout with 0 exercises
+S:\Program Files\LiftLog\lib\workout-logger.ts:2077 [WorkoutLogger] Found 3 workouts in database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2078 [WorkoutLogger] Sample workout data: {id: 'thgcfsn28', user_id: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c', program_id: '0f1a9e64-fd05-4b88-94c0-2f79ce754b28', workout_name: 'Full Body Accessory', start_time: 1760706091886, …}
+S:\Program Files\LiftLog\lib\workout-logger.ts:2101 [WorkoutLogger] Loaded 3 workouts from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2113 [WorkoutLogger] Loading in-progress workouts...
+S:\Program Files\LiftLog\lib\services\linear-progression-tier-service.ts:236 [LinearProgressionTierService] Loaded tier rules for exercise 87674713-a261-4b1f-b97a-9a8ec492b833: {tierName: 'small_isolation', rules: {…}}
+S:\Program Files\LiftLog\lib\services\linear-progression-tier-service.ts:236 [LinearProgressionTierService] Loaded tier rules for exercise 9105b309-da43-4fbb-b88b-77db9ee8eeae: {tierName: 'large_compound', rules: {…}}
+S:\Program Files\LiftLog\lib\workout-logger.ts:2062 [WorkoutLogger] Loading completed workouts...
+S:\Program Files\LiftLog\lib\workout-logger.ts:2127 [WorkoutLogger] Found 1 in-progress workouts in database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2149 [WorkoutLogger] Loaded 1 in-progress workouts from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2160 [WorkoutLogger] Database loading completed. Total records loaded: 4
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:101 ===== STORAGE DEBUG =====
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:122 IN-PROGRESS WORKOUTS: None
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:144 WORKOUT HISTORY: None
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:147 ===== END STORAGE DEBUG =====
+S:\Program Files\LiftLog\lib\workout-logger.ts:2039 [WorkoutLogger] Loading user data from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2046 [WorkoutLogger] Testing database access...
+S:\Program Files\LiftLog\lib\services\linear-progression-tier-service.ts:236 [LinearProgressionTierService] Loaded tier rules for exercise fb594210-799d-478c-8cab-00b71ef25482: {tierName: 'large_compound', rules: {…}}
+S:\Program Files\LiftLog\lib\services\linear-progression-tier-service.ts:236 [LinearProgressionTierService] Loaded tier rules for exercise 9105b309-da43-4fbb-b88b-77db9ee8eeae: {tierName: 'large_compound', rules: {…}}
+S:\Program Files\LiftLog\lib\services\linear-progression-tier-service.ts:236 [LinearProgressionTierService] Loaded tier rules for exercise 87674713-a261-4b1f-b97a-9a8ec492b833: {tierName: 'small_isolation', rules: {…}}
+S:\Program Files\LiftLog\lib\workout-logger.ts:2077 [WorkoutLogger] Found 3 workouts in database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2078 [WorkoutLogger] Sample workout data: {id: 'thgcfsn28', user_id: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c', program_id: '0f1a9e64-fd05-4b88-94c0-2f79ce754b28', workout_name: 'Full Body Accessory', start_time: 1760706091886, …}
+S:\Program Files\LiftLog\lib\workout-logger.ts:2101 [WorkoutLogger] Loaded 3 workouts from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2113 [WorkoutLogger] Loading in-progress workouts...
+S:\Program Files\LiftLog\lib\workout-logger.ts:2062 [WorkoutLogger] Loading completed workouts...
+S:\Program Files\LiftLog\lib\workout-logger.ts:2127 [WorkoutLogger] Found 1 in-progress workouts in database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2149 [WorkoutLogger] Loaded 1 in-progress workouts from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2160 [WorkoutLogger] Database loading completed. Total records loaded: 4
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:101 ===== STORAGE DEBUG =====
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:122 IN-PROGRESS WORKOUTS: None
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:144 WORKOUT HISTORY: None
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:147 ===== END STORAGE DEBUG =====
+S:\Program Files\LiftLog\lib\workout-logger.ts:2039 [WorkoutLogger] Loading user data from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2046 [WorkoutLogger] Testing database access...
+S:\Program Files\LiftLog\lib\progression-tier-resolver.ts:50 [ProgressionTierResolver] ✅ Resolved from DATABASE: {exerciseName: 'Pullup (Normal Grip)', tierName: 'large_compound', tierRules: {…}}
+S:\Program Files\LiftLog\lib\progression-router.ts:216 [ProgressionRouter] Tier resolution: {exerciseName: 'Pullup (Normal Grip)', source: 'database', tierName: 'large_compound', tierRules: {…}}
+S:\Program Files\LiftLog\lib\progression-engines\linear-engine.ts:48 [LinearProgressionEngine] Calculating progression: {exerciseName: 'Pullup (Normal Grip)', currentWeek: 1, hasPreviousData: false, userWeightAdjustment: undefined}
+S:\Program Files\LiftLog\lib\services\linear-progression-tier-service.ts:236 [LinearProgressionTierService] Loaded tier rules for exercise fb594210-799d-478c-8cab-00b71ef25482: {tierName: 'large_compound', rules: {…}}
+S:\Program Files\LiftLog\lib\progression-tier-resolver.ts:50 [ProgressionTierResolver] ✅ Resolved from DATABASE: {exerciseName: 'Dumbbell Lateral Raise', tierName: 'small_isolation', tierRules: {…}}
+S:\Program Files\LiftLog\lib\progression-router.ts:216 [ProgressionRouter] Tier resolution: {exerciseName: 'Dumbbell Lateral Raise', source: 'database', tierName: 'small_isolation', tierRules: {…}}
+S:\Program Files\LiftLog\lib\progression-engines\linear-engine.ts:48 [LinearProgressionEngine] Calculating progression: {exerciseName: 'Dumbbell Lateral Raise', currentWeek: 1, hasPreviousData: false, userWeightAdjustment: undefined}
+S:\Program Files\LiftLog\lib\progression-tier-resolver.ts:50 [ProgressionTierResolver] ✅ Resolved from DATABASE: {exerciseName: 'Front Squat', tierName: 'large_compound', tierRules: {…}}
+S:\Program Files\LiftLog\lib\progression-router.ts:216 [ProgressionRouter] Tier resolution: {exerciseName: 'Front Squat', source: 'database', tierName: 'large_compound', tierRules: {…}}
+S:\Program Files\LiftLog\lib\progression-engines\linear-engine.ts:48 [LinearProgressionEngine] Calculating progression: {exerciseName: 'Front Squat', currentWeek: 1, hasPreviousData: false, userWeightAdjustment: undefined}
+S:\Program Files\LiftLog\lib\progression-tier-resolver.ts:50 [ProgressionTierResolver] ✅ Resolved from DATABASE: {exerciseName: 'Pullup (Normal Grip)', tierName: 'large_compound', tierRules: {…}}
+S:\Program Files\LiftLog\lib\progression-router.ts:216 [ProgressionRouter] Tier resolution: {exerciseName: 'Pullup (Normal Grip)', source: 'database', tierName: 'large_compound', tierRules: {…}}
+S:\Program Files\LiftLog\lib\progression-engines\linear-engine.ts:48 [LinearProgressionEngine] Calculating progression: {exerciseName: 'Pullup (Normal Grip)', currentWeek: 1, hasPreviousData: false, userWeightAdjustment: undefined}
+S:\Program Files\LiftLog\lib\workout-logger.ts:2127 [WorkoutLogger] Found 1 in-progress workouts in database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2149 [WorkoutLogger] Loaded 1 in-progress workouts from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2160 [WorkoutLogger] Database loading completed. Total records loaded: 4
+S:\Program Files\LiftLog\lib\progression-tier-resolver.ts:50 [ProgressionTierResolver] ✅ Resolved from DATABASE: {exerciseName: 'Dumbbell Lateral Raise', tierName: 'small_isolation', tierRules: {…}}
+S:\Program Files\LiftLog\lib\progression-router.ts:216 [ProgressionRouter] Tier resolution: {exerciseName: 'Dumbbell Lateral Raise', source: 'database', tierName: 'small_isolation', tierRules: {…}}
+S:\Program Files\LiftLog\lib\progression-engines\linear-engine.ts:48 [LinearProgressionEngine] Calculating progression: {exerciseName: 'Dumbbell Lateral Raise', currentWeek: 1, hasPreviousData: false, userWeightAdjustment: undefined}
+S:\Program Files\LiftLog\lib\workout-logger.ts:1010 [v0] Creating new workout for week 1 day 3
+S:\Program Files\LiftLog\lib\workout-logger.ts:1044 [WorkoutLogger] Set 1 starting with empty reps (no previous performance data)
+S:\Program Files\LiftLog\lib\workout-logger.ts:1044 [WorkoutLogger] Set 2 starting with empty reps (no previous performance data)
+S:\Program Files\LiftLog\lib\workout-logger.ts:1044 [WorkoutLogger] Set 3 starting with empty reps (no previous performance data)
+S:\Program Files\LiftLog\lib\workout-logger.ts:1044 [WorkoutLogger] Set 1 starting with empty reps (no previous performance data)
+S:\Program Files\LiftLog\lib\workout-logger.ts:1044 [WorkoutLogger] Set 2 starting with empty reps (no previous performance data)
+S:\Program Files\LiftLog\lib\workout-logger.ts:1044 [WorkoutLogger] Set 3 starting with empty reps (no previous performance data)
+S:\Program Files\LiftLog\lib\workout-logger.ts:1044 [WorkoutLogger] Set 1 starting with empty reps (no previous performance data)
+S:\Program Files\LiftLog\lib\workout-logger.ts:1044 [WorkoutLogger] Set 2 starting with empty reps (no previous performance data)
+S:\Program Files\LiftLog\lib\workout-logger.ts:1044 [WorkoutLogger] Set 3 starting with empty reps (no previous performance data)
+S:\Program Files\LiftLog\lib\workout-logger.ts:1060 [v0] Created workout structure: {id: '3vpb7v8qy', exerciseCount: 3, exercises: Array(3)}
+S:\Program Files\LiftLog\lib\workout-logger.ts:810 [WorkoutLogger.saveCurrentWorkout] Using storage key: liftlog_in_progress_workouts_6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c for workout ID: 3vpb7v8qy
+S:\Program Files\LiftLog\lib\workout-logger.ts:815 [WorkoutLogger.saveCurrentWorkout] Found 1 existing in-progress workouts
+S:\Program Files\LiftLog\lib\workout-logger.ts:829 [WorkoutLogger.saveCurrentWorkout] After adding workout, total in-progress: 2
+S:\Program Files\LiftLog\lib\workout-logger.ts:832 [WorkoutLogger.saveCurrentWorkout] Saved to localStorage successfully
+S:\Program Files\LiftLog\lib\workout-logger.ts:1070 [v0] Saved workout to localStorage
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:461 🆕 COMPONENT NEW WORKOUT - Created from current program workout: {id: '3vpb7v8qy', week: 1, day: 3, exerciseCount: 3, workoutName: 'Full Body Accessory'}
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1689 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 1: Front Squat - 3 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 2: Pullup (Normal Grip) - 3 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 3: Dumbbell Lateral Raise - 3 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1689 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 1: Front Squat - 3 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 2: Pullup (Normal Grip) - 3 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 3: Dumbbell Lateral Raise - 3 sets
+S:\Program Files\LiftLog\lib\workout-logger.ts:2062 [WorkoutLogger] Loading completed workouts...
+S:\Program Files\LiftLog\lib\progression-tier-resolver.ts:50 [ProgressionTierResolver] ✅ Resolved from DATABASE: {exerciseName: 'Front Squat', tierName: 'large_compound', tierRules: {…}}
+S:\Program Files\LiftLog\lib\progression-router.ts:216 [ProgressionRouter] Tier resolution: {exerciseName: 'Front Squat', source: 'database', tierName: 'large_compound', tierRules: {…}}
+S:\Program Files\LiftLog\lib\progression-engines\linear-engine.ts:48 [LinearProgressionEngine] Calculating progression: {exerciseName: 'Front Squat', currentWeek: 1, hasPreviousData: false, userWeightAdjustment: undefined}
+S:\Program Files\LiftLog\lib\workout-logger.ts:987 [v0] Found existing workout for week 1 day 3 with 3 exercises
+S:\Program Files\LiftLog\lib\workout-logger.ts:996 [v0] Workout structure: {id: '3vpb7v8qy', exerciseCount: 3, exercises: Array(3)}
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:461 🆕 COMPONENT NEW WORKOUT - Created from current program workout: {id: '3vpb7v8qy', week: 1, day: 3, exerciseCount: 3, workoutName: 'Full Body Accessory'}
+S:\Program Files\LiftLog\lib\program-state.ts:974 [ProgramState] Found active program in database: 0f1a9e64-fd05-4b88-94c0-2f79ce754b28
+S:\Program Files\LiftLog\lib\program-state.ts:237 [ProgramState] Loaded template from database: 0f1a9e64-fd05-4b88-94c0-2f79ce754b28
+S:\Program Files\LiftLog\lib\workout-logger.ts:1370 [WorkoutLogger] Week 1 Day 1 completion: {found: true, userId: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c'}
+S:\Program Files\LiftLog\lib\program-state.ts:1012 [ProgramState] Loaded active program from database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2077 [WorkoutLogger] Found 3 workouts in database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2078 [WorkoutLogger] Sample workout data: {id: 'thgcfsn28', user_id: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c', program_id: '0f1a9e64-fd05-4b88-94c0-2f79ce754b28', workout_name: 'Full Body Accessory', start_time: 1760706091886, …}
+S:\Program Files\LiftLog\lib\workout-logger.ts:2101 [WorkoutLogger] Loaded 3 workouts from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2113 [WorkoutLogger] Loading in-progress workouts...
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1689 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 1: Front Squat - 3 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 2: Pullup (Normal Grip) - 3 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 3: Dumbbell Lateral Raise - 3 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1689 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 1: Front Squat - 3 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 2: Pullup (Normal Grip) - 3 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 3: Dumbbell Lateral Raise - 3 sets
+S:\Program Files\LiftLog\lib\workout-logger.ts:2127 [WorkoutLogger] Found 1 in-progress workouts in database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2149 [WorkoutLogger] Loaded 1 in-progress workouts from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2160 [WorkoutLogger] Database loading completed. Total records loaded: 4
+S:\Program Files\LiftLog\lib\workout-logger.ts:2077 [WorkoutLogger] Found 3 workouts in database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2078 [WorkoutLogger] Sample workout data: {id: 'thgcfsn28', user_id: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c', program_id: '0f1a9e64-fd05-4b88-94c0-2f79ce754b28', workout_name: 'Full Body Accessory', start_time: 1760706091886, …}
+S:\Program Files\LiftLog\lib\workout-logger.ts:2101 [WorkoutLogger] Loaded 3 workouts from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2113 [WorkoutLogger] Loading in-progress workouts...
+S:\Program Files\LiftLog\lib\program-state.ts:1043 [ProgramState] Loaded program history from database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2039 [WorkoutLogger] Loading user data from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2046 [WorkoutLogger] Testing database access...
+S:\Program Files\LiftLog\lib\program-state.ts:974 [ProgramState] Found active program in database: 0f1a9e64-fd05-4b88-94c0-2f79ce754b28
+S:\Program Files\LiftLog\lib\program-state.ts:237 [ProgramState] Loaded template from database: 0f1a9e64-fd05-4b88-94c0-2f79ce754b28
+S:\Program Files\LiftLog\lib\workout-logger.ts:1370 [WorkoutLogger] Week 1 Day 1 completion: {found: true, userId: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c'}
+S:\Program Files\LiftLog\lib\program-state.ts:1012 [ProgramState] Loaded active program from database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2127 [WorkoutLogger] Found 1 in-progress workouts in database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2149 [WorkoutLogger] Loaded 1 in-progress workouts from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2160 [WorkoutLogger] Database loading completed. Total records loaded: 4
+S:\Program Files\LiftLog\lib\workout-logger.ts:2062 [WorkoutLogger] Loading completed workouts...
+S:\Program Files\LiftLog\lib\program-state.ts:1043 [ProgramState] Loaded program history from database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2039 [WorkoutLogger] Loading user data from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2046 [WorkoutLogger] Testing database access...
+S:\Program Files\LiftLog\lib\program-state.ts:974 [ProgramState] Found active program in database: 0f1a9e64-fd05-4b88-94c0-2f79ce754b28
+S:\Program Files\LiftLog\lib\program-state.ts:237 [ProgramState] Loaded template from database: 0f1a9e64-fd05-4b88-94c0-2f79ce754b28
+S:\Program Files\LiftLog\lib\workout-logger.ts:1370 [WorkoutLogger] Week 1 Day 1 completion: {found: true, userId: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c'}
+S:\Program Files\LiftLog\lib\program-state.ts:1012 [ProgramState] Loaded active program from database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2077 [WorkoutLogger] Found 3 workouts in database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2078 [WorkoutLogger] Sample workout data: {id: 'thgcfsn28', user_id: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c', program_id: '0f1a9e64-fd05-4b88-94c0-2f79ce754b28', workout_name: 'Full Body Accessory', start_time: 1760706091886, …}
+S:\Program Files\LiftLog\lib\workout-logger.ts:2101 [WorkoutLogger] Loaded 3 workouts from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2113 [WorkoutLogger] Loading in-progress workouts...
+S:\Program Files\LiftLog\lib\program-state.ts:1043 [ProgramState] Loaded program history from database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2039 [WorkoutLogger] Loading user data from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2046 [WorkoutLogger] Testing database access...
+S:\Program Files\LiftLog\lib\workout-logger.ts:2062 [WorkoutLogger] Loading completed workouts...
+S:\Program Files\LiftLog\lib\workout-logger.ts:2127 [WorkoutLogger] Found 1 in-progress workouts in database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2149 [WorkoutLogger] Loaded 1 in-progress workouts from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2160 [WorkoutLogger] Database loading completed. Total records loaded: 4
+S:\Program Files\LiftLog\lib\program-state.ts:747 [ProgramState] Recalculating progress for user: 6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c
+S:\Program Files\LiftLog\lib\program-state.ts:748 [ProgramState] Days per week: 3
+S:\Program Files\LiftLog\lib\workout-logger.ts:1370 [WorkoutLogger] Week 1 Day 1 completion: {found: true, userId: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c'}
+S:\Program Files\LiftLog\lib\program-state.ts:760 [ProgramState] Completed workouts found: (3) [{…}, {…}, {…}]
+S:\Program Files\LiftLog\lib\workout-logger.ts:1370 [WorkoutLogger] Week 1 Day 1 completion: {found: true, userId: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c'}
+S:\Program Files\LiftLog\lib\program-state.ts:768 [ProgramState] Week 1, Day 1: COMPLETED
+S:\Program Files\LiftLog\lib\program-state.ts:768 [ProgramState] Week 1, Day 2: COMPLETED
+S:\Program Files\LiftLog\lib\program-state.ts:768 [ProgramState] Week 1, Day 3: COMPLETED
+S:\Program Files\LiftLog\lib\program-state.ts:768 [ProgramState] Week 2, Day 1: INCOMPLETE
+S:\Program Files\LiftLog\lib\program-state.ts:774 [ProgramState] Recalculated progress to week 2 day 1
+S:\Program Files\LiftLog\contexts\auth-context.tsx:154 [Auth] Dispatching programChanged event to refresh UI
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:481 Program state changed, reloading workout...
+S:\Program Files\LiftLog\app\page.tsx:74 [HomePage] Data loading status: Ready!
+S:\Program Files\LiftLog\contexts\auth-context.tsx:166 [Auth] User application data loaded successfully
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:487 Program state after refresh: {currentWeek: 2, currentDay: 1, timestamp: '2025-10-17T18:08:01.594Z'}
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:511 Found existing in-progress workout for week 2 day 1 - using it instead of creating new one
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1689 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 1: Barbell Squat - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 2: Bench Press (Flat) - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 3: Barbell Bent Over Row - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1689 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 1: Barbell Squat - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 2: Bench Press (Flat) - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 3: Barbell Bent Over Row - 2 sets
+S:\Program Files\LiftLog\lib\workout-logger.ts:2077 [WorkoutLogger] Found 3 workouts in database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2078 [WorkoutLogger] Sample workout data: {id: 'thgcfsn28', user_id: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c', program_id: '0f1a9e64-fd05-4b88-94c0-2f79ce754b28', workout_name: 'Full Body Accessory', start_time: 1760706091886, …}
+S:\Program Files\LiftLog\lib\workout-logger.ts:2101 [WorkoutLogger] Loaded 3 workouts from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2113 [WorkoutLogger] Loading in-progress workouts...
+S:\Program Files\LiftLog\lib\workout-logger.ts:2062 [WorkoutLogger] Loading completed workouts...
+S:\Program Files\LiftLog\lib\workout-logger.ts:2077 [WorkoutLogger] Found 3 workouts in database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2078 [WorkoutLogger] Sample workout data: {id: 'thgcfsn28', user_id: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c', program_id: '0f1a9e64-fd05-4b88-94c0-2f79ce754b28', workout_name: 'Full Body Accessory', start_time: 1760706091886, …}
+S:\Program Files\LiftLog\lib\workout-logger.ts:2101 [WorkoutLogger] Loaded 3 workouts from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2113 [WorkoutLogger] Loading in-progress workouts...
+S:\Program Files\LiftLog\lib\workout-logger.ts:2127 [WorkoutLogger] Found 1 in-progress workouts in database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2149 [WorkoutLogger] Loaded 1 in-progress workouts from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2160 [WorkoutLogger] Database loading completed. Total records loaded: 4
+S:\Program Files\LiftLog\lib\program-state.ts:747 [ProgramState] Recalculating progress for user: 6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c
+S:\Program Files\LiftLog\lib\program-state.ts:748 [ProgramState] Days per week: 3
+S:\Program Files\LiftLog\lib\workout-logger.ts:1370 [WorkoutLogger] Week 1 Day 1 completion: {found: true, userId: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c'}
+S:\Program Files\LiftLog\lib\program-state.ts:760 [ProgramState] Completed workouts found: (3) [{…}, {…}, {…}]
+S:\Program Files\LiftLog\lib\workout-logger.ts:1370 [WorkoutLogger] Week 1 Day 1 completion: {found: true, userId: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c'}
+S:\Program Files\LiftLog\lib\program-state.ts:768 [ProgramState] Week 1, Day 1: COMPLETED
+S:\Program Files\LiftLog\lib\program-state.ts:768 [ProgramState] Week 1, Day 2: COMPLETED
+S:\Program Files\LiftLog\lib\program-state.ts:768 [ProgramState] Week 1, Day 3: COMPLETED
+S:\Program Files\LiftLog\lib\program-state.ts:768 [ProgramState] Week 2, Day 1: INCOMPLETE
+S:\Program Files\LiftLog\lib\program-state.ts:774 [ProgramState] Recalculated progress to week 2 day 1
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:152 [MOUNT] Progress recalculation completed
+S:\Program Files\LiftLog\app\page.tsx:81 [HomePage] Loading completed, clearing status
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1689 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 1: Barbell Squat - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 2: Bench Press (Flat) - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 3: Barbell Bent Over Row - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1689 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 1: Barbell Squat - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 2: Bench Press (Flat) - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 3: Barbell Bent Over Row - 2 sets
+S:\Program Files\LiftLog\lib\workout-logger.ts:2127 [WorkoutLogger] Found 1 in-progress workouts in database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2149 [WorkoutLogger] Loaded 1 in-progress workouts from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2160 [WorkoutLogger] Database loading completed. Total records loaded: 4
+S:\Program Files\LiftLog\lib\program-state.ts:747 [ProgramState] Recalculating progress for user: 6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c
+S:\Program Files\LiftLog\lib\program-state.ts:748 [ProgramState] Days per week: 3
+S:\Program Files\LiftLog\lib\workout-logger.ts:1370 [WorkoutLogger] Week 1 Day 1 completion: {found: true, userId: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c'}
+S:\Program Files\LiftLog\lib\program-state.ts:760 [ProgramState] Completed workouts found: (3) [{…}, {…}, {…}]
+S:\Program Files\LiftLog\lib\workout-logger.ts:1370 [WorkoutLogger] Week 1 Day 1 completion: {found: true, userId: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c'}
+S:\Program Files\LiftLog\lib\program-state.ts:768 [ProgramState] Week 1, Day 1: COMPLETED
+S:\Program Files\LiftLog\lib\program-state.ts:768 [ProgramState] Week 1, Day 2: COMPLETED
+S:\Program Files\LiftLog\lib\program-state.ts:768 [ProgramState] Week 1, Day 3: COMPLETED
+S:\Program Files\LiftLog\lib\program-state.ts:768 [ProgramState] Week 2, Day 1: INCOMPLETE
+S:\Program Files\LiftLog\lib\program-state.ts:774 [ProgramState] Recalculated progress to week 2 day 1
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:152 [MOUNT] Progress recalculation completed
+S:\Program Files\LiftLog\app\page.tsx:74 [HomePage] Data loading status: 
+S:\Program Files\LiftLog\contexts\auth-context.tsx:163 [Auth] All data loading completed successfully
+S:\Program Files\LiftLog\app\page.tsx:81 [HomePage] Loading completed, clearing status
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1689 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 1: Barbell Squat - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 2: Bench Press (Flat) - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 3: Barbell Bent Over Row - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1689 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 1: Barbell Squat - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 2: Bench Press (Flat) - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 3: Barbell Bent Over Row - 2 sets
+S:\Program Files\LiftLog\components\workout-calendar.tsx:31 [Calendar] Loading active program instantly
+S:\Program Files\LiftLog\components\workout-calendar.tsx:268 [Calendar] Development tools available at window.CalendarDev
+S:\Program Files\LiftLog\components\workout-calendar.tsx:31 [Calendar] Loading active program instantly
+S:\Program Files\LiftLog\components\workout-calendar.tsx:268 [Calendar] Development tools available at window.CalendarDev
+S:\Program Files\LiftLog\components\workout-calendar.tsx:279 [Calendar] Active program loaded: {name: '2-Week Test Program (DEV ONLY) v2', currentWeek: 2, currentDay: 1, totalWeeks: 2}
+S:\Program Files\LiftLog\components\workout-calendar.tsx:340 [Calendar] Program state appears consistent, no recalculation needed
+S:\Program Files\LiftLog\components\workout-calendar.tsx:279 [Calendar] Active program loaded: {name: '2-Week Test Program (DEV ONLY) v2', currentWeek: 2, currentDay: 1, totalWeeks: 2}
+S:\Program Files\LiftLog\components\workout-calendar.tsx:340 [Calendar] Program state appears consistent, no recalculation needed
+S:\Program Files\LiftLog\components\workout-calendar.tsx:373 [Calendar] Schedule keys order: (3) ['day1', 'day2', 'day3']
+S:\Program Files\LiftLog\components\workout-calendar.tsx:375   Day 1: day1 -> Upper Body Strength
+S:\Program Files\LiftLog\components\workout-calendar.tsx:375   Day 2: day2 -> Lower Body Power
+S:\Program Files\LiftLog\components\workout-calendar.tsx:375   Day 3: day3 -> Full Body Accessory
+S:\Program Files\LiftLog\components\workout-calendar.tsx:457 [Calendar] getWorkoutName for Day 1: {dayIndex: 1, expectedKey: 'day1', workoutName: 'Upper Body Strength', found: true}
+S:\Program Files\LiftLog\lib\workout-logger.ts:1370 [WorkoutLogger] Week 1 Day 1 completion: {found: true, userId: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c'}
+S:\Program Files\LiftLog\components\workout-calendar.tsx:410 [Calendar] Day 1 status: {hasCompletedWorkout: true, userId: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c'}
+S:\Program Files\LiftLog\components\workout-calendar.tsx:457 [Calendar] getWorkoutName for Day 1: {dayIndex: 1, expectedKey: 'day1', workoutName: 'Upper Body Strength', found: true}
+S:\Program Files\LiftLog\components\workout-calendar.tsx:425 [Calendar] Week 2 debug: {firstIncompleteDay: 1, checkingDay: 1, shouldMarkAsCurrent: true, allWeekCompletions: Array(3)}
+S:\Program Files\LiftLog\components\workout-calendar.tsx:425 [Calendar] Week 2 debug: {firstIncompleteDay: 1, checkingDay: 2, shouldMarkAsCurrent: false, allWeekCompletions: Array(3)}
+S:\Program Files\LiftLog\components\workout-calendar.tsx:425 [Calendar] Week 2 debug: {firstIncompleteDay: 1, checkingDay: 3, shouldMarkAsCurrent: false, allWeekCompletions: Array(3)}
+S:\Program Files\LiftLog\components\workout-calendar.tsx:373 [Calendar] Schedule keys order: (3) ['day1', 'day2', 'day3']
+S:\Program Files\LiftLog\components\workout-calendar.tsx:375   Day 1: day1 -> Upper Body Strength
+S:\Program Files\LiftLog\components\workout-calendar.tsx:375   Day 2: day2 -> Lower Body Power
+S:\Program Files\LiftLog\components\workout-calendar.tsx:375   Day 3: day3 -> Full Body Accessory
+S:\Program Files\LiftLog\components\workout-calendar.tsx:457 [Calendar] getWorkoutName for Day 1: {dayIndex: 1, expectedKey: 'day1', workoutName: 'Upper Body Strength', found: true}
+S:\Program Files\LiftLog\lib\workout-logger.ts:1370 [WorkoutLogger] Week 1 Day 1 completion: {found: true, userId: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c'}
+S:\Program Files\LiftLog\components\workout-calendar.tsx:410 [Calendar] Day 1 status: {hasCompletedWorkout: true, userId: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c'}
+S:\Program Files\LiftLog\components\workout-calendar.tsx:457 [Calendar] getWorkoutName for Day 1: {dayIndex: 1, expectedKey: 'day1', workoutName: 'Upper Body Strength', found: true}
+S:\Program Files\LiftLog\components\workout-calendar.tsx:425 [Calendar] Week 2 debug: {firstIncompleteDay: 1, checkingDay: 1, shouldMarkAsCurrent: true, allWeekCompletions: Array(3)}
+S:\Program Files\LiftLog\components\workout-calendar.tsx:425 [Calendar] Week 2 debug: {firstIncompleteDay: 1, checkingDay: 2, shouldMarkAsCurrent: false, allWeekCompletions: Array(3)}
+S:\Program Files\LiftLog\components\workout-calendar.tsx:425 [Calendar] Week 2 debug: {firstIncompleteDay: 1, checkingDay: 3, shouldMarkAsCurrent: false, allWeekCompletions: Array(3)}
+S:\Program Files\LiftLog\components\workout-calendar.tsx:268 [Calendar] Development tools available at window.CalendarDev
+S:\Program Files\LiftLog\components\workout-calendar.tsx:74 [Calendar] No active program found after delay, loading...
+S:\Program Files\LiftLog\lib\workout-logger.ts:2039 [WorkoutLogger] Loading user data from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2046 [WorkoutLogger] Testing database access...
+S:\Program Files\LiftLog\lib\workout-logger.ts:2062 [WorkoutLogger] Loading completed workouts...
+S:\Program Files\LiftLog\lib\workout-logger.ts:2077 [WorkoutLogger] Found 3 workouts in database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2078 [WorkoutLogger] Sample workout data: {id: 'thgcfsn28', user_id: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c', program_id: '0f1a9e64-fd05-4b88-94c0-2f79ce754b28', workout_name: 'Full Body Accessory', start_time: 1760706091886, …}
+S:\Program Files\LiftLog\lib\workout-logger.ts:2101 [WorkoutLogger] Loaded 3 workouts from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2113 [WorkoutLogger] Loading in-progress workouts...
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1689 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 1: Barbell Squat - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 2: Bench Press (Flat) - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 3: Barbell Bent Over Row - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1689 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 1: Barbell Squat - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 2: Bench Press (Flat) - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 3: Barbell Bent Over Row - 2 sets
+S:\Program Files\LiftLog\lib\workout-logger.ts:2127 [WorkoutLogger] Found 1 in-progress workouts in database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2149 [WorkoutLogger] Loaded 1 in-progress workouts from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2160 [WorkoutLogger] Database loading completed. Total records loaded: 4
+S:\Program Files\LiftLog\lib\program-state.ts:974 [ProgramState] Found active program in database: 0f1a9e64-fd05-4b88-94c0-2f79ce754b28
+S:\Program Files\LiftLog\lib\program-state.ts:237 [ProgramState] Loaded template from database: 0f1a9e64-fd05-4b88-94c0-2f79ce754b28
+S:\Program Files\LiftLog\lib\workout-logger.ts:1370 [WorkoutLogger] Week 1 Day 1 completion: {found: true, userId: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c'}
+S:\Program Files\LiftLog\lib\program-state.ts:1012 [ProgramState] Loaded active program from database
+S:\Program Files\LiftLog\lib\program-state.ts:1043 [ProgramState] Loaded program history from database
+S:\Program Files\LiftLog\components\workout-calendar.tsx:279 [Calendar] Active program loaded: {name: '2-Week Test Program (DEV ONLY) v2', currentWeek: 1, currentDay: 3, totalWeeks: 2}
+S:\Program Files\LiftLog\components\workout-calendar.tsx:319 [Calendar] Current workout is already completed, recalculating to advance...
+S:\Program Files\LiftLog\lib\workout-logger.ts:2039 [WorkoutLogger] Loading user data from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2046 [WorkoutLogger] Testing database access...
+S:\Program Files\LiftLog\lib\workout-logger.ts:2062 [WorkoutLogger] Loading completed workouts...
+S:\Program Files\LiftLog\lib\workout-logger.ts:2077 [WorkoutLogger] Found 3 workouts in database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2078 [WorkoutLogger] Sample workout data: {id: 'thgcfsn28', user_id: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c', program_id: '0f1a9e64-fd05-4b88-94c0-2f79ce754b28', workout_name: 'Full Body Accessory', start_time: 1760706091886, …}
+S:\Program Files\LiftLog\lib\workout-logger.ts:2101 [WorkoutLogger] Loaded 3 workouts from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2113 [WorkoutLogger] Loading in-progress workouts...
+S:\Program Files\LiftLog\lib\workout-logger.ts:2127 [WorkoutLogger] Found 1 in-progress workouts in database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2149 [WorkoutLogger] Loaded 1 in-progress workouts from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2160 [WorkoutLogger] Database loading completed. Total records loaded: 4
+S:\Program Files\LiftLog\lib\program-state.ts:974 [ProgramState] Found active program in database: 0f1a9e64-fd05-4b88-94c0-2f79ce754b28
+S:\Program Files\LiftLog\lib\program-state.ts:237 [ProgramState] Loaded template from database: 0f1a9e64-fd05-4b88-94c0-2f79ce754b28
+S:\Program Files\LiftLog\lib\workout-logger.ts:1370 [WorkoutLogger] Week 1 Day 1 completion: {found: true, userId: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c'}
+S:\Program Files\LiftLog\lib\program-state.ts:1012 [ProgramState] Loaded active program from database
+S:\Program Files\LiftLog\lib\program-state.ts:1043 [ProgramState] Loaded program history from database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2039 [WorkoutLogger] Loading user data from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2046 [WorkoutLogger] Testing database access...
+S:\Program Files\LiftLog\lib\workout-logger.ts:2062 [WorkoutLogger] Loading completed workouts...
+S:\Program Files\LiftLog\lib\workout-logger.ts:2077 [WorkoutLogger] Found 3 workouts in database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2078 [WorkoutLogger] Sample workout data: {id: 'thgcfsn28', user_id: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c', program_id: '0f1a9e64-fd05-4b88-94c0-2f79ce754b28', workout_name: 'Full Body Accessory', start_time: 1760706091886, …}
+S:\Program Files\LiftLog\lib\workout-logger.ts:2101 [WorkoutLogger] Loaded 3 workouts from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2113 [WorkoutLogger] Loading in-progress workouts...
+S:\Program Files\LiftLog\lib\workout-logger.ts:2127 [WorkoutLogger] Found 1 in-progress workouts in database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2149 [WorkoutLogger] Loaded 1 in-progress workouts from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2160 [WorkoutLogger] Database loading completed. Total records loaded: 4
+S:\Program Files\LiftLog\lib\program-state.ts:747 [ProgramState] Recalculating progress for user: 6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c
+S:\Program Files\LiftLog\lib\program-state.ts:748 [ProgramState] Days per week: 3
+S:\Program Files\LiftLog\lib\workout-logger.ts:1370 [WorkoutLogger] Week 1 Day 1 completion: {found: true, userId: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c'}
+S:\Program Files\LiftLog\lib\program-state.ts:760 [ProgramState] Completed workouts found: (3) [{…}, {…}, {…}]
+S:\Program Files\LiftLog\lib\workout-logger.ts:1370 [WorkoutLogger] Week 1 Day 1 completion: {found: true, userId: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c'}
+S:\Program Files\LiftLog\lib\program-state.ts:768 [ProgramState] Week 1, Day 1: COMPLETED
+S:\Program Files\LiftLog\lib\program-state.ts:768 [ProgramState] Week 1, Day 2: COMPLETED
+S:\Program Files\LiftLog\lib\program-state.ts:768 [ProgramState] Week 1, Day 3: COMPLETED
+S:\Program Files\LiftLog\lib\program-state.ts:768 [ProgramState] Week 2, Day 1: INCOMPLETE
+S:\Program Files\LiftLog\lib\program-state.ts:774 [ProgramState] Recalculated progress to week 2 day 1
+S:\Program Files\LiftLog\components\workout-calendar.tsx:331 [Calendar] Program after recalculation: {currentWeek: 2, currentDay: 1}
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1689 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 1: Barbell Squat - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 2: Bench Press (Flat) - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 3: Barbell Bent Over Row - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1689 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 1: Barbell Squat - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 2: Bench Press (Flat) - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 3: Barbell Bent Over Row - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1689 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 1: Barbell Squat - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 2: Bench Press (Flat) - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 3: Barbell Bent Over Row - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1689 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 1: Barbell Squat - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 2: Bench Press (Flat) - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 3: Barbell Bent Over Row - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1689 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 1: Barbell Squat - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 2: Bench Press (Flat) - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 3: Barbell Bent Over Row - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1689 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 1: Barbell Squat - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 2: Bench Press (Flat) - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 3: Barbell Bent Over Row - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1689 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 1: Barbell Squat - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 2: Bench Press (Flat) - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 3: Barbell Bent Over Row - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1689 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 1: Barbell Squat - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 2: Bench Press (Flat) - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 3: Barbell Bent Over Row - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1689 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 1: Barbell Squat - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 2: Bench Press (Flat) - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 3: Barbell Bent Over Row - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1689 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 1: Barbell Squat - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 2: Bench Press (Flat) - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 3: Barbell Bent Over Row - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1689 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 1: Barbell Squat - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 2: Bench Press (Flat) - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 3: Barbell Bent Over Row - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1689 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 1: Barbell Squat - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 2: Bench Press (Flat) - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 3: Barbell Bent Over Row - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1689 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 1: Barbell Squat - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 2: Bench Press (Flat) - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 3: Barbell Bent Over Row - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1689 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 1: Barbell Squat - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 2: Bench Press (Flat) - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 3: Barbell Bent Over Row - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1689 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 1: Barbell Squat - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 2: Bench Press (Flat) - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 3: Barbell Bent Over Row - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1689 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 1: Barbell Squat - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 2: Bench Press (Flat) - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 3: Barbell Bent Over Row - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1689 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 1: Barbell Squat - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 2: Bench Press (Flat) - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 3: Barbell Bent Over Row - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1689 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 1: Barbell Squat - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 2: Bench Press (Flat) - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 3: Barbell Bent Over Row - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1689 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 1: Barbell Squat - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 2: Bench Press (Flat) - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 3: Barbell Bent Over Row - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1689 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 1: Barbell Squat - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 2: Bench Press (Flat) - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 3: Barbell Bent Over Row - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1689 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 1: Barbell Squat - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 2: Bench Press (Flat) - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 3: Barbell Bent Over Row - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1689 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 1: Barbell Squat - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 2: Bench Press (Flat) - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 3: Barbell Bent Over Row - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1689 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 1: Barbell Squat - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 2: Bench Press (Flat) - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 3: Barbell Bent Over Row - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1689 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 1: Barbell Squat - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 2: Bench Press (Flat) - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 3: Barbell Bent Over Row - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1689 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 1: Barbell Squat - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 2: Bench Press (Flat) - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 3: Barbell Bent Over Row - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1689 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 1: Barbell Squat - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 2: Bench Press (Flat) - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 3: Barbell Bent Over Row - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1689 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 1: Barbell Squat - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 2: Bench Press (Flat) - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 3: Barbell Bent Over Row - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1689 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 1: Barbell Squat - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 2: Bench Press (Flat) - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 3: Barbell Bent Over Row - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1689 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 1: Barbell Squat - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 2: Bench Press (Flat) - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 3: Barbell Bent Over Row - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1689 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 1: Barbell Squat - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 2: Bench Press (Flat) - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 3: Barbell Bent Over Row - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1689 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 1: Barbell Squat - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 2: Bench Press (Flat) - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 3: Barbell Bent Over Row - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1689 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 1: Barbell Squat - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 2: Bench Press (Flat) - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 3: Barbell Bent Over Row - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1689 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 1: Barbell Squat - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 2: Bench Press (Flat) - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 3: Barbell Bent Over Row - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1689 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 1: Barbell Squat - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 2: Bench Press (Flat) - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 3: Barbell Bent Over Row - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1689 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 1: Barbell Squat - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 2: Bench Press (Flat) - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 3: Barbell Bent Over Row - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1689 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 1: Barbell Squat - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 2: Bench Press (Flat) - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 3: Barbell Bent Over Row - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1689 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 1: Barbell Squat - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 2: Bench Press (Flat) - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 3: Barbell Bent Over Row - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1689 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 1: Barbell Squat - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 2: Bench Press (Flat) - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 3: Barbell Bent Over Row - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1689 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 1: Barbell Squat - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 2: Bench Press (Flat) - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 3: Barbell Bent Over Row - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1689 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 1: Barbell Squat - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 2: Bench Press (Flat) - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 3: Barbell Bent Over Row - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1689 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 1: Barbell Squat - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 2: Bench Press (Flat) - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 3: Barbell Bent Over Row - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1689 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 1: Barbell Squat - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 2: Bench Press (Flat) - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 3: Barbell Bent Over Row - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1689 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 1: Barbell Squat - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 2: Bench Press (Flat) - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 3: Barbell Bent Over Row - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1689 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 1: Barbell Squat - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 2: Bench Press (Flat) - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 3: Barbell Bent Over Row - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1689 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 1: Barbell Squat - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 2: Bench Press (Flat) - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 3: Barbell Bent Over Row - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1689 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 1: Barbell Squat - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 2: Bench Press (Flat) - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 3: Barbell Bent Over Row - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1689 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 1: Barbell Squat - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 2: Bench Press (Flat) - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 3: Barbell Bent Over Row - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1689 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 1: Barbell Squat - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 2: Bench Press (Flat) - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 3: Barbell Bent Over Row - 2 sets
+S:\Program Files\LiftLog\lib\workout-logger.ts:810 [WorkoutLogger.saveCurrentWorkout] Using storage key: liftlog_in_progress_workouts_6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c for workout ID: nva48a55t
+S:\Program Files\LiftLog\lib\workout-logger.ts:815 [WorkoutLogger.saveCurrentWorkout] Found 1 existing in-progress workouts
+S:\Program Files\LiftLog\lib\workout-logger.ts:829 [WorkoutLogger.saveCurrentWorkout] After adding workout, total in-progress: 1
+S:\Program Files\LiftLog\lib\workout-logger.ts:832 [WorkoutLogger.saveCurrentWorkout] Saved to localStorage successfully
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1689 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 1: Barbell Squat - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 2: Bench Press (Flat) - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 3: Barbell Bent Over Row - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1689 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 1: Barbell Squat - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 2: Bench Press (Flat) - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 3: Barbell Bent Over Row - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\components\ExerciseGroups.tsx:234 [v0] Rendering minus indicator for set {exerciseName: 'Bench Press (Flat)', setIndex: 0, setId: 'f3irvu26w', reps: 0, weight: 0, …}
+S:\Program Files\LiftLog\components\workout-logger\components\ExerciseGroups.tsx:234 [v0] Rendering minus indicator for set {exerciseName: 'Bench Press (Flat)', setIndex: 1, setId: 's93lt4s1i', reps: 0, weight: 0, …}
+S:\Program Files\LiftLog\components\workout-logger\components\ExerciseGroups.tsx:234 [v0] Rendering minus indicator for set {exerciseName: 'Barbell Bent Over Row', setIndex: 0, setId: '9blljk5gt', reps: 0, weight: 0, …}
+S:\Program Files\LiftLog\components\workout-logger\components\ExerciseGroups.tsx:234 [v0] Rendering minus indicator for set {exerciseName: 'Barbell Bent Over Row', setIndex: 1, setId: 'zf5baichw', reps: 0, weight: 0, …}
+S:\Program Files\LiftLog\components\workout-logger\components\ExerciseGroups.tsx:234 [v0] Rendering minus indicator for set {exerciseName: 'Bench Press (Flat)', setIndex: 0, setId: 'f3irvu26w', reps: 0, weight: 0, …}
+S:\Program Files\LiftLog\components\workout-logger\components\ExerciseGroups.tsx:234 [v0] Rendering minus indicator for set {exerciseName: 'Bench Press (Flat)', setIndex: 1, setId: 's93lt4s1i', reps: 0, weight: 0, …}
+S:\Program Files\LiftLog\components\workout-logger\components\ExerciseGroups.tsx:234 [v0] Rendering minus indicator for set {exerciseName: 'Barbell Bent Over Row', setIndex: 0, setId: '9blljk5gt', reps: 0, weight: 0, …}
+S:\Program Files\LiftLog\components\workout-logger\components\ExerciseGroups.tsx:234 [v0] Rendering minus indicator for set {exerciseName: 'Barbell Bent Over Row', setIndex: 1, setId: 'zf5baichw', reps: 0, weight: 0, …}
+S:\Program Files\LiftLog\lib\workout-logger.ts:1154 [WorkoutLogger.completeWorkout] Found 1 in-progress workouts, looking for ID: nva48a55t
+S:\Program Files\LiftLog\lib\workout-logger.ts:1155 [WorkoutLogger.completeWorkout] Available workout IDs: ['nva48a55t']
+S:\Program Files\LiftLog\lib\connection-monitor.ts:85 [ConnectionMonitor] Added to sync queue, total: 1
+S:\Program Files\LiftLog\lib\connection-monitor.ts:103 [ConnectionMonitor] Processing sync queue: 1 items
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1689 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 1: Barbell Squat - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 2: Bench Press (Flat) - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 3: Barbell Bent Over Row - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1689 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 1: Barbell Squat - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 2: Bench Press (Flat) - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 3: Barbell Bent Over Row - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\components\ExerciseGroups.tsx:234 [v0] Rendering minus indicator for set {exerciseName: 'Bench Press (Flat)', setIndex: 0, setId: 'f3irvu26w', reps: 0, weight: 0, …}
+S:\Program Files\LiftLog\components\workout-logger\components\ExerciseGroups.tsx:234 [v0] Rendering minus indicator for set {exerciseName: 'Bench Press (Flat)', setIndex: 1, setId: 's93lt4s1i', reps: 0, weight: 0, …}
+S:\Program Files\LiftLog\components\workout-logger\components\ExerciseGroups.tsx:234 [v0] Rendering minus indicator for set {exerciseName: 'Barbell Bent Over Row', setIndex: 0, setId: '9blljk5gt', reps: 0, weight: 0, …}
+S:\Program Files\LiftLog\components\workout-logger\components\ExerciseGroups.tsx:234 [v0] Rendering minus indicator for set {exerciseName: 'Barbell Bent Over Row', setIndex: 1, setId: 'zf5baichw', reps: 0, weight: 0, …}
+S:\Program Files\LiftLog\components\workout-logger\components\ExerciseGroups.tsx:234 [v0] Rendering minus indicator for set {exerciseName: 'Bench Press (Flat)', setIndex: 0, setId: 'f3irvu26w', reps: 0, weight: 0, …}
+S:\Program Files\LiftLog\components\workout-logger\components\ExerciseGroups.tsx:234 [v0] Rendering minus indicator for set {exerciseName: 'Bench Press (Flat)', setIndex: 1, setId: 's93lt4s1i', reps: 0, weight: 0, …}
+S:\Program Files\LiftLog\components\workout-logger\components\ExerciseGroups.tsx:234 [v0] Rendering minus indicator for set {exerciseName: 'Barbell Bent Over Row', setIndex: 0, setId: '9blljk5gt', reps: 0, weight: 0, …}
+S:\Program Files\LiftLog\components\workout-logger\components\ExerciseGroups.tsx:234 [v0] Rendering minus indicator for set {exerciseName: 'Barbell Bent Over Row', setIndex: 1, setId: 'zf5baichw', reps: 0, weight: 0, …}
+S:\Program Files\LiftLog\lib\workout-logger.ts:2274 [WorkoutLogger] Syncing 4 completed workouts to database
+S:\Program Files\LiftLog\lib\workout-logger.ts:1238 [WorkoutLogger] Completed workout synced to database
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1689 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 1: Barbell Squat - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 2: Bench Press (Flat) - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 3: Barbell Bent Over Row - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1689 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 1: Barbell Squat - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 2: Bench Press (Flat) - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 3: Barbell Bent Over Row - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\components\ExerciseGroups.tsx:234 [v0] Rendering minus indicator for set {exerciseName: 'Bench Press (Flat)', setIndex: 0, setId: 'f3irvu26w', reps: 0, weight: 0, …}
+S:\Program Files\LiftLog\components\workout-logger\components\ExerciseGroups.tsx:234 [v0] Rendering minus indicator for set {exerciseName: 'Bench Press (Flat)', setIndex: 1, setId: 's93lt4s1i', reps: 0, weight: 0, …}
+S:\Program Files\LiftLog\components\workout-logger\components\ExerciseGroups.tsx:234 [v0] Rendering minus indicator for set {exerciseName: 'Barbell Bent Over Row', setIndex: 0, setId: '9blljk5gt', reps: 0, weight: 0, …}
+S:\Program Files\LiftLog\components\workout-logger\components\ExerciseGroups.tsx:234 [v0] Rendering minus indicator for set {exerciseName: 'Barbell Bent Over Row', setIndex: 1, setId: 'zf5baichw', reps: 0, weight: 0, …}
+S:\Program Files\LiftLog\components\workout-logger\components\ExerciseGroups.tsx:234 [v0] Rendering minus indicator for set {exerciseName: 'Bench Press (Flat)', setIndex: 0, setId: 'f3irvu26w', reps: 0, weight: 0, …}
+S:\Program Files\LiftLog\components\workout-logger\components\ExerciseGroups.tsx:234 [v0] Rendering minus indicator for set {exerciseName: 'Bench Press (Flat)', setIndex: 1, setId: 's93lt4s1i', reps: 0, weight: 0, …}
+S:\Program Files\LiftLog\components\workout-logger\components\ExerciseGroups.tsx:234 [v0] Rendering minus indicator for set {exerciseName: 'Barbell Bent Over Row', setIndex: 0, setId: '9blljk5gt', reps: 0, weight: 0, …}
+S:\Program Files\LiftLog\components\workout-logger\components\ExerciseGroups.tsx:234 [v0] Rendering minus indicator for set {exerciseName: 'Barbell Bent Over Row', setIndex: 1, setId: 'zf5baichw', reps: 0, weight: 0, …}
+S:\Program Files\LiftLog\lib\workout-logger.ts:2299 [WorkoutLogger] Successfully synced completed workouts
+S:\Program Files\LiftLog\lib\workout-logger.ts:2039 [WorkoutLogger] Loading user data from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2046 [WorkoutLogger] Testing database access...
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:481 Program state changed, reloading workout...
+S:\Program Files\LiftLog\app\page.tsx:173 [v0] handleWorkoutComplete called - workout completed
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1689 Rendering workout with 0 exercises
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1689 Rendering workout with 0 exercises
+S:\Program Files\LiftLog\lib\workout-logger.ts:2039 [WorkoutLogger] Loading user data from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2046 [WorkoutLogger] Testing database access...
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:197 💾 RAW LOCALSTORAGE CHECK: {inProgressKey: 'liftlog_in_progress_workouts', rawValue: null, parsed: null}
+S:\Program Files\LiftLog\lib\workout-logger.ts:2039 [WorkoutLogger] Loading user data from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2046 [WorkoutLogger] Testing database access...
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:197 💾 RAW LOCALSTORAGE CHECK: {inProgressKey: 'liftlog_in_progress_workouts', rawValue: null, parsed: null}
+S:\Program Files\LiftLog\lib\workout-logger.ts:2062 [WorkoutLogger] Loading completed workouts...
+S:\Program Files\LiftLog\lib\workout-logger.ts:2062 [WorkoutLogger] Loading completed workouts...
+S:\Program Files\LiftLog\lib\workout-logger.ts:2077 [WorkoutLogger] Found 4 workouts in database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2078 [WorkoutLogger] Sample workout data: {id: 'thgcfsn28', user_id: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c', program_id: '0f1a9e64-fd05-4b88-94c0-2f79ce754b28', workout_name: 'Full Body Accessory', start_time: 1760706091886, …}
+S:\Program Files\LiftLog\lib\workout-logger.ts:2101 [WorkoutLogger] Loaded 4 workouts from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2113 [WorkoutLogger] Loading in-progress workouts...
+S:\Program Files\LiftLog\lib\workout-logger.ts:2062 [WorkoutLogger] Loading completed workouts...
+S:\Program Files\LiftLog\lib\workout-logger.ts:2077 [WorkoutLogger] Found 4 workouts in database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2078 [WorkoutLogger] Sample workout data: {id: 'thgcfsn28', user_id: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c', program_id: '0f1a9e64-fd05-4b88-94c0-2f79ce754b28', workout_name: 'Full Body Accessory', start_time: 1760706091886, …}
+S:\Program Files\LiftLog\lib\workout-logger.ts:2101 [WorkoutLogger] Loaded 4 workouts from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2113 [WorkoutLogger] Loading in-progress workouts...
+S:\Program Files\LiftLog\lib\workout-logger.ts:2157 [WorkoutLogger] No in-progress workouts found in database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2160 [WorkoutLogger] Database loading completed. Total records loaded: 4
+S:\Program Files\LiftLog\lib\workout-logger.ts:2077 [WorkoutLogger] Found 4 workouts in database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2078 [WorkoutLogger] Sample workout data: {id: 'thgcfsn28', user_id: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c', program_id: '0f1a9e64-fd05-4b88-94c0-2f79ce754b28', workout_name: 'Full Body Accessory', start_time: 1760706091886, …}
+S:\Program Files\LiftLog\lib\workout-logger.ts:2101 [WorkoutLogger] Loaded 4 workouts from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2113 [WorkoutLogger] Loading in-progress workouts...
+S:\Program Files\LiftLog\lib\workout-logger.ts:2157 [WorkoutLogger] No in-progress workouts found in database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2160 [WorkoutLogger] Database loading completed. Total records loaded: 4
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:101 ===== STORAGE DEBUG =====
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:122 IN-PROGRESS WORKOUTS: None
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:144 WORKOUT HISTORY: None
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:147 ===== END STORAGE DEBUG =====
+S:\Program Files\LiftLog\lib\program-state.ts:974 [ProgramState] Found active program in database: 0f1a9e64-fd05-4b88-94c0-2f79ce754b28
+S:\Program Files\LiftLog\lib\program-state.ts:237 [ProgramState] Loaded template from database: 0f1a9e64-fd05-4b88-94c0-2f79ce754b28
+S:\Program Files\LiftLog\lib\workout-logger.ts:1370 [WorkoutLogger] Week 1 Day 1 completion: {found: true, userId: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c'}
+S:\Program Files\LiftLog\lib\program-state.ts:1012 [ProgramState] Loaded active program from database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2157 [WorkoutLogger] No in-progress workouts found in database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2160 [WorkoutLogger] Database loading completed. Total records loaded: 4
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:101 ===== STORAGE DEBUG =====
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:122 IN-PROGRESS WORKOUTS: None
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:144 WORKOUT HISTORY: None
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:147 ===== END STORAGE DEBUG =====
+S:\Program Files\LiftLog\lib\program-state.ts:1043 [ProgramState] Loaded program history from database
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:487 Program state after refresh: {currentWeek: 1, currentDay: 3, timestamp: '2025-10-17T18:08:26.880Z'}
+S:\Program Files\LiftLog\lib\workout-logger.ts:2039 [WorkoutLogger] Loading user data from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2046 [WorkoutLogger] Testing database access...
+S:\Program Files\LiftLog\lib\workout-logger.ts:2039 [WorkoutLogger] Loading user data from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2046 [WorkoutLogger] Testing database access...
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:448 No existing workout or initialWorkout, loading current workout from program
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:448 No existing workout or initialWorkout, loading current workout from program
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1689 Rendering workout with 0 exercises
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1689 Rendering workout with 0 exercises
+S:\Program Files\LiftLog\lib\workout-logger.ts:2062 [WorkoutLogger] Loading completed workouts...
+S:\Program Files\LiftLog\lib\progression-router.ts:135 [ProgressionRouter] Routing progression calculation: {exerciseName: 'Pullup (Normal Grip)', category: 'compound', templateSchemeType: 'linear', templateConfigType: undefined, resolvedStrategy: 'linear', …}
+S:\Program Files\LiftLog\lib\progression-tier-resolver.ts:35 [ProgressionTierResolver] Resolving tier for: Pullup (Normal Grip) {exerciseLibraryId: '9105b309-da43-4fbb-b88b-77db9ee8eeae', category: 'compound', hasExerciseId: true}
+S:\Program Files\LiftLog\lib\progression-router.ts:135 [ProgressionRouter] Routing progression calculation: {exerciseName: 'Front Squat', category: 'compound', templateSchemeType: 'linear', templateConfigType: undefined, resolvedStrategy: 'linear', …}
+S:\Program Files\LiftLog\lib\progression-tier-resolver.ts:35 [ProgressionTierResolver] Resolving tier for: Front Squat {exerciseLibraryId: 'fb594210-799d-478c-8cab-00b71ef25482', category: 'compound', hasExerciseId: true}
+S:\Program Files\LiftLog\lib\progression-router.ts:135 [ProgressionRouter] Routing progression calculation: {exerciseName: 'Dumbbell Lateral Raise', category: 'isolation', templateSchemeType: 'linear', templateConfigType: undefined, resolvedStrategy: 'linear', …}
+S:\Program Files\LiftLog\lib\progression-tier-resolver.ts:35 [ProgressionTierResolver] Resolving tier for: Dumbbell Lateral Raise {exerciseLibraryId: '87674713-a261-4b1f-b97a-9a8ec492b833', category: 'isolation', hasExerciseId: true}
+S:\Program Files\LiftLog\lib\workout-logger.ts:2062 [WorkoutLogger] Loading completed workouts...
+S:\Program Files\LiftLog\lib\progression-router.ts:135 [ProgressionRouter] Routing progression calculation: {exerciseName: 'Pullup (Normal Grip)', category: 'compound', templateSchemeType: 'linear', templateConfigType: undefined, resolvedStrategy: 'linear', …}
+S:\Program Files\LiftLog\lib\progression-tier-resolver.ts:35 [ProgressionTierResolver] Resolving tier for: Pullup (Normal Grip) {exerciseLibraryId: '9105b309-da43-4fbb-b88b-77db9ee8eeae', category: 'compound', hasExerciseId: true}
+S:\Program Files\LiftLog\lib\progression-router.ts:135 [ProgressionRouter] Routing progression calculation: {exerciseName: 'Front Squat', category: 'compound', templateSchemeType: 'linear', templateConfigType: undefined, resolvedStrategy: 'linear', …}
+S:\Program Files\LiftLog\lib\progression-tier-resolver.ts:35 [ProgressionTierResolver] Resolving tier for: Front Squat {exerciseLibraryId: 'fb594210-799d-478c-8cab-00b71ef25482', category: 'compound', hasExerciseId: true}
+S:\Program Files\LiftLog\lib\workout-logger.ts:2077 [WorkoutLogger] Found 4 workouts in database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2078 [WorkoutLogger] Sample workout data: {id: 'thgcfsn28', user_id: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c', program_id: '0f1a9e64-fd05-4b88-94c0-2f79ce754b28', workout_name: 'Full Body Accessory', start_time: 1760706091886, …}
+S:\Program Files\LiftLog\lib\workout-logger.ts:2101 [WorkoutLogger] Loaded 4 workouts from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2113 [WorkoutLogger] Loading in-progress workouts...
+S:\Program Files\LiftLog\lib\progression-tier-resolver.ts:50 [ProgressionTierResolver] ✅ Resolved from DATABASE: {exerciseName: 'Dumbbell Lateral Raise', tierName: 'small_isolation', tierRules: {…}}
+S:\Program Files\LiftLog\lib\progression-router.ts:216 [ProgressionRouter] Tier resolution: {exerciseName: 'Dumbbell Lateral Raise', source: 'database', tierName: 'small_isolation', tierRules: {…}}
+S:\Program Files\LiftLog\lib\progression-engines\linear-engine.ts:48 [LinearProgressionEngine] Calculating progression: {exerciseName: 'Dumbbell Lateral Raise', currentWeek: 1, hasPreviousData: false, userWeightAdjustment: undefined}
+S:\Program Files\LiftLog\lib\progression-tier-resolver.ts:50 [ProgressionTierResolver] ✅ Resolved from DATABASE: {exerciseName: 'Pullup (Normal Grip)', tierName: 'large_compound', tierRules: {…}}
+S:\Program Files\LiftLog\lib\progression-router.ts:216 [ProgressionRouter] Tier resolution: {exerciseName: 'Pullup (Normal Grip)', source: 'database', tierName: 'large_compound', tierRules: {…}}
+S:\Program Files\LiftLog\lib\progression-engines\linear-engine.ts:48 [LinearProgressionEngine] Calculating progression: {exerciseName: 'Pullup (Normal Grip)', currentWeek: 1, hasPreviousData: false, userWeightAdjustment: undefined}
+S:\Program Files\LiftLog\lib\progression-tier-resolver.ts:50 [ProgressionTierResolver] ✅ Resolved from DATABASE: {exerciseName: 'Front Squat', tierName: 'large_compound', tierRules: {…}}
+S:\Program Files\LiftLog\lib\progression-router.ts:216 [ProgressionRouter] Tier resolution: {exerciseName: 'Front Squat', source: 'database', tierName: 'large_compound', tierRules: {…}}
+S:\Program Files\LiftLog\lib\progression-engines\linear-engine.ts:48 [LinearProgressionEngine] Calculating progression: {exerciseName: 'Front Squat', currentWeek: 1, hasPreviousData: false, userWeightAdjustment: undefined}
+S:\Program Files\LiftLog\lib\workout-logger.ts:1010 [v0] Creating new workout for week 1 day 3
+S:\Program Files\LiftLog\lib\workout-logger.ts:1044 [WorkoutLogger] Set 1 starting with empty reps (no previous performance data)
+S:\Program Files\LiftLog\lib\workout-logger.ts:1044 [WorkoutLogger] Set 2 starting with empty reps (no previous performance data)
+S:\Program Files\LiftLog\lib\workout-logger.ts:1044 [WorkoutLogger] Set 3 starting with empty reps (no previous performance data)
+S:\Program Files\LiftLog\lib\workout-logger.ts:1044 [WorkoutLogger] Set 1 starting with empty reps (no previous performance data)
+S:\Program Files\LiftLog\lib\workout-logger.ts:1044 [WorkoutLogger] Set 2 starting with empty reps (no previous performance data)
+S:\Program Files\LiftLog\lib\workout-logger.ts:1044 [WorkoutLogger] Set 3 starting with empty reps (no previous performance data)
+S:\Program Files\LiftLog\lib\workout-logger.ts:1044 [WorkoutLogger] Set 1 starting with empty reps (no previous performance data)
+S:\Program Files\LiftLog\lib\workout-logger.ts:1044 [WorkoutLogger] Set 2 starting with empty reps (no previous performance data)
+S:\Program Files\LiftLog\lib\workout-logger.ts:1044 [WorkoutLogger] Set 3 starting with empty reps (no previous performance data)
+S:\Program Files\LiftLog\lib\workout-logger.ts:1060 [v0] Created workout structure: {id: '1eb0txuag', exerciseCount: 3, exercises: Array(3)}
+S:\Program Files\LiftLog\lib\workout-logger.ts:810 [WorkoutLogger.saveCurrentWorkout] Using storage key: liftlog_in_progress_workouts_6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c for workout ID: 1eb0txuag
+S:\Program Files\LiftLog\lib\workout-logger.ts:815 [WorkoutLogger.saveCurrentWorkout] Found 0 existing in-progress workouts
+S:\Program Files\LiftLog\lib\workout-logger.ts:829 [WorkoutLogger.saveCurrentWorkout] After adding workout, total in-progress: 1
+S:\Program Files\LiftLog\lib\workout-logger.ts:832 [WorkoutLogger.saveCurrentWorkout] Saved to localStorage successfully
+S:\Program Files\LiftLog\lib\workout-logger.ts:1070 [v0] Saved workout to localStorage
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:523 Loaded new workout after program change: {week: 1, day: 3, workoutName: 'Full Body Accessory'}
+S:\Program Files\LiftLog\lib\progression-router.ts:135 [ProgressionRouter] Routing progression calculation: {exerciseName: 'Dumbbell Lateral Raise', category: 'isolation', templateSchemeType: 'linear', templateConfigType: undefined, resolvedStrategy: 'linear', …}
+S:\Program Files\LiftLog\lib\progression-tier-resolver.ts:35 [ProgressionTierResolver] Resolving tier for: Dumbbell Lateral Raise {exerciseLibraryId: '87674713-a261-4b1f-b97a-9a8ec492b833', category: 'isolation', hasExerciseId: true}
+S:\Program Files\LiftLog\lib\progression-router.ts:135 [ProgressionRouter] Routing progression calculation: {exerciseName: 'Pullup (Normal Grip)', category: 'compound', templateSchemeType: 'linear', templateConfigType: undefined, resolvedStrategy: 'linear', …}
+S:\Program Files\LiftLog\lib\progression-tier-resolver.ts:35 [ProgressionTierResolver] Resolving tier for: Pullup (Normal Grip) {exerciseLibraryId: '9105b309-da43-4fbb-b88b-77db9ee8eeae', category: 'compound', hasExerciseId: true}
+S:\Program Files\LiftLog\lib\progression-router.ts:135 [ProgressionRouter] Routing progression calculation: {exerciseName: 'Front Squat', category: 'compound', templateSchemeType: 'linear', templateConfigType: undefined, resolvedStrategy: 'linear', …}
+S:\Program Files\LiftLog\lib\progression-tier-resolver.ts:35 [ProgressionTierResolver] Resolving tier for: Front Squat {exerciseLibraryId: 'fb594210-799d-478c-8cab-00b71ef25482', category: 'compound', hasExerciseId: true}
+S:\Program Files\LiftLog\lib\workout-logger.ts:2157 [WorkoutLogger] No in-progress workouts found in database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2160 [WorkoutLogger] Database loading completed. Total records loaded: 4
+S:\Program Files\LiftLog\lib\progression-tier-resolver.ts:50 [ProgressionTierResolver] ✅ Resolved from DATABASE: {exerciseName: 'Front Squat', tierName: 'large_compound', tierRules: {…}}
+S:\Program Files\LiftLog\lib\progression-router.ts:216 [ProgressionRouter] Tier resolution: {exerciseName: 'Front Squat', source: 'database', tierName: 'large_compound', tierRules: {…}}
+S:\Program Files\LiftLog\lib\progression-engines\linear-engine.ts:48 [LinearProgressionEngine] Calculating progression: {exerciseName: 'Front Squat', currentWeek: 1, hasPreviousData: false, userWeightAdjustment: undefined}
+S:\Program Files\LiftLog\lib\progression-tier-resolver.ts:50 [ProgressionTierResolver] ✅ Resolved from DATABASE: {exerciseName: 'Pullup (Normal Grip)', tierName: 'large_compound', tierRules: {…}}
+S:\Program Files\LiftLog\lib\progression-router.ts:216 [ProgressionRouter] Tier resolution: {exerciseName: 'Pullup (Normal Grip)', source: 'database', tierName: 'large_compound', tierRules: {…}}
+S:\Program Files\LiftLog\lib\progression-engines\linear-engine.ts:48 [LinearProgressionEngine] Calculating progression: {exerciseName: 'Pullup (Normal Grip)', currentWeek: 1, hasPreviousData: false, userWeightAdjustment: undefined}
+S:\Program Files\LiftLog\lib\progression-tier-resolver.ts:50 [ProgressionTierResolver] ✅ Resolved from DATABASE: {exerciseName: 'Dumbbell Lateral Raise', tierName: 'small_isolation', tierRules: {…}}
+S:\Program Files\LiftLog\lib\progression-router.ts:216 [ProgressionRouter] Tier resolution: {exerciseName: 'Dumbbell Lateral Raise', source: 'database', tierName: 'small_isolation', tierRules: {…}}
+S:\Program Files\LiftLog\lib\progression-engines\linear-engine.ts:48 [LinearProgressionEngine] Calculating progression: {exerciseName: 'Dumbbell Lateral Raise', currentWeek: 1, hasPreviousData: false, userWeightAdjustment: undefined}
+S:\Program Files\LiftLog\lib\workout-logger.ts:987 [v0] Found existing workout for week 1 day 3 with 3 exercises
+S:\Program Files\LiftLog\lib\workout-logger.ts:996 [v0] Workout structure: {id: '1eb0txuag', exerciseCount: 3, exercises: Array(3)}
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:461 🆕 COMPONENT NEW WORKOUT - Created from current program workout: {id: '1eb0txuag', week: 1, day: 3, exerciseCount: 3, workoutName: 'Full Body Accessory'}
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1689 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 1: Front Squat - 3 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 2: Pullup (Normal Grip) - 3 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 3: Dumbbell Lateral Raise - 3 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1689 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 1: Front Squat - 3 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 2: Pullup (Normal Grip) - 3 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 3: Dumbbell Lateral Raise - 3 sets
+S:\Program Files\LiftLog\lib\workout-logger.ts:2077 [WorkoutLogger] Found 4 workouts in database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2078 [WorkoutLogger] Sample workout data: {id: 'thgcfsn28', user_id: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c', program_id: '0f1a9e64-fd05-4b88-94c0-2f79ce754b28', workout_name: 'Full Body Accessory', start_time: 1760706091886, …}
+S:\Program Files\LiftLog\lib\workout-logger.ts:2101 [WorkoutLogger] Loaded 4 workouts from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2113 [WorkoutLogger] Loading in-progress workouts...
+S:\Program Files\LiftLog\lib\progression-router.ts:135 [ProgressionRouter] Routing progression calculation: {exerciseName: 'Dumbbell Lateral Raise', category: 'isolation', templateSchemeType: 'linear', templateConfigType: undefined, resolvedStrategy: 'linear', …}
+S:\Program Files\LiftLog\lib\progression-tier-resolver.ts:35 [ProgressionTierResolver] Resolving tier for: Dumbbell Lateral Raise {exerciseLibraryId: '87674713-a261-4b1f-b97a-9a8ec492b833', category: 'isolation', hasExerciseId: true}
+S:\Program Files\LiftLog\lib\program-state.ts:974 [ProgramState] Found active program in database: 0f1a9e64-fd05-4b88-94c0-2f79ce754b28
+S:\Program Files\LiftLog\lib\program-state.ts:237 [ProgramState] Loaded template from database: 0f1a9e64-fd05-4b88-94c0-2f79ce754b28
+S:\Program Files\LiftLog\lib\workout-logger.ts:1370 [WorkoutLogger] Week 1 Day 1 completion: {found: true, userId: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c'}
+S:\Program Files\LiftLog\lib\program-state.ts:1012 [ProgramState] Loaded active program from database
+S:\Program Files\LiftLog\lib\progression-tier-resolver.ts:50 [ProgressionTierResolver] ✅ Resolved from DATABASE: {exerciseName: 'Front Squat', tierName: 'large_compound', tierRules: {…}}
+S:\Program Files\LiftLog\lib\progression-router.ts:216 [ProgressionRouter] Tier resolution: {exerciseName: 'Front Squat', source: 'database', tierName: 'large_compound', tierRules: {…}}
+S:\Program Files\LiftLog\lib\progression-engines\linear-engine.ts:48 [LinearProgressionEngine] Calculating progression: {exerciseName: 'Front Squat', currentWeek: 1, hasPreviousData: false, userWeightAdjustment: undefined}
+S:\Program Files\LiftLog\lib\progression-tier-resolver.ts:50 [ProgressionTierResolver] ✅ Resolved from DATABASE: {exerciseName: 'Pullup (Normal Grip)', tierName: 'large_compound', tierRules: {…}}
+S:\Program Files\LiftLog\lib\progression-router.ts:216 [ProgressionRouter] Tier resolution: {exerciseName: 'Pullup (Normal Grip)', source: 'database', tierName: 'large_compound', tierRules: {…}}
+S:\Program Files\LiftLog\lib\progression-engines\linear-engine.ts:48 [LinearProgressionEngine] Calculating progression: {exerciseName: 'Pullup (Normal Grip)', currentWeek: 1, hasPreviousData: false, userWeightAdjustment: undefined}
+S:\Program Files\LiftLog\lib\progression-tier-resolver.ts:50 [ProgressionTierResolver] ✅ Resolved from DATABASE: {exerciseName: 'Dumbbell Lateral Raise', tierName: 'small_isolation', tierRules: {…}}
+S:\Program Files\LiftLog\lib\progression-router.ts:216 [ProgressionRouter] Tier resolution: {exerciseName: 'Dumbbell Lateral Raise', source: 'database', tierName: 'small_isolation', tierRules: {…}}
+S:\Program Files\LiftLog\lib\progression-engines\linear-engine.ts:48 [LinearProgressionEngine] Calculating progression: {exerciseName: 'Dumbbell Lateral Raise', currentWeek: 1, hasPreviousData: false, userWeightAdjustment: undefined}
+S:\Program Files\LiftLog\lib\workout-logger.ts:987 [v0] Found existing workout for week 1 day 3 with 3 exercises
+S:\Program Files\LiftLog\lib\workout-logger.ts:996 [v0] Workout structure: {id: '1eb0txuag', exerciseCount: 3, exercises: Array(3)}
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:461 🆕 COMPONENT NEW WORKOUT - Created from current program workout: {id: '1eb0txuag', week: 1, day: 3, exerciseCount: 3, workoutName: 'Full Body Accessory'}
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1689 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 1: Front Squat - 3 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 2: Pullup (Normal Grip) - 3 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 3: Dumbbell Lateral Raise - 3 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1689 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 1: Front Squat - 3 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 2: Pullup (Normal Grip) - 3 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 3: Dumbbell Lateral Raise - 3 sets
+S:\Program Files\LiftLog\lib\workout-logger.ts:2157 [WorkoutLogger] No in-progress workouts found in database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2160 [WorkoutLogger] Database loading completed. Total records loaded: 4
+S:\Program Files\LiftLog\lib\program-state.ts:1043 [ProgramState] Loaded program history from database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2039 [WorkoutLogger] Loading user data from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2046 [WorkoutLogger] Testing database access...
+S:\Program Files\LiftLog\lib\workout-logger.ts:2062 [WorkoutLogger] Loading completed workouts...
+S:\Program Files\LiftLog\lib\program-state.ts:974 [ProgramState] Found active program in database: 0f1a9e64-fd05-4b88-94c0-2f79ce754b28
+S:\Program Files\LiftLog\lib\program-state.ts:237 [ProgramState] Loaded template from database: 0f1a9e64-fd05-4b88-94c0-2f79ce754b28
+S:\Program Files\LiftLog\lib\workout-logger.ts:1370 [WorkoutLogger] Week 1 Day 1 completion: {found: true, userId: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c'}
+S:\Program Files\LiftLog\lib\program-state.ts:1012 [ProgramState] Loaded active program from database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2077 [WorkoutLogger] Found 4 workouts in database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2078 [WorkoutLogger] Sample workout data: {id: 'thgcfsn28', user_id: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c', program_id: '0f1a9e64-fd05-4b88-94c0-2f79ce754b28', workout_name: 'Full Body Accessory', start_time: 1760706091886, …}
+S:\Program Files\LiftLog\lib\workout-logger.ts:2101 [WorkoutLogger] Loaded 4 workouts from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2113 [WorkoutLogger] Loading in-progress workouts...
+S:\Program Files\LiftLog\lib\program-state.ts:1043 [ProgramState] Loaded program history from database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2039 [WorkoutLogger] Loading user data from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2046 [WorkoutLogger] Testing database access...
+S:\Program Files\LiftLog\lib\workout-logger.ts:2157 [WorkoutLogger] No in-progress workouts found in database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2160 [WorkoutLogger] Database loading completed. Total records loaded: 4
+S:\Program Files\LiftLog\lib\program-state.ts:747 [ProgramState] Recalculating progress for user: 6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c
+S:\Program Files\LiftLog\lib\program-state.ts:748 [ProgramState] Days per week: 3
+S:\Program Files\LiftLog\lib\workout-logger.ts:1370 [WorkoutLogger] Week 1 Day 1 completion: {found: true, userId: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c'}
+S:\Program Files\LiftLog\lib\program-state.ts:760 [ProgramState] Completed workouts found: (4) [{…}, {…}, {…}, {…}]
+S:\Program Files\LiftLog\lib\workout-logger.ts:1370 [WorkoutLogger] Week 1 Day 1 completion: {found: true, userId: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c'}
+S:\Program Files\LiftLog\lib\program-state.ts:768 [ProgramState] Week 1, Day 1: COMPLETED
+S:\Program Files\LiftLog\lib\program-state.ts:768 [ProgramState] Week 1, Day 2: COMPLETED
+S:\Program Files\LiftLog\lib\program-state.ts:768 [ProgramState] Week 1, Day 3: COMPLETED
+S:\Program Files\LiftLog\lib\program-state.ts:768 [ProgramState] Week 2, Day 1: COMPLETED
+S:\Program Files\LiftLog\lib\program-state.ts:768 [ProgramState] Week 2, Day 2: INCOMPLETE
+S:\Program Files\LiftLog\lib\program-state.ts:774 [ProgramState] Recalculated progress to week 2 day 2
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:152 [MOUNT] Progress recalculation completed
+S:\Program Files\LiftLog\lib\workout-logger.ts:2062 [WorkoutLogger] Loading completed workouts...
+S:\Program Files\LiftLog\lib\workout-logger.ts:2077 [WorkoutLogger] Found 4 workouts in database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2078 [WorkoutLogger] Sample workout data: {id: 'thgcfsn28', user_id: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c', program_id: '0f1a9e64-fd05-4b88-94c0-2f79ce754b28', workout_name: 'Full Body Accessory', start_time: 1760706091886, …}
+S:\Program Files\LiftLog\lib\workout-logger.ts:2101 [WorkoutLogger] Loaded 4 workouts from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2113 [WorkoutLogger] Loading in-progress workouts...
+S:\Program Files\LiftLog\lib\workout-logger.ts:2157 [WorkoutLogger] No in-progress workouts found in database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2160 [WorkoutLogger] Database loading completed. Total records loaded: 4
+S:\Program Files\LiftLog\lib\program-state.ts:747 [ProgramState] Recalculating progress for user: 6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c
+S:\Program Files\LiftLog\lib\program-state.ts:748 [ProgramState] Days per week: 3
+S:\Program Files\LiftLog\lib\workout-logger.ts:1370 [WorkoutLogger] Week 1 Day 1 completion: {found: true, userId: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c'}
+S:\Program Files\LiftLog\lib\program-state.ts:760 [ProgramState] Completed workouts found: (4) [{…}, {…}, {…}, {…}]
+S:\Program Files\LiftLog\lib\workout-logger.ts:1370 [WorkoutLogger] Week 1 Day 1 completion: {found: true, userId: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c'}
+S:\Program Files\LiftLog\lib\program-state.ts:768 [ProgramState] Week 1, Day 1: COMPLETED
+S:\Program Files\LiftLog\lib\program-state.ts:768 [ProgramState] Week 1, Day 2: COMPLETED
+S:\Program Files\LiftLog\lib\program-state.ts:768 [ProgramState] Week 1, Day 3: COMPLETED
+S:\Program Files\LiftLog\lib\program-state.ts:768 [ProgramState] Week 2, Day 1: COMPLETED
+S:\Program Files\LiftLog\lib\program-state.ts:768 [ProgramState] Week 2, Day 2: INCOMPLETE
+S:\Program Files\LiftLog\lib\program-state.ts:774 [ProgramState] Recalculated progress to week 2 day 2
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:152 [MOUNT] Progress recalculation completed
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1689 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 1: Front Squat - 3 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 2: Pullup (Normal Grip) - 3 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 3: Dumbbell Lateral Raise - 3 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1689 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 1: Front Squat - 3 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 2: Pullup (Normal Grip) - 3 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 3: Dumbbell Lateral Raise - 3 sets
+S:\Program Files\LiftLog\components\workout-calendar.tsx:31 [Calendar] Loading active program instantly
+S:\Program Files\LiftLog\components\workout-calendar.tsx:268 [Calendar] Development tools available at window.CalendarDev
+S:\Program Files\LiftLog\components\workout-calendar.tsx:31 [Calendar] Loading active program instantly
+S:\Program Files\LiftLog\components\workout-calendar.tsx:268 [Calendar] Development tools available at window.CalendarDev
+S:\Program Files\LiftLog\components\workout-calendar.tsx:279 [Calendar] Active program loaded: {name: '2-Week Test Program (DEV ONLY) v2', currentWeek: 2, currentDay: 2, totalWeeks: 2}
+S:\Program Files\LiftLog\components\workout-calendar.tsx:340 [Calendar] Program state appears consistent, no recalculation needed
+S:\Program Files\LiftLog\components\workout-calendar.tsx:279 [Calendar] Active program loaded: {name: '2-Week Test Program (DEV ONLY) v2', currentWeek: 2, currentDay: 2, totalWeeks: 2}
+S:\Program Files\LiftLog\components\workout-calendar.tsx:340 [Calendar] Program state appears consistent, no recalculation needed
+S:\Program Files\LiftLog\components\workout-calendar.tsx:373 [Calendar] Schedule keys order: (3) ['day1', 'day2', 'day3']
+S:\Program Files\LiftLog\components\workout-calendar.tsx:375   Day 1: day1 -> Upper Body Strength
+S:\Program Files\LiftLog\components\workout-calendar.tsx:375   Day 2: day2 -> Lower Body Power
+S:\Program Files\LiftLog\components\workout-calendar.tsx:375   Day 3: day3 -> Full Body Accessory
+S:\Program Files\LiftLog\components\workout-calendar.tsx:457 [Calendar] getWorkoutName for Day 1: {dayIndex: 1, expectedKey: 'day1', workoutName: 'Upper Body Strength', found: true}
+S:\Program Files\LiftLog\lib\workout-logger.ts:1370 [WorkoutLogger] Week 1 Day 1 completion: {found: true, userId: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c'}
+S:\Program Files\LiftLog\components\workout-calendar.tsx:410 [Calendar] Day 1 status: {hasCompletedWorkout: true, userId: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c'}
+S:\Program Files\LiftLog\components\workout-calendar.tsx:457 [Calendar] getWorkoutName for Day 1: {dayIndex: 1, expectedKey: 'day1', workoutName: 'Upper Body Strength', found: true}
+S:\Program Files\LiftLog\components\workout-calendar.tsx:425 [Calendar] Week 2 debug: {firstIncompleteDay: 2, checkingDay: 2, shouldMarkAsCurrent: true, allWeekCompletions: Array(3)}
+S:\Program Files\LiftLog\components\workout-calendar.tsx:425 [Calendar] Week 2 debug: {firstIncompleteDay: 2, checkingDay: 3, shouldMarkAsCurrent: false, allWeekCompletions: Array(3)}
+S:\Program Files\LiftLog\components\workout-calendar.tsx:373 [Calendar] Schedule keys order: (3) ['day1', 'day2', 'day3']
+S:\Program Files\LiftLog\components\workout-calendar.tsx:375   Day 1: day1 -> Upper Body Strength
+S:\Program Files\LiftLog\components\workout-calendar.tsx:375   Day 2: day2 -> Lower Body Power
+S:\Program Files\LiftLog\components\workout-calendar.tsx:375   Day 3: day3 -> Full Body Accessory
+S:\Program Files\LiftLog\components\workout-calendar.tsx:457 [Calendar] getWorkoutName for Day 1: {dayIndex: 1, expectedKey: 'day1', workoutName: 'Upper Body Strength', found: true}
+S:\Program Files\LiftLog\lib\workout-logger.ts:1370 [WorkoutLogger] Week 1 Day 1 completion: {found: true, userId: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c'}
+S:\Program Files\LiftLog\components\workout-calendar.tsx:410 [Calendar] Day 1 status: {hasCompletedWorkout: true, userId: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c'}
+S:\Program Files\LiftLog\components\workout-calendar.tsx:457 [Calendar] getWorkoutName for Day 1: {dayIndex: 1, expectedKey: 'day1', workoutName: 'Upper Body Strength', found: true}
+S:\Program Files\LiftLog\components\workout-calendar.tsx:425 [Calendar] Week 2 debug: {firstIncompleteDay: 2, checkingDay: 2, shouldMarkAsCurrent: true, allWeekCompletions: Array(3)}
+S:\Program Files\LiftLog\components\workout-calendar.tsx:425 [Calendar] Week 2 debug: {firstIncompleteDay: 2, checkingDay: 3, shouldMarkAsCurrent: false, allWeekCompletions: Array(3)}
+S:\Program Files\LiftLog\components\workout-calendar.tsx:268 [Calendar] Development tools available at window.CalendarDev
+S:\Program Files\LiftLog\components\workout-calendar.tsx:74 [Calendar] No active program found after delay, loading...
+S:\Program Files\LiftLog\components\workout-calendar.tsx:279 [Calendar] Active program loaded: {name: '2-Week Test Program (DEV ONLY) v2', currentWeek: 2, currentDay: 2, totalWeeks: 2}
+S:\Program Files\LiftLog\components\workout-calendar.tsx:340 [Calendar] Program state appears consistent, no recalculation needed
+S:\Program Files\LiftLog\components\workout-calendar.tsx:373 [Calendar] Schedule keys order: (3) ['day1', 'day2', 'day3']
+S:\Program Files\LiftLog\components\workout-calendar.tsx:375   Day 1: day1 -> Upper Body Strength
+S:\Program Files\LiftLog\components\workout-calendar.tsx:375   Day 2: day2 -> Lower Body Power
+S:\Program Files\LiftLog\components\workout-calendar.tsx:375   Day 3: day3 -> Full Body Accessory
+S:\Program Files\LiftLog\components\workout-calendar.tsx:457 [Calendar] getWorkoutName for Day 1: {dayIndex: 1, expectedKey: 'day1', workoutName: 'Upper Body Strength', found: true}
+S:\Program Files\LiftLog\lib\workout-logger.ts:1370 [WorkoutLogger] Week 1 Day 1 completion: {found: true, userId: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c'}
+S:\Program Files\LiftLog\components\workout-calendar.tsx:410 [Calendar] Day 1 status: {hasCompletedWorkout: true, userId: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c'}
+S:\Program Files\LiftLog\components\workout-calendar.tsx:457 [Calendar] getWorkoutName for Day 1: {dayIndex: 1, expectedKey: 'day1', workoutName: 'Upper Body Strength', found: true}
+S:\Program Files\LiftLog\components\workout-calendar.tsx:425 [Calendar] Week 2 debug: {firstIncompleteDay: 2, checkingDay: 2, shouldMarkAsCurrent: true, allWeekCompletions: Array(3)}
+S:\Program Files\LiftLog\components\workout-calendar.tsx:425 [Calendar] Week 2 debug: {firstIncompleteDay: 2, checkingDay: 3, shouldMarkAsCurrent: false, allWeekCompletions: Array(3)}
+S:\Program Files\LiftLog\components\workout-calendar.tsx:373 [Calendar] Schedule keys order: (3) ['day1', 'day2', 'day3']
+S:\Program Files\LiftLog\components\workout-calendar.tsx:375   Day 1: day1 -> Upper Body Strength
+S:\Program Files\LiftLog\components\workout-calendar.tsx:375   Day 2: day2 -> Lower Body Power
+S:\Program Files\LiftLog\components\workout-calendar.tsx:375   Day 3: day3 -> Full Body Accessory
+S:\Program Files\LiftLog\components\workout-calendar.tsx:457 [Calendar] getWorkoutName for Day 1: {dayIndex: 1, expectedKey: 'day1', workoutName: 'Upper Body Strength', found: true}
+S:\Program Files\LiftLog\lib\workout-logger.ts:1370 [WorkoutLogger] Week 1 Day 1 completion: {found: true, userId: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c'}
+S:\Program Files\LiftLog\components\workout-calendar.tsx:410 [Calendar] Day 1 status: {hasCompletedWorkout: true, userId: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c'}
+S:\Program Files\LiftLog\components\workout-calendar.tsx:457 [Calendar] getWorkoutName for Day 1: {dayIndex: 1, expectedKey: 'day1', workoutName: 'Upper Body Strength', found: true}
+S:\Program Files\LiftLog\components\workout-calendar.tsx:425 [Calendar] Week 2 debug: {firstIncompleteDay: 2, checkingDay: 2, shouldMarkAsCurrent: true, allWeekCompletions: Array(3)}
+S:\Program Files\LiftLog\components\workout-calendar.tsx:425 [Calendar] Week 2 debug: {firstIncompleteDay: 2, checkingDay: 3, shouldMarkAsCurrent: false, allWeekCompletions: Array(3)}
+S:\Program Files\LiftLog\components\workout-calendar.tsx:268 [Calendar] Development tools available at window.CalendarDev
+S:\Program Files\LiftLog\components\workout-calendar.tsx:474 [v0] Calendar click: {week: 2, day: 2, currentWeek: 2, currentDay: 2}
+S:\Program Files\LiftLog\components\workout-calendar.tsx:476 [v0] Allowing click - calling onWorkoutClick
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1370 User clicked on week 2 day 2
+S:\Program Files\LiftLog\lib\workout-logger.ts:810 [WorkoutLogger.saveCurrentWorkout] Using storage key: liftlog_in_progress_workouts_6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c for workout ID: 1eb0txuag
+S:\Program Files\LiftLog\lib\workout-logger.ts:815 [WorkoutLogger.saveCurrentWorkout] Found 1 existing in-progress workouts
+S:\Program Files\LiftLog\lib\workout-logger.ts:829 [WorkoutLogger.saveCurrentWorkout] After adding workout, total in-progress: 1
+S:\Program Files\LiftLog\lib\workout-logger.ts:832 [WorkoutLogger.saveCurrentWorkout] Saved to localStorage successfully
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1386 Saved in-progress workout before switching
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1514 No existing workout found, creating new one for week 2 day 2
+S:\Program Files\LiftLog\lib\progression-router.ts:440 [ProgressionRouter] 🔍 getPreviousPerformance called: {exerciseId: '0548cc7c-bcc8-4de8-b183-36eaa6cb2de2', exerciseName: 'Deadlift (Conventional)', currentWeek: 2, currentDay: 2, previousWeek: 1, …}
+S:\Program Files\LiftLog\lib\progression-router.ts:454 [ProgressionRouter] Found 3 workouts for Week 1
+S:\Program Files\LiftLog\lib\progression-router.ts:496 [ProgressionRouter] Using workout: Week 1 Day 2 {workoutId: 'rkx07p206', matchedDay: 'YES', hasCompletedSets: true, startTime: '10/17/2025, 5:00:44 PM', exerciseCount: 3, …}
+S:\Program Files\LiftLog\lib\progression-router.ts:518 [ProgressionRouter] ✅ Found exercise: Deadlift (Conventional) {exerciseId: 'deadlift-(conventional)', setsCount: 3}
+S:\Program Files\LiftLog\lib\progression-router.ts:555 [ProgressionRouter] ✅ Returning previous performance: {lastWeight: 255, actualReps: 10, completedSets: 3, targetSets: 3, allSetsCompleted: true, …}
+S:\Program Files\LiftLog\lib\progression-router.ts:135 [ProgressionRouter] Routing progression calculation: {exerciseName: 'Deadlift (Conventional)', category: 'compound', templateSchemeType: 'linear', templateConfigType: undefined, resolvedStrategy: 'linear', …}
+S:\Program Files\LiftLog\lib\progression-tier-resolver.ts:35 [ProgressionTierResolver] Resolving tier for: Deadlift (Conventional) {exerciseLibraryId: '11903e7a-7358-4d7b-b5a0-352378216298', category: 'compound', hasExerciseId: true}
+S:\Program Files\LiftLog\lib\progression-router.ts:440 [ProgressionRouter] 🔍 getPreviousPerformance called: {exerciseId: '66183f8f-441e-4587-a9e4-7aa70647987a', exerciseName: 'Barbell Shoulder Press (Standing)', currentWeek: 2, currentDay: 2, previousWeek: 1, …}
+S:\Program Files\LiftLog\lib\progression-router.ts:454 [ProgressionRouter] Found 3 workouts for Week 1
+S:\Program Files\LiftLog\lib\progression-router.ts:496 [ProgressionRouter] Using workout: Week 1 Day 2 {workoutId: 'rkx07p206', matchedDay: 'YES', hasCompletedSets: true, startTime: '10/17/2025, 5:00:44 PM', exerciseCount: 3, …}
+S:\Program Files\LiftLog\lib\progression-router.ts:518 [ProgressionRouter] ✅ Found exercise: Barbell Shoulder Press (Standing) {exerciseId: 'barbell-shoulder-press-(standing)', setsCount: 3}
+S:\Program Files\LiftLog\lib\progression-router.ts:555 [ProgressionRouter] ✅ Returning previous performance: {lastWeight: 80, actualReps: 10, completedSets: 3, targetSets: 3, allSetsCompleted: true, …}
+S:\Program Files\LiftLog\lib\progression-router.ts:135 [ProgressionRouter] Routing progression calculation: {exerciseName: 'Barbell Shoulder Press (Standing)', category: 'compound', templateSchemeType: 'linear', templateConfigType: undefined, resolvedStrategy: 'linear', …}
+S:\Program Files\LiftLog\lib\progression-tier-resolver.ts:35 [ProgressionTierResolver] Resolving tier for: Barbell Shoulder Press (Standing) {exerciseLibraryId: 'b44628a3-1f85-4b5f-8855-25fb151e96e9', category: 'compound', hasExerciseId: true}
+S:\Program Files\LiftLog\lib\progression-router.ts:440 [ProgressionRouter] 🔍 getPreviousPerformance called: {exerciseId: '1d51e2ea-7687-45e8-af15-51c826244589', exerciseName: 'Barbell Curl (Normal Grip)', currentWeek: 2, currentDay: 2, previousWeek: 1, …}
+S:\Program Files\LiftLog\lib\progression-router.ts:454 [ProgressionRouter] Found 3 workouts for Week 1
+S:\Program Files\LiftLog\lib\progression-router.ts:496 [ProgressionRouter] Using workout: Week 1 Day 2 {workoutId: 'rkx07p206', matchedDay: 'YES', hasCompletedSets: true, startTime: '10/17/2025, 5:00:44 PM', exerciseCount: 3, …}
+S:\Program Files\LiftLog\lib\progression-router.ts:518 [ProgressionRouter] ✅ Found exercise: Barbell Curl (Normal Grip) {exerciseId: 'barbell-curl-(normal-grip)', setsCount: 3}
+S:\Program Files\LiftLog\lib\progression-router.ts:555 [ProgressionRouter] ✅ Returning previous performance: {lastWeight: 60, actualReps: 10, completedSets: 3, targetSets: 3, allSetsCompleted: true, …}
+S:\Program Files\LiftLog\lib\progression-router.ts:135 [ProgressionRouter] Routing progression calculation: {exerciseName: 'Barbell Curl (Normal Grip)', category: 'isolation', templateSchemeType: 'linear', templateConfigType: undefined, resolvedStrategy: 'linear', …}
+S:\Program Files\LiftLog\lib\progression-tier-resolver.ts:35 [ProgressionTierResolver] Resolving tier for: Barbell Curl (Normal Grip) {exerciseLibraryId: '7296e9ef-cd09-4d25-be45-e0c533360fac', category: 'isolation', hasExerciseId: true}
+S:\Program Files\LiftLog\lib\services\linear-progression-tier-service.ts:236 [LinearProgressionTierService] Loaded tier rules for exercise b44628a3-1f85-4b5f-8855-25fb151e96e9: {tierName: 'medium_compound', rules: {…}}
+S:\Program Files\LiftLog\lib\services\linear-progression-tier-service.ts:236 [LinearProgressionTierService] Loaded tier rules for exercise 11903e7a-7358-4d7b-b5a0-352378216298: {tierName: 'large_compound', rules: {…}}
+S:\Program Files\LiftLog\lib\services\linear-progression-tier-service.ts:236 [LinearProgressionTierService] Loaded tier rules for exercise 7296e9ef-cd09-4d25-be45-e0c533360fac: {tierName: 'small_isolation', rules: {…}}
+S:\Program Files\LiftLog\lib\progression-tier-resolver.ts:50 [ProgressionTierResolver] ✅ Resolved from DATABASE: {exerciseName: 'Deadlift (Conventional)', tierName: 'large_compound', tierRules: {…}}
+S:\Program Files\LiftLog\lib\progression-router.ts:216 [ProgressionRouter] Tier resolution: {exerciseName: 'Deadlift (Conventional)', source: 'database', tierName: 'large_compound', tierRules: {…}}
+S:\Program Files\LiftLog\lib\progression-engines\linear-engine.ts:48 [LinearProgressionEngine] Calculating progression: {exerciseName: 'Deadlift (Conventional)', currentWeek: 2, hasPreviousData: true, userWeightAdjustment: undefined}
+S:\Program Files\LiftLog\lib\progression-engines\linear-engine.ts:187 [LinearProgressionEngine] Calculating DELOAD week: {exerciseName: 'Deadlift (Conventional)', currentWeek: 2, hasPreviousData: true, previousSetsData: 3}
+S:\Program Files\LiftLog\lib\progression-engines\linear-engine.ts:232 [LinearProgressionEngine] Generated per-set deload suggestions: (3) [{…}, {…}, {…}]
+S:\Program Files\LiftLog\lib\progression-tier-resolver.ts:50 [ProgressionTierResolver] ✅ Resolved from DATABASE: {exerciseName: 'Barbell Curl (Normal Grip)', tierName: 'small_isolation', tierRules: {…}}
+S:\Program Files\LiftLog\lib\progression-router.ts:216 [ProgressionRouter] Tier resolution: {exerciseName: 'Barbell Curl (Normal Grip)', source: 'database', tierName: 'small_isolation', tierRules: {…}}
+S:\Program Files\LiftLog\lib\progression-engines\linear-engine.ts:48 [LinearProgressionEngine] Calculating progression: {exerciseName: 'Barbell Curl (Normal Grip)', currentWeek: 2, hasPreviousData: true, userWeightAdjustment: undefined}
+S:\Program Files\LiftLog\lib\progression-engines\linear-engine.ts:187 [LinearProgressionEngine] Calculating DELOAD week: {exerciseName: 'Barbell Curl (Normal Grip)', currentWeek: 2, hasPreviousData: true, previousSetsData: 3}
+S:\Program Files\LiftLog\lib\progression-engines\linear-engine.ts:232 [LinearProgressionEngine] Generated per-set deload suggestions: (3) [{…}, {…}, {…}]
+S:\Program Files\LiftLog\lib\progression-tier-resolver.ts:50 [ProgressionTierResolver] ✅ Resolved from DATABASE: {exerciseName: 'Barbell Shoulder Press (Standing)', tierName: 'medium_compound', tierRules: {…}}
+S:\Program Files\LiftLog\lib\progression-router.ts:216 [ProgressionRouter] Tier resolution: {exerciseName: 'Barbell Shoulder Press (Standing)', source: 'database', tierName: 'medium_compound', tierRules: {…}}
+S:\Program Files\LiftLog\lib\progression-engines\linear-engine.ts:48 [LinearProgressionEngine] Calculating progression: {exerciseName: 'Barbell Shoulder Press (Standing)', currentWeek: 2, hasPreviousData: true, userWeightAdjustment: undefined}
+S:\Program Files\LiftLog\lib\progression-engines\linear-engine.ts:187 [LinearProgressionEngine] Calculating DELOAD week: {exerciseName: 'Barbell Shoulder Press (Standing)', currentWeek: 2, hasPreviousData: true, previousSetsData: 3}
+S:\Program Files\LiftLog\lib\progression-engines\linear-engine.ts:232 [LinearProgressionEngine] Generated per-set deload suggestions: (3) [{…}, {…}, {…}]
+S:\Program Files\LiftLog\lib\workout-logger.ts:1010 [v0] Creating new workout for week 2 day 2
+S:\Program Files\LiftLog\lib\workout-logger.ts:1041 [WorkoutLogger] Set 1 pre-filled from previous week: 165 lbs × 10 reps
+S:\Program Files\LiftLog\lib\workout-logger.ts:1041 [WorkoutLogger] Set 2 pre-filled from previous week: 162.5 lbs × 10 reps
+S:\Program Files\LiftLog\lib\workout-logger.ts:1041 [WorkoutLogger] Set 1 pre-filled from previous week: 52.5 lbs × 10 reps
+S:\Program Files\LiftLog\lib\workout-logger.ts:1041 [WorkoutLogger] Set 2 pre-filled from previous week: 52.5 lbs × 8 reps
+S:\Program Files\LiftLog\lib\workout-logger.ts:1041 [WorkoutLogger] Set 1 pre-filled from previous week: 40 lbs × 10 reps
+S:\Program Files\LiftLog\lib\workout-logger.ts:1041 [WorkoutLogger] Set 2 pre-filled from previous week: 40 lbs × 8 reps
+S:\Program Files\LiftLog\lib\workout-logger.ts:1060 [v0] Created workout structure: {id: 'rhq8xyh81', exerciseCount: 3, exercises: Array(3)}
+S:\Program Files\LiftLog\lib\workout-logger.ts:810 [WorkoutLogger.saveCurrentWorkout] Using storage key: liftlog_in_progress_workouts_6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c for workout ID: rhq8xyh81
+S:\Program Files\LiftLog\lib\workout-logger.ts:815 [WorkoutLogger.saveCurrentWorkout] Found 1 existing in-progress workouts
+S:\Program Files\LiftLog\lib\workout-logger.ts:829 [WorkoutLogger.saveCurrentWorkout] After adding workout, total in-progress: 2
+S:\Program Files\LiftLog\lib\workout-logger.ts:832 [WorkoutLogger.saveCurrentWorkout] Saved to localStorage successfully
+S:\Program Files\LiftLog\lib\workout-logger.ts:1070 [v0] Saved workout to localStorage
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1596 Created new workout: {id: 'rhq8xyh81', exerciseCount: 3, isPreviewMode: false}
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1689 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 1: Deadlift (Conventional) - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 2: Barbell Shoulder Press (Standing) - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 3: Barbell Curl (Normal Grip) - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1689 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 1: Deadlift (Conventional) - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 2: Barbell Shoulder Press (Standing) - 2 sets
+S:\Program Files\LiftLog\components\workout-logger\hooks\use-workout-session.ts:1691 Exercise 3: Barbell Curl (Normal Grip) - 2 sets

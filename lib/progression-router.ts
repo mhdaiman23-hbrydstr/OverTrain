@@ -32,7 +32,7 @@ export interface ProgressionInput {
 
 export interface ProgressionResult {
   targetWeight: number
-  performedReps: number
+  templateRecommendedReps: number  // RENAMED: Template's recommended reps (display only, never used for calculations)
   targetSets?: number
   progressionNote: string
   strategy: "linear" | "percentage" | "hybrid" | "deload" | "standard" | "volume_compensated" | "multi_week" | "out_of_bounds" | "percentage" | "estimated_1rm" | "no_1rm_data"
@@ -256,7 +256,7 @@ export class ProgressionRouter {
 
     return {
       targetWeight: result.targetWeight,
-      performedReps: result.performedReps,
+      templateRecommendedReps: result.templateRecommendedReps,
       targetSets,
       progressionNote,
       strategy: result.strategy,
@@ -307,7 +307,7 @@ export class ProgressionRouter {
 
     return {
       targetWeight: result.targetWeight,
-      performedReps: result.performedReps,
+      templateRecommendedReps: result.templateRecommendedReps,
       targetSets,
       progressionNote: result.progressionNote,
       strategy: result.strategy,

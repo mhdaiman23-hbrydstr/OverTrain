@@ -596,9 +596,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
             message,
           }
         } else {
-          const baseReps = exercise.templateRecommendedReps
-            ? Number.parseInt(exercise.templateRecommendedReps.split("-")[0], 10) || 10
-            : 10
+            const baseReps = 10 // Default to 10 since templateRecommendedReps should not be used
           const targetVolume = exercise.suggestedWeight * baseReps
 
           const compensation = calculateVolumeCompensation(
@@ -853,9 +851,13 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
       const workoutWithNotes = { ...workout, notes: workoutNotes }
       setWorkout(workoutWithNotes)
 
+      // Step 1: Save workout with notes
       await WorkoutLogger.saveCurrentWorkout(workoutWithNotes, user?.id)
+      
+      // Step 2: Check if already completed BEFORE completing
       const wasAlreadyCompleted = WorkoutLogger.hasCompletedWorkout(workout.week || 1, workout.day || 1, user?.id)
 
+      // Step 3: Complete the workout (moves to history)
       const completedWorkout = await WorkoutLogger.completeWorkout(workoutWithNotes.id)
 
       if (completedWorkout) {
@@ -870,22 +872,28 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
           return
         }
 
-        // Batch all state updates and sync together, only dispatch event once at the end
+        // Step 4: Advance program ONLY if not already completed
         if (!wasAlreadyCompleted) {
           await ProgramStateManager.completeWorkout(user?.id)
         }
 
-        // Sync to database (batched operation)
+        // Step 5: CRITICAL - Sync to database BEFORE dispatching events
+        // This ensures data integrity before any UI navigation
         if (user?.id) {
           try {
             await WorkoutLogger.syncToDatabase(user.id)
+            console.log("[handleCompleteWorkout] Database sync completed successfully")
           } catch (error) {
             console.error("Failed to sync to database:", error)
-            // Still show completion dialog even if sync fails
+            // Still proceed with completion but log the error
+            // User gets their completion, but we note the sync issue
           }
         }
 
-        // Dispatch optimistic update event immediately (synchronous)
+        // Step 6: Only dispatch events AFTER database sync is complete
+        // This prevents race conditions where navigation happens before data is saved
+        
+        // Dispatch workout completed event
         window.dispatchEvent(new CustomEvent("workoutCompleted", {
           detail: {
             week: completedWorkout.week,
@@ -894,25 +902,23 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
           }
         }))
 
-        // Also dispatch on next tick to catch listeners that remount
-        setTimeout(() => {
-          window.dispatchEvent(new CustomEvent("workoutCompleted", {
-            detail: {
-              week: completedWorkout.week,
-              day: completedWorkout.day,
-              completed: true
-            }
-          }))
-        }, 0)
-
-        // Dispatch single programChanged event after all updates complete
+        // Dispatch program changed event (triggers navigation to next workout)
         window.dispatchEvent(new Event("programChanged"))
 
+        // Step 7: Show completion dialog last
         setCompletedWorkout(completedWorkout)
         setShowCompletionDialog(true)
+
+        console.log("[handleCompleteWorkout] Workout completion flow completed with database sync")
       }
     } catch (error) {
       console.error("Error completing workout:", error)
+      // Show error to user if workout completion fails
+      toast({
+        title: 'Failed to complete workout',
+        description: 'Please try again. If the problem persists, your progress is saved locally.',
+        variant: 'destructive',
+      })
     } finally {
       setIsCompletingWorkout(false)
     }
@@ -1488,13 +1494,11 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
           // Copy actualReps from previous week (what user actually did), not template target
           return {
             ...exercise,
-            templateRecommendedReps: previousPerformance?.actualReps?.toString() || exercise.templateRecommendedReps,
             suggestedWeight: result.targetWeight,
             progressionNote: result.progressionNote,
             bounds: result.additionalData?.bounds,
             strategy: result.strategy,
             tier: result.additionalData?.tier,
-            baseVolume: result.targetWeight * result.templateRecommendedReps,
             userOverridden: false
           }
         }))
@@ -1539,10 +1543,10 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
         const result = await ProgressionRouter.calculateProgression(progressionInput)
 
         return {
+          id: Math.random().toString(36).substr(2, 9),
           exerciseId: exercise.id,
           exerciseName: exercise.exerciseName,
           targetSets: result.targetSets || 3,
-          templateRecommendedReps: result.templateRecommendedReps.toString(),
           targetRest: `${Math.floor(exercise.restTime / 60)} min`,
           muscleGroup: getExerciseMuscleGroup(exercise.exerciseName),
           equipmentType: exercise.equipmentType || "BARBELL",
@@ -1553,8 +1557,9 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
           bounds: result.additionalData?.bounds,
           strategy: result.strategy,
           tier: result.additionalData?.tier,
-          baseVolume: result.targetWeight * result.templateRecommendedReps,
-          userOverridden: false
+          userOverridden: false,
+          completed: false,
+          sets: []
         }
       }))
 
@@ -1796,4 +1801,3 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
     groupedExercises,
   }
 }
-

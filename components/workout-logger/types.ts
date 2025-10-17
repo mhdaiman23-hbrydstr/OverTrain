@@ -3,13 +3,17 @@ export interface WorkoutTemplateExercise {
   exerciseName: string
   targetSets: number
   /**
-   * performedReps: The actual reps the user performed (or will perform).
-   * - Week 1: User enters their actual reps during workout (e.g., "10")
-   * - Week 2+: Pre-filled from previous week's actual performance (e.g., if user did 10 reps in Week 1, Week 2 shows "10")
-   * - Progression applies to weight, reps stay constant unless user changes them
-   * NOTE: Template repRange (e.g., "8-10") is ONLY for program preview/reference, never used in actual workouts
+   * templateRecommendedReps: The template's recommended rep range for display purposes ONLY.
+   * This is derived from the template's repRange (e.g., "8-10" -> middle value 9)
+   *
+   * IMPORTANT: This field should NEVER be used for calculations or pre-filling sets.
+   * It is ONLY for displaying the template's recommendation to the user.
+   *
+   * Actual workout behavior:
+   * - Week 1: User enters their actual reps manually (sets start with 0 reps)
+   * - Week 2+: Sets are pre-filled ONLY from perSetSuggestions (previous week's actual performance)
    */
-  performedReps: string
+  templateRecommendedReps: string
   targetRest: string
   muscleGroup?: string
   equipmentType?: string

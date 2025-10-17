@@ -16,7 +16,8 @@ export interface WorkoutExercise {
   exerciseId: string
   exerciseName: string
   targetSets: number
-  performedReps: string
+  // NOTE: performedReps removed - it was only used for template display
+  // Actual set reps come from perSetSuggestions (Week 2+) or user input (Week 1)
   targetRest: string
   suggestedWeight?: number
   progressionNote?: string
@@ -950,13 +951,13 @@ export class WorkoutLogger implements SetSyncProvider {
       exerciseId: string
       exerciseName: string
       targetSets: number
-      performedReps: string
+      // performedReps removed - only used for template display, not workout sessions
       targetRest: string
       suggestedWeight?: number
       progressionNote?: string
       muscleGroup?: string
       equipmentType?: string
-      perSetSuggestions?: Array<{  // NEW: per-set weight and rep suggestions from previous week
+      perSetSuggestions?: Array<{  // per-set weight and rep suggestions from previous week (Week 2+)
         weight: number
         reps: number
         baseWeight: number
@@ -1021,14 +1022,15 @@ export class WorkoutLogger implements SetSyncProvider {
         exerciseId: ex.exerciseId,
         exerciseName: ex.exerciseName,
         targetSets: ex.targetSets,
-        performedReps: ex.performedReps,
+        // performedReps removed - not stored in workout sessions
         targetRest: ex.targetRest,
         suggestedWeight: ex.suggestedWeight,
         progressionNote: ex.progressionNote,
         muscleGroup: ex.muscleGroup,
         equipmentType: ex.equipmentType,
         sets: Array.from({ length: ex.targetSets }, (_, i) => {
-          // Use per-set suggestions if available (Week 2+), otherwise parse from performedReps string (Week 1)
+          // Pre-fill reps ONLY if we have per-set suggestions from previous week (Week 2+)
+          // Week 1 should start with 0 reps (user enters their baseline performance)
           let defaultReps = 0
           let defaultWeight = ex.suggestedWeight || 0
 
@@ -1037,15 +1039,14 @@ export class WorkoutLogger implements SetSyncProvider {
             defaultReps = ex.perSetSuggestions[i].reps
             defaultWeight = ex.perSetSuggestions[i].weight
             console.log(`[WorkoutLogger] Set ${i + 1} pre-filled from previous week: ${defaultWeight} lbs × ${defaultReps} reps`)
-          } else if (ex.performedReps) {
-            // Week 1: Parse from template reps string (e.g. "10" or "8-12" -> 8)
-            defaultReps = parseInt(ex.performedReps.toString().split('-')[0]) || 0
-            console.log(`[WorkoutLogger] Set ${i + 1} using template reps: ${defaultReps}`)
+          } else {
+            // Week 1 or no previous data: Start with 0 reps (user establishes baseline)
+            console.log(`[WorkoutLogger] Set ${i + 1} starting with empty reps (no previous performance data)`)
           }
 
           return {
             id: Math.random().toString(36).substr(2, 9),
-            reps: defaultReps, // Pre-fill with reps from previous performance or template
+            reps: defaultReps, // Pre-fill ONLY from previous performance, not template
             weight: defaultWeight, // Pre-fill with suggested weight from progression
             completed: false,
           }
@@ -1449,7 +1450,7 @@ export class WorkoutLogger implements SetSyncProvider {
       exerciseId: ex.exerciseId || ex.name,
       exerciseName: ex.name,
       targetSets: ex.sets || 3,
-      performedReps: ex.reps || "0",
+      // performedReps removed - not stored in workout sessions
       targetRest: ex.rest || "60s",
       // Create sets with 0 reps/weight (consistent with "End Workout" behavior)
       sets: Array.from({ length: ex.sets || 3 }, () => ({

@@ -23,7 +23,7 @@ export interface PercentageProgressionInput {
 
 export interface PercentageProgressionResult {
   targetWeight: number
-  performedReps: number
+  templateRecommendedReps: number  // RENAMED: Template's recommended reps (display only, never used for calculations)
   percentage: number
   progressionNote: string
   strategy: "percentage" | "deload" | "estimated_1rm" | "no_1rm_data"
@@ -75,7 +75,7 @@ export class PercentageProgressionEngine {
     if (!oneRepMax && percentageRules.requiresOneRM) {
       return {
         targetWeight: 0,
-        performedReps: 8,
+        templateRecommendedReps: 8,
         percentage: 0,
         strategy: "no_1rm_data",
         progressionNote: "1RM data required for percentage-based progression",
@@ -99,7 +99,7 @@ export class PercentageProgressionEngine {
     const targetPercentage = percentages[percentages.length - 1] || 85
 
     // Get target reps based on percentage (inverse relationship)
-    const performedReps = this.getRepsForPercentage(targetPercentage)
+    const templateRecommendedReps = this.getRepsForPercentage(targetPercentage)
 
     let targetWeight: number
     let progressionNote: string
@@ -125,7 +125,7 @@ export class PercentageProgressionEngine {
 
     return {
       targetWeight,
-      performedReps,
+      templateRecommendedReps,
       percentage: targetPercentage,
       progressionNote,
       strategy,

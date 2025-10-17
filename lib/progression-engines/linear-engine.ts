@@ -23,13 +23,13 @@ export interface LinearProgressionInput {
 
 export interface LinearProgressionResult {
   targetWeight: number
-  performedReps: number
+  templateRecommendedReps: number  // RENAMED: Template's recommended reps (display only, never used for calculations)
   adjustedReps?: number
   bounds?: { min: number; max: number }
   strategy: "standard" | "volume_compensated" | "multi_week" | "out_of_bounds" | "deload"
   progressionNote: string
   weeklyIncrease: number
-  perSetSuggestions?: Array<{  // NEW: per-set weight and rep suggestions
+  perSetSuggestions?: Array<{  // Week 2+: per-set weight and rep suggestions from previous performance
     weight: number
     reps: number
     baseWeight: number  // Original weight from previous week (for UI reference)
@@ -61,11 +61,11 @@ export class LinearProgressionEngine {
     if (currentWeek === 1 || !previousPerformance) {
       const weekData = exercise.progressionTemplate.week1
       const targetRepRange = weekData?.repRange || "8-10"
-      const performedReps = this.parseRepRange(targetRepRange)
+      const templateRecommendedReps = this.parseRepRange(targetRepRange)
 
       return {
         targetWeight: 0, // User will enter starting weight
-        performedReps,
+        templateRecommendedReps,  // For display only, not used for calculations
         strategy: "standard",
         progressionNote: "Enter your starting weight",
         weeklyIncrease: tierRules.weeklyIncrease
@@ -75,7 +75,7 @@ export class LinearProgressionEngine {
     const { lastWeight, actualReps, completedSets, targetSets, allSetsCompleted } = previousPerformance
 
     // Use the exact reps the user did last week (no template, no averaging)
-    const performedReps = actualReps
+    const templateRecommendedReps = actualReps  // RENAMED: This is the actual reps from last week (for display only)
 
     // Calculate target volume with weekly increase
     const baseVolume = lastWeight * actualReps
@@ -97,11 +97,11 @@ export class LinearProgressionEngine {
       const compensationResult = this.validateAndAdjust(
         userWeightAdjustment,
         targetVolume,
-        performedReps,
+        templateRecommendedReps,
         tierRules
       )
 
-      if (compensationResult.adjustedReps !== performedReps) {
+      if (compensationResult.adjustedReps !== templateRecommendedReps) {
         adjustedReps = compensationResult.adjustedReps
         strategy = compensationResult.strategy
         bounds = compensationResult.bounds
@@ -167,7 +167,7 @@ export class LinearProgressionEngine {
 
     return {
       targetWeight,
-      performedReps,
+      templateRecommendedReps,
       adjustedReps,
       bounds,
       strategy,
@@ -195,12 +195,12 @@ export class LinearProgressionEngine {
     const weekKey = `week${currentWeek}`
     const weekData = exercise.progressionTemplate[weekKey]
     const targetRepRange = weekData?.repRange || "8-10"
-    const performedReps = this.parseRepRange(targetRepRange)
+    const templateRecommendedReps = this.parseRepRange(targetRepRange)
 
     if (!previousPerformance) {
       return {
         targetWeight: 0,
-        performedReps,
+        templateRecommendedReps,
         strategy: "deload",
         progressionNote: "Deload week - use lighter weight",
         weeklyIncrease: 0
@@ -237,7 +237,7 @@ export class LinearProgressionEngine {
 
     return {
       targetWeight: deloadWeight,
-      performedReps,
+      templateRecommendedReps,
       strategy: "deload",
       progressionNote: `Deload week (65% reduction for recovery)`,
       weeklyIncrease: 0,
@@ -251,7 +251,7 @@ export class LinearProgressionEngine {
   private static validateAndAdjust(
     targetWeight: number,
     targetVolume: number,
-    performedReps: number,
+    templateRecommendedReps: number,
     tierRules: TierRules
   ): {
     adjustedReps: number
@@ -260,12 +260,12 @@ export class LinearProgressionEngine {
     note: string
   } {
     const bounds = calculateWeightBounds(targetWeight, tierRules.adjustmentBounds)
-    const idealWeight = targetVolume / performedReps
+    const idealWeight = targetVolume / templateRecommendedReps
 
     // Check if weight is within acceptable bounds
     if (targetWeight < bounds.min || targetWeight > bounds.max) {
       return {
-        adjustedReps: performedReps,
+        adjustedReps: templateRecommendedReps,
         strategy: "out_of_bounds",
         bounds,
         note: `Weight outside ${Math.round(tierRules.adjustmentBounds * 100)}% range. Consider ${roundToIncrement(idealWeight, tierRules.minIncrement)}`
@@ -276,7 +276,7 @@ export class LinearProgressionEngine {
     const compensation = calculateVolumeCompensation(
       targetVolume,
       targetWeight,
-      performedReps,
+      templateRecommendedReps,
       tierRules.maxRepAdjustment
     )
 
@@ -289,7 +289,7 @@ export class LinearProgressionEngine {
       }
     }
 
-    if (compensation.adjustedReps !== performedReps) {
+    if (compensation.adjustedReps !== templateRecommendedReps) {
       return {
         adjustedReps: compensation.adjustedReps,
         strategy: "volume_compensated",
@@ -299,7 +299,7 @@ export class LinearProgressionEngine {
     }
 
     return {
-      adjustedReps: performedReps,
+      adjustedReps: templateRecommendedReps,
       strategy: "standard",
       note: ""
     }
