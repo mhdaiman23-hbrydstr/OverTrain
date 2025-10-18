@@ -1106,7 +1106,22 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
         description: 'Marking remaining workouts as completed in the background...',
       })
 
-      // STEP 3: Process remaining workouts in background
+      // STEP 3: Finalize program state BEFORE dispatching event
+      // CRITICAL: Must await to ensure database cleanup completes before UI navigates
+      try {
+        await finalizeProgramState(user?.id)
+        console.log("[handleEndProgram] Program state finalized successfully")
+      } catch (error) {
+        console.error("[handleEndProgram] Failed to finalize program state:", error)
+        toast({
+          title: 'Program state error',
+          description: 'Please refresh and check your program status.',
+          variant: 'destructive'
+        })
+        // Don't return - still attempt to navigate even if finalization fails
+      }
+
+      // STEP 4: Process remaining workouts in background (after state is cleared)
       // This happens without blocking the user
       processRemainingWorkoutsInBackground(activeProgram, user?.id).catch(error => {
         console.error("[handleEndProgram] Background processing failed:", error)
@@ -1117,21 +1132,11 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
         })
       })
 
-      // STEP 4: Finalize program state immediately (don't wait for background)
-      // This ensures UI remains responsive
-      finalizeProgramState(user?.id).catch(error => {
-        console.error("[handleEndProgram] Failed to finalize program state:", error)
-        toast({
-          title: 'Program state error',
-          description: 'Please refresh and check your program status.',
-          variant: 'destructive'
-        })
-      })
-
       // STEP 5: Clear the active program and navigate immediately
       setWorkout(null)
 
       // Dispatch programEnded event to trigger train section navigation
+      // Now safe to dispatch - program is fully cleared from database
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new CustomEvent('programEnded'))
       }

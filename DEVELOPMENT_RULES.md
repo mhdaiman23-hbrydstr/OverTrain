@@ -554,6 +554,22 @@ liftlog_user                    // Current authenticated user
 - Navigate immediately - data is already safe
 - Never make users wait for network operations
 
+### Mistake 8: Race Condition in Program End Flow (Oct 2025)
+**Problem**: After ending program, train section showed workout summary instead of call-to-action
+**Root Cause**: `finalizeProgramState()` called without `await`, causing race condition:
+1. Workout logger dispatched `programEnded` event immediately
+2. Train section received event and waited 100ms
+3. Train section queried database for active program
+4. BUT `finalizeProgramState()` hadn't finished deleting from database yet
+5. Train section found active program still in database → showed wrong screen
+**Fix**: Reordered `handleEndProgram()` to `await finalizeProgramState()` BEFORE dispatching event
+**Lesson**:
+- ALWAYS await database cleanup operations before dispatching navigation events
+- Race conditions happen when async operations aren't properly sequenced
+- Adding artificial delays (100ms timeout) masks the problem but doesn't fix it
+- Event handlers will query database immediately - ensure cleanup is complete first
+- The sequence must be: cleanup database → THEN dispatch event → THEN navigate
+
 ---
 
 ## ✅ Before Every Commit
@@ -595,8 +611,8 @@ Run through this final checklist:
 
 ---
 
-*Last Updated: 2025-10-18*
-*Version: 1.1 - Added Patterns 4-7 and Mistakes 4-7 from workout completion flow fixes*
+*Last Updated: 2025-10-19*
+*Version: 1.2 - Added Mistake 8: Race condition in program end flow requiring await before event dispatch*
 
 ---
 
