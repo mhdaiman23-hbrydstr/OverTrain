@@ -210,21 +210,9 @@ export default function HomePage() {
     )
   }
 
-  if (user && currentView === "profile") {
-    return (
-      <div className="flex h-screen bg-background overflow-hidden">
-        <SidebarNavigation currentView="profile" onViewChange={setCurrentView} />
-
-        <div className="flex-1 lg:ml-64 overflow-y-auto overflow-x-hidden h-screen">
-          <ProfileSection />
-        </div>
-        <BottomNavigation currentView={currentView} onViewChange={handleViewChange} />
-      </div>
-    )
-  }
-
   // Render all views at once and show/hide with CSS to preserve component state
-  if (user && (currentView === "programs" || currentView === "train" || currentView === "workout" || currentView === "analytics")) {
+  // This keeps components mounted and prevents loading spinners on tab switches
+  if (user && (currentView === "programs" || currentView === "train" || currentView === "workout" || currentView === "analytics" || currentView === "profile")) {
     return (
       <div className="flex h-screen bg-background overflow-hidden">
         <SidebarNavigation currentView={currentView} onViewChange={setCurrentView} />
@@ -271,6 +259,14 @@ export default function HomePage() {
           style={{ display: currentView === "analytics" ? "block" : "none" }}
         >
           <AnalyticsSection />
+        </div>
+
+        {/* Profile Section - Hidden but mounted */}
+        <div
+          className="flex-1 lg:ml-64 overflow-y-auto overflow-x-hidden h-screen"
+          style={{ display: currentView === "profile" ? "block" : "none" }}
+        >
+          <ProfileSection />
         </div>
 
         <BottomNavigation currentView={currentView} onViewChange={handleViewChange} />
