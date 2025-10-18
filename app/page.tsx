@@ -223,29 +223,40 @@ export default function HomePage() {
     )
   }
 
-  if (user && currentView === "programs") {
+  // Render all views at once and show/hide with CSS to preserve component state
+  if (user && (currentView === "programs" || currentView === "train" || currentView === "workout" || currentView === "analytics")) {
     return (
       <div className="flex h-screen bg-background overflow-hidden">
-        <SidebarNavigation currentView="programs" onViewChange={setCurrentView} />
+        <SidebarNavigation currentView={currentView} onViewChange={setCurrentView} />
 
-        <div className="flex-1 lg:ml-64 overflow-y-auto overflow-x-hidden h-screen">
+        {/* Programs Section - Hidden but mounted */}
+        <div
+          className="flex-1 lg:ml-64 overflow-y-auto overflow-x-hidden h-screen"
+          style={{ display: currentView === "programs" ? "block" : "none" }}
+        >
           <ProgramsSection
             onAddProgram={() => setCurrentView("programs")}
             onProgramStarted={handleProgramStarted}
             onNavigateToTrain={() => handleViewChange("train")}
           />
         </div>
-        <BottomNavigation currentView={currentView} onViewChange={handleViewChange} />
-      </div>
-    )
-  }
 
-  if (user && currentView === "workout") {
-    return (
-      <div className="flex h-screen bg-background overflow-hidden">
-        <SidebarNavigation currentView="workout" onViewChange={setCurrentView} />
+        {/* Train Section - Hidden but mounted */}
+        <div
+          className="flex-1 lg:ml-64 overflow-y-auto overflow-x-hidden h-screen"
+          style={{ display: currentView === "train" ? "block" : "none" }}
+        >
+          <TrainSection
+            onStartWorkout={handleStartWorkout}
+            onAddProgram={() => setCurrentView("programs")}
+          />
+        </div>
 
-        <div className="flex-1 lg:ml-64 overflow-y-auto overflow-x-hidden h-screen">
+        {/* Workout Section - Hidden but mounted */}
+        <div
+          className="flex-1 lg:ml-64 overflow-y-auto overflow-x-hidden h-screen"
+          style={{ display: currentView === "workout" ? "block" : "none" }}
+        >
           <WorkoutLoggerComponent
             key={programKey}
             onComplete={handleWorkoutComplete}
@@ -253,35 +264,15 @@ export default function HomePage() {
             onViewAnalytics={() => setCurrentView("analytics")}
           />
         </div>
-        <BottomNavigation currentView={currentView} onViewChange={handleViewChange} />
-      </div>
-    )
-  }
 
-  if (user && currentView === "analytics") {
-    return (
-      <div className="flex h-screen bg-background overflow-hidden">
-        <SidebarNavigation currentView="analytics" onViewChange={setCurrentView} />
-
-        <div className="flex-1 lg:ml-64 overflow-y-auto overflow-x-hidden h-screen">
+        {/* Analytics Section - Hidden but mounted */}
+        <div
+          className="flex-1 lg:ml-64 overflow-y-auto overflow-x-hidden h-screen"
+          style={{ display: currentView === "analytics" ? "block" : "none" }}
+        >
           <AnalyticsSection />
         </div>
-        <BottomNavigation currentView={currentView} onViewChange={handleViewChange} />
-      </div>
-    )
-  }
 
-  if (user && currentView === "train") {
-    return (
-      <div className="flex h-screen bg-background overflow-hidden">
-        <SidebarNavigation currentView="train" onViewChange={setCurrentView} />
-
-        <div className="flex-1 lg:ml-64 overflow-y-auto overflow-x-hidden h-screen">
-          <TrainSection
-            onStartWorkout={handleStartWorkout}
-            onAddProgram={() => setCurrentView("programs")}
-          />
-        </div>
         <BottomNavigation currentView={currentView} onViewChange={handleViewChange} />
       </div>
     )
