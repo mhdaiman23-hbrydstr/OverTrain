@@ -241,9 +241,11 @@ export function WorkoutCalendar({ onWorkoutClick, selectedWeek, selectedDay, rea
           })
 
           console.log("Template Schedule (sorted):")
-          scheduleKeys.forEach((key, index) => {
-            console.log(`  Day ${index + 1}: ${key} -> ${template.schedule[key]?.name}`)
-          })
+          if (template) {
+            scheduleKeys.forEach((key, index) => {
+              console.log(`  Day ${index + 1}: ${key} -> ${template.schedule[key]?.name}`)
+            })
+          }
 
           // Check what workout the calendar shows for Day 1
           const day1WorkoutName = getWorkoutName(1)
@@ -417,7 +419,7 @@ export function WorkoutCalendar({ onWorkoutClick, selectedWeek, selectedDay, rea
     : Array.from({ length: daysPerWeek }, (_, i) => `day${i + 1}`)
 
   // Debug: Log the schedule order (only in development)
-  if (process.env.NODE_ENV === "development") {
+  if (process.env.NODE_ENV === "development" && template) {
     console.log('[Calendar] Schedule keys order:', scheduleKeys)
     scheduleKeys.forEach((key, index) => {
       console.log(`  Day ${index + 1}: ${key} -> ${template.schedule[key]?.name}`)
