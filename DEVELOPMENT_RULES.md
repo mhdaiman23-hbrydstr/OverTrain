@@ -609,10 +609,146 @@ Run through this final checklist:
 - Test with page refresh
 - Ask: "Am I fixing the root cause or just the symptom?"
 
+### Mistake 9: Component Unmounting Causing Loading Spinners (Oct 2025)
+**Problem**: Switching between tabs (Programs ↔ Train ↔ Analytics ↔ Profile) showed loading spinners every time
+**Root Cause**: Conditional rendering with `if (currentView === "programs")` unmounted components when switching tabs, losing all state and cached data
+**Fix**:
+1. Render all views simultaneously in single conditional block
+2. Use CSS `display: none/block` to hide/show instead of mounting/unmounting
+3. Only show loading spinner on initial load (when state is empty)
+**Changes**:
+- `app/page.tsx`: Combined all view conditionals into single render with `style={{ display }}`
+- `components/programs-section.tsx`: Only set `isLoading = true` when `allTemplates.length === 0`
+- `components/workout-calendar.tsx`: Only set `isLoading = true` when `!activeProgram`
+**Lesson**:
+- Component unmounting destroys state and cached data
+- CSS visibility (`display: none`) preserves mounted components
+- Conditional loading spinners: only show when data doesn't exist yet
+- Tabs should feel like native app navigation (instant, no flicker)
+
+---
+
+## 🎨 UI Performance Patterns
+
+### Pattern 8: Instant Tab Switching (Keep Components Mounted)
+
+**For seamless navigation, render all tabs simultaneously and toggle visibility:**
+
+```typescript
+// ✅ CORRECT - All tabs mounted, visibility toggled with CSS
+if (user && (currentView === "programs" || currentView === "train" || currentView === "analytics" || currentView === "profile")) {
+  return (
+    <div className="flex h-screen bg-background overflow-hidden">
+      <SidebarNavigation currentView={currentView} onViewChange={setCurrentView} />
+
+      {/* Programs Section - Hidden but mounted */}
+      <div style={{ display: currentView === "programs" ? "block" : "none" }}>
+        <ProgramsSection />
+      </div>
+
+      {/* Train Section - Hidden but mounted */}
+      <div style={{ display: currentView === "train" ? "block" : "none" }}>
+        <TrainSection />
+      </div>
+
+      {/* Other sections... */}
+    </div>
+  )
+}
+
+// ❌ WRONG - Conditional rendering unmounts components
+if (user && currentView === "programs") {
+  return <ProgramsSection />  // Unmounts when you switch tabs!
+}
+
+if (user && currentView === "train") {
+  return <TrainSection />  // Unmounts when you switch tabs!
+}
+```
+
+**Why this matters:**
+- Component unmounting destroys state, cached data, and event listeners
+- Remounting triggers `useEffect`, causing unnecessary data fetching
+- Users see loading spinners on every tab switch
+- CSS `display: none` keeps components alive with preserved state
+
+### Pattern 9: Conditional Loading Spinners
+
+**Only show loading spinners when data genuinely doesn't exist:**
+
+```typescript
+// ✅ CORRECT - Check if data exists before showing spinner
+const loadData = async () => {
+  // Only show spinner on initial load
+  if (allTemplates.length === 0) {
+    setIsLoading(true)
+  }
+
+  const templates = await fetchTemplates()
+  setAllTemplates(templates)
+  setIsLoading(false)
+}
+
+// ❌ WRONG - Unconditional spinner
+const loadData = async () => {
+  setIsLoading(true)  // Shows spinner even when re-fetching cached data!
+  const templates = await fetchTemplates()
+  setAllTemplates(templates)
+  setIsLoading(false)
+}
+```
+
+**Key principles:**
+- ✅ Only show loading state when data is genuinely unavailable
+- ✅ Skip loading state when refreshing/updating existing data
+- ✅ Service-layer caching makes subsequent loads instant
+- ❌ Never show spinners for cached data fetches
+
+### Pattern 10: Lazy Loading with Preloading
+
+**Combine lazy loading with authentication preloading for instant UX:**
+
+```typescript
+// 1. Load lightweight data initially (fast)
+static async getAllTemplates(): Promise<GymTemplate[]> {
+  const dbTemplates = await service.getAllTemplates()  // Metadata only, no exercises
+  return dbTemplates.map(t => ({
+    id: t.id,
+    name: t.name,
+    weeks: t.weeks,
+    days: t.days,
+    schedule: {}  // Empty - exercises load on-demand
+  }))
+}
+
+// 2. Preload during authentication (before user navigates)
+async function loadUserApplicationData(userId: string) {
+  // ... other data loading ...
+
+  // Preload templates for instant Programs tab access
+  await ProgramStateManager.getAllTemplates()  // Now cached!
+
+  // ... dispatch events ...
+}
+
+// 3. On-demand loading when needed
+const handleTemplateClick = async (templateId: string) => {
+  // Load full template with exercises (hits cache if preloaded)
+  await ProgramStateManager.loadTemplate(templateId)
+  showTemplateDetail(templateId)
+}
+```
+
+**Result:**
+- Initial load: ~50-100ms (metadata only)
+- Preloading during auth: Templates cached before user navigates
+- Tab switching: Instant (cached + component stays mounted)
+- Template detail: Instant (data already cached)
+
 ---
 
 *Last Updated: 2025-10-19*
-*Version: 1.2 - Added Mistake 8: Race condition in program end flow requiring await before event dispatch*
+*Version: 1.3 - Added Mistake 9 and UI Performance Patterns (instant tab switching, conditional loading spinners, lazy loading with preloading)*
 
 ---
 
