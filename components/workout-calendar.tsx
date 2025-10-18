@@ -272,7 +272,11 @@ export function WorkoutCalendar({ onWorkoutClick, selectedWeek, selectedDay }: W
   }, [activeProgram, user])
 
   const loadActiveProgram = async () => {
-    setIsLoading(true)
+    // Only show loading spinner if we don't have a program yet
+    // This prevents spinner flash when navigating between weeks
+    if (!activeProgram) {
+      setIsLoading(true)
+    }
     const program = await ProgramStateManager.getActiveProgram()
     setActiveProgram(program)
     setIsLoading(false)
