@@ -13,6 +13,7 @@ import { TemplateStorageManager } from "@/lib/template-storage"
 import { WorkoutLogger } from "@/lib/workout-logger"
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { TemplateDetailView } from "@/components/template-detail-view"
+import { HistoricalProgramViewer } from "@/components/historical-program-viewer"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -36,6 +37,7 @@ interface ProgramsSectionProps {
 
 export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTrain, userProfile }: ProgramsSectionProps) {
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null)
+  const [selectedHistoricalProgram, setSelectedHistoricalProgram] = useState<any | null>(null)
   const [showSwitchDialog, setShowSwitchDialog] = useState(false)
   const [pendingProgramId, setPendingProgramId] = useState<{ templateId: string; progressionOverride?: any } | null>(null)
   const [programHistory, setProgramHistory] = useState<any[]>([])
@@ -225,6 +227,21 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
     experienceFilter !== "all" || daysFilter !== "all" || genderFilter !== "all" || durationFilter !== "all"
 
   const filteredTemplates = getFilteredTemplates()
+
+  // If viewing a historical program, show the viewer
+  if (selectedHistoricalProgram) {
+    const historicalWorkouts = ProgramStateManager.getHistoricalProgramWorkouts(
+      selectedHistoricalProgram.instanceId || selectedHistoricalProgram.id
+    )
+
+    return (
+      <HistoricalProgramViewer
+        historyEntry={selectedHistoricalProgram}
+        workouts={historicalWorkouts}
+        onClose={() => setSelectedHistoricalProgram(null)}
+      />
+    )
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -528,16 +545,17 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
                       </Button>
                     </div>
                     {programHistory.filter(entry => !entry.isActive).map((entry, index) => {
-                    const template = GYM_TEMPLATES.find((t) => t.id === entry.templateId)
-                    if (!template) return null
-
                     const endedEarly = (entry.endedEarly ?? false) || (entry.completionRate < 100 && entry.endDate)
 
                     return (
-                      <div key={index} className="px-4 py-4 hover:bg-muted/30 transition-colors">
+                      <div
+                        key={index}
+                        className="px-4 py-4 hover:bg-muted/30 transition-colors cursor-pointer"
+                        onClick={() => setSelectedHistoricalProgram(entry)}
+                      >
                         <div className="flex items-start justify-between gap-3">
                           <div className="flex-1 min-w-0">
-                            <h3 className="font-semibold text-base leading-tight mb-1">{template.name}</h3>
+                            <h3 className="font-semibold text-base leading-tight mb-1">{entry.name}</h3>
                             <p className="text-sm text-muted-foreground">
                               {entry.completedWorkouts} / {entry.totalWorkouts} workouts completed
                             </p>

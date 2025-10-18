@@ -896,6 +896,29 @@ export class ProgramStateManager {
     }
   }
 
+  /**
+   * Get all workouts for a specific historical program instance
+   * Filters workout history by programInstanceId
+   */
+  static getHistoricalProgramWorkouts(instanceId: string, userId?: string): any[] {
+    if (!instanceId) return []
+
+    const allWorkouts = WorkoutLogger.getWorkoutHistory(userId)
+
+    // Filter workouts that belong to this program instance
+    const programWorkouts = allWorkouts.filter(
+      (workout) => workout.programInstanceId === instanceId && workout.completed
+    )
+
+    // Sort by week and day for easier display
+    return programWorkouts.sort((a, b) => {
+      if (a.week !== b.week) {
+        return (a.week || 0) - (b.week || 0)
+      }
+      return (a.day || 0) - (b.day || 0)
+    })
+  }
+
   // ============================================================================
   // SUPABASE SYNC METHODS
   // ============================================================================
