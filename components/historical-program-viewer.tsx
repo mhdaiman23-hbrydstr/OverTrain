@@ -20,6 +20,10 @@ export function HistoricalProgramViewer({ historyEntry, workouts, onClose }: His
   const [selectedWeek, setSelectedWeek] = useState(1)
   const [selectedDay, setSelectedDay] = useState(1)
 
+  // Calculate total weeks and days from workouts
+  const totalWeeks = Math.max(...workouts.map((w) => w.week || 1), 1)
+  const daysPerWeek = Math.max(...workouts.map((w) => w.day || 1), 3)
+
   // Find the current workout to display
   const currentWorkout = workouts.find(
     (w) => w.week === selectedWeek && w.day === selectedDay
@@ -68,7 +72,16 @@ export function HistoricalProgramViewer({ historyEntry, workouts, onClose }: His
             <div className="flex-1 min-w-0">
               <h1 className="text-base sm:text-lg font-semibold truncate">{historyEntry.name}</h1>
               <p className="text-xs text-muted-foreground">
-                {currentWorkout ? `Week ${currentWorkout.week}, Day ${currentWorkout.day}` : "Select a workout"}
+                {currentWorkout ? (
+                  <>
+                    Week {currentWorkout.week}, Day {currentWorkout.day}
+                    {currentWorkout.endTime && (
+                      <> • {new Date(currentWorkout.endTime).toLocaleDateString()}</>
+                    )}
+                  </>
+                ) : (
+                  "Select a workout"
+                )}
               </p>
             </div>
           </div>
@@ -112,6 +125,14 @@ export function HistoricalProgramViewer({ historyEntry, workouts, onClose }: His
             selectedWeek={selectedWeek}
             selectedDay={selectedDay}
             readOnly={true}
+            historicalProgram={{
+              templateId: historyEntry.templateId,
+              instanceId: historyEntry.instanceId || historyEntry.id,
+              name: historyEntry.name,
+              totalWeeks,
+              daysPerWeek,
+            }}
+            historicalWorkouts={workouts}
           />
         </div>
       )}
@@ -254,18 +275,29 @@ export function HistoricalProgramViewer({ historyEntry, workouts, onClose }: His
       {currentWorkout && (
         <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border/50 z-40 shadow-lg">
           <div className="max-w-4xl mx-auto px-4 py-3">
-            <div className="flex items-center justify-between text-xs text-muted-foreground">
+            <div className="flex items-center justify-between text-xs">
               <div>
-                <span className="font-medium">{currentWorkout.workoutName}</span>
+                <span className="font-medium text-foreground">{currentWorkout.workoutName}</span>
               </div>
-              <div>
-                {currentWorkout.endTime
-                  ? new Date(currentWorkout.endTime).toLocaleDateString(undefined, {
+              <div className="text-muted-foreground">
+                {currentWorkout.endTime ? (
+                  <>
+                    <span className="hidden sm:inline">Completed on </span>
+                    {new Date(currentWorkout.endTime).toLocaleDateString(undefined, {
                       month: "short",
                       day: "numeric",
                       year: "numeric",
-                    })
-                  : "In Progress"}
+                    })}
+                    <span className="ml-1 text-muted-foreground/70">
+                      at {new Date(currentWorkout.endTime).toLocaleTimeString(undefined, {
+                        hour: "numeric",
+                        minute: "2-digit",
+                      })}
+                    </span>
+                  </>
+                ) : (
+                  "In Progress"
+                )}
               </div>
             </div>
             {currentWorkout.notes && (

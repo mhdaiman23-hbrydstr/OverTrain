@@ -13,14 +13,23 @@ interface WorkoutCalendarProps {
   onWorkoutClick?: (week: number, day: number) => void
   selectedWeek?: number
   selectedDay?: number
+  readOnly?: boolean
+  historicalProgram?: {
+    templateId: string
+    instanceId: string
+    name: string
+    totalWeeks: number
+    daysPerWeek: number
+  }
+  historicalWorkouts?: Array<{ week?: number; day?: number; completed: boolean }>
 }
 
-export function WorkoutCalendar({ onWorkoutClick, selectedWeek, selectedDay }: WorkoutCalendarProps) {
+export function WorkoutCalendar({ onWorkoutClick, selectedWeek, selectedDay, readOnly, historicalProgram, historicalWorkouts }: WorkoutCalendarProps) {
   const { user } = useAuth()
   const [activeProgram, setActiveProgram] = useState<ActiveProgram | null>(null)
-  const [totalWeeks, setTotalWeeks] = useState(6)
+  const [totalWeeks, setTotalWeeks] = useState(historicalProgram?.totalWeeks || 6)
   const [completionStatus, setCompletionStatus] = useState<Map<string, boolean>>(new Map())
-  const [isLoading, setIsLoading] = useState(true)
+  const [isLoading, setIsLoading] = useState(!readOnly)
 
   // CRITICAL FIX: Prevent infinite recalculation loops
   const isRecalculatingRef = useRef(false)
@@ -28,6 +37,13 @@ export function WorkoutCalendar({ onWorkoutClick, selectedWeek, selectedDay }: W
   const RECALC_DEBOUNCE_MS = 2000 // Don't recalculate more than once every 2 seconds
 
   useEffect(() => {
+    // Skip loading if in read-only mode (historical program viewer)
+    if (readOnly) {
+      console.log("[Calendar] Read-only mode, skipping active program load")
+      setIsLoading(false)
+      return
+    }
+
     // Load active program instantly (database-first architecture handles data loading in auth)
     if (user?.id) {
       console.log("[Calendar] Loading active program instantly")
@@ -366,7 +382,8 @@ export function WorkoutCalendar({ onWorkoutClick, selectedWeek, selectedDay }: W
     )
   }
 
-  if (!activeProgram) {
+  // In read-only mode, use historical program data instead of active program
+  if (!activeProgram && !readOnly) {
     return (
       <Card className="mb-4">
         <CardContent className="p-4 text-center">
@@ -379,15 +396,25 @@ export function WorkoutCalendar({ onWorkoutClick, selectedWeek, selectedDay }: W
     )
   }
 
-  const { template, currentWeek, currentDay } = activeProgram
-  // Ensure schedule keys are sorted correctly (day1, day2, day3, etc.)
-  const scheduleKeys = Object.keys(template.schedule).sort((a, b) => {
-    // Extract numbers from keys like "day1", "day2", etc.
-    const numA = parseInt(a.replace(/[^0-9]/g, ''))
-    const numB = parseInt(b.replace(/[^0-9]/g, ''))
-    return numA - numB
-  })
-  const daysPerWeek = scheduleKeys.length
+  // Use activeProgram data if available, otherwise use historical program data
+  const daysPerWeek = readOnly && historicalProgram
+    ? historicalProgram.daysPerWeek
+    : activeProgram
+      ? Object.keys(activeProgram.template.schedule).length
+      : 3 // fallback
+
+  const currentWeek = activeProgram?.currentWeek || selectedWeek || 1
+  const currentDay = activeProgram?.currentDay || selectedDay || 1
+  const template = activeProgram?.template
+
+  // For historical mode, create minimal schedule keys
+  const scheduleKeys = template
+    ? Object.keys(template.schedule).sort((a, b) => {
+        const numA = parseInt(a.replace(/[^0-9]/g, ''))
+        const numB = parseInt(b.replace(/[^0-9]/g, ''))
+        return numA - numB
+      })
+    : Array.from({ length: daysPerWeek }, (_, i) => `day${i + 1}`)
 
   // Debug: Log the schedule order (only in development)
   if (process.env.NODE_ENV === "development") {
@@ -417,10 +444,18 @@ export function WorkoutCalendar({ onWorkoutClick, selectedWeek, selectedDay }: W
   }
 
   const getWorkoutStatus = (week: number, day: number) => {
+    // For read-only mode (historical programs), check historical workouts
+    if (readOnly && historicalWorkouts) {
+      const hasCompletedWorkout = historicalWorkouts.some(
+        (w) => w.week === week && w.day === day && w.completed
+      )
+      return hasCompletedWorkout ? "completed" : "future"
+    }
+
     // Check optimistic completion status first (instant updates)
     const key = `${week}-${day}`
     const optimisticCompleted = completionStatus.get(key)
-    
+
     // Fall back to database check if no optimistic update
     const hasCompletedWorkout =
       optimisticCompleted ??
@@ -468,9 +503,14 @@ export function WorkoutCalendar({ onWorkoutClick, selectedWeek, selectedDay }: W
   }
 
   const getWorkoutName = (dayIndex: number) => {
+    // In read-only mode without template, just return day number
+    if (readOnly && !template) {
+      return `Day ${dayIndex}`
+    }
+
     // More robust approach: directly use day1, day2, day3 keys
     const expectedKey = `day${dayIndex}`
-    const workout = template.schedule[expectedKey]
+    const workout = template?.schedule[expectedKey]
     const workoutName = workout?.name || `Day ${dayIndex}`
 
     // Debug logging (only for Day 1 in development)
