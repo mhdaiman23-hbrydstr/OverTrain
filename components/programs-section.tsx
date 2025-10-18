@@ -54,8 +54,13 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
   useEffect(() => {
     const loadData = async () => {
       // OPTIMIZATION: Load lightweight metadata only (no exercises)
-      // This makes the template list appear instantly
-      setTemplatesLoading(true)
+      // This makes the template list appear instantly from cache
+
+      // Only show loading spinner if we don't have templates yet
+      if (allTemplates.length === 0) {
+        setTemplatesLoading(true)
+      }
+
       const templatesPromise = ProgramStateManager.getAllTemplates()
 
       const history = TemplateStorageManager.getProgramHistory()

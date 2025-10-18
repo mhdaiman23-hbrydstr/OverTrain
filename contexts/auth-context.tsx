@@ -149,6 +149,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { ProgramStateManager } = await import('@/lib/program-state')
       await ProgramStateManager.recalculateProgress({ silent: true })
 
+      // Step 5.5: Preload program templates for instant Programs tab access
+      emitStatus('Loading program templates...')
+      console.log('[Auth] Preloading program templates for instant access')
+      try {
+        await ProgramStateManager.getAllTemplates()
+        console.log('[Auth] Program templates preloaded successfully')
+      } catch (error) {
+        console.warn('[Auth] Failed to preload templates:', error)
+      }
+
       // Step 6: Trigger global update to refresh all components
       if (typeof window !== 'undefined') {
         console.log('[Auth] Dispatching programChanged event to refresh UI')

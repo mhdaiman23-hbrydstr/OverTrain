@@ -1,0 +1,1019 @@
+react-dom-client.development.js:25631 Download the React DevTools for a better development experience: https://react.dev/link/react-devtools
+S:\Program Files\LiftLog\lib\session-manager.ts:272 [SessionManager] Dev tools available at window.SessionManager
+S:\Program Files\LiftLog\lib\workout-logger.ts:163 [WorkoutLogger] Development tools available at window.WorkoutLoggerDev
+S:\Program Files\LiftLog\lib\services\program-template-service.ts:371 [ProgramTemplateService] Warming cache...
+S:\Program Files\LiftLog\lib\session-manager.ts:47 [SessionManager] 🔐 Starting session monitoring...
+S:\Program Files\LiftLog\lib\session-manager.ts:73 [SessionManager] ✅ Session monitoring active
+S:\Program Files\LiftLog\lib\session-manager.ts:51 [SessionManager] Auth state changed: INITIAL_SESSION
+S:\Program Files\LiftLog\lib\session-manager.ts:125 [SessionManager] Session check: {expiresIn: '47 minutes', expiresAt: '2:10:27 AM', userId: '6bf0e5d0...'}
+S:\Program Files\LiftLog\contexts\auth-context.tsx:63 [Auth] Loading comprehensive user application data for: 6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c
+S:\Program Files\LiftLog\app\page.tsx:74 [HomePage] Data loading status: Loading your workout data...
+S:\Program Files\LiftLog\app\page.tsx:74 [HomePage] Data loading status: Checking for data recovery...
+S:\Program Files\LiftLog\contexts\auth-context.tsx:78 [Auth] Development mode: checking for port change scenario
+S:\Program Files\LiftLog\lib\workout-logger.ts:2050 [WorkoutLogger] Loading user data from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2057 [WorkoutLogger] Testing database access...
+S:\Program Files\LiftLog\lib\dev-data-recovery.ts:208 [DevDataRecovery] Development tools available at window.DevDataRecovery
+S:\Program Files\LiftLog\lib\dev-data-recovery.ts:163 [DevDataRecovery] === Recovery Statistics ===
+S:\Program Files\LiftLog\lib\dev-data-recovery.ts:169 [DevDataRecovery] Local storage:
+S:\Program Files\LiftLog\lib\dev-data-recovery.ts:170   Workouts data: Present (157749 chars)
+S:\Program Files\LiftLog\lib\dev-data-recovery.ts:171   Program data: Missing
+S:\Program Files\LiftLog\lib\services\program-template-service.ts:382 [ProgramTemplateService] Cache warmed with 2 templates
+S:\Program Files\LiftLog\components\template-cache-warmer.tsx:20 [TemplateCacheWarmer] Cache warmed successfully
+S:\Program Files\LiftLog\lib\workout-logger.ts:2073 [WorkoutLogger] Loading completed workouts...
+S:\Program Files\LiftLog\lib\dev-data-recovery.ts:186 [DevDataRecovery] Database:
+S:\Program Files\LiftLog\lib\dev-data-recovery.ts:187   Recent workouts: 5
+S:\Program Files\LiftLog\lib\dev-data-recovery.ts:188   Active programs: 0
+S:\Program Files\LiftLog\lib\dev-data-recovery.ts:191   Recent workout details: (5) [{…}, {…}, {…}, {…}, {…}]
+S:\Program Files\LiftLog\lib\dev-data-recovery.ts:198 [DevDataRecovery] === End Recovery Statistics ===
+S:\Program Files\LiftLog\lib\dev-data-recovery.ts:15 [DevDataRecovery] Checking for port change scenario...
+S:\Program Files\LiftLog\lib\dev-data-recovery.ts:23 [DevDataRecovery] Local storage status: {hasLocalWorkoutData: true, hasLocalInProgressData: false, hasLocalProgramData: false, userId: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c'}
+S:\Program Files\LiftLog\lib\auth.ts:252 [Auth] Loading user data from database (forceRefresh: false )...
+S:\Program Files\LiftLog\lib\dev-data-recovery.ts:15 [DevDataRecovery] Checking for port change scenario...
+S:\Program Files\LiftLog\lib\dev-data-recovery.ts:23 [DevDataRecovery] Local storage status: {hasLocalWorkoutData: true, hasLocalInProgressData: false, hasLocalProgramData: false, userId: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c'}
+S:\Program Files\LiftLog\lib\auth.ts:279 [Auth] Using safe loading (preserves local data)
+S:\Program Files\LiftLog\lib\auth.ts:296 [Auth] Using safe loading (preserves local data)
+S:\Program Files\LiftLog\lib\auth.ts:299 [Auth] Loading fresh data from database (database is source of truth)
+S:\Program Files\LiftLog\lib\workout-logger.ts:2050 [WorkoutLogger] Loading user data from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2057 [WorkoutLogger] Testing database access...
+S:\Program Files\LiftLog\lib\workout-logger.ts:2050 [WorkoutLogger] Loading user data from database (forceRefresh: false )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2057 [WorkoutLogger] Testing database access...
+S:\Program Files\LiftLog\lib\workout-logger.ts:2088 [WorkoutLogger] Found 110 workouts in database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2089 [WorkoutLogger] Sample workout data: {id: 'cg2bjn8nb', user_id: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c', program_id: '0f1a9e64-fd05-4b88-94c0-2f79ce754b28', workout_name: 'Full Body Accessory', start_time: 1760821830698, …}
+S:\Program Files\LiftLog\lib\workout-logger.ts:2112 [WorkoutLogger] Loaded 110 workouts from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2124 [WorkoutLogger] Loading in-progress workouts...
+S:\Program Files\LiftLog\lib\workout-logger.ts:2073 [WorkoutLogger] Loading completed workouts...
+S:\Program Files\LiftLog\lib\workout-logger.ts:2168 [WorkoutLogger] No in-progress workouts found in database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2171 [WorkoutLogger] Database loading completed. Total records loaded: 110
+S:\Program Files\LiftLog\lib\workout-logger.ts:2073 [WorkoutLogger] Loading completed workouts...
+S:\Program Files\LiftLog\lib\workout-logger.ts:2088 [WorkoutLogger] Found 110 workouts in database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2089 [WorkoutLogger] Sample workout data: {id: 'cg2bjn8nb', user_id: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c', program_id: '0f1a9e64-fd05-4b88-94c0-2f79ce754b28', workout_name: 'Full Body Accessory', start_time: 1760821830698, …}
+S:\Program Files\LiftLog\lib\workout-logger.ts:2112 [WorkoutLogger] Loaded 110 workouts from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2124 [WorkoutLogger] Loading in-progress workouts...
+S:\Program Files\LiftLog\lib\program-state.ts:1100 [ProgramState] Loaded program history from database
+S:\Program Files\LiftLog\components\train-section.tsx:69 [TrainSection] Component mounted or updated, loading program data...
+S:\Program Files\LiftLog\components\train-section.tsx:25 [TrainSection] Loading active program...
+S:\Program Files\LiftLog\components\train-section.tsx:29 [TrainSection] localStorage has active program: false
+S:\Program Files\LiftLog\lib\workout-logger.ts:2050 [WorkoutLogger] Loading user data from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2057 [WorkoutLogger] Testing database access...
+S:\Program Files\LiftLog\components\train-section.tsx:69 [TrainSection] Component mounted or updated, loading program data...
+S:\Program Files\LiftLog\components\train-section.tsx:25 [TrainSection] Loading active program...
+S:\Program Files\LiftLog\components\train-section.tsx:29 [TrainSection] localStorage has active program: false
+S:\Program Files\LiftLog\lib\workout-logger.ts:2050 [WorkoutLogger] Loading user data from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2057 [WorkoutLogger] Testing database access...
+S:\Program Files\LiftLog\lib\workout-logger.ts:2168 [WorkoutLogger] No in-progress workouts found in database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2171 [WorkoutLogger] Database loading completed. Total records loaded: 110
+S:\Program Files\LiftLog\lib\workout-logger.ts:2088 [WorkoutLogger] Found 110 workouts in database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2089 [WorkoutLogger] Sample workout data: {id: 'cg2bjn8nb', user_id: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c', program_id: '0f1a9e64-fd05-4b88-94c0-2f79ce754b28', workout_name: 'Full Body Accessory', start_time: 1760821830698, …}
+S:\Program Files\LiftLog\lib\workout-logger.ts:2114 [WorkoutLogger] Preserving local workouts, found 157749 characters of local data
+S:\Program Files\LiftLog\lib\workout-logger.ts:2124 [WorkoutLogger] Loading in-progress workouts...
+S:\Program Files\LiftLog\lib\workout-logger.ts:2073 [WorkoutLogger] Loading completed workouts...
+S:\Program Files\LiftLog\lib\workout-logger.ts:2168 [WorkoutLogger] No in-progress workouts found in database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2171 [WorkoutLogger] Database loading completed. Total records loaded: 110
+S:\Program Files\LiftLog\lib\program-state.ts:1100 [ProgramState] Loaded program history from database
+S:\Program Files\LiftLog\lib\auth.ts:307 [Auth] User data loaded successfully
+S:\Program Files\LiftLog\app\page.tsx:74 [HomePage] Data loading status: Validating workout data...
+S:\Program Files\LiftLog\lib\workout-logger.ts:200 [WorkoutLogger] Starting migration from global to user-specific keys for user: 6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c
+S:\Program Files\LiftLog\lib\workout-logger.ts:328 [WorkoutLogger] Starting cleanup of corrupted workouts...
+S:\Program Files\LiftLog\lib\workout-logger.ts:389 [WorkoutLogger] Removing corrupted completed workout: cg2bjn8nb
+S:\Program Files\LiftLog\lib\workout-logger.ts:389 [WorkoutLogger] Removing corrupted completed workout: x9gyhndti
+S:\Program Files\LiftLog\lib\workout-logger.ts:389 [WorkoutLogger] Removing corrupted completed workout: es1i781h1
+S:\Program Files\LiftLog\lib\workout-logger.ts:389 [WorkoutLogger] Removing corrupted completed workout: jy0jk77r9
+S:\Program Files\LiftLog\lib\workout-logger.ts:389 [WorkoutLogger] Removing corrupted completed workout: m0b14g8vh
+S:\Program Files\LiftLog\lib\workout-logger.ts:389 [WorkoutLogger] Removing corrupted completed workout: ytj44q7ly
+S:\Program Files\LiftLog\lib\workout-logger.ts:389 [WorkoutLogger] Removing corrupted completed workout: lxq2us5kb
+S:\Program Files\LiftLog\lib\workout-logger.ts:389 [WorkoutLogger] Removing corrupted completed workout: k9wjnjwkv
+S:\Program Files\LiftLog\lib\workout-logger.ts:389 [WorkoutLogger] Removing corrupted completed workout: 6tp1s7yi3
+S:\Program Files\LiftLog\lib\workout-logger.ts:389 [WorkoutLogger] Removing corrupted completed workout: lctweiajl
+S:\Program Files\LiftLog\lib\workout-logger.ts:389 [WorkoutLogger] Removing corrupted completed workout: 6lf8bohyn
+S:\Program Files\LiftLog\lib\workout-logger.ts:389 [WorkoutLogger] Removing corrupted completed workout: 9sehgmsea
+S:\Program Files\LiftLog\lib\workout-logger.ts:389 [WorkoutLogger] Removing corrupted completed workout: x0figy5cy
+S:\Program Files\LiftLog\lib\workout-logger.ts:389 [WorkoutLogger] Removing corrupted completed workout: isauh584k
+S:\Program Files\LiftLog\lib\workout-logger.ts:389 [WorkoutLogger] Removing corrupted completed workout: 0u6t96ryq
+S:\Program Files\LiftLog\lib\workout-logger.ts:389 [WorkoutLogger] Removing corrupted completed workout: unlar54dt
+S:\Program Files\LiftLog\lib\workout-logger.ts:389 [WorkoutLogger] Removing corrupted completed workout: 84isrgfcf
+S:\Program Files\LiftLog\lib\workout-logger.ts:389 [WorkoutLogger] Removing corrupted completed workout: na5sjuapd
+S:\Program Files\LiftLog\lib\workout-logger.ts:389 [WorkoutLogger] Removing corrupted completed workout: 4s6t7ynp8
+S:\Program Files\LiftLog\lib\workout-logger.ts:389 [WorkoutLogger] Removing corrupted completed workout: o0po03ruh
+S:\Program Files\LiftLog\lib\workout-logger.ts:389 [WorkoutLogger] Removing corrupted completed workout: 40of9t8wb
+S:\Program Files\LiftLog\lib\workout-logger.ts:389 [WorkoutLogger] Removing corrupted completed workout: 0pj28qniy
+S:\Program Files\LiftLog\lib\workout-logger.ts:389 [WorkoutLogger] Removing corrupted completed workout: 8cav7ibj0
+S:\Program Files\LiftLog\lib\workout-logger.ts:389 [WorkoutLogger] Removing corrupted completed workout: 49q6axw4e
+S:\Program Files\LiftLog\lib\workout-logger.ts:389 [WorkoutLogger] Removing corrupted completed workout: 6gpoi5wkd
+S:\Program Files\LiftLog\lib\workout-logger.ts:389 [WorkoutLogger] Removing corrupted completed workout: m6j0kl5s7
+S:\Program Files\LiftLog\lib\workout-logger.ts:389 [WorkoutLogger] Removing corrupted completed workout: rahosck4l
+S:\Program Files\LiftLog\lib\workout-logger.ts:389 [WorkoutLogger] Removing corrupted completed workout: blqik9y42
+S:\Program Files\LiftLog\lib\workout-logger.ts:389 [WorkoutLogger] Removing corrupted completed workout: nlua38v1n
+S:\Program Files\LiftLog\lib\workout-logger.ts:389 [WorkoutLogger] Removing corrupted completed workout: 2fgglisdw
+S:\Program Files\LiftLog\lib\workout-logger.ts:389 [WorkoutLogger] Removing corrupted completed workout: 2h2ib4zyt
+S:\Program Files\LiftLog\lib\workout-logger.ts:389 [WorkoutLogger] Removing corrupted completed workout: p72stu300
+S:\Program Files\LiftLog\lib\workout-logger.ts:389 [WorkoutLogger] Removing corrupted completed workout: 2tgcs2ed9
+S:\Program Files\LiftLog\lib\workout-logger.ts:389 [WorkoutLogger] Removing corrupted completed workout: 6tdu1ai7u
+S:\Program Files\LiftLog\lib\workout-logger.ts:389 [WorkoutLogger] Removing corrupted completed workout: 5f858km8e
+S:\Program Files\LiftLog\lib\workout-logger.ts:389 [WorkoutLogger] Removing corrupted completed workout: 8d0sh2pou
+S:\Program Files\LiftLog\lib\workout-logger.ts:389 [WorkoutLogger] Removing corrupted completed workout: r82oxy8z9
+S:\Program Files\LiftLog\lib\workout-logger.ts:389 [WorkoutLogger] Removing corrupted completed workout: pz3ayotof
+S:\Program Files\LiftLog\lib\workout-logger.ts:389 [WorkoutLogger] Removing corrupted completed workout: gseeqn197
+S:\Program Files\LiftLog\lib\workout-logger.ts:389 [WorkoutLogger] Removing corrupted completed workout: 798au4s04
+S:\Program Files\LiftLog\lib\workout-logger.ts:389 [WorkoutLogger] Removing corrupted completed workout: u0ydigvsv
+S:\Program Files\LiftLog\lib\workout-logger.ts:389 [WorkoutLogger] Removing corrupted completed workout: ytomufgom
+S:\Program Files\LiftLog\lib\workout-logger.ts:389 [WorkoutLogger] Removing corrupted completed workout: 5n5ma8tze
+S:\Program Files\LiftLog\lib\workout-logger.ts:389 [WorkoutLogger] Removing corrupted completed workout: bckrwss1e
+S:\Program Files\LiftLog\lib\workout-logger.ts:389 [WorkoutLogger] Removing corrupted completed workout: i904xd8ox
+S:\Program Files\LiftLog\lib\workout-logger.ts:389 [WorkoutLogger] Removing corrupted completed workout: dqv2d6qll
+S:\Program Files\LiftLog\lib\workout-logger.ts:389 [WorkoutLogger] Removing corrupted completed workout: 6xxjrnjvt
+S:\Program Files\LiftLog\lib\workout-logger.ts:389 [WorkoutLogger] Removing corrupted completed workout: nb1scgyca
+S:\Program Files\LiftLog\lib\workout-logger.ts:389 [WorkoutLogger] Removing corrupted completed workout: kjo5u9kkb
+S:\Program Files\LiftLog\lib\workout-logger.ts:389 [WorkoutLogger] Removing corrupted completed workout: 7rpwg0wek
+S:\Program Files\LiftLog\lib\workout-logger.ts:389 [WorkoutLogger] Removing corrupted completed workout: s5d79wi0n
+S:\Program Files\LiftLog\lib\workout-logger.ts:389 [WorkoutLogger] Removing corrupted completed workout: 37jkgycpb
+S:\Program Files\LiftLog\lib\workout-logger.ts:389 [WorkoutLogger] Removing corrupted completed workout: iwx6sn148
+S:\Program Files\LiftLog\lib\workout-logger.ts:389 [WorkoutLogger] Removing corrupted completed workout: k0a342mcd
+S:\Program Files\LiftLog\lib\workout-logger.ts:389 [WorkoutLogger] Removing corrupted completed workout: 04xbfpzl0
+S:\Program Files\LiftLog\lib\workout-logger.ts:389 [WorkoutLogger] Removing corrupted completed workout: trz2797mi
+S:\Program Files\LiftLog\lib\workout-logger.ts:389 [WorkoutLogger] Removing corrupted completed workout: 2lzs0yply
+S:\Program Files\LiftLog\lib\workout-logger.ts:389 [WorkoutLogger] Removing corrupted completed workout: 8s3s0jved
+S:\Program Files\LiftLog\lib\workout-logger.ts:389 [WorkoutLogger] Removing corrupted completed workout: x7zfjcxwk
+S:\Program Files\LiftLog\lib\workout-logger.ts:389 [WorkoutLogger] Removing corrupted completed workout: wxu1v7cgj
+S:\Program Files\LiftLog\lib\workout-logger.ts:389 [WorkoutLogger] Removing corrupted completed workout: 2qm7a1nmb
+S:\Program Files\LiftLog\lib\workout-logger.ts:389 [WorkoutLogger] Removing corrupted completed workout: jztaz4av5
+S:\Program Files\LiftLog\lib\workout-logger.ts:389 [WorkoutLogger] Removing corrupted completed workout: 7jv930886
+S:\Program Files\LiftLog\lib\workout-logger.ts:389 [WorkoutLogger] Removing corrupted completed workout: ncqi356q8
+S:\Program Files\LiftLog\lib\workout-logger.ts:389 [WorkoutLogger] Removing corrupted completed workout: 4i2777q0j
+S:\Program Files\LiftLog\lib\workout-logger.ts:389 [WorkoutLogger] Removing corrupted completed workout: 8a8k01h0j
+S:\Program Files\LiftLog\lib\workout-logger.ts:389 [WorkoutLogger] Removing corrupted completed workout: iav2xo4cl
+S:\Program Files\LiftLog\lib\workout-logger.ts:389 [WorkoutLogger] Removing corrupted completed workout: lyv5h451s
+S:\Program Files\LiftLog\lib\workout-logger.ts:389 [WorkoutLogger] Removing corrupted completed workout: 0qu4ptdeq
+S:\Program Files\LiftLog\lib\workout-logger.ts:389 [WorkoutLogger] Removing corrupted completed workout: ph6f9yhc4
+S:\Program Files\LiftLog\lib\workout-logger.ts:389 [WorkoutLogger] Removing corrupted completed workout: 6q21o5u5y
+S:\Program Files\LiftLog\lib\workout-logger.ts:389 [WorkoutLogger] Removing corrupted completed workout: io53yb1zl
+S:\Program Files\LiftLog\lib\workout-logger.ts:389 [WorkoutLogger] Removing corrupted completed workout: gxhfwk8tn
+S:\Program Files\LiftLog\lib\workout-logger.ts:389 [WorkoutLogger] Removing corrupted completed workout: zvuason7i
+S:\Program Files\LiftLog\lib\workout-logger.ts:389 [WorkoutLogger] Removing corrupted completed workout: ufrb3tcsh
+S:\Program Files\LiftLog\lib\workout-logger.ts:389 [WorkoutLogger] Removing corrupted completed workout: s46sbcjao
+S:\Program Files\LiftLog\lib\workout-logger.ts:389 [WorkoutLogger] Removing corrupted completed workout: ni65ig2na
+S:\Program Files\LiftLog\lib\workout-logger.ts:389 [WorkoutLogger] Removing corrupted completed workout: o3497m67e
+S:\Program Files\LiftLog\lib\workout-logger.ts:397 [WorkoutLogger] Cleaned up 78 corrupted completed workouts
+S:\Program Files\LiftLog\lib\workout-logger.ts:404 [WorkoutLogger] Cleanup completed. Total items removed: 78
+S:\Program Files\LiftLog\lib\workout-logger.ts:413 [WorkoutLogger] Starting workout data integrity validation...
+S:\Program Files\LiftLog\lib\workout-logger.ts:610 [WorkoutLogger] Workout data integrity validation completed. Validated 32 workouts, repaired 0 issues.
+S:\Program Files\LiftLog\app\page.tsx:74 [HomePage] Data loading status: Loading active programs...
+S:\Program Files\LiftLog\contexts\auth-context.tsx:154 [Auth] Dispatching programChanged event to refresh UI
+S:\Program Files\LiftLog\components\train-section.tsx:80 [TrainSection] Active program changed event received, reloading...
+S:\Program Files\LiftLog\components\train-section.tsx:25 [TrainSection] Loading active program...
+S:\Program Files\LiftLog\components\train-section.tsx:29 [TrainSection] localStorage has active program: false
+S:\Program Files\LiftLog\lib\workout-logger.ts:2050 [WorkoutLogger] Loading user data from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2057 [WorkoutLogger] Testing database access...
+S:\Program Files\LiftLog\app\page.tsx:74 [HomePage] Data loading status: Ready!
+S:\Program Files\LiftLog\contexts\auth-context.tsx:166 [Auth] User application data loaded successfully
+S:\Program Files\LiftLog\lib\workout-logger.ts:2073 [WorkoutLogger] Loading completed workouts...
+S:\Program Files\LiftLog\lib\workout-logger.ts:2088 [WorkoutLogger] Found 110 workouts in database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2089 [WorkoutLogger] Sample workout data: {id: 'cg2bjn8nb', user_id: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c', program_id: '0f1a9e64-fd05-4b88-94c0-2f79ce754b28', workout_name: 'Full Body Accessory', start_time: 1760821830698, …}
+S:\Program Files\LiftLog\lib\workout-logger.ts:2112 [WorkoutLogger] Loaded 110 workouts from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2124 [WorkoutLogger] Loading in-progress workouts...
+S:\Program Files\LiftLog\lib\workout-logger.ts:2073 [WorkoutLogger] Loading completed workouts...
+S:\Program Files\LiftLog\lib\workout-logger.ts:2168 [WorkoutLogger] No in-progress workouts found in database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2171 [WorkoutLogger] Database loading completed. Total records loaded: 110
+S:\Program Files\LiftLog\lib\workout-logger.ts:2088 [WorkoutLogger] Found 110 workouts in database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2089 [WorkoutLogger] Sample workout data: {id: 'cg2bjn8nb', user_id: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c', program_id: '0f1a9e64-fd05-4b88-94c0-2f79ce754b28', workout_name: 'Full Body Accessory', start_time: 1760821830698, …}
+S:\Program Files\LiftLog\lib\workout-logger.ts:2112 [WorkoutLogger] Loaded 110 workouts from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2124 [WorkoutLogger] Loading in-progress workouts...
+S:\Program Files\LiftLog\lib\workout-logger.ts:2168 [WorkoutLogger] No in-progress workouts found in database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2171 [WorkoutLogger] Database loading completed. Total records loaded: 110
+S:\Program Files\LiftLog\lib\workout-logger.ts:2088 [WorkoutLogger] Found 110 workouts in database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2089 [WorkoutLogger] Sample workout data: {id: 'cg2bjn8nb', user_id: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c', program_id: '0f1a9e64-fd05-4b88-94c0-2f79ce754b28', workout_name: 'Full Body Accessory', start_time: 1760821830698, …}
+S:\Program Files\LiftLog\lib\workout-logger.ts:2112 [WorkoutLogger] Loaded 110 workouts from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2124 [WorkoutLogger] Loading in-progress workouts...
+S:\Program Files\LiftLog\app\page.tsx:81 [HomePage] Loading completed, clearing status
+S:\Program Files\LiftLog\lib\program-state.ts:1100 [ProgramState] Loaded program history from database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2050 [WorkoutLogger] Loading user data from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2057 [WorkoutLogger] Testing database access...
+S:\Program Files\LiftLog\lib\workout-logger.ts:2168 [WorkoutLogger] No in-progress workouts found in database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2171 [WorkoutLogger] Database loading completed. Total records loaded: 110
+S:\Program Files\LiftLog\lib\workout-logger.ts:2073 [WorkoutLogger] Loading completed workouts...
+S:\Program Files\LiftLog\lib\program-state.ts:1100 [ProgramState] Loaded program history from database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2050 [WorkoutLogger] Loading user data from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2057 [WorkoutLogger] Testing database access...
+S:\Program Files\LiftLog\app\page.tsx:74 [HomePage] Data loading status: 
+S:\Program Files\LiftLog\contexts\auth-context.tsx:163 [Auth] All data loading completed successfully
+S:\Program Files\LiftLog\lib\program-state.ts:1100 [ProgramState] Loaded program history from database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2050 [WorkoutLogger] Loading user data from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2057 [WorkoutLogger] Testing database access...
+S:\Program Files\LiftLog\lib\workout-logger.ts:2073 [WorkoutLogger] Loading completed workouts...
+S:\Program Files\LiftLog\lib\workout-logger.ts:2088 [WorkoutLogger] Found 110 workouts in database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2089 [WorkoutLogger] Sample workout data: {id: 'cg2bjn8nb', user_id: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c', program_id: '0f1a9e64-fd05-4b88-94c0-2f79ce754b28', workout_name: 'Full Body Accessory', start_time: 1760821830698, …}
+S:\Program Files\LiftLog\lib\workout-logger.ts:2112 [WorkoutLogger] Loaded 110 workouts from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2124 [WorkoutLogger] Loading in-progress workouts...
+S:\Program Files\LiftLog\lib\workout-logger.ts:2073 [WorkoutLogger] Loading completed workouts...
+S:\Program Files\LiftLog\lib\workout-logger.ts:2168 [WorkoutLogger] No in-progress workouts found in database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2171 [WorkoutLogger] Database loading completed. Total records loaded: 110
+S:\Program Files\LiftLog\components\train-section.tsx:42 [TrainSection] Loaded active program: null
+S:\Program Files\LiftLog\components\train-section.tsx:55 [TrainSection] No active program returned from ProgramStateManager
+loadProgramData @ S:\Program Files\LiftLog\components\train-section.tsx:55
+await in loadProgramData
+TrainSection.useEffect @ S:\Program Files\LiftLog\components\train-section.tsx:70
+react_stack_bottom_frame @ react-dom-client.development.js:23669
+runWithFiberInDEV @ react-dom-client.development.js:872
+commitHookEffectListMount @ react-dom-client.development.js:12345
+commitHookPassiveMountEffects @ react-dom-client.development.js:12466
+commitPassiveMountOnFiber @ react-dom-client.development.js:14387
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14514
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14514
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14380
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14380
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14380
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14514
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14514
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14380
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14390
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14380
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14390
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14380
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14485
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14458
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14380
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14380
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14390
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14380
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14380
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14514
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14514
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14380
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14380
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14485
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14458
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14514
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14514
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14380
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14380
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14380
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14514
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14380
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14514
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14514
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14514
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14380
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14380
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14390
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14380
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14390
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14380
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14380
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14390
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14380
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14514
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14514
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14514
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14514
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14514
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14514
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14380
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14390
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14380
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14380
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14380
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14514
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14380
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14380
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14514
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14514
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14399
+flushPassiveEffects @ react-dom-client.development.js:16338
+flushPendingEffects @ react-dom-client.development.js:16299
+performSyncWorkOnRoot @ react-dom-client.development.js:16828
+flushSyncWorkAcrossRoots_impl @ react-dom-client.development.js:16677
+flushSpawnedWork @ react-dom-client.development.js:16274
+commitRoot @ react-dom-client.development.js:15998
+commitRootWhenReady @ react-dom-client.development.js:15228
+performWorkOnRoot @ react-dom-client.development.js:15147
+performWorkOnRootViaSchedulerTask @ react-dom-client.development.js:16816
+performWorkUntilDeadline @ scheduler.development.js:45
+<TrainSection>
+exports.jsxDEV @ react-jsx-dev-runtime.development.js:323
+HomePage @ S:\Program Files\LiftLog\app\page.tsx:280
+react_stack_bottom_frame @ react-dom-client.development.js:23584
+renderWithHooksAgain @ react-dom-client.development.js:6893
+renderWithHooks @ react-dom-client.development.js:6805
+updateFunctionComponent @ react-dom-client.development.js:9247
+beginWork @ react-dom-client.development.js:10858
+runWithFiberInDEV @ react-dom-client.development.js:872
+performUnitOfWork @ react-dom-client.development.js:15727
+workLoopSync @ react-dom-client.development.js:15547
+renderRootSync @ react-dom-client.development.js:15527
+performWorkOnRoot @ react-dom-client.development.js:14991
+performWorkOnRootViaSchedulerTask @ react-dom-client.development.js:16816
+performWorkUntilDeadline @ scheduler.development.js:45
+<HomePage>
+exports.jsx @ react-jsx-runtime.development.js:323
+ClientPageRoot @ client-page.js:20
+react_stack_bottom_frame @ react-dom-client.development.js:23584
+renderWithHooksAgain @ react-dom-client.development.js:6893
+renderWithHooks @ react-dom-client.development.js:6805
+updateFunctionComponent @ react-dom-client.development.js:9247
+beginWork @ react-dom-client.development.js:10807
+runWithFiberInDEV @ react-dom-client.development.js:872
+performUnitOfWork @ react-dom-client.development.js:15727
+workLoopConcurrentByScheduler @ react-dom-client.development.js:15721
+renderRootConcurrent @ react-dom-client.development.js:15696
+performWorkOnRoot @ react-dom-client.development.js:14990
+performWorkOnRootViaSchedulerTask @ react-dom-client.development.js:16816
+performWorkUntilDeadline @ scheduler.development.js:45
+S:\Program Files\LiftLog\lib\workout-logger.ts:2088 [WorkoutLogger] Found 110 workouts in database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2089 [WorkoutLogger] Sample workout data: {id: 'cg2bjn8nb', user_id: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c', program_id: '0f1a9e64-fd05-4b88-94c0-2f79ce754b28', workout_name: 'Full Body Accessory', start_time: 1760821830698, …}
+S:\Program Files\LiftLog\lib\workout-logger.ts:2112 [WorkoutLogger] Loaded 110 workouts from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2124 [WorkoutLogger] Loading in-progress workouts...
+S:\Program Files\LiftLog\app\page.tsx:81 [HomePage] Loading completed, clearing status
+S:\Program Files\LiftLog\lib\workout-logger.ts:2168 [WorkoutLogger] No in-progress workouts found in database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2171 [WorkoutLogger] Database loading completed. Total records loaded: 110
+S:\Program Files\LiftLog\components\train-section.tsx:42 [TrainSection] Loaded active program: null
+S:\Program Files\LiftLog\components\train-section.tsx:55 [TrainSection] No active program returned from ProgramStateManager
+loadProgramData @ S:\Program Files\LiftLog\components\train-section.tsx:55
+await in loadProgramData
+TrainSection.useEffect @ S:\Program Files\LiftLog\components\train-section.tsx:70
+react_stack_bottom_frame @ react-dom-client.development.js:23669
+runWithFiberInDEV @ react-dom-client.development.js:872
+commitHookEffectListMount @ react-dom-client.development.js:12345
+commitHookPassiveMountEffects @ react-dom-client.development.js:12466
+reconnectPassiveEffects @ react-dom-client.development.js:14563
+recursivelyTraverseReconnectPassiveEffects @ react-dom-client.development.js:14534
+reconnectPassiveEffects @ react-dom-client.development.js:14610
+doubleInvokeEffectsOnFiber @ react-dom-client.development.js:16566
+runWithFiberInDEV @ react-dom-client.development.js:872
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16530
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+runWithFiberInDEV @ react-dom-client.development.js:875
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16550
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+runWithFiberInDEV @ react-dom-client.development.js:875
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16550
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+commitDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16575
+flushPassiveEffects @ react-dom-client.development.js:16348
+flushPendingEffects @ react-dom-client.development.js:16299
+performSyncWorkOnRoot @ react-dom-client.development.js:16828
+flushSyncWorkAcrossRoots_impl @ react-dom-client.development.js:16677
+flushSpawnedWork @ react-dom-client.development.js:16274
+commitRoot @ react-dom-client.development.js:15998
+commitRootWhenReady @ react-dom-client.development.js:15228
+performWorkOnRoot @ react-dom-client.development.js:15147
+performWorkOnRootViaSchedulerTask @ react-dom-client.development.js:16816
+performWorkUntilDeadline @ scheduler.development.js:45
+<TrainSection>
+exports.jsxDEV @ react-jsx-dev-runtime.development.js:323
+HomePage @ S:\Program Files\LiftLog\app\page.tsx:280
+react_stack_bottom_frame @ react-dom-client.development.js:23584
+renderWithHooksAgain @ react-dom-client.development.js:6893
+renderWithHooks @ react-dom-client.development.js:6805
+updateFunctionComponent @ react-dom-client.development.js:9247
+beginWork @ react-dom-client.development.js:10858
+runWithFiberInDEV @ react-dom-client.development.js:872
+performUnitOfWork @ react-dom-client.development.js:15727
+workLoopSync @ react-dom-client.development.js:15547
+renderRootSync @ react-dom-client.development.js:15527
+performWorkOnRoot @ react-dom-client.development.js:14991
+performWorkOnRootViaSchedulerTask @ react-dom-client.development.js:16816
+performWorkUntilDeadline @ scheduler.development.js:45
+<HomePage>
+exports.jsx @ react-jsx-runtime.development.js:323
+ClientPageRoot @ client-page.js:20
+react_stack_bottom_frame @ react-dom-client.development.js:23584
+renderWithHooksAgain @ react-dom-client.development.js:6893
+renderWithHooks @ react-dom-client.development.js:6805
+updateFunctionComponent @ react-dom-client.development.js:9247
+beginWork @ react-dom-client.development.js:10807
+runWithFiberInDEV @ react-dom-client.development.js:872
+performUnitOfWork @ react-dom-client.development.js:15727
+workLoopConcurrentByScheduler @ react-dom-client.development.js:15721
+renderRootConcurrent @ react-dom-client.development.js:15696
+performWorkOnRoot @ react-dom-client.development.js:14990
+performWorkOnRootViaSchedulerTask @ react-dom-client.development.js:16816
+performWorkUntilDeadline @ scheduler.development.js:45
+S:\Program Files\LiftLog\lib\workout-logger.ts:2088 [WorkoutLogger] Found 110 workouts in database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2089 [WorkoutLogger] Sample workout data: {id: 'cg2bjn8nb', user_id: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c', program_id: '0f1a9e64-fd05-4b88-94c0-2f79ce754b28', workout_name: 'Full Body Accessory', start_time: 1760821830698, …}
+S:\Program Files\LiftLog\lib\workout-logger.ts:2112 [WorkoutLogger] Loaded 110 workouts from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2124 [WorkoutLogger] Loading in-progress workouts...
+S:\Program Files\LiftLog\lib\workout-logger.ts:2168 [WorkoutLogger] No in-progress workouts found in database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2171 [WorkoutLogger] Database loading completed. Total records loaded: 110
+S:\Program Files\LiftLog\components\train-section.tsx:42 [TrainSection] Loaded active program: null
+S:\Program Files\LiftLog\components\train-section.tsx:55 [TrainSection] No active program returned from ProgramStateManager
+loadProgramData @ S:\Program Files\LiftLog\components\train-section.tsx:55
+await in loadProgramData
+TrainSection.useEffect.handleProgramChange @ S:\Program Files\LiftLog\components\train-section.tsx:81
+loadUserApplicationData @ S:\Program Files\LiftLog\contexts\auth-context.tsx:155
+await in loadUserApplicationData
+AuthProvider.useEffect.checkOAuthCallback @ S:\Program Files\LiftLog\contexts\auth-context.tsx:35
+await in AuthProvider.useEffect.checkOAuthCallback
+AuthProvider.useEffect @ S:\Program Files\LiftLog\contexts\auth-context.tsx:53
+react_stack_bottom_frame @ react-dom-client.development.js:23669
+runWithFiberInDEV @ react-dom-client.development.js:872
+commitHookEffectListMount @ react-dom-client.development.js:12345
+commitHookPassiveMountEffects @ react-dom-client.development.js:12466
+commitPassiveMountOnFiber @ react-dom-client.development.js:14387
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14514
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14514
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14514
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14380
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14380
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14390
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14380
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14390
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14380
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14380
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14390
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14380
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14514
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14514
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14514
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14514
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14514
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14514
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14380
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14390
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14380
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14380
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14380
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14514
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14380
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14380
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14514
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14514
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14399
+flushPassiveEffects @ react-dom-client.development.js:16338
+flushPendingEffects @ react-dom-client.development.js:16299
+performSyncWorkOnRoot @ react-dom-client.development.js:16828
+flushSyncWorkAcrossRoots_impl @ react-dom-client.development.js:16677
+flushSpawnedWork @ react-dom-client.development.js:16274
+commitRoot @ react-dom-client.development.js:15998
+commitRootWhenReady @ react-dom-client.development.js:15228
+performWorkOnRoot @ react-dom-client.development.js:15147
+performWorkOnRootViaSchedulerTask @ react-dom-client.development.js:16816
+performWorkUntilDeadline @ scheduler.development.js:45
+S:\Program Files\LiftLog\lib\workout-logger.ts:2050 [WorkoutLogger] Loading user data from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2057 [WorkoutLogger] Testing database access...
+S:\Program Files\LiftLog\lib\workout-logger.ts:2050 [WorkoutLogger] Loading user data from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2057 [WorkoutLogger] Testing database access...
+S:\Program Files\LiftLog\lib\program-state.ts:288 [ProgramState] Loaded 2 lightweight templates (metadata only)
+S:\Program Files\LiftLog\lib\program-state.ts:288 [ProgramState] Loaded 2 lightweight templates (metadata only)
+S:\Program Files\LiftLog\lib\workout-logger.ts:2073 [WorkoutLogger] Loading completed workouts...
+S:\Program Files\LiftLog\lib\workout-logger.ts:2073 [WorkoutLogger] Loading completed workouts...
+S:\Program Files\LiftLog\lib\workout-logger.ts:2088 [WorkoutLogger] Found 110 workouts in database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2089 [WorkoutLogger] Sample workout data: {id: 'cg2bjn8nb', user_id: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c', program_id: '0f1a9e64-fd05-4b88-94c0-2f79ce754b28', workout_name: 'Full Body Accessory', start_time: 1760821830698, …}
+S:\Program Files\LiftLog\lib\workout-logger.ts:2112 [WorkoutLogger] Loaded 110 workouts from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2124 [WorkoutLogger] Loading in-progress workouts...
+S:\Program Files\LiftLog\lib\workout-logger.ts:2168 [WorkoutLogger] No in-progress workouts found in database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2171 [WorkoutLogger] Database loading completed. Total records loaded: 110
+S:\Program Files\LiftLog\lib\workout-logger.ts:2088 [WorkoutLogger] Found 110 workouts in database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2089 [WorkoutLogger] Sample workout data: {id: 'cg2bjn8nb', user_id: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c', program_id: '0f1a9e64-fd05-4b88-94c0-2f79ce754b28', workout_name: 'Full Body Accessory', start_time: 1760821830698, …}
+S:\Program Files\LiftLog\lib\workout-logger.ts:2112 [WorkoutLogger] Loaded 110 workouts from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2124 [WorkoutLogger] Loading in-progress workouts...
+S:\Program Files\LiftLog\lib\workout-logger.ts:2168 [WorkoutLogger] No in-progress workouts found in database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2171 [WorkoutLogger] Database loading completed. Total records loaded: 110
+S:\Program Files\LiftLog\lib\program-state.ts:1100 [ProgramState] Loaded program history from database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2050 [WorkoutLogger] Loading user data from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2057 [WorkoutLogger] Testing database access...
+S:\Program Files\LiftLog\lib\workout-logger.ts:2073 [WorkoutLogger] Loading completed workouts...
+S:\Program Files\LiftLog\lib\program-state.ts:1100 [ProgramState] Loaded program history from database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2050 [WorkoutLogger] Loading user data from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2057 [WorkoutLogger] Testing database access...
+S:\Program Files\LiftLog\lib\workout-logger.ts:2073 [WorkoutLogger] Loading completed workouts...
+S:\Program Files\LiftLog\lib\workout-logger.ts:2088 [WorkoutLogger] Found 110 workouts in database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2089 [WorkoutLogger] Sample workout data: {id: 'cg2bjn8nb', user_id: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c', program_id: '0f1a9e64-fd05-4b88-94c0-2f79ce754b28', workout_name: 'Full Body Accessory', start_time: 1760821830698, …}
+S:\Program Files\LiftLog\lib\workout-logger.ts:2112 [WorkoutLogger] Loaded 110 workouts from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2124 [WorkoutLogger] Loading in-progress workouts...
+S:\Program Files\LiftLog\lib\workout-logger.ts:2168 [WorkoutLogger] No in-progress workouts found in database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2171 [WorkoutLogger] Database loading completed. Total records loaded: 110
+S:\Program Files\LiftLog\components\programs-section.tsx:79 [ProgramsSection] Loaded 2 lightweight templates (metadata only)
+S:\Program Files\LiftLog\lib\workout-logger.ts:2088 [WorkoutLogger] Found 110 workouts in database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2089 [WorkoutLogger] Sample workout data: {id: 'cg2bjn8nb', user_id: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c', program_id: '0f1a9e64-fd05-4b88-94c0-2f79ce754b28', workout_name: 'Full Body Accessory', start_time: 1760821830698, …}
+S:\Program Files\LiftLog\lib\workout-logger.ts:2112 [WorkoutLogger] Loaded 110 workouts from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2124 [WorkoutLogger] Loading in-progress workouts...
+S:\Program Files\LiftLog\lib\workout-logger.ts:2168 [WorkoutLogger] No in-progress workouts found in database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2171 [WorkoutLogger] Database loading completed. Total records loaded: 110
+S:\Program Files\LiftLog\components\programs-section.tsx:79 [ProgramsSection] Loaded 2 lightweight templates (metadata only)
+S:\Program Files\LiftLog\lib\workout-logger.ts:2050 [WorkoutLogger] Loading user data from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2057 [WorkoutLogger] Testing database access...
+S:\Program Files\LiftLog\lib\workout-logger.ts:2073 [WorkoutLogger] Loading completed workouts...
+S:\Program Files\LiftLog\lib\workout-logger.ts:2088 [WorkoutLogger] Found 110 workouts in database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2089 [WorkoutLogger] Sample workout data: {id: 'cg2bjn8nb', user_id: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c', program_id: '0f1a9e64-fd05-4b88-94c0-2f79ce754b28', workout_name: 'Full Body Accessory', start_time: 1760821830698, …}
+S:\Program Files\LiftLog\lib\workout-logger.ts:2112 [WorkoutLogger] Loaded 110 workouts from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2124 [WorkoutLogger] Loading in-progress workouts...
+S:\Program Files\LiftLog\lib\workout-logger.ts:2168 [WorkoutLogger] No in-progress workouts found in database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2171 [WorkoutLogger] Database loading completed. Total records loaded: 110
+S:\Program Files\LiftLog\lib\program-state.ts:1100 [ProgramState] Loaded program history from database
+S:\Program Files\LiftLog\components\train-section.tsx:69 [TrainSection] Component mounted or updated, loading program data...
+S:\Program Files\LiftLog\components\train-section.tsx:25 [TrainSection] Loading active program...
+S:\Program Files\LiftLog\components\train-section.tsx:29 [TrainSection] localStorage has active program: false
+S:\Program Files\LiftLog\lib\workout-logger.ts:2050 [WorkoutLogger] Loading user data from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2057 [WorkoutLogger] Testing database access...
+S:\Program Files\LiftLog\components\train-section.tsx:69 [TrainSection] Component mounted or updated, loading program data...
+S:\Program Files\LiftLog\components\train-section.tsx:25 [TrainSection] Loading active program...
+S:\Program Files\LiftLog\components\train-section.tsx:29 [TrainSection] localStorage has active program: false
+S:\Program Files\LiftLog\lib\workout-logger.ts:2050 [WorkoutLogger] Loading user data from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2057 [WorkoutLogger] Testing database access...
+S:\Program Files\LiftLog\lib\workout-logger.ts:2073 [WorkoutLogger] Loading completed workouts...
+S:\Program Files\LiftLog\lib\workout-logger.ts:2073 [WorkoutLogger] Loading completed workouts...
+S:\Program Files\LiftLog\lib\workout-logger.ts:2088 [WorkoutLogger] Found 110 workouts in database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2089 [WorkoutLogger] Sample workout data: {id: 'cg2bjn8nb', user_id: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c', program_id: '0f1a9e64-fd05-4b88-94c0-2f79ce754b28', workout_name: 'Full Body Accessory', start_time: 1760821830698, …}
+S:\Program Files\LiftLog\lib\workout-logger.ts:2112 [WorkoutLogger] Loaded 110 workouts from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2124 [WorkoutLogger] Loading in-progress workouts...
+S:\Program Files\LiftLog\lib\workout-logger.ts:2168 [WorkoutLogger] No in-progress workouts found in database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2171 [WorkoutLogger] Database loading completed. Total records loaded: 110
+S:\Program Files\LiftLog\lib\workout-logger.ts:2088 [WorkoutLogger] Found 110 workouts in database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2089 [WorkoutLogger] Sample workout data: {id: 'cg2bjn8nb', user_id: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c', program_id: '0f1a9e64-fd05-4b88-94c0-2f79ce754b28', workout_name: 'Full Body Accessory', start_time: 1760821830698, …}
+S:\Program Files\LiftLog\lib\workout-logger.ts:2112 [WorkoutLogger] Loaded 110 workouts from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2124 [WorkoutLogger] Loading in-progress workouts...
+S:\Program Files\LiftLog\lib\workout-logger.ts:2168 [WorkoutLogger] No in-progress workouts found in database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2171 [WorkoutLogger] Database loading completed. Total records loaded: 110
+S:\Program Files\LiftLog\lib\program-state.ts:1100 [ProgramState] Loaded program history from database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2050 [WorkoutLogger] Loading user data from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2057 [WorkoutLogger] Testing database access...
+S:\Program Files\LiftLog\lib\workout-logger.ts:2073 [WorkoutLogger] Loading completed workouts...
+S:\Program Files\LiftLog\lib\program-state.ts:1100 [ProgramState] Loaded program history from database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2050 [WorkoutLogger] Loading user data from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2057 [WorkoutLogger] Testing database access...
+S:\Program Files\LiftLog\lib\workout-logger.ts:2073 [WorkoutLogger] Loading completed workouts...
+S:\Program Files\LiftLog\lib\workout-logger.ts:2088 [WorkoutLogger] Found 110 workouts in database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2089 [WorkoutLogger] Sample workout data: {id: 'cg2bjn8nb', user_id: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c', program_id: '0f1a9e64-fd05-4b88-94c0-2f79ce754b28', workout_name: 'Full Body Accessory', start_time: 1760821830698, …}
+S:\Program Files\LiftLog\lib\workout-logger.ts:2112 [WorkoutLogger] Loaded 110 workouts from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2124 [WorkoutLogger] Loading in-progress workouts...
+S:\Program Files\LiftLog\lib\workout-logger.ts:2168 [WorkoutLogger] No in-progress workouts found in database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2171 [WorkoutLogger] Database loading completed. Total records loaded: 110
+S:\Program Files\LiftLog\components\train-section.tsx:42 [TrainSection] Loaded active program: null
+S:\Program Files\LiftLog\components\train-section.tsx:55 [TrainSection] No active program returned from ProgramStateManager
+loadProgramData @ S:\Program Files\LiftLog\components\train-section.tsx:55
+await in loadProgramData
+TrainSection.useEffect @ S:\Program Files\LiftLog\components\train-section.tsx:70
+react_stack_bottom_frame @ react-dom-client.development.js:23669
+runWithFiberInDEV @ react-dom-client.development.js:872
+commitHookEffectListMount @ react-dom-client.development.js:12345
+commitHookPassiveMountEffects @ react-dom-client.development.js:12466
+commitPassiveMountOnFiber @ react-dom-client.development.js:14387
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14514
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14514
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14380
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14380
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14380
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14514
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14514
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14380
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14390
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14380
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14390
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14380
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14485
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14458
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14380
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14380
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14390
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14380
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14380
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14514
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14514
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14380
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14380
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14485
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14458
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14514
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14514
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14380
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14380
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14380
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14514
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14380
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14514
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14514
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14514
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14380
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14380
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14390
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14380
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14390
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14380
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14380
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14390
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14380
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14514
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14514
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14514
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14514
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14514
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14514
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14380
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14390
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14380
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14380
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14380
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14514
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14380
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14380
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14514
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14514
+recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:14360
+commitPassiveMountOnFiber @ react-dom-client.development.js:14399
+flushPassiveEffects @ react-dom-client.development.js:16338
+flushPendingEffects @ react-dom-client.development.js:16299
+performSyncWorkOnRoot @ react-dom-client.development.js:16828
+flushSyncWorkAcrossRoots_impl @ react-dom-client.development.js:16677
+flushSpawnedWork @ react-dom-client.development.js:16274
+commitRoot @ react-dom-client.development.js:15998
+commitRootWhenReady @ react-dom-client.development.js:15228
+performWorkOnRoot @ react-dom-client.development.js:15147
+performWorkOnRootViaSchedulerTask @ react-dom-client.development.js:16816
+performWorkUntilDeadline @ scheduler.development.js:45
+<TrainSection>
+exports.jsxDEV @ react-jsx-dev-runtime.development.js:323
+HomePage @ S:\Program Files\LiftLog\app\page.tsx:280
+react_stack_bottom_frame @ react-dom-client.development.js:23584
+renderWithHooksAgain @ react-dom-client.development.js:6893
+renderWithHooks @ react-dom-client.development.js:6805
+updateFunctionComponent @ react-dom-client.development.js:9247
+beginWork @ react-dom-client.development.js:10858
+runWithFiberInDEV @ react-dom-client.development.js:872
+performUnitOfWork @ react-dom-client.development.js:15727
+workLoopSync @ react-dom-client.development.js:15547
+renderRootSync @ react-dom-client.development.js:15527
+performWorkOnRoot @ react-dom-client.development.js:14991
+performWorkOnRootViaSchedulerTask @ react-dom-client.development.js:16816
+performWorkUntilDeadline @ scheduler.development.js:45
+<HomePage>
+exports.jsx @ react-jsx-runtime.development.js:323
+ClientPageRoot @ client-page.js:20
+react_stack_bottom_frame @ react-dom-client.development.js:23584
+renderWithHooksAgain @ react-dom-client.development.js:6893
+renderWithHooks @ react-dom-client.development.js:6805
+updateFunctionComponent @ react-dom-client.development.js:9247
+beginWork @ react-dom-client.development.js:10807
+runWithFiberInDEV @ react-dom-client.development.js:872
+performUnitOfWork @ react-dom-client.development.js:15727
+workLoopConcurrentByScheduler @ react-dom-client.development.js:15721
+renderRootConcurrent @ react-dom-client.development.js:15696
+performWorkOnRoot @ react-dom-client.development.js:14990
+performWorkOnRootViaSchedulerTask @ react-dom-client.development.js:16816
+performWorkUntilDeadline @ scheduler.development.js:45
+S:\Program Files\LiftLog\lib\workout-logger.ts:2088 [WorkoutLogger] Found 110 workouts in database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2089 [WorkoutLogger] Sample workout data: {id: 'cg2bjn8nb', user_id: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c', program_id: '0f1a9e64-fd05-4b88-94c0-2f79ce754b28', workout_name: 'Full Body Accessory', start_time: 1760821830698, …}
+S:\Program Files\LiftLog\lib\workout-logger.ts:2112 [WorkoutLogger] Loaded 110 workouts from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2124 [WorkoutLogger] Loading in-progress workouts...
+S:\Program Files\LiftLog\lib\workout-logger.ts:2168 [WorkoutLogger] No in-progress workouts found in database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2171 [WorkoutLogger] Database loading completed. Total records loaded: 110
+S:\Program Files\LiftLog\components\train-section.tsx:42 [TrainSection] Loaded active program: null
+S:\Program Files\LiftLog\components\train-section.tsx:55 [TrainSection] No active program returned from ProgramStateManager
+loadProgramData @ S:\Program Files\LiftLog\components\train-section.tsx:55
+await in loadProgramData
+TrainSection.useEffect @ S:\Program Files\LiftLog\components\train-section.tsx:70
+react_stack_bottom_frame @ react-dom-client.development.js:23669
+runWithFiberInDEV @ react-dom-client.development.js:872
+commitHookEffectListMount @ react-dom-client.development.js:12345
+commitHookPassiveMountEffects @ react-dom-client.development.js:12466
+reconnectPassiveEffects @ react-dom-client.development.js:14563
+doubleInvokeEffectsOnFiber @ react-dom-client.development.js:16566
+runWithFiberInDEV @ react-dom-client.development.js:872
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16530
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+runWithFiberInDEV @ react-dom-client.development.js:875
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16550
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+runWithFiberInDEV @ react-dom-client.development.js:875
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16550
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+recursivelyTraverseAndDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16536
+commitDoubleInvokeEffectsInDEV @ react-dom-client.development.js:16575
+flushPassiveEffects @ react-dom-client.development.js:16348
+flushPendingEffects @ react-dom-client.development.js:16299
+performSyncWorkOnRoot @ react-dom-client.development.js:16828
+flushSyncWorkAcrossRoots_impl @ react-dom-client.development.js:16677
+flushSpawnedWork @ react-dom-client.development.js:16274
+commitRoot @ react-dom-client.development.js:15998
+commitRootWhenReady @ react-dom-client.development.js:15228
+performWorkOnRoot @ react-dom-client.development.js:15147
+performWorkOnRootViaSchedulerTask @ react-dom-client.development.js:16816
+performWorkUntilDeadline @ scheduler.development.js:45
+<TrainSection>
+exports.jsxDEV @ react-jsx-dev-runtime.development.js:323
+HomePage @ S:\Program Files\LiftLog\app\page.tsx:280
+react_stack_bottom_frame @ react-dom-client.development.js:23584
+renderWithHooksAgain @ react-dom-client.development.js:6893
+renderWithHooks @ react-dom-client.development.js:6805
+updateFunctionComponent @ react-dom-client.development.js:9247
+beginWork @ react-dom-client.development.js:10858
+runWithFiberInDEV @ react-dom-client.development.js:872
+performUnitOfWork @ react-dom-client.development.js:15727
+workLoopSync @ react-dom-client.development.js:15547
+renderRootSync @ react-dom-client.development.js:15527
+performWorkOnRoot @ react-dom-client.development.js:14991
+performWorkOnRootViaSchedulerTask @ react-dom-client.development.js:16816
+performWorkUntilDeadline @ scheduler.development.js:45
+<HomePage>
+exports.jsx @ react-jsx-runtime.development.js:323
+ClientPageRoot @ client-page.js:20
+react_stack_bottom_frame @ react-dom-client.development.js:23584
+renderWithHooksAgain @ react-dom-client.development.js:6893
+renderWithHooks @ react-dom-client.development.js:6805
+updateFunctionComponent @ react-dom-client.development.js:9247
+beginWork @ react-dom-client.development.js:10807
+runWithFiberInDEV @ react-dom-client.development.js:872
+performUnitOfWork @ react-dom-client.development.js:15727
+workLoopConcurrentByScheduler @ react-dom-client.development.js:15721
+renderRootConcurrent @ react-dom-client.development.js:15696
+performWorkOnRoot @ react-dom-client.development.js:14990
+performWorkOnRootViaSchedulerTask @ react-dom-client.development.js:16816
+performWorkUntilDeadline @ scheduler.development.js:45
+S:\Program Files\LiftLog\lib\workout-logger.ts:2050 [WorkoutLogger] Loading user data from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2057 [WorkoutLogger] Testing database access...
+S:\Program Files\LiftLog\lib\workout-logger.ts:2050 [WorkoutLogger] Loading user data from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2057 [WorkoutLogger] Testing database access...
+S:\Program Files\LiftLog\lib\program-state.ts:288 [ProgramState] Loaded 2 lightweight templates (metadata only)
+S:\Program Files\LiftLog\lib\program-state.ts:288 [ProgramState] Loaded 2 lightweight templates (metadata only)
+S:\Program Files\LiftLog\lib\workout-logger.ts:2073 [WorkoutLogger] Loading completed workouts...
+S:\Program Files\LiftLog\lib\workout-logger.ts:2073 [WorkoutLogger] Loading completed workouts...
+S:\Program Files\LiftLog\lib\workout-logger.ts:2088 [WorkoutLogger] Found 110 workouts in database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2089 [WorkoutLogger] Sample workout data: {id: 'cg2bjn8nb', user_id: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c', program_id: '0f1a9e64-fd05-4b88-94c0-2f79ce754b28', workout_name: 'Full Body Accessory', start_time: 1760821830698, …}
+S:\Program Files\LiftLog\lib\workout-logger.ts:2112 [WorkoutLogger] Loaded 110 workouts from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2124 [WorkoutLogger] Loading in-progress workouts...
+S:\Program Files\LiftLog\lib\workout-logger.ts:2168 [WorkoutLogger] No in-progress workouts found in database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2171 [WorkoutLogger] Database loading completed. Total records loaded: 110
+S:\Program Files\LiftLog\lib\workout-logger.ts:2088 [WorkoutLogger] Found 110 workouts in database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2089 [WorkoutLogger] Sample workout data: {id: 'cg2bjn8nb', user_id: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c', program_id: '0f1a9e64-fd05-4b88-94c0-2f79ce754b28', workout_name: 'Full Body Accessory', start_time: 1760821830698, …}
+S:\Program Files\LiftLog\lib\workout-logger.ts:2112 [WorkoutLogger] Loaded 110 workouts from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2124 [WorkoutLogger] Loading in-progress workouts...
+S:\Program Files\LiftLog\lib\workout-logger.ts:2168 [WorkoutLogger] No in-progress workouts found in database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2171 [WorkoutLogger] Database loading completed. Total records loaded: 110
+S:\Program Files\LiftLog\lib\program-state.ts:1100 [ProgramState] Loaded program history from database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2050 [WorkoutLogger] Loading user data from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2057 [WorkoutLogger] Testing database access...
+S:\Program Files\LiftLog\lib\workout-logger.ts:2073 [WorkoutLogger] Loading completed workouts...
+S:\Program Files\LiftLog\lib\program-state.ts:1100 [ProgramState] Loaded program history from database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2050 [WorkoutLogger] Loading user data from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2057 [WorkoutLogger] Testing database access...
+S:\Program Files\LiftLog\lib\workout-logger.ts:2073 [WorkoutLogger] Loading completed workouts...
+S:\Program Files\LiftLog\lib\workout-logger.ts:2088 [WorkoutLogger] Found 110 workouts in database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2089 [WorkoutLogger] Sample workout data: {id: 'cg2bjn8nb', user_id: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c', program_id: '0f1a9e64-fd05-4b88-94c0-2f79ce754b28', workout_name: 'Full Body Accessory', start_time: 1760821830698, …}
+S:\Program Files\LiftLog\lib\workout-logger.ts:2112 [WorkoutLogger] Loaded 110 workouts from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2124 [WorkoutLogger] Loading in-progress workouts...
+S:\Program Files\LiftLog\lib\workout-logger.ts:2168 [WorkoutLogger] No in-progress workouts found in database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2171 [WorkoutLogger] Database loading completed. Total records loaded: 110
+S:\Program Files\LiftLog\components\programs-section.tsx:79 [ProgramsSection] Loaded 2 lightweight templates (metadata only)
+S:\Program Files\LiftLog\lib\workout-logger.ts:2088 [WorkoutLogger] Found 110 workouts in database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2089 [WorkoutLogger] Sample workout data: {id: 'cg2bjn8nb', user_id: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c', program_id: '0f1a9e64-fd05-4b88-94c0-2f79ce754b28', workout_name: 'Full Body Accessory', start_time: 1760821830698, …}
+S:\Program Files\LiftLog\lib\workout-logger.ts:2112 [WorkoutLogger] Loaded 110 workouts from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\workout-logger.ts:2124 [WorkoutLogger] Loading in-progress workouts...
+S:\Program Files\LiftLog\lib\workout-logger.ts:2168 [WorkoutLogger] No in-progress workouts found in database
+S:\Program Files\LiftLog\lib\workout-logger.ts:2171 [WorkoutLogger] Database loading completed. Total records loaded: 110
+S:\Program Files\LiftLog\components\programs-section.tsx:79 [ProgramsSection] Loaded 2 lightweight templates (metadata only)
