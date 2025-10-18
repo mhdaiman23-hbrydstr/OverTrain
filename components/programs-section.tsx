@@ -53,7 +53,8 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
 
   useEffect(() => {
     const loadData = async () => {
-      // Kick off template load immediately to reduce perceived delay
+      // OPTIMIZATION: Load lightweight metadata only (no exercises)
+      // This makes the template list appear instantly
       setTemplatesLoading(true)
       const templatesPromise = ProgramStateManager.getAllTemplates()
 
@@ -72,7 +73,10 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
 
       try {
         const templates = await templatesPromise
+        // Templates now contain only metadata (name, weeks, days, gender, experience)
+        // Full exercise data loads on-demand when user clicks a template
         setAllTemplates(templates)
+        console.log('[ProgramsSection] Loaded', templates.length, 'lightweight templates (metadata only)')
       } catch (error) {
         console.error('[ProgramsSection] Failed to load templates:', error)
         // Fallback to hardcoded templates only
@@ -131,7 +135,7 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
     return templates
   }
 
-  const handleTemplateClick = (templateId: string, isActive: boolean) => {
+  const handleTemplateClick = async (templateId: string, isActive: boolean) => {
     console.log("[v0] Template clicked:", templateId, "isActive:", isActive)
 
     // If this is the current active program, navigate to train/workout instead of showing details
@@ -139,6 +143,17 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
       console.log("[v0] Navigating to train for active program")
       onNavigateToTrain()
       return
+    }
+
+    // OPTIMIZATION: Load full template with exercises on-demand
+    // This ensures exercises are cached before showing template detail view
+    console.log("[ProgramsSection] Loading full template data for:", templateId)
+    try {
+      await ProgramStateManager.loadTemplate(templateId)
+      console.log("[ProgramsSection] Template loaded successfully, showing detail view")
+    } catch (error) {
+      console.error("[ProgramsSection] Failed to load template:", error)
+      // Continue anyway - TemplateDetailView will handle the error
     }
 
     setSelectedTemplate(templateId)

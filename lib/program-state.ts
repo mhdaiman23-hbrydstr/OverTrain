@@ -3,6 +3,7 @@ import { WorkoutLogger } from "./workout-logger"
 import { supabase } from "./supabase"
 import { programTemplateService } from "./services/program-template-service"
 import { ExerciseLibraryService } from "./services/exercise-library-service"
+import { ProgressionRouter } from "./progression-router"
 
 function logSupabaseError(label: string, error: unknown) {
   if (!error) return
@@ -247,17 +248,45 @@ export class ProgramStateManager {
   }
 
   /**
-   * Get all available templates from database only
-   * NOTE: Does NOT return hardcoded templates - those are only for backward compatibility
-   * Falls back to hardcoded templates only if database is completely unavailable
+   * Get all available templates from database only (LIGHTWEIGHT - metadata only)
+   * Returns templates without exercise data for faster loading in list views
+   * Use loadTemplate() to get full template with exercises when needed
    */
   static async getAllTemplates(): Promise<GymTemplate[]> {
     try {
-      const dbTemplates = await programTemplateService.getAllGymTemplates()
+      // OPTIMIZATION: Load lightweight metadata only (no exercises)
+      const dbTemplates = await programTemplateService.getAllTemplates()
 
       if (dbTemplates.length > 0) {
-        console.log(`[ProgramState] Loaded ${dbTemplates.length} templates from database`)
-        return dbTemplates
+        // Convert DbProgramTemplate to GymTemplate format (without exercises)
+        const gymTemplates: GymTemplate[] = dbTemplates.map(t => ({
+          id: t.id,
+          name: t.name,
+          days: t.days_per_week,
+          weeks: t.total_weeks,
+          gender: t.gender as ('male' | 'female')[],
+          experience: t.experience_level as ('beginner' | 'intermediate' | 'advanced')[],
+          progressionScheme: {
+            type: 'linear',
+            deloadWeek: t.deload_week || t.total_weeks,
+            progressionRules: {
+              compound: {
+                successThreshold: 'all_sets_completed',
+                weightIncrease: 5,
+                failureResponse: 'repeat_week'
+              },
+              isolation: {
+                successThreshold: 'all_sets_completed',
+                weightIncrease: 2.5,
+                failureResponse: 'repeat_week'
+              }
+            }
+          },
+          schedule: {} // Empty schedule - exercises loaded on-demand
+        }))
+
+        console.log(`[ProgramState] Loaded ${gymTemplates.length} lightweight templates (metadata only)`)
+        return gymTemplates
       }
 
       console.warn('[ProgramState] No templates found in database')
@@ -469,9 +498,6 @@ export class ProgramStateManager {
     if (!workout) {
       return null
     }
-
-    // Import ProgressionRouter dynamically to avoid circular dependencies
-    const { ProgressionRouter } = await import("./progression-router")
 
     // Get current user profile for progression calculation
     let userProfile = { experience: "beginner" as const, gender: "male" as const }

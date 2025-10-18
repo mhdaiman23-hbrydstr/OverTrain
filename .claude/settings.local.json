@@ -4,8 +4,14 @@
   },
   "permissions": {
     "allow": [
-      "Bash(git push:*)",
-      "Bash(git add:*)"
+      "Bash(git commit:*)",
+      "Bash(git checkout:*)",
+      "Bash(git merge:*)",
+      "Bash(npx shadcn@latest add spinner)",
+      "Bash(npx shadcn@latest add spinner:*)",
+      "Bash(git add:*)",
+      "Bash(git push)",
+      "Bash(npm run build:*)"
     ],
     "deny": [],
     "ask": []
