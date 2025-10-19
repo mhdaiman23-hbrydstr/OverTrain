@@ -12,7 +12,7 @@ import { exerciseService, type Exercise } from "@/lib/services/exercise-library-
 interface ExerciseLibraryProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  onSelectExercise: (exercise: Exercise) => void
+  onSelectExercise: (exercise: Exercise, options?: { repeat?: boolean }) => void
   currentExerciseName?: string
 }
 
@@ -81,7 +81,7 @@ export function ExerciseLibrary({ open, onOpenChange, onSelectExercise, currentE
 
   const handleReplace = () => {
     if (selectedExercise) {
-      onSelectExercise(selectedExercise)
+      onSelectExercise(selectedExercise, { repeat })
       onOpenChange(false)
       setSearchQuery("")
       setSelectedExercise(null)

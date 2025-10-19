@@ -210,7 +210,7 @@ function WorkoutLoggerView({ initialWorkout, onComplete, onCancel, onViewAnalyti
       <ExerciseLibrary
         open={showExerciseLibrary}
         onOpenChange={setShowExerciseLibrary}
-        onSelectExercise={handleSelectExerciseFromLibrary}
+        onSelectExercise={(exercise, options) => handleSelectExerciseFromLibrary(exercise, options)}
         currentExerciseName={
           replaceExerciseId ? workout.exercises.find((ex) => ex.id === replaceExerciseId)?.exerciseName : undefined
         }

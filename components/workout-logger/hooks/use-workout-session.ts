@@ -17,6 +17,7 @@ import {
 } from "@/lib/progression-tiers"
 import { ConnectionMonitor } from "@/lib/connection-monitor"
 import { WorkoutLogger, type WorkoutSession } from "@/lib/workout-logger"
+import type { Exercise } from "@/lib/services/exercise-library-service"
 import type { WorkoutLoggerProps } from "@/components/workout-logger/types"
 
 export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: WorkoutLoggerProps) {
@@ -1447,24 +1448,57 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
     WorkoutLogger.saveCurrentWorkout({ ...workout, exercises }, user?.id)
   }
 
-  const handleSelectExerciseFromLibrary = (selectedExercise: any) => {
+  const handleSelectExerciseFromLibrary = (selectedExercise: Exercise, options?: { repeat?: boolean }) => {
     if (!workout || !replaceExerciseId) return
 
-    const exerciseIndex = workout.exercises.findIndex((ex) => ex.id === replaceExerciseId)
-    if (exerciseIndex === -1) return
+    const normalize = (s: string) => s.toLowerCase().trim()
 
-    const oldExercise = workout.exercises[exerciseIndex]
+    const applyReplacement = (ex: WorkoutSession["exercises"][number]) => {
+      const updatedSets = (ex.sets || []).map((s) => ({
+        ...s,
+        reps: 0,
+        weight: 0,
+        completed: false,
+        skipped: false,
+      }))
 
-    // Replace with new exercise, keeping the same sets structure
-    workout.exercises[exerciseIndex] = {
-      ...oldExercise,
-      exerciseId: selectedExercise.id,
-      exerciseName: selectedExercise.name,
+      return {
+        ...ex,
+        exerciseId: selectedExercise.id,
+        exerciseName: selectedExercise.name,
+        muscleGroup: selectedExercise.muscleGroup,
+        equipmentType: selectedExercise.equipmentType,
+        suggestedWeight: 0,
+        progressionNote: undefined,
+        completed: false,
+        endTime: undefined,
+        sets: updatedSets,
+      }
+    }
+
+    const targetIndex = workout.exercises.findIndex((ex) => ex.id === replaceExerciseId)
+    if (targetIndex === -1) return
+
+    const targetOld = workout.exercises[targetIndex]
+    const targetOldName = targetOld.exerciseName
+
+    if (options?.repeat) {
+      // Replace all matching exercises in the current workout (by name or prior id)
+      const oldNameNorm = normalize(targetOldName)
+      const oldId = targetOld.exerciseId
+      workout.exercises = workout.exercises.map((ex) => {
+        const matchByName = normalize(ex.exerciseName) === oldNameNorm
+        const matchById = ex.exerciseId === oldId
+        return matchByName || matchById ? applyReplacement(ex) : ex
+      })
+    } else {
+      workout.exercises[targetIndex] = applyReplacement(targetOld)
     }
 
     setWorkout({ ...workout })
     WorkoutLogger.saveCurrentWorkout(workout, user?.id)
     setReplaceExerciseId(null)
+    setShowExerciseLibrary(false)
   }
 
   const handleStartNextWorkout = async () => {
