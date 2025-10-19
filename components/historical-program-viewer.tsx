@@ -7,7 +7,12 @@ import type { WorkoutSession } from "@/lib/workout-logger"
 import type { ProgramHistoryEntry } from "@/lib/program-state"
 import { buildHistoricalProgram } from "@/lib/history"
 import { WorkoutCalendar } from "@/components/workout-calendar"
-import { getExerciseMuscleGroup } from "@/lib/exercise-muscle-groups"
+import {
+  getExerciseMuscleGroup,
+  getMuscleGroupAccentClass,
+  getMuscleGroupLabel,
+  getMuscleGroupTextClass,
+} from "@/lib/exercise-muscle-groups"
 import { Fragment } from "react"
 
 interface HistoricalProgramViewerProps {
@@ -147,18 +152,23 @@ export function HistoricalProgramViewer({ historyEntry, workouts, onClose }: His
                 const previousMuscleGroup = previousExercise
                   ? ((previousExercise as any).muscleGroup || getExerciseMuscleGroup(previousExercise.exerciseName))
                   : null
-                const isNewMuscleGroup = currentMuscleGroup !== previousMuscleGroup
+            const isNewMuscleGroup = currentMuscleGroup !== previousMuscleGroup
+            const groupLabel = getMuscleGroupLabel(currentMuscleGroup)
+            const accentClass = getMuscleGroupAccentClass(currentMuscleGroup)
+            const textClass = getMuscleGroupTextClass(currentMuscleGroup)
 
-                return (
-                  <Fragment key={exercise.id}>
-                    {isNewMuscleGroup && (
-                      <div className="flex items-center gap-2 py-3 px-1 mt-4">
-                        <div className="flex items-center gap-2 flex-1">
-                          <div className="w-1 h-5 bg-primary rounded-full" />
-                          <h3 className="text-xs font-bold uppercase tracking-wide text-primary">{currentMuscleGroup}</h3>
-                        </div>
-                      </div>
-                    )}
+            return (
+              <Fragment key={exercise.id}>
+                {isNewMuscleGroup && (
+                  <div className="flex items-center gap-2 py-3 px-1 mt-4">
+                    <div className="flex items-center gap-2 flex-1">
+                      <div className={`w-1 h-5 rounded-full ${accentClass}`} />
+                      <h3 className={`text-xs font-bold uppercase tracking-wide ${textClass}`}>
+                        {groupLabel.toUpperCase()}
+                      </h3>
+                    </div>
+                  </div>
+                )}
 
                     <div className="border-b border-border/30 relative bg-background hover:bg-muted/20 transition-colors">
                       <div className="py-3 px-1 sm:py-4 sm:px-2">
