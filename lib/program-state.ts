@@ -1345,13 +1345,14 @@ export class ProgramStateManager {
         .eq("user_id", userId)
         .maybeSingle()
 
-      if (activeProgramError && activeProgramError.code !== "PGRST116") {
-        // PGRST116 = no rows returned
-        logSupabaseError("[ProgramState] Failed to load active program:", activeProgramError)
-      } else if (activeProgramData) {
+      else if (activeProgramData) {
         console.log("[ProgramState] Found active program in database:", activeProgramData.program_id)
         // Load template from database ONLY (no hardcoded fallback)
+        // Also fetch full DB template to determine ownership (custom vs canonical)
         const template = await this.loadTemplate(activeProgramData.program_id)
+        const fullDbTemplate: any = await programTemplateService.getFullTemplate(activeProgramData.program_id)
+        const isCustomTemplate = !!(fullDbTemplate && fullDbTemplate.owner_user_id)
+        const originTemplateIdFromDb: string | undefined = fullDbTemplate?.origin_template_id || undefined
         if (!template) {
           console.error("[ProgramState] Template not found in database:", activeProgramData.program_id)
           return
@@ -1371,7 +1372,6 @@ export class ProgramStateManager {
             }
           }
         }
-
         const activeProgram: ActiveProgram = {
           templateId: activeProgramData.program_id,
           template,
@@ -1382,8 +1382,9 @@ export class ProgramStateManager {
           completedWorkouts,
           totalWorkouts,
           progress: (completedWorkouts / totalWorkouts) * 100,
+          isCustom: isCustomTemplate,
+          originTemplateId: originTemplateIdFromDb,
         }
-
         await this.saveActiveProgram(activeProgram)
         WorkoutLogger.tagWorkoutsWithInstance(instanceId, activeProgram.templateId, userId)
 
@@ -1429,4 +1430,8 @@ export class ProgramStateManager {
     }
   }
 }
+
+
+
+
 
