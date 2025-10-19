@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import { useState, useEffect, useCallback } from "react"
 import { Button } from "@/components/ui/button"
@@ -660,12 +660,12 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
                             onPointerDown={(event) => {
                               // Prevent the parent row's onClick from firing when opening the menu
                               event.stopPropagation()
-                              event.preventDefault()
+                              
                               setSuppressNextRowClick(true)
                             }}
                             onMouseDown={(event) => {
                               event.stopPropagation()
-                              event.preventDefault()
+                              
                               setSuppressNextRowClick(true)
                             }}
                             onClick={(event) => {
@@ -679,11 +679,11 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem
                             onPointerDown={(event) => {
-                              event.preventDefault()
+                              
                               event.stopPropagation()
                             }}
                             onSelect={(event) => {
-                              event.preventDefault()
+                              
                               event.stopPropagation()
                               handleRenameMyProgram(program)
                             }}
@@ -694,11 +694,11 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
                             <DropdownMenuItem
                               className="text-destructive"
                               onPointerDown={(event) => {
-                                event.preventDefault()
+                                
                                 event.stopPropagation()
                               }}
                               onSelect={(event) => {
-                                event.preventDefault()
+                                
                                 event.stopPropagation()
                               setSuppressNextRowClick(true)
                               handleEndMyProgram(program)
@@ -818,7 +818,7 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
             placeholder="Program name"
             onKeyDown={(event) => {
               if (event.key === "Enter" && !isRenameSaveDisabled) {
-                event.preventDefault()
+                
                 handleConfirmRename()
               }
             }}
