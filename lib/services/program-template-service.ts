@@ -348,6 +348,10 @@ export class ProgramTemplateService {
       weeks: dbTemplate.total_weeks,
       gender: dbTemplate.gender as ('male' | 'female')[],
       experience: dbTemplate.experience_level as ('beginner' | 'intermediate' | 'advanced')[],
+      ownerUserId: dbTemplate.owner_user_id ?? null,
+      originTemplateId: dbTemplate.origin_template_id ?? null,
+      forkedAt: dbTemplate.forked_at ?? null,
+      createdFrom: dbTemplate.created_from ?? null,
       progressionScheme: {
         type: 'linear',
         deloadWeek: dbTemplate.deload_week || dbTemplate.total_weeks,

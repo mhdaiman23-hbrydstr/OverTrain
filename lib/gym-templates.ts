@@ -79,6 +79,10 @@ export interface GymTemplate {
       }
     }
   }
+  ownerUserId?: string | null
+  originTemplateId?: string | null
+  forkedAt?: string | null
+  createdFrom?: string | null
   schedule: {
     [key: string]: WorkoutDay
   }

@@ -170,6 +170,17 @@ export class ProgramStateManager {
 
   private static async ensureActiveProgramInstance(program: ActiveProgram): Promise<ActiveProgram> {
     if (program.instanceId) {
+      if (!program.isCustom && (program as any)?.template?.ownerUserId) {
+        program.isCustom = true
+        if (!program.originTemplateId) {
+          program.originTemplateId = (program as any)?.template?.originTemplateId ?? program.templateId
+        }
+        await this.saveActiveProgram(program)
+      } else if (!program.originTemplateId) {
+        program.originTemplateId = (program as any)?.template?.originTemplateId ?? program.templateId
+        await this.saveActiveProgram(program)
+      }
+
       return program
     }
 
@@ -431,6 +442,9 @@ export class ProgramStateManager {
       return null
     }
 
+    const isUserOwnedTemplate = !!template.ownerUserId
+    const resolvedOriginTemplateId = template.originTemplateId ?? templateId
+
     // Process template to add automatic deload weeks
     template = processTemplateWithDeload(template)
     console.log("[ProgramState] Processed template with automatic deload weeks")
@@ -462,8 +476,8 @@ export class ProgramStateManager {
       totalWorkouts,
       progress: 0,
       progressionOverride,
-      isCustom: false,
-      originTemplateId: templateId,
+      isCustom: isUserOwnedTemplate,
+      originTemplateId: resolvedOriginTemplateId,
     }
 
     await this.saveActiveProgram(activeProgram)
@@ -522,7 +536,14 @@ export class ProgramStateManager {
       const activeProgram = await this.getActiveProgram({ skipDatabaseLoad: true })
       if (!activeProgram) return
 
-      if (activeProgram.isCustom) return
+      const templateOwnerId = (activeProgram as any)?.template?.ownerUserId
+      if (activeProgram.isCustom || templateOwnerId) {
+        if (!activeProgram.isCustom) {
+          activeProgram.isCustom = true
+          await this.saveActiveProgram(activeProgram)
+        }
+        return
+      }
 
       const userId = this.getCurrentUserId()
       if (!userId) {
@@ -532,7 +553,10 @@ export class ProgramStateManager {
 
       const sourceTemplateId = activeProgram.templateId
       try {
-        const customName = `${activeProgram.template.name} (Custom)`
+        const hasCustomSuffix = activeProgram.template.name.trim().toLowerCase().endsWith('(custom)')
+        const customName = hasCustomSuffix
+          ? activeProgram.template.name
+          : `${activeProgram.template.name} (Custom)`
         const newTemplateId = await programForkService.forkTemplateToMyProgram(sourceTemplateId, userId, {
           nameOverride: customName,
         })
