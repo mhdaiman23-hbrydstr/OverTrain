@@ -63,6 +63,7 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
   const [renameValue, setRenameValue] = useState("")
   const [renameTarget, setRenameTarget] = useState<MyProgramInfo | null>(null)
   const [isRenamingProgram, setIsRenamingProgram] = useState(false)
+  const [suppressNextRowClick, setSuppressNextRowClick] = useState(false)
   const [defaultTab, setDefaultTab] = useState<"templates" | "my-templates">("templates")
   const { toast } = useToast()
 
@@ -157,6 +158,7 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
   }, [])
 
   const handleRenameMyProgram = useCallback((program: MyProgramInfo) => {
+    setSuppressNextRowClick(true)
     setRenameTarget(program)
     setRenameValue(program.name)
     setRenameDialogOpen(true)
@@ -266,6 +268,10 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
   }
 
   const handleTemplateClick = async (templateId: string, isActive: boolean) => {
+    if (suppressNextRowClick) {
+      setSuppressNextRowClick(false)
+      return
+    }
     console.log("[v0] Template clicked:", templateId, "isActive:", isActive)
 
     // If this is the current active program, navigate to train/workout instead of showing details
@@ -680,7 +686,8 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
                               onSelect={(event) => {
                                 event.preventDefault()
                                 event.stopPropagation()
-                                handleEndMyProgram(program)
+                              setSuppressNextRowClick(true)
+                              handleEndMyProgram(program)
                               }}
                             >
                               End Program
