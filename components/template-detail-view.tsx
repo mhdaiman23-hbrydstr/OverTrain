@@ -6,6 +6,7 @@ import { ProgramStateManager } from "@/lib/program-state"
 import type { GymTemplate } from "@/lib/gym-templates"
 import { AdvancedProgramSettings } from "@/components/advanced-program-settings"
 import type { ProgressionOverride } from "@/lib/program-state"
+import { getMuscleGroupAccentClass } from "@/lib/exercise-muscle-groups"
 
 interface TemplateDetailViewProps {
   templateId: string
@@ -16,18 +17,6 @@ interface TemplateDetailViewProps {
     experience: "beginner" | "intermediate" | "advanced"
     gender: "male" | "female"
   }
-}
-
-const MUSCLE_GROUP_COLORS = {
-  CHEST: "bg-pink-500",
-  BACK: "bg-blue-500",
-  SHOULDERS: "bg-pink-500",
-  TRICEPS: "bg-pink-500",
-  BICEPS: "bg-blue-500",
-  LEGS: "bg-green-500",
-  GLUTES: "bg-purple-500",
-  CORE: "bg-orange-500",
-  CARDIO: "bg-red-500",
 }
 
 const getMuscleGroupFromExercise = (exerciseName: string): string => {
@@ -141,17 +130,14 @@ export function TemplateDetailView({ templateId, onClose, onStartProgram, isStar
                 </h3>
 
                 <div className="space-y-3 sm:space-y-4">
-                  {day.workout.exercises.map((exercise, exerciseIndex) => (
-                    <div key={exerciseIndex} className="flex items-start gap-3 sm:gap-4 py-2 sm:py-3">
+                  {day.workout.exercises.map((exercise, exerciseIndex) => {
+                    const accentClass = getMuscleGroupAccentClass(exercise.muscleGroup)
+                    return (
+                      <div key={exerciseIndex} className="flex items-start gap-3 sm:gap-4 py-2 sm:py-3">
                       {/* Exercise number and muscle indicator */}
                       <div className="flex flex-col items-center gap-1 min-w-[32px] sm:min-w-[40px] pt-0.5 sm:pt-1">
                         <div className="text-xs sm:text-sm font-medium text-muted-foreground">{exerciseIndex + 1}</div>
-                        <div
-                          className={`w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full ${
-                            MUSCLE_GROUP_COLORS[exercise.muscleGroup as keyof typeof MUSCLE_GROUP_COLORS] ||
-                            "bg-gray-400"
-                          }`}
-                        />
+                        <div className={`w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full ${accentClass}`} />
                       </div>
 
                       {/* Exercise details */}
@@ -161,8 +147,9 @@ export function TemplateDetailView({ templateId, onClose, onStartProgram, isStar
                           {exercise.sets} sets × {exercise.reps} reps • {exercise.rest} rest
                         </div>
                       </div>
-                    </div>
-                  ))}
+                      </div>
+                    )
+                  })}
                 </div>
               </div>
             ))}

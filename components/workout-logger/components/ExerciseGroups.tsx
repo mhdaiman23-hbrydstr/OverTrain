@@ -9,7 +9,12 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
-import { getExerciseMuscleGroup } from "@/lib/exercise-muscle-groups"
+import {
+  getExerciseMuscleGroup,
+  getMuscleGroupAccentClass,
+  getMuscleGroupLabel,
+  getMuscleGroupTextClass,
+} from "@/lib/exercise-muscle-groups"
 import type { WorkoutSession } from "@/lib/workout-logger"
 import {
   MoreVertical,
@@ -80,14 +85,19 @@ export function ExerciseGroups({
               ? ((previousExercise as any).muscleGroup || getExerciseMuscleGroup(previousExercise.exerciseName))
               : null
             const isNewMuscleGroup = currentMuscleGroup !== previousMuscleGroup
+            const groupLabel = getMuscleGroupLabel(currentMuscleGroup)
+            const accentClass = getMuscleGroupAccentClass(currentMuscleGroup)
+            const textClass = getMuscleGroupTextClass(currentMuscleGroup)
 
             return (
               <Fragment key={exercise.id}>
                 {isNewMuscleGroup && (
                   <div className="flex items-center gap-2 py-3 px-1 mt-4">
                     <div className="flex items-center gap-2 flex-1">
-                      <div className="w-1 h-5 bg-primary rounded-full" />
-                      <h3 className="text-xs font-bold uppercase tracking-wide text-primary">{currentMuscleGroup}</h3>
+                      <div className={`w-1 h-5 rounded-full ${accentClass}`} />
+                      <h3 className={`text-xs font-bold uppercase tracking-wide ${textClass}`}>
+                        {groupLabel.toUpperCase()}
+                      </h3>
                     </div>
                   </div>
                 )}

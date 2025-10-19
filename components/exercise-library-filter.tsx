@@ -3,31 +3,19 @@
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Switch } from "@/components/ui/switch"
-import { Label } from "@/components/ui/label"
+import { MUSCLE_GROUP_FILTER_OPTIONS } from "@/lib/exercise-muscle-groups"
+
+export interface ExerciseLibraryFilterValues {
+  muscleGroups: string[]
+  equipmentTypes: string[]
+}
 
 interface ExerciseLibraryFilterProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  onApply: (filters: { muscleGroups: string[]; equipmentTypes: string[]; usePreferred: boolean }) => void
-  currentFilters: { muscleGroups: string[]; equipmentTypes: string[]; usePreferred: boolean }
+  onApply: (filters: ExerciseLibraryFilterValues) => void
+  currentFilters: ExerciseLibraryFilterValues
 }
-
-const MUSCLE_GROUPS = [
-  { name: "Abs", color: "bg-violet-500" },
-  { name: "Back", color: "bg-cyan-500" },
-  { name: "Biceps", color: "bg-cyan-500" },
-  { name: "Calves", color: "bg-violet-500" },
-  { name: "Chest", color: "bg-pink-500" },
-  { name: "Forearms", color: "bg-violet-500" },
-  { name: "Glutes", color: "bg-teal-500" },
-  { name: "Hamstrings", color: "bg-cyan-500" },
-  { name: "Olympic Lifts", color: "bg-orange-500" },
-  { name: "Quads", color: "bg-cyan-500" },
-  { name: "Shoulders", color: "bg-pink-500" },
-  { name: "Traps", color: "bg-violet-500" },
-  { name: "Triceps", color: "bg-pink-500" },
-]
 
 const EQUIPMENT_TYPES = [
   { name: "Barbell", color: "bg-gray-600" },
@@ -43,12 +31,10 @@ const EQUIPMENT_TYPES = [
 export function ExerciseLibraryFilter({ open, onOpenChange, onApply, currentFilters }: ExerciseLibraryFilterProps) {
   const [selectedMuscleGroups, setSelectedMuscleGroups] = useState<string[]>(currentFilters.muscleGroups)
   const [selectedEquipmentTypes, setSelectedEquipmentTypes] = useState<string[]>(currentFilters.equipmentTypes)
-  const [usePreferred, setUsePreferred] = useState(currentFilters.usePreferred)
 
   useEffect(() => {
     setSelectedMuscleGroups(currentFilters.muscleGroups)
     setSelectedEquipmentTypes(currentFilters.equipmentTypes)
-    setUsePreferred(currentFilters.usePreferred)
   }, [currentFilters])
 
   const toggleMuscleGroup = (group: string) => {
@@ -67,7 +53,6 @@ export function ExerciseLibraryFilter({ open, onOpenChange, onApply, currentFilt
     onApply({
       muscleGroups: selectedMuscleGroups,
       equipmentTypes: selectedEquipmentTypes,
-      usePreferred,
     })
   }
 
@@ -75,7 +60,6 @@ export function ExerciseLibraryFilter({ open, onOpenChange, onApply, currentFilt
     // Reset to current filters
     setSelectedMuscleGroups(currentFilters.muscleGroups)
     setSelectedEquipmentTypes(currentFilters.equipmentTypes)
-    setUsePreferred(currentFilters.usePreferred)
     onOpenChange(false)
   }
 
@@ -91,7 +75,7 @@ export function ExerciseLibraryFilter({ open, onOpenChange, onApply, currentFilt
           <div>
             <h3 className="font-semibold mb-3">Muscle groups</h3>
             <div className="grid grid-cols-2 gap-2">
-              {MUSCLE_GROUPS.map((group) => (
+              {MUSCLE_GROUP_FILTER_OPTIONS.map((group) => (
                 <button
                   key={group.name}
                   onClick={() => toggleMuscleGroup(group.name)}
@@ -101,7 +85,7 @@ export function ExerciseLibraryFilter({ open, onOpenChange, onApply, currentFilt
                       : "border-border hover:bg-muted"
                   }`}
                 >
-                  <div className={`w-3 h-3 rounded-full ${group.color}`} />
+                  <div className={`w-3 h-3 rounded-full ${group.accentClass}`} />
                   <span className="text-sm">{group.name}</span>
                   {selectedMuscleGroups.includes(group.name) && (
                     <div className="ml-auto w-4 h-4 rounded-sm bg-primary flex items-center justify-center" />
@@ -133,14 +117,6 @@ export function ExerciseLibraryFilter({ open, onOpenChange, onApply, currentFilt
                 </button>
               ))}
             </div>
-          </div>
-
-          {/* Use Preferred Exercise Types */}
-          <div className="flex items-center justify-between py-2">
-            <Label htmlFor="use-preferred" className="text-sm font-medium">
-              Use preferred exercises types
-            </Label>
-            <Switch id="use-preferred" checked={usePreferred} onCheckedChange={setUsePreferred} />
           </div>
         </div>
 

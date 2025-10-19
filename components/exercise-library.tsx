@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Search, SlidersHorizontal } from "lucide-react"
-import { ExerciseLibraryFilter } from "@/components/exercise-library-filter"
+import { ExerciseLibraryFilter, type ExerciseLibraryFilterValues } from "@/components/exercise-library-filter"
 import { exerciseService, type Exercise } from "@/lib/services/exercise-library-service"
 
 interface ExerciseLibraryProps {
@@ -19,14 +19,9 @@ interface ExerciseLibraryProps {
 export function ExerciseLibrary({ open, onOpenChange, onSelectExercise, currentExerciseName }: ExerciseLibraryProps) {
   const [searchQuery, setSearchQuery] = useState("")
   const [showFilters, setShowFilters] = useState(false)
-  const [selectedFilters, setSelectedFilters] = useState<{
-    muscleGroups: string[]
-    equipmentTypes: string[]
-    usePreferred: boolean
-  }>({
+  const [selectedFilters, setSelectedFilters] = useState<ExerciseLibraryFilterValues>({
     muscleGroups: [],
     equipmentTypes: [],
-    usePreferred: false,
   })
   const [repeat, setRepeat] = useState(false)
   const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null)
@@ -55,7 +50,7 @@ export function ExerciseLibrary({ open, onOpenChange, onSelectExercise, currentE
     }
   }
 
-  const handleApplyFilters = (filters: typeof selectedFilters) => {
+  const handleApplyFilters = (filters: ExerciseLibraryFilterValues) => {
     setSelectedFilters(filters)
     setShowFilters(false)
   }

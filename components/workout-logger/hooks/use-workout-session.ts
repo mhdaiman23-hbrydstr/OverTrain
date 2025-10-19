@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, useMemo } from "react"
 import { useAuth } from "@/contexts/auth-context"
 import { useToast } from "@/hooks/use-toast"
 import { ProgramStateManager } from "@/lib/program-state"
-import { getExerciseMuscleGroup } from "@/lib/exercise-muscle-groups"
+import { getExerciseMuscleGroup, getMuscleGroupBadgeClass } from "@/lib/exercise-muscle-groups"
 import { ProgressionRouter, type ProgressionInput } from "@/lib/progression-router"
 import {
   getTierRules,
@@ -1864,17 +1864,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
     setShowCalendar(false)
   }
 
-  const getMuscleGroupColor = (muscleGroup: string) => {
-    const colors: { [key: string]: string } = {
-      CHEST: "bg-pink-100 text-pink-800 border-pink-200",
-      SHOULDERS: "bg-pink-100 text-pink-800 border-pink-200",
-      TRICEPS: "bg-pink-100 text-pink-800 border-pink-200",
-      BACK: "bg-blue-100 text-blue-800 border-blue-200",
-      BICEPS: "bg-blue-100 text-blue-800 border-blue-200",
-      LEGS: "bg-green-100 text-green-800 border-green-200",
-    }
-    return colors[muscleGroup] || "bg-gray-100 text-gray-800 border-gray-200"
-  }
+  const getMuscleGroupColor = (muscleGroup: string) => getMuscleGroupBadgeClass(muscleGroup)
 
   const displayExercises = workout?.exercises ?? []
 
