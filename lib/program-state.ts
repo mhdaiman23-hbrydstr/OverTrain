@@ -1345,7 +1345,10 @@ export class ProgramStateManager {
         .eq("user_id", userId)
         .maybeSingle()
 
-      else if (activeProgramData) {
+      if (activeProgramError && activeProgramError.code !== "PGRST116") {
+        // PGRST116 = no rows returned
+        logSupabaseError("[ProgramState] Failed to load active program:", activeProgramError)
+      } else if (activeProgramData) {
         console.log("[ProgramState] Found active program in database:", activeProgramData.program_id)
         // Load template from database ONLY (no hardcoded fallback)
         // Also fetch full DB template to determine ownership (custom vs canonical)
@@ -1430,6 +1433,8 @@ export class ProgramStateManager {
     }
   }
 }
+
+
 
 
 
