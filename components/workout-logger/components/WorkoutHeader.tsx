@@ -115,9 +115,9 @@ export function WorkoutHeader({
             </DropdownMenu>
           </div>
         </div>
-        <div className="mt-2 sm:mt-3 flex items-center gap-2">
-          {/* Shortened, segmented progress bar */}
-          <div className="relative w-4/5 sm:w-2/3 h-1.5 sm:h-2 bg-muted rounded-full overflow-hidden">
+        <div className="mt-2 sm:mt-3 flex items-center gap-2 w-full">
+          {/* Segmented progress bar takes remaining space */}
+          <div className="relative flex-1 h-1.5 sm:h-2 bg-muted rounded-full overflow-hidden">
             {/* Completed (non-skipped) segment in primary */}
             <div
               className="absolute left-0 top-0 bottom-0 bg-primary transition-all"
@@ -134,7 +134,7 @@ export function WorkoutHeader({
               />
             )}
           </div>
-          <span className="text-[11px] sm:text-xs font-medium text-muted-foreground tabular-nums">
+          <span className="text-[11px] sm:text-xs font-medium text-muted-foreground tabular-nums shrink-0">
             {Math.round(progress)}%
           </span>
         </div>
