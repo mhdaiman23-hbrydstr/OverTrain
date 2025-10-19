@@ -2,6 +2,7 @@ import { GYM_TEMPLATES, type GymTemplate, processTemplateWithDeload } from "./gy
 import { WorkoutLogger } from "./workout-logger"
 import { supabase } from "./supabase"
 import { programTemplateService } from "./services/program-template-service"
+import { programForkService } from "./services/program-fork-service"
 import { ExerciseLibraryService } from "./services/exercise-library-service"
 import { ProgressionRouter } from "./progression-router"
 
@@ -54,6 +55,27 @@ export interface ActiveProgram {
   totalWorkouts: number
   progress: number
   progressionOverride?: ProgressionOverride
+  isCustom?: boolean
+  originTemplateId?: string
+}
+
+interface ReplacementExercisePayload {
+  id: string
+  name: string
+  muscleGroup?: string
+  equipmentType?: string
+}
+
+export interface MyProgramInfo {
+  id: string
+  name: string
+  days: number
+  weeks: number
+  forkedAt?: string | null
+  originTemplateName?: string | null
+  originTemplateId?: string | null
+  createdFrom?: string | null
+  isActive: boolean
 }
 
 export interface ProgramProgress {
@@ -91,6 +113,7 @@ export class ProgramStateManager {
   private static readonly DATABASE_LOAD_KEY = "liftlog_program_db_loaded_at"
   private static readonly DATABASE_STALE_MS = 5_000
   private static databaseLoadPromise: Promise<void> | null = null
+  private static ensureCustomTemplatePromise: Promise<void> | null = null
 
   // Migration mapping from old hardcoded IDs to new database IDs
   private static readonly TEMPLATE_ID_MIGRATIONS: Record<string, string> = {
@@ -297,6 +320,44 @@ export class ProgramStateManager {
     }
   }
 
+  private static recalculateActiveProgramStats(program: ActiveProgram): void {
+    const daysPerWeek = Object.keys(program.template.schedule ?? {}).length
+    const totalWeeks = program.template.weeks || 0
+    const totalWorkouts = daysPerWeek * totalWeeks
+    program.totalWorkouts = totalWorkouts
+    program.progress = totalWorkouts > 0 ? (program.completedWorkouts / totalWorkouts) * 100 : 0
+  }
+
+  /**
+   * Get user-owned programs (My Programs) as lightweight GymTemplate metadata
+   */
+  static async getMyPrograms(): Promise<MyProgramInfo[]> {
+    try {
+      const userId = this.getCurrentUserId()
+      if (!userId) return []
+
+      const [dbTemplates, activeProgram] = await Promise.all([
+        programTemplateService.getMyPrograms(userId),
+        this.getActiveProgram({ skipDatabaseLoad: true }),
+      ])
+
+      return dbTemplates.map(t => ({
+        id: t.id,
+        name: t.name,
+        days: t.days_per_week,
+        weeks: t.total_weeks,
+        forkedAt: t.forked_at ?? null,
+        originTemplateName: t.origin_name_snapshot ?? null,
+        originTemplateId: t.origin_template_id ?? null,
+        createdFrom: t.created_from ?? null,
+        isActive: activeProgram?.templateId === t.id,
+      }))
+    } catch (error) {
+      console.error('[ProgramState] Failed to load My Programs:', error)
+      return []
+    }
+  }
+
   static async getActiveProgram(options?: { refreshTemplate?: boolean; skipDatabaseLoad?: boolean }): Promise<ActiveProgram | null> {
     if (typeof window === "undefined") return null
 
@@ -401,6 +462,8 @@ export class ProgramStateManager {
       totalWorkouts,
       progress: 0,
       progressionOverride,
+      isCustom: false,
+      originTemplateId: templateId,
     }
 
     await this.saveActiveProgram(activeProgram)
@@ -445,6 +508,229 @@ export class ProgramStateManager {
     window.dispatchEvent(new Event("programChanged"))
 
     return activeProgram
+  }
+
+  private static async ensureCustomTemplateForActiveProgram(): Promise<void> {
+    if (typeof window === "undefined") return
+
+    if (this.ensureCustomTemplatePromise) {
+      await this.ensureCustomTemplatePromise
+      return
+    }
+
+    this.ensureCustomTemplatePromise = (async () => {
+      const activeProgram = await this.getActiveProgram({ skipDatabaseLoad: true })
+      if (!activeProgram) return
+
+      if (activeProgram.isCustom) return
+
+      const userId = this.getCurrentUserId()
+      if (!userId) {
+        console.warn("[ProgramState] Cannot fork template without authenticated user")
+        return
+      }
+
+      const sourceTemplateId = activeProgram.templateId
+      try {
+        const customName = `${activeProgram.template.name} (Custom)`
+        const newTemplateId = await programForkService.forkTemplateToMyProgram(sourceTemplateId, userId, {
+          nameOverride: customName,
+        })
+
+        await this.repointActiveProgramToTemplate(newTemplateId, {
+          markCustom: true,
+          originTemplateId: activeProgram.originTemplateId ?? sourceTemplateId,
+        })
+      } catch (error) {
+        console.error("[ProgramState] Failed to fork template for customization:", error)
+      }
+    })()
+
+    try {
+      await this.ensureCustomTemplatePromise
+    } finally {
+      this.ensureCustomTemplatePromise = null
+    }
+  }
+
+  static async repointActiveProgramToTemplate(
+    newTemplateId: string,
+    options?: { markCustom?: boolean; originTemplateId?: string }
+  ): Promise<void> {
+    if (typeof window === "undefined") return
+
+    const activeProgram = await this.getActiveProgram({ skipDatabaseLoad: true })
+    if (!activeProgram) {
+      console.error("[ProgramState] Cannot repoint active program - no active program found")
+      return
+    }
+
+    const freshTemplate = await this.loadTemplate(newTemplateId)
+    if (!freshTemplate) {
+      console.error("[ProgramState] Cannot repoint active program - template not found", newTemplateId)
+      return
+    }
+
+    const processedTemplate = processTemplateWithDeload(freshTemplate)
+
+    activeProgram.templateId = newTemplateId
+    activeProgram.template = processedTemplate
+    if (options?.originTemplateId && !activeProgram.originTemplateId) {
+      activeProgram.originTemplateId = options.originTemplateId
+    }
+    if (options?.markCustom) {
+      activeProgram.isCustom = true
+    }
+
+    this.recalculateActiveProgramStats(activeProgram)
+
+    await this.saveActiveProgram(activeProgram)
+
+    const history = this.getProgramHistory()
+    const activeHistory = history.find(entry => entry.isActive)
+    if (activeHistory) {
+      activeHistory.templateId = newTemplateId
+      activeHistory.name = processedTemplate.name
+      activeHistory.totalWorkouts = activeProgram.totalWorkouts
+      activeHistory.completedWorkouts = activeProgram.completedWorkouts
+      activeHistory.completionRate = activeProgram.progress
+      this.saveProgramHistory(history)
+    }
+
+    programTemplateService.clearCache()
+
+    window.dispatchEvent(new Event("programChanged"))
+  }
+
+  static async applyFutureExerciseReplacement(params: {
+    dayNumber: number
+    fromExerciseId?: string
+    fromExerciseName?: string
+    templateExerciseIds?: string[]
+    toExercise: ReplacementExercisePayload
+  }): Promise<void> {
+    if (typeof window === "undefined") return
+
+    const { dayNumber, fromExerciseId, fromExerciseName, templateExerciseIds, toExercise } = params
+
+    let activeProgram = await this.getActiveProgram({ skipDatabaseLoad: true })
+    if (!activeProgram) {
+      console.warn("[ProgramState] Cannot apply exercise replacement - no active program")
+      return
+    }
+
+    await this.ensureCustomTemplateForActiveProgram()
+
+    activeProgram = await this.getActiveProgram({ skipDatabaseLoad: true })
+    if (!activeProgram) return
+
+    if (!activeProgram.isCustom) {
+      console.warn("[ProgramState] Active program is not marked as custom; skipping template mutation")
+      return
+    }
+
+    const targetTemplateId = activeProgram.templateId
+    try {
+      await programForkService.replaceExerciseInstances({
+        templateId: targetTemplateId,
+        toExerciseId: toExercise.id,
+        templateExerciseIds: templateExerciseIds && templateExerciseIds.length > 0 ? templateExerciseIds : undefined,
+        dayNumber: templateExerciseIds && templateExerciseIds.length > 0 ? undefined : dayNumber,
+        fromExerciseId: templateExerciseIds && templateExerciseIds.length > 0 ? undefined : fromExerciseId,
+      })
+      programTemplateService.clearCache()
+    } catch (error) {
+      const err = error as any
+      console.error("[ProgramState] Failed to update template exercise:", {
+        message: err?.message,
+        code: err?.code,
+        details: err?.details,
+        hint: err?.hint,
+      })
+    }
+
+    const dayKey = `day${dayNumber}`
+    const replacementNameNormalized = fromExerciseName?.toLowerCase().trim()
+    const dayEntry = activeProgram.template.schedule?.[dayKey]
+    if (dayEntry) {
+      let changed = false
+      dayEntry.exercises = dayEntry.exercises.map(exercise => {
+        const matchesById = fromExerciseId && exercise.exerciseLibraryId === fromExerciseId
+        const matchesByTemplateId = templateExerciseIds?.includes(exercise.id)
+        const matchesByName = replacementNameNormalized
+          ? exercise.exerciseName?.toLowerCase().trim() === replacementNameNormalized
+          : false
+
+        if (matchesById || matchesByTemplateId || matchesByName) {
+          changed = true
+          return {
+            ...exercise,
+            exerciseLibraryId: toExercise.id,
+            exerciseName: toExercise.name,
+            equipmentType: toExercise.equipmentType,
+          }
+        }
+        return exercise
+      })
+
+      if (changed) {
+        await this.saveActiveProgram(activeProgram)
+        window.dispatchEvent(new Event("programChanged"))
+      }
+    }
+
+    const userId = this.getCurrentUserId()
+    if (userId && typeof dayNumber === "number" && dayNumber > 0) {
+      const totalWeeks = activeProgram.template.weeks || 0
+      for (let week = activeProgram.currentWeek + 1; week <= totalWeeks; week++) {
+        try {
+          await WorkoutLogger.clearCurrentWorkout(week, dayNumber, userId)
+        } catch (error) {
+          console.warn("[ProgramState] Failed to clear future in-progress workout", { week, dayNumber, error })
+        }
+      }
+    }
+  }
+
+  static async renameCustomProgram(templateId: string, newName: string): Promise<void> {
+    const trimmedName = newName.trim()
+    if (!trimmedName) {
+      throw new Error('Program name cannot be empty')
+    }
+
+    const userId = this.getCurrentUserId()
+    if (!userId) {
+      throw new Error('User not authenticated')
+    }
+
+    const ownedTemplates = await programTemplateService.getMyPrograms(userId)
+    const targetTemplate = ownedTemplates.find(t => t.id === templateId)
+    if (!targetTemplate) {
+      throw new Error('Custom program not found or not owned by user')
+    }
+
+    await programTemplateService.renameUserProgram(templateId, userId, trimmedName)
+    programTemplateService.clearCache()
+
+    const activeProgram = await this.getActiveProgram({ skipDatabaseLoad: true })
+    if (activeProgram && activeProgram.templateId === templateId) {
+      activeProgram.template.name = trimmedName
+      await this.saveActiveProgram(activeProgram)
+    }
+
+    const history = this.getProgramHistory()
+    let historyChanged = false
+    history.forEach(entry => {
+      if (entry.templateId === templateId) {
+        entry.name = trimmedName
+        historyChanged = true
+      }
+    })
+    if (historyChanged) {
+      this.saveProgramHistory(history)
+    }
+
+    window.dispatchEvent(new Event('programChanged'))
   }
 
   static clearActiveProgram(): void {
@@ -589,6 +875,7 @@ export class ProgramStateManager {
 
       return {
         exerciseId: exercise.exerciseName.toLowerCase().replace(/\s+/g, "-"),
+        exerciseLibraryId: exercise.exerciseLibraryId,
         exerciseName: exercise.exerciseName,
         targetSets,
         templateRecommendedReps: performedReps,  // RENAMED: Display only, not used for calculations

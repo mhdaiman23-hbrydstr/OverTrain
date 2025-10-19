@@ -802,8 +802,43 @@ Checklist
 
 ---
 
+### Pattern 13: Exercise Replacement
+
+Replace an exercise using authoritative data from `exercise_library`, reset current-session performance, and optionally apply across the whole workout.
+
+- Rules
+  - Source of truth: replacement must use `exercise_library` data via `ExerciseLibraryService`.
+  - Update metadata on the workout exercise:
+    - `exerciseId = exercise_library.id`
+    - `exerciseName = exercise_library.name`
+    - `muscleGroup = exercise_library.muscle_group`
+    - `equipmentType = exercise_library.equipment_type`
+  - Reset progression for the current session (not future):
+    - Clear `suggestedWeight` (set to 0) and `progressionNote`.
+    - For every set: `reps = 0`, `weight = 0`, `completed = false`, `skipped = false`.
+    - Mark exercise `completed = false` and clear `endTime` if present.
+    - Do NOT recalculate progression immediately; apply progression starting next week forward.
+  - Repeat behavior (current workout only):
+    - If user selects Repeat, apply replacement to all matching exercises in the same workout (match by previous `exerciseId` or normalized `exerciseName`).
+  - Persist and close dialog: save with `WorkoutLogger.saveCurrentWorkout()` and clear replacement UI state.
+
+- Anti‑patterns
+  - Don’t keep stale `muscleGroup`/`equipmentType` from the old exercise.
+  - Don’t retain previous set reps/weights after replacement.
+  - Don’t trigger `ProgressionRouter` for the replaced exercise in the current session.
+  - Don’t rely solely on template exercise IDs after replacement; name or library ID matching may be required.
+
+Checklist
+- [ ] Replacement uses `exercise_library` (id/name/muscleGroup/equipmentType)
+- [ ] Sets zeroed (reps/weight = 0) and not completed
+- [ ] `suggestedWeight = 0`, `progressionNote` cleared
+- [ ] Repeat applies across current workout when selected
+- [ ] Changes saved and library dialog closed
+
+---
+
 *Last Updated: 2025-10-19*
-*Version: 1.4 - Added Historical Calendar (read‑only) and Start Program UX feedback patterns; mandated use of lib/history.ts and ProgramTemplateService day names*
+*Version: 1.5 - Added Exercise Replacement validations (metadata from exercise_library, session reset, repeat behavior) in addition to Historical Calendar and Start Program UX*
 
 ---
 

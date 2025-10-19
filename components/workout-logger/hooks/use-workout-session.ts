@@ -1448,7 +1448,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
     WorkoutLogger.saveCurrentWorkout({ ...workout, exercises }, user?.id)
   }
 
-  const handleSelectExerciseFromLibrary = (selectedExercise: Exercise, options?: { repeat?: boolean }) => {
+  const handleSelectExerciseFromLibrary = async (selectedExercise: Exercise, options?: { repeat?: boolean }) => {
     if (!workout || !replaceExerciseId) return
 
     const normalize = (s: string) => s.toLowerCase().trim()
@@ -1465,6 +1465,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
       return {
         ...ex,
         exerciseId: selectedExercise.id,
+        exerciseLibraryId: selectedExercise.id,
         exerciseName: selectedExercise.name,
         muscleGroup: selectedExercise.muscleGroup,
         equipmentType: selectedExercise.equipmentType,
@@ -1481,6 +1482,8 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
 
     const targetOld = workout.exercises[targetIndex]
     const targetOldName = targetOld.exerciseName
+    const previousExerciseId = targetOld.exerciseId
+    const previousExerciseLibraryId = (targetOld as any).exerciseLibraryId || previousExerciseId
 
     if (options?.repeat) {
       // Replace all matching exercises in the current workout (by name or prior id)
@@ -1496,9 +1499,38 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
     }
 
     setWorkout({ ...workout })
-    WorkoutLogger.saveCurrentWorkout(workout, user?.id)
+    await WorkoutLogger.saveCurrentWorkout(workout, user?.id)
     setReplaceExerciseId(null)
     setShowExerciseLibrary(false)
+
+    if (options?.repeat) {
+      console.log("[useWorkoutSession] Before repeat replacement", workout.exercises.map(ex => ({ id: ex.id, name: ex.exerciseName, exerciseLibraryId: (ex as any).exerciseLibraryId, exerciseId: ex.exerciseId })))
+      try {
+        console.log("[useWorkoutSession] Applying future replacement", {
+          day: workout.day,
+          previousExerciseId,
+          toExercise: selectedExercise,
+        })
+        await ProgramStateManager.applyFutureExerciseReplacement({
+          dayNumber: workout.day || 1,
+          fromExerciseId: previousExerciseLibraryId,
+          fromExerciseName: targetOldName,
+          toExercise: {
+            id: selectedExercise.id,
+            name: selectedExercise.name,
+            muscleGroup: selectedExercise.muscleGroup,
+            equipmentType: selectedExercise.equipmentType,
+          },
+        })
+      } catch (error) {
+        console.error("[useWorkoutSession] Failed to propagate replacement to future sessions:", error)
+        toast({
+          title: "Could not update future workouts",
+          description: "Your current session was updated, but future weeks may still show the original exercise.",
+          variant: "destructive",
+        })
+      }
+    }
   }
 
   const handleStartNextWorkout = async () => {

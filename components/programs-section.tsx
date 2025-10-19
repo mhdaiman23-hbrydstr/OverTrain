@@ -1,20 +1,22 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Spinner } from "@/components/ui/spinner"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Plus, MoreVertical, AlertTriangle, Filter, Check, X } from "lucide-react"
+import { Plus, MoreVertical, AlertTriangle, Filter, Check, X, GitBranch } from "lucide-react"
 import { GYM_TEMPLATES, getTemplatesByFilter } from "@/lib/gym-templates"
-import { ProgramStateManager } from "@/lib/program-state"
+import { ProgramStateManager, type MyProgramInfo } from "@/lib/program-state"
 import { getHistoricalWorkouts } from "@/lib/history"
 import { TemplateStorageManager } from "@/lib/template-storage"
+import { MY_PROGRAMS_ENABLED } from "@/lib/feature-flags"
 import { WorkoutLogger } from "@/lib/workout-logger"
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { TemplateDetailView } from "@/components/template-detail-view"
 import { HistoricalProgramViewer } from "@/components/historical-program-viewer"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,6 +27,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import { useToast } from "@/hooks/use-toast"
 
 interface ProgramsSectionProps {
   onAddProgram: () => void
@@ -43,7 +46,7 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
   const [pendingProgramId, setPendingProgramId] = useState<{ templateId: string; progressionOverride?: any } | null>(null)
   const [programHistory, setProgramHistory] = useState<any[]>([])
   const [activeProgram, setActiveProgram] = useState<any>(null)
-  const [savedTemplates, setSavedTemplates] = useState<any[]>([])
+  const [myPrograms, setMyPrograms] = useState<MyProgramInfo[]>([])
   const [workoutHistory, setWorkoutHistory] = useState<any[]>([])
   const [filterOpen, setFilterOpen] = useState(false)
   const [isStartingProgram, setIsStartingProgram] = useState(false)
@@ -55,47 +58,123 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
   const [durationFilter, setDurationFilter] = useState<string>("all")
   const [allTemplates, setAllTemplates] = useState<any[]>([]) // Combined DB + hardcoded templates
   const [templatesLoading, setTemplatesLoading] = useState(true)
+  const { toast } = useToast()
 
-  useEffect(() => {
-    const loadData = async () => {
-      // OPTIMIZATION: Load lightweight metadata only (no exercises)
-      // This makes the template list appear instantly from cache
+  const loadMyPrograms = useCallback(async (savedLocal?: any[], active?: any) => {
+    const activeId = active?.templateId
 
-      // Only show loading spinner if we don't have templates yet
-      if (allTemplates.length === 0) {
-        setTemplatesLoading(true)
-      }
+    const mapLocal = (templates: any[] = []): MyProgramInfo[] =>
+      templates.map((t: any) => ({
+        id: t.id,
+        name: t.name,
+        days: t.days ?? t.daysPerWeek ?? t.days_per_week ?? 0,
+        weeks: t.weeks ?? t.totalWeeks ?? t.total_weeks ?? 0,
+        forkedAt: null,
+        originTemplateName: t.originName ?? null,
+        originTemplateId: null,
+        createdFrom: 'local',
+        isActive: activeId === t.id,
+      }))
 
-      const templatesPromise = ProgramStateManager.getAllTemplates()
-
-      const history = TemplateStorageManager.getProgramHistory()
-      setProgramHistory(history)
-
-      // Refresh template from database on load
-      const active = await ProgramStateManager.getActiveProgram({ refreshTemplate: true })
-      setActiveProgram(active)
-
-      const saved = TemplateStorageManager.getSavedTemplates()
-      setSavedTemplates(saved)
-
-      const workouts = WorkoutLogger.getWorkoutHistory()
-      setWorkoutHistory(workouts)
-
+    if (MY_PROGRAMS_ENABLED) {
       try {
-        const templates = await templatesPromise
-        // Templates now contain only metadata (name, weeks, days, gender, experience)
-        // Full exercise data loads on-demand when user clicks a template
-        setAllTemplates(templates)
-        console.log('[ProgramsSection] Loaded', templates.length, 'lightweight templates (metadata only)')
+        const programs = await ProgramStateManager.getMyPrograms()
+        setMyPrograms(programs)
+        return
       } catch (error) {
-        console.error('[ProgramsSection] Failed to load templates:', error)
-        // Fallback to hardcoded templates only
-        setAllTemplates(GYM_TEMPLATES)
-      } finally {
-        setTemplatesLoading(false)
+        console.error('[ProgramsSection] Failed to load My Programs from server:', error)
+        if (savedLocal) {
+          setMyPrograms(mapLocal(savedLocal))
+          return
+        }
+        setMyPrograms([])
+        return
       }
     }
 
+    if (savedLocal) {
+      setMyPrograms(mapLocal(savedLocal))
+    } else {
+      setMyPrograms([])
+    }
+  }, [])
+
+  const loadData = useCallback(async () => {
+    setTemplatesLoading(prev => (prev ? prev : true))
+
+    const templatesPromise = ProgramStateManager.getAllTemplates()
+
+    const history = TemplateStorageManager.getProgramHistory()
+    setProgramHistory(history)
+
+    const active = await ProgramStateManager.getActiveProgram({ refreshTemplate: true })
+    setActiveProgram(active)
+
+    const saved = TemplateStorageManager.getSavedTemplates()
+
+    const workouts = WorkoutLogger.getWorkoutHistory()
+    setWorkoutHistory(workouts)
+
+    try {
+      const templates = await templatesPromise
+      setAllTemplates(templates)
+      console.log('[ProgramsSection] Loaded', templates.length, 'lightweight templates (metadata only)')
+    } catch (error) {
+      console.error('[ProgramsSection] Failed to load templates:', error)
+      setAllTemplates(GYM_TEMPLATES)
+    } finally {
+      setTemplatesLoading(false)
+    }
+
+    await loadMyPrograms(saved, active)
+  }, [loadMyPrograms])
+
+  const handleRenameMyProgram = useCallback(
+    async (program: MyProgramInfo) => {
+      const nextName = window.prompt("Rename program", program.name)
+      if (!nextName) return
+      const trimmed = nextName.trim()
+      if (!trimmed || trimmed === program.name) return
+
+      try {
+        await ProgramStateManager.renameCustomProgram(program.id, trimmed)
+        toast({ title: "Program renamed" })
+        await loadData()
+      } catch (error) {
+        console.error("[ProgramsSection] Failed to rename program:", error)
+        toast({
+          title: "Failed to rename program",
+          description: error instanceof Error ? error.message : 'Please try again.',
+          variant: "destructive",
+        })
+      }
+    },
+    [loadData, toast]
+  )
+
+  const handleEndMyProgram = useCallback(
+    async (program: MyProgramInfo) => {
+      if (!program.isActive) return
+      const confirmed = window.confirm("End the current program? Your progress will be finalized.")
+      if (!confirmed) return
+
+      try {
+        await ProgramStateManager.finalizeActiveProgram(undefined, { endedEarly: true })
+        toast({ title: "Program ended" })
+        await loadData()
+      } catch (error) {
+        console.error("[ProgramsSection] Failed to end program:", error)
+        toast({
+          title: "Failed to end program",
+          description: error instanceof Error ? error.message : 'Please try again.',
+          variant: "destructive",
+        })
+      }
+    },
+    [loadData, toast]
+  )
+
+  useEffect(() => {
     loadData()
 
     const handleProgramEnded = () => {
@@ -114,7 +193,7 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
         window.removeEventListener("programEnded", handleProgramEnded)
       }
     }
-  }, [])
+  }, [loadData])
 
   const getFilteredTemplates = () => {
     // Use loaded templates (includes both database and hardcoded)
@@ -497,29 +576,71 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
 
             <TabsContent value="my-templates" className="mt-0">
               <div className="divide-y divide-border">
-                {savedTemplates.length === 0 ? (
+                {myPrograms.length === 0 ? (
                   <div className="px-4 py-12 text-center text-muted-foreground">
-                    <p>No saved templates yet</p>
-                    <p className="text-sm mt-2">Create your own custom workout programs</p>
+                    <p>No custom programs yet</p>
+                    <p className="text-sm mt-2">Create or customize a program to see it here</p>
                   </div>
                 ) : (
-                  savedTemplates.map((template) => (
+                  myPrograms.map((program) => {
+                    const isActive = program.isActive
+                    const forkedLabel = program.originTemplateName
+                      ? `Forked from ${program.originTemplateName}${
+                          program.forkedAt ? ` • ${new Date(program.forkedAt).toLocaleDateString()}` : ""
+                        }`
+                      : null
+
+                    return (
                     <div
-                      key={template.id}
+                      key={program.id}
                       className="px-4 py-4 hover:bg-muted/30 transition-colors cursor-pointer flex items-center justify-between gap-3"
-                      onClick={() => handleTemplateClick(template.id, false)}
+                      onClick={() => handleTemplateClick(program.id, isActive)}
                     >
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-base leading-tight mb-1">{template.name}</h3>
+                        <div className="flex items-center gap-2 mb-1">
+                          <GitBranch className="h-4 w-4 text-muted-foreground" />
+                          <h3 className="font-semibold text-base leading-tight">{program.name}</h3>
+                          {isActive && (
+                            <Badge className="text-xs font-medium px-2 py-1 bg-green-500 text-white border-transparent">
+                              CURRENT
+                            </Badge>
+                          )}
+                        </div>
                         <p className="text-xs text-muted-foreground uppercase">
-                          {template.weeks} WEEKS - {template.days} DAYS/WEEK
+                          {program.weeks} WEEKS - {program.days} DAYS/WEEK
                         </p>
+                        {forkedLabel && (
+                          <p className="text-xs text-muted-foreground mt-1">{forkedLabel}</p>
+                        )}
                       </div>
-                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                        <MoreVertical className="h-4 w-4 text-muted-foreground" />
-                      </Button>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0"
+                            onClick={(event) => event.stopPropagation()}
+                          >
+                            <MoreVertical className="h-4 w-4 text-muted-foreground" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onSelect={() => handleRenameMyProgram(program)}>
+                            Rename Program
+                          </DropdownMenuItem>
+                          {isActive && (
+                            <DropdownMenuItem
+                              className="text-destructive"
+                              onSelect={() => handleEndMyProgram(program)}
+                            >
+                              End Program
+                            </DropdownMenuItem>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
-                  ))
+                    )
+                  })
                 )}
               </div>
             </TabsContent>

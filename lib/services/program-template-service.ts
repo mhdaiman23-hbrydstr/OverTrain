@@ -27,6 +27,14 @@ interface DbProgramTemplate {
   experience_level: string[]
   progression_type: string
   is_active: boolean
+  // Custom program ownership/origin (nullable for canonical templates)
+  owner_user_id?: string | null
+  origin_template_id?: string | null
+  origin_version?: number | null
+  forked_at?: string | null
+  origin_name_snapshot?: string | null
+  origin_author_snapshot?: string | null
+  created_from?: 'blank' | 'template' | 'import' | null
   created_at: string
   updated_at: string
 }
@@ -153,12 +161,50 @@ export class ProgramTemplateService {
       .from('program_templates')
       .select('*')
       .eq('is_active', true)
+      .is('owner_user_id', null)
       .order('name')
 
     if (error) throw error
 
     this.setCache(cacheKey, data || [])
     return data || []
+  }
+
+  /**
+   * Get all user-owned programs (My Programs) - lightweight metadata only
+   */
+  async getMyPrograms(userId: string): Promise<DbProgramTemplate[]> {
+    const cacheKey = `my_programs_${userId}`
+    const cached = this.getCache(cacheKey)
+    if (cached) return cached
+
+    this.ensureSupabase()
+
+    const { data, error } = await supabase
+      .from('program_templates')
+      .select('*')
+      .eq('owner_user_id', userId)
+      .order('updated_at', { ascending: false })
+
+    if (error) throw error
+
+    this.setCache(cacheKey, data || [])
+    return data || []
+  }
+
+  async renameUserProgram(templateId: string, userId: string, name: string): Promise<void> {
+    this.ensureSupabase()
+
+    const { error } = await supabase
+      .from('program_templates')
+      .update({ name, updated_at: new Date().toISOString() })
+      .eq('id', templateId)
+      .eq('owner_user_id', userId)
+
+    if (error) throw error
+
+    this.cache.delete(`my_programs_${userId}`)
+    this.cacheTimestamps.delete(`my_programs_${userId}`)
   }
 
   /**

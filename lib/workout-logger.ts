@@ -868,7 +868,12 @@ export class WorkoutLogger implements SetSyncProvider {
             })
 
           if (insertError) {
-            console.error("[WorkoutLogger.saveCurrentWorkout] Failed to insert workout:", insertError)
+            console.error("[WorkoutLogger.saveCurrentWorkout] Failed to insert workout:", {
+              message: insertError?.message,
+              code: insertError?.code,
+              details: insertError?.details,
+              hint: insertError?.hint,
+            })
           } else {
             console.log("[WorkoutLogger.saveCurrentWorkout] Successfully inserted workout to database")
           }
@@ -960,6 +965,7 @@ export class WorkoutLogger implements SetSyncProvider {
     workoutName: string,
     exercises: {
       exerciseId: string
+      exerciseLibraryId?: string
       exerciseName: string
       targetSets: number
       // performedReps removed - only used for template display, not workout sessions
@@ -1031,6 +1037,7 @@ export class WorkoutLogger implements SetSyncProvider {
       exercises: exercises.map((ex) => ({
         id: Math.random().toString(36).substr(2, 9),
         exerciseId: ex.exerciseId,
+        exerciseLibraryId: ex.exerciseLibraryId || ex.exerciseId,
         exerciseName: ex.exerciseName,
         targetSets: ex.targetSets,
         // performedReps removed - not stored in workout sessions
