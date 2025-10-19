@@ -657,7 +657,21 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
                             variant="ghost"
                             size="sm"
                             className="h-8 w-8 p-0"
-                            onClick={(event) => event.stopPropagation()}
+                            onPointerDown={(event) => {
+                              // Prevent the parent row's onClick from firing when opening the menu
+                              event.stopPropagation()
+                              event.preventDefault()
+                              setSuppressNextRowClick(true)
+                            }}
+                            onMouseDown={(event) => {
+                              event.stopPropagation()
+                              event.preventDefault()
+                              setSuppressNextRowClick(true)
+                            }}
+                            onClick={(event) => {
+                              event.stopPropagation()
+                              // no preventDefault here to allow the menu to open
+                            }}
                           >
                             <MoreVertical className="h-4 w-4 text-muted-foreground" />
                           </Button>
