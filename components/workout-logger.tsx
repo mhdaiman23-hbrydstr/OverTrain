@@ -108,6 +108,10 @@ function WorkoutLoggerView({ initialWorkout, onComplete, onCancel, onViewAnalyti
   }
 
   const progress = getWorkoutProgress()
+  const summary = getWorkoutSummary()
+  const totalSets = summary.totalSets || 0
+  const completedPct = totalSets > 0 ? (summary.completedSets / totalSets) * 100 : 0
+  const skippedPct = totalSets > 0 ? (summary.skippedSets / totalSets) * 100 : 0
 
   return (
     <>
@@ -117,6 +121,8 @@ function WorkoutLoggerView({ initialWorkout, onComplete, onCancel, onViewAnalyti
         week={workout.week}
         day={workout.day}
         progress={progress}
+        completedPercent={completedPct}
+        skippedPercent={skippedPct}
         showCalendar={showCalendar}
         onToggleCalendar={() => setShowCalendar((prev) => !prev)}
         onOpenNotes={() => setShowNotesDialog(true)}

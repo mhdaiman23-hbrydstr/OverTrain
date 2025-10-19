@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Progress } from "@/components/ui/progress"
+// Progress component no longer used here (custom bar below)
 import { Spinner } from "@/components/ui/spinner"
 import { Calendar, MoreVertical, FileText, BarChart3, Plus, Check, AlertTriangle } from "lucide-react"
 import { ConnectionStatus } from "@/components/workout-logger/hooks/use-connection-status"
@@ -14,6 +14,8 @@ interface WorkoutHeaderProps {
   week?: number
   day?: number
   progress: number
+  completedPercent?: number
+  skippedPercent?: number
   showCalendar: boolean
   onToggleCalendar: () => void
   onOpenNotes: () => void
@@ -30,6 +32,8 @@ export function WorkoutHeader({
   week,
   day,
   progress,
+  completedPercent,
+  skippedPercent,
   showCalendar,
   onToggleCalendar,
   onOpenNotes,
@@ -111,8 +115,28 @@ export function WorkoutHeader({
             </DropdownMenu>
           </div>
         </div>
-        <div className="mt-2 sm:mt-3">
-          <Progress value={progress} className="w-full h-1.5 sm:h-2" />
+        <div className="mt-2 sm:mt-3 flex items-center gap-2">
+          {/* Shortened, segmented progress bar */}
+          <div className="relative w-4/5 sm:w-2/3 h-1.5 sm:h-2 bg-muted rounded-full overflow-hidden">
+            {/* Completed (non-skipped) segment in primary */}
+            <div
+              className="absolute left-0 top-0 bottom-0 bg-primary transition-all"
+              style={{ width: `${Math.max(0, Math.min(100, completedPercent ?? progress))}%` }}
+            />
+            {/* Skipped segment in orange, appended to the right of completed */}
+            {((skippedPercent ?? 0) > 0) && (
+              <div
+                className="absolute top-0 bottom-0 bg-orange-500 transition-all"
+                style={{
+                  left: `${Math.max(0, Math.min(100, completedPercent ?? 0))}%`,
+                  width: `${Math.max(0, Math.min(100, skippedPercent ?? 0))}%`,
+                }}
+              />
+            )}
+          </div>
+          <span className="text-[11px] sm:text-xs font-medium text-muted-foreground tabular-nums">
+            {Math.round(progress)}%
+          </span>
         </div>
       </div>
     </div>
