@@ -17,12 +17,18 @@ interface TrainSectionProps {
 export function TrainSection({ onStartWorkout, onAddProgram }: TrainSectionProps) {
   const [activeProgram, setActiveProgram] = useState<ActiveProgram | null>(null)
   const [currentWorkout, setCurrentWorkout] = useState<{ name: string; exercises: any[] } | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const loadProgramData = async () => {
     try {
       console.log("[TrainSection] Loading active program...")
+
+      // Only show loading spinner if we don't have data yet (cold start)
+      // This prevents spinner flicker when returning to tab with cached data
+      if (!activeProgram && !currentWorkout) {
+        setIsLoading(true)
+      }
 
       // Check localStorage first
       const stored = localStorage.getItem('liftlog_active_program')
@@ -94,9 +100,12 @@ export function TrainSection({ onStartWorkout, onAddProgram }: TrainSectionProps
       setIsLoading(false)
 
       // Force refresh from database to ensure no stale data
+      // Extended timeout to 1500ms to allow database deletion to complete
+      // (finalizeActiveProgram() can take 500-1000ms to delete from database)
+      // This prevents race condition where user navigates to Programs while deletion is in progress
       setTimeout(() => {
         loadProgramData()
-      }, 100) // Small delay to let database update complete
+      }, 1500) // Increased from 100ms to ensure database cleanup completes
     }
 
     const handleVisibilityChange = () => {

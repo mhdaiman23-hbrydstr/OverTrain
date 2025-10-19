@@ -57,7 +57,7 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
   const [genderFilter, setGenderFilter] = useState<string>("all")
   const [durationFilter, setDurationFilter] = useState<string>("all")
   const [allTemplates, setAllTemplates] = useState<any[]>([]) // Combined DB + hardcoded templates
-  const [templatesLoading, setTemplatesLoading] = useState(true)
+  const [templatesLoading, setTemplatesLoading] = useState(false)
   const { toast } = useToast()
 
   const loadMyPrograms = useCallback(async (savedLocal?: any[], active?: any) => {
@@ -100,7 +100,11 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
   }, [])
 
   const loadData = useCallback(async () => {
-    setTemplatesLoading(prev => (prev ? prev : true))
+    // Only show loading spinner if we don't have templates yet (cold start)
+    // This prevents spinner flicker when returning to Programs tab with cached data
+    if (allTemplates.length === 0) {
+      setTemplatesLoading(true)
+    }
 
     const templatesPromise = ProgramStateManager.getAllTemplates()
 
