@@ -619,9 +619,9 @@ export function WorkoutCalendar({ onWorkoutClick, selectedWeek, selectedDay, rea
                           size="sm"
                           className={`h-8 sm:h-9 text-xs font-medium transition-colors cursor-pointer ${
                             status === "completed"
-                              ? "bg-green-100 text-green-800 border-green-200 hover:bg-green-200"
+                              ? "bg-green-500/20 dark:bg-green-500/30 text-green-700 dark:text-green-300 border-green-300 dark:border-green-500 hover:bg-green-500/30 dark:hover:bg-green-500/40"
                               : status === "current"
-                                ? "bg-red-100 text-red-800 border-red-200 hover:bg-red-200"
+                                ? "bg-red-500/20 dark:bg-red-500/30 text-red-700 dark:text-red-300 border-red-300 dark:border-red-500 hover:bg-red-500/30 dark:hover:bg-red-500/40"
                                 : "bg-background text-muted-foreground border-border hover:bg-muted"
                           } ${isSelected ? "ring-2 ring-primary ring-offset-1" : ""}`}
                           onClick={() => handleWorkoutClick(week, day)}

@@ -36,8 +36,6 @@ export function ProfileHelpSection() {
 
   const quickLinks = [
     { title: "User Guide", description: "Complete guide to using LiftLog", icon: Book },
-    { title: "Video Tutorials", description: "Step-by-step video guides", icon: ExternalLink },
-    { title: "Community Forum", description: "Connect with other users", icon: MessageCircle },
     { title: "Contact Support", description: "Get help from our team", icon: Mail }
   ]
 

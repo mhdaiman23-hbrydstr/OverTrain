@@ -58,6 +58,7 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
   const [durationFilter, setDurationFilter] = useState<string>("all")
   const [allTemplates, setAllTemplates] = useState<any[]>([]) // Combined DB + hardcoded templates
   const [templatesLoading, setTemplatesLoading] = useState(false)
+  const [defaultTab, setDefaultTab] = useState<"templates" | "my-templates">("templates")
   const { toast } = useToast()
 
   const loadMyPrograms = useCallback(async (savedLocal?: any[], active?: any) => {
@@ -131,6 +132,13 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
     }
 
     await loadMyPrograms(saved, active)
+
+    // Smart tab routing: If current program is a custom program, show My Programs tab by default
+    if (active?.isCustom) {
+      setDefaultTab("my-templates")
+    } else {
+      setDefaultTab("templates")
+    }
   }, [loadMyPrograms])
 
   const handleRenameMyProgram = useCallback(
@@ -510,7 +518,7 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
           </div>
 
           <div className="px-2 pt-4">
-            <Tabs defaultValue="templates" className="w-full max-w-4xl mx-auto">
+            <Tabs defaultValue={defaultTab} className="w-full max-w-4xl mx-auto">
               <TabsList className="grid w-full grid-cols-3 h-auto p-1 bg-muted/50 rounded-lg">
               <TabsTrigger
                 value="templates"

@@ -32,16 +32,6 @@ export function ProfileSettingsPanel() {
             </div>
             <ThemeToggle />
           </div>
-          <Separator />
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <Label>Animations</Label>
-              <p className="text-sm text-muted-foreground">
-                Enable smooth transitions and animations
-              </p>
-            </div>
-            <Switch defaultChecked />
-          </div>
         </CardContent>
       </Card>
 
