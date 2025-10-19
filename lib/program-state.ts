@@ -1,4 +1,4 @@
-import { GYM_TEMPLATES, type GymTemplate, processTemplateWithDeload } from "./gym-templates"
+﻿import { GYM_TEMPLATES, type GymTemplate, processTemplateWithDeload } from "./gym-templates"
 import { WorkoutLogger } from "./workout-logger"
 import { supabase } from "./supabase"
 import { programTemplateService } from "./services/program-template-service"
@@ -809,19 +809,30 @@ export class ProgramStateManager {
       let muscleGroup: string = exercise.category  // Fallback to category ("compound"/"isolation")
       let equipmentType: string | undefined = exercise.equipmentType  // Use template equipment if available
 
-      // Try to fetch from exercise library for accurate data
+            // Try to fetch from exercise library for accurate data
       try {
-        const dbExercise = await exerciseService.getExerciseByName(exercise.exerciseName)
+        let dbExercise = null as Awaited<ReturnType<typeof exerciseService.getExerciseById>> | null
+        // Prefer UUID lookup when provided by template
+        if (exercise.exerciseLibraryId) {
+          dbExercise = await exerciseService.getExerciseById(exercise.exerciseLibraryId)
+        }
+        // Fallback to exact name match
+        if (!dbExercise) {
+          dbExercise = await exerciseService.getExerciseByName(exercise.exerciseName)
+        }
+        // Last resort: case-insensitive search and pick best exact name match
+        if (!dbExercise) {
+          const candidates = await exerciseService.searchExercises(exercise.exerciseName)
+          dbExercise = candidates.find(c => c.name.toLowerCase() === exercise.exerciseName.toLowerCase()) || candidates[0] || null
+        }
         if (dbExercise) {
-          muscleGroup = dbExercise.muscleGroup  // Use database muscle group (e.g., "Back", "Chest", "Legs")
-          equipmentType = dbExercise.equipmentType  // e.g., "Barbell", "Cable", "Bodyweight Only"
+          muscleGroup = dbExercise.muscleGroup  // Use database muscle group
+          equipmentType = dbExercise.equipmentType
         }
       } catch (error) {
         console.warn(`[ProgramState] Could not fetch exercise metadata for "${exercise.exerciseName}":`, error)
         // Continue with fallback values
-      }
-
-      // Get target sets for the CURRENT week (not hardcoded to week1)
+      }// Get target sets for the CURRENT week (not hardcoded to week1)
       const weekKey = `week${activeProgram.currentWeek}` as keyof typeof exercise.progressionTemplate
       const weekData = exercise.progressionTemplate[weekKey]
       const targetSets = typeof weekData === 'object' && weekData && 'sets' in weekData
@@ -1418,3 +1429,4 @@ export class ProgramStateManager {
     }
   }
 }
+
