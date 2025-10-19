@@ -31,7 +31,7 @@ export function WorkoutCalendar({ onWorkoutClick, selectedWeek, selectedDay, rea
   const [activeProgram, setActiveProgram] = useState<ActiveProgram | null>(null)
   const [totalWeeks, setTotalWeeks] = useState(historicalProgram?.totalWeeks || 6)
   const [completionStatus, setCompletionStatus] = useState<Map<string, boolean>>(new Map())
-  const [isLoading, setIsLoading] = useState(!readOnly)
+  const [isLoading, setIsLoading] = useState(false)
   const [historicalTemplate, setHistoricalTemplate] = useState<GymTemplate | null>(null)
 
   // CRITICAL FIX: Prevent infinite recalculation loops
@@ -313,11 +313,13 @@ export function WorkoutCalendar({ onWorkoutClick, selectedWeek, selectedDay, rea
 
   const loadActiveProgram = async () => {
     if (readOnly) return
-    // Only show loading spinner if we don't have a program yet
-    // This prevents spinner flash when navigating between weeks
+
+    // Only show loading spinner if we don't have a program yet (cold start)
+    // This prevents spinner flash when navigating between weeks/days
     if (!activeProgram) {
       setIsLoading(true)
     }
+
     const program = await ProgramStateManager.getActiveProgram()
     setActiveProgram(program)
     setIsLoading(false)
