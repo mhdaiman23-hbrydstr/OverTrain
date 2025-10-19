@@ -658,6 +658,10 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem
+                            onPointerDown={(event) => {
+                              event.preventDefault()
+                              event.stopPropagation()
+                            }}
                             onSelect={(event) => {
                               event.preventDefault()
                               event.stopPropagation()
@@ -669,6 +673,10 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
                           {isActive && (
                             <DropdownMenuItem
                               className="text-destructive"
+                              onPointerDown={(event) => {
+                                event.preventDefault()
+                                event.stopPropagation()
+                              }}
                               onSelect={(event) => {
                                 event.preventDefault()
                                 event.stopPropagation()
