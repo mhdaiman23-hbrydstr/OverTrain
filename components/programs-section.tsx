@@ -596,12 +596,6 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
                 ) : (
                   myPrograms.map((program) => {
                     const isActive = program.isActive
-                    const forkedLabel = program.originTemplateName
-                      ? `Forked from ${program.originTemplateName}${
-                          program.forkedAt ? ` • ${new Date(program.forkedAt).toLocaleDateString()}` : ""
-                        }`
-                      : null
-
                     return (
                     <div
                       key={program.id}
@@ -621,9 +615,6 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
                         <p className="text-xs text-muted-foreground uppercase">
                           {program.weeks} WEEKS - {program.days} DAYS/WEEK
                         </p>
-                        {forkedLabel && (
-                          <p className="text-xs text-muted-foreground mt-1">{forkedLabel}</p>
-                        )}
                       </div>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
