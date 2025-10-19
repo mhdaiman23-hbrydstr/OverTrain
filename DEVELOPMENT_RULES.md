@@ -835,10 +835,44 @@ Checklist
 - [ ] Repeat applies across current workout when selected
 - [ ] Changes saved and library dialog closed
 
+### Pattern 14: Template Forking & Future Session Replacements
+
+Fork canonical templates before mutating future workouts so program structure stays deterministic and Supabase rows remain immutable to non‑owners.
+
+- When the user chooses “Repeat” (apply to future), call `ProgramStateManager.applyFutureExerciseReplacement`.  
+  - This ensures `ensureCustomTemplateForActiveProgram` forks the canonical template via `ProgramForkService.forkTemplateToMyProgram`.  
+  - Active program is repointed to the fork and stats are recalculated.  
+- Updates to the fork must use the **exercise_library UUID** (not display slugs) so Supabase updates succeed.  
+- Clear cached in‑progress workouts for future weeks (`WorkoutLogger.clearCurrentWorkout(week, day, userId)`) so regenerated sessions pick up the new exercise.  
+- Always clear `ProgramTemplateService` caches after template mutation.
+
+Checklist
+- [ ] Repeat actions route through `ProgramStateManager.applyFutureExerciseReplacement`
+- [ ] Fork occurs only once per template (idempotent guard in `ensureCustomTemplateForActiveProgram`)
+- [ ] Future workout cache cleared; new sessions rebuild from fork
+- [ ] Exercise ID payload uses `exerciseLibraryId` UUIDs
+
+### Pattern 15: My Programs UX & Management
+
+Expose user-owned templates consistently in the “My Programs” tab and keep rename/end actions authoritative.
+
+- Always load My Programs from `ProgramStateManager.getMyPrograms()` (server canonical list) when the feature flag is on; fall back to legacy local storage only when offline.  
+- Display fork metadata (icon + `origin_name_snapshot` / `forked_at`) so users know the source.  
+- Use dropdown actions:
+  - `Rename Program` → `ProgramStateManager.renameCustomProgram(templateId, newName)` (updates Supabase row, history, active run).  
+  - `End Program` (visible only for the active custom template) → `ProgramStateManager.finalizeActiveProgram(...)`.  
+- After rename/end, refresh lists and fire a toast—users need immediate confirmation.
+
+Checklist
+- [ ] My Programs tab calls `ProgramStateManager.getMyPrograms()` and merges active state
+- [ ] Fork badges/icons render for custom templates
+- [ ] Rename and End actions call the correct ProgramStateManager helpers
+- [ ] UI reacts instantly (toast + list refresh + `programChanged` event)
+
 ---
 
 *Last Updated: 2025-10-19*
-*Version: 1.5 - Added Exercise Replacement validations (metadata from exercise_library, session reset, repeat behavior) in addition to Historical Calendar and Start Program UX*
+*Version: 1.6 - Documented template fork flow, My Programs UI requirements, and renamed/error handling expectations.*
 
 ---
 
