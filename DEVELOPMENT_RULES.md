@@ -671,6 +671,7 @@ if (user && currentView === "train") {
 - Remounting triggers `useEffect`, causing unnecessary data fetching
 - Users see loading spinners on every tab switch
 - CSS `display: none` keeps components alive with preserved state
+- Keep background effects scoped to the active tab. Example: pass `shouldAutoStart={currentView === "train"}` into `TrainSection` and only call `onStartWorkout()` when that flag is true so hidden views can't hijack navigation.
 
 ### Pattern 9: Conditional Loading Spinners
 
@@ -862,17 +863,19 @@ Expose user-owned templates consistently in the “My Programs” tab and keep r
   - `Rename Program` → `ProgramStateManager.renameCustomProgram(templateId, newName)` (updates Supabase row, history, active run).  
   - `End Program` (visible only for the active custom template) → `ProgramStateManager.finalizeActiveProgram(...)`.  
 - After rename/end, refresh lists and fire a toast—users need immediate confirmation.
+ - Rename flows must use the in-app dialog pattern (LiftLog theme) instead of native browser prompts.
 
 Checklist
 - [ ] My Programs tab calls `ProgramStateManager.getMyPrograms()` and merges active state
 - [ ] Fork badges/icons render for custom templates
 - [ ] Rename and End actions call the correct ProgramStateManager helpers
+- [ ] Rename dialog matches design (themed dialog, inline validation, no browser prompt)
 - [ ] UI reacts instantly (toast + list refresh + `programChanged` event)
 
 ---
 
-*Last Updated: 2025-10-19*
-*Version: 1.6 - Documented template fork flow, My Programs UI requirements, and renamed/error handling expectations.*
+*Last Updated: 2025-10-20*
+*Version: 1.7 - Added in-app rename dialog requirement for My Programs.*
 
 ---
 

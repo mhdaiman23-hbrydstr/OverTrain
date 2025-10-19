@@ -13,7 +13,8 @@ import { getHistoricalWorkouts } from "@/lib/history"
 import { TemplateStorageManager } from "@/lib/template-storage"
 import { MY_PROGRAMS_ENABLED } from "@/lib/feature-flags"
 import { WorkoutLogger } from "@/lib/workout-logger"
-import { Dialog, DialogClose, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
 import { TemplateDetailView } from "@/components/template-detail-view"
 import { HistoricalProgramViewer } from "@/components/historical-program-viewer"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
@@ -58,8 +59,16 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
   const [durationFilter, setDurationFilter] = useState<string>("all")
   const [allTemplates, setAllTemplates] = useState<any[]>([]) // Combined DB + hardcoded templates
   const [templatesLoading, setTemplatesLoading] = useState(false)
+  const [renameDialogOpen, setRenameDialogOpen] = useState(false)
+  const [renameValue, setRenameValue] = useState("")
+  const [renameTarget, setRenameTarget] = useState<MyProgramInfo | null>(null)
+  const [isRenamingProgram, setIsRenamingProgram] = useState(false)
   const [defaultTab, setDefaultTab] = useState<"templates" | "my-templates">("templates")
   const { toast } = useToast()
+
+  const renameValueTrimmed = renameValue.trim()
+  const isRenameSaveDisabled =
+    !renameTarget || renameValueTrimmed.length === 0 || renameValueTrimmed === renameTarget.name || isRenamingProgram
 
   const loadMyPrograms = useCallback(async (savedLocal?: any[], active?: any) => {
     const activeId = active?.templateId
@@ -141,28 +150,48 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
     }
   }, [loadMyPrograms])
 
-  const handleRenameMyProgram = useCallback(
-    async (program: MyProgramInfo) => {
-      const nextName = window.prompt("Rename program", program.name)
-      if (!nextName) return
-      const trimmed = nextName.trim()
-      if (!trimmed || trimmed === program.name) return
+  const resetRenameDialog = useCallback(() => {
+    setRenameDialogOpen(false)
+    setRenameTarget(null)
+    setRenameValue("")
+  }, [])
 
-      try {
-        await ProgramStateManager.renameCustomProgram(program.id, trimmed)
-        toast({ title: "Program renamed" })
-        await loadData()
-      } catch (error) {
-        console.error("[ProgramsSection] Failed to rename program:", error)
-        toast({
-          title: "Failed to rename program",
-          description: error instanceof Error ? error.message : 'Please try again.',
-          variant: "destructive",
-        })
-      }
-    },
-    [loadData, toast]
-  )
+  const handleRenameMyProgram = useCallback((program: MyProgramInfo) => {
+    setRenameTarget(program)
+    setRenameValue(program.name)
+    setRenameDialogOpen(true)
+  }, [])
+
+  const handleCloseRenameDialog = useCallback(() => {
+    if (isRenamingProgram) return
+    resetRenameDialog()
+  }, [isRenamingProgram, resetRenameDialog])
+
+  const handleConfirmRename = useCallback(async () => {
+    if (!renameTarget) return
+    const trimmed = renameValue.trim()
+    if (!trimmed || trimmed === renameTarget.name) {
+      resetRenameDialog()
+      return
+    }
+
+    try {
+      setIsRenamingProgram(true)
+      await ProgramStateManager.renameCustomProgram(renameTarget.id, trimmed)
+      toast({ title: "Program renamed" })
+      await loadData()
+      resetRenameDialog()
+    } catch (error) {
+      console.error("[ProgramsSection] Failed to rename program:", error)
+      toast({
+        title: "Failed to rename program",
+        description: error instanceof Error ? error.message : 'Please try again.',
+        variant: "destructive",
+      })
+    } finally {
+      setIsRenamingProgram(false)
+    }
+  }, [renameTarget, renameValue, loadData, toast, resetRenameDialog])
 
   const handleEndMyProgram = useCallback(
     async (program: MyProgramInfo) => {
@@ -727,6 +756,44 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
           </div>
         </div>
       )}
+
+      <Dialog
+        open={renameDialogOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            handleCloseRenameDialog()
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Rename program</DialogTitle>
+            <DialogDescription>
+              Choose a new name for your custom program.
+            </DialogDescription>
+          </DialogHeader>
+          <Input
+            value={renameValue}
+            onChange={(event) => setRenameValue(event.target.value)}
+            autoFocus
+            placeholder="Program name"
+            onKeyDown={(event) => {
+              if (event.key === "Enter" && !isRenameSaveDisabled) {
+                event.preventDefault()
+                handleConfirmRename()
+              }
+            }}
+          />
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={handleCloseRenameDialog} disabled={isRenamingProgram}>
+              Cancel
+            </Button>
+            <Button onClick={handleConfirmRename} disabled={isRenameSaveDisabled}>
+              {isRenamingProgram ? "Saving..." : "Save"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
