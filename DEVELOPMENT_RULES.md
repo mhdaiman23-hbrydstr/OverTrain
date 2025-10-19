@@ -747,8 +747,63 @@ const handleTemplateClick = async (templateId: string) => {
 
 ---
 
+### Pattern 11: Historical Program Calendar (Read‑Only)
+
+Use the read‑only calendar without fetching active program state. Historical views must render instantly from provided props and may lazily enrich labels.
+
+- Inputs
+  - `historicalProgram`: `{ templateId, instanceId, name, totalWeeks, daysPerWeek }`
+  - `historicalWorkouts`: `Array<{ week?: number; day?: number; completed: boolean }>`
+- Rules
+  - Do not fetch or poll the active program when `readOnly` is true.
+  - Set `isLoading = false` immediately in read‑only mode; no spinner flashes.
+  - For day labels, fetch template via `ProgramTemplateService.getTemplate(templateId)` and use `schedule.day*.name` (maps to DB `program_template_days.day_name`).
+  - Fetching day names is non‑blocking; render immediately and update labels when ready.
+  - Use shared utilities from `lib/history.ts`:
+    - `getHistoricalWorkouts(instanceId, userId?)`
+    - `buildHistoricalProgram(entry, workouts)`
+    - `getHistoricalProgramData(entry, userId?)`
+- Anti‑patterns
+  - Don’t call `ProgramStateManager.getActiveProgram()` in read‑only mode.
+  - Don’t duplicate logic to compute total weeks/days in components; use `buildHistoricalProgram`.
+  - Don’t show loading spinners in historical views when data is already provided.
+
+Checklist
+- [ ] Calendar respects `readOnly` and never loads active program
+- [ ] Day labels sourced from `ProgramTemplateService` (DB `day_name`)
+- [ ] Uses `lib/history.ts` helpers (no duplicated logic)
+- [ ] No loading spinners in history modal
+
+### Pattern 12: Start Program UX Feedback
+
+Provide clear feedback while a program is starting (template load + activation). Prevent duplicate submissions.
+
+- State
+  - `isStartingProgram: boolean`
+  - `startingTemplateId: string | null`
+- UI
+  - In `TemplateDetailView`, pass `isStarting` to show a spinner and the label “Starting…”.
+  - Disable the Start button while starting to prevent double clicks.
+- Flow
+  1. On click: set `isStartingProgram = true`, `startingTemplateId = templateId`.
+  2. `await ProgramStateManager.loadTemplate(templateId)` (ensures cached/preloaded).
+  3. Clear in‑progress workouts, cleanup corrupted workouts.
+  4. `await ProgramStateManager.setActiveProgram(templateId, progressionOverride)`.
+  5. On success: close detail, update state, call `onProgramStarted`, reset loading state.
+  6. On failure: log error, reset loading state.
+- Optional
+  - Show a toast “Starting program…” on click and “Program started” on success.
+
+Checklist
+- [ ] Start button shows spinner + “Starting…” while pending
+- [ ] Button disabled during start to prevent duplicates
+- [ ] Loading state resets on both success and failure
+- [ ] Post‑start flows (navigation/events) occur after activation
+
+---
+
 *Last Updated: 2025-10-19*
-*Version: 1.3 - Added Mistake 9 and UI Performance Patterns (instant tab switching, conditional loading spinners, lazy loading with preloading)*
+*Version: 1.4 - Added Historical Calendar (read‑only) and Start Program UX feedback patterns; mandated use of lib/history.ts and ProgramTemplateService day names*
 
 ---
 
