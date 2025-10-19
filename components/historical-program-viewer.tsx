@@ -52,13 +52,25 @@ export function HistoricalProgramViewer({ historyEntry, workouts, onClose }: His
     setShowCalendar(false)
   }
 
-  // Calculate progress
-  const completedSets = currentWorkout?.exercises.reduce(
-    (total, ex) => total + ex.sets.filter((s) => s.completed).length,
-    0
-  ) || 0
+  // Calculate progress (completed vs skipped) for current workout
   const totalSets = currentWorkout?.exercises.reduce((total, ex) => total + ex.sets.length, 0) || 0
-  const progress = totalSets > 0 ? Math.round((completedSets / totalSets) * 100) : 0
+  const { completedSets, skippedSets } = ((): { completedSets: number; skippedSets: number } => {
+    if (!currentWorkout) return { completedSets: 0, skippedSets: 0 }
+    let c = 0
+    let sk = 0
+    currentWorkout.exercises.forEach((ex) => {
+      ex.sets.forEach((s) => {
+        if (s.completed) {
+          if ((s as any).skipped || (s.reps === 0 && s.weight === 0)) sk++
+          else c++
+        }
+      })
+    })
+    return { completedSets: c, skippedSets: sk }
+  })()
+  const progress = totalSets > 0 ? Math.round(((completedSets + skippedSets) / totalSets) * 100) : 0
+  const completedPct = totalSets > 0 ? (completedSets / totalSets) * 100 : 0
+  const skippedPct = totalSets > 0 ? (skippedSets / totalSets) * 100 : 0
 
   return (
     <div className="min-h-screen bg-background pb-24">
@@ -108,15 +120,27 @@ export function HistoricalProgramViewer({ historyEntry, workouts, onClose }: His
           <div className="px-4 pb-2 max-w-4xl mx-auto">
             <div className="flex items-center justify-between mb-1">
               <span className="text-xs text-muted-foreground">
-                {completedSets}/{totalSets} sets
+                {completedSets + skippedSets}/{totalSets} sets
               </span>
-              <span className="text-xs font-medium text-muted-foreground">{progress}%</span>
             </div>
-            <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
-              <div
-                className="h-full bg-primary transition-all duration-300"
-                style={{ width: `${progress}%` }}
-              />
+            <div className="flex items-center gap-2 w-full">
+              <div className="relative flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
+                {/* Completed segment */}
+                <div
+                  className="absolute left-0 top-0 bottom-0 bg-primary transition-all duration-300"
+                  style={{ width: `${Math.max(0, Math.min(100, completedPct))}%` }}
+                />
+                {/* Skipped segment */}
+                {skippedPct > 0 && (
+                  <div
+                    className="absolute top-0 bottom-0 bg-orange-500 transition-all duration-300"
+                    style={{ left: `${Math.max(0, Math.min(100, completedPct))}%`, width: `${Math.max(0, Math.min(100, skippedPct))}%` }}
+                  />
+                )}
+              </div>
+              <span className="text-[11px] sm:text-xs font-medium text-muted-foreground tabular-nums shrink-0">
+                {progress}%
+              </span>
             </div>
           </div>
         )}
