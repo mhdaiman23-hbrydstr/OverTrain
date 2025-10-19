@@ -8,6 +8,8 @@ import { Plus, Minus, Calendar } from "lucide-react"
 import { ProgramStateManager, type ActiveProgram } from "@/lib/program-state"
 import { WorkoutLogger } from "@/lib/workout-logger"
 import { useAuth } from "@/contexts/auth-context"
+import { ProgramTemplateService } from "@/lib/services/program-template-service"
+import type { GymTemplate } from "@/lib/gym-templates"
 
 interface WorkoutCalendarProps {
   onWorkoutClick?: (week: number, day: number) => void
@@ -30,6 +32,7 @@ export function WorkoutCalendar({ onWorkoutClick, selectedWeek, selectedDay, rea
   const [totalWeeks, setTotalWeeks] = useState(historicalProgram?.totalWeeks || 6)
   const [completionStatus, setCompletionStatus] = useState<Map<string, boolean>>(new Map())
   const [isLoading, setIsLoading] = useState(!readOnly)
+  const [historicalTemplate, setHistoricalTemplate] = useState<GymTemplate | null>(null)
 
   // CRITICAL FIX: Prevent infinite recalculation loops
   const isRecalculatingRef = useRef(false)
@@ -82,26 +85,26 @@ export function WorkoutCalendar({ onWorkoutClick, selectedWeek, selectedDay, rea
     }
   }, [user?.id])
 
-  // Refresh calendar when user ID changes (login/logout) - but only if no database sync is happening
+  // Refresh calendar when user ID changes (login/logout) - skip in read-only mode
   useEffect(() => {
-    if (user?.id) {
-      // Only load if we haven't already loaded in the previous effect
-      // This prevents double loading when user logs in
-      const timeoutId = setTimeout(() => {
-        if (!activeProgram) {
-          console.log("[Calendar] No active program found after delay, loading...")
-          loadActiveProgram()
-        }
-      }, 500) // Wait a bit to see if database sync loads it first
+    if (readOnly || !user?.id) return
 
-      return () => clearTimeout(timeoutId)
-    }
-  }, [user?.id])
+    // Only load if we haven't already loaded in the previous effect
+    // This prevents double loading when user logs in
+    const timeoutId = setTimeout(() => {
+      if (!activeProgram) {
+        console.log("[Calendar] No active program found after delay, loading...")
+        loadActiveProgram()
+      }
+    }, 500) // Wait a bit to see if database sync loads it first
+
+    return () => clearTimeout(timeoutId)
+  }, [user?.id, readOnly])
 
   // CRITICAL FIX: Periodic refresh without forced recalculation
   // Only refresh UI data from localStorage, don't trigger recalc on every tick
   useEffect(() => {
-    if (!user?.id) return
+    if (readOnly || !user?.id) return
 
     const refreshInterval = setInterval(() => {
       console.log("[Calendar] Periodic refresh - updating UI from cache")
@@ -114,7 +117,26 @@ export function WorkoutCalendar({ onWorkoutClick, selectedWeek, selectedDay, rea
     }, 15000) // Refresh every 15 seconds
 
     return () => clearInterval(refreshInterval)
-  }, [user?.id])
+  }, [user?.id, readOnly])
+
+  // In read-only mode, fetch template to get real day names from DB
+  useEffect(() => {
+    if (!readOnly) return
+    const templateId = historicalProgram?.templateId
+    if (!templateId) return
+
+    let mounted = true
+    ProgramTemplateService.getInstance()
+      .getTemplate(templateId)
+      .then((tpl) => {
+        if (mounted) setHistoricalTemplate(tpl)
+      })
+      .catch(() => {})
+
+    return () => {
+      mounted = false
+    }
+  }, [readOnly, historicalProgram?.templateId])
 
   // Development tools for debugging calendar state
   useEffect(() => {
@@ -290,6 +312,7 @@ export function WorkoutCalendar({ onWorkoutClick, selectedWeek, selectedDay, rea
   }, [activeProgram, user])
 
   const loadActiveProgram = async () => {
+    if (readOnly) return
     // Only show loading spinner if we don't have a program yet
     // This prevents spinner flash when navigating between weeks
     if (!activeProgram) {
@@ -407,7 +430,7 @@ export function WorkoutCalendar({ onWorkoutClick, selectedWeek, selectedDay, rea
 
   const currentWeek = activeProgram?.currentWeek || selectedWeek || 1
   const currentDay = activeProgram?.currentDay || selectedDay || 1
-  const template = activeProgram?.template
+  const template = activeProgram?.template || (readOnly ? historicalTemplate || undefined : undefined)
 
   // For historical mode, create minimal schedule keys
   const scheduleKeys = template

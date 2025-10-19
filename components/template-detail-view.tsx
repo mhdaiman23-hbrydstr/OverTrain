@@ -11,6 +11,7 @@ interface TemplateDetailViewProps {
   templateId: string
   onClose: () => void
   onStartProgram: (templateId: string, progressionOverride?: ProgressionOverride) => void
+  isStarting?: boolean
   userProfile?: {
     experience: "beginner" | "intermediate" | "advanced"
     gender: "male" | "female"
@@ -42,7 +43,7 @@ const getMuscleGroupFromExercise = (exerciseName: string): string => {
   return "CHEST" // default
 }
 
-export function TemplateDetailView({ templateId, onClose, onStartProgram, userProfile }: TemplateDetailViewProps) {
+export function TemplateDetailView({ templateId, onClose, onStartProgram, isStarting, userProfile }: TemplateDetailViewProps) {
   console.log("[v0] TemplateDetailView rendered with templateId:", templateId)
   const [template, setTemplate] = useState<GymTemplate | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -190,13 +191,23 @@ export function TemplateDetailView({ templateId, onClose, onStartProgram, userPr
               )}
               <Button
                 className="w-full sm:w-auto sm:min-w-[200px] bg-blue-600 hover:bg-blue-700 text-white text-base sm:text-lg py-3 sm:py-4"
+                disabled={!!isStarting}
                 onClick={() => {
                   console.log("[v0] Start Program clicked for:", templateId, "with override:", !!progressionOverride)
                   onStartProgram(templateId, progressionOverride)
                 }}
               >
-                <Play className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
-                Start Program
+                {isStarting ? (
+                  <>
+                    <span className="mr-2 inline-block h-4 w-4 sm:h-5 sm:w-5 animate-spin rounded-full border-2 border-white/50 border-t-transparent"></span>
+                    Starting...
+                  </>
+                ) : (
+                  <>
+                    <Play className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+                    Start Program
+                  </>
+                )}
               </Button>
             </div>
           </div>

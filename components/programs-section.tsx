@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Plus, MoreVertical, AlertTriangle, Filter, Check, X } from "lucide-react"
 import { GYM_TEMPLATES, getTemplatesByFilter } from "@/lib/gym-templates"
 import { ProgramStateManager } from "@/lib/program-state"
+import { getHistoricalWorkouts } from "@/lib/history"
 import { TemplateStorageManager } from "@/lib/template-storage"
 import { WorkoutLogger } from "@/lib/workout-logger"
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
@@ -45,6 +46,8 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
   const [savedTemplates, setSavedTemplates] = useState<any[]>([])
   const [workoutHistory, setWorkoutHistory] = useState<any[]>([])
   const [filterOpen, setFilterOpen] = useState(false)
+  const [isStartingProgram, setIsStartingProgram] = useState(false)
+  const [startingTemplateId, setStartingTemplateId] = useState<string | null>(null)
 
   const [experienceFilter, setExperienceFilter] = useState<string>("all")
   const [daysFilter, setDaysFilter] = useState<string>("all")
@@ -183,11 +186,15 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
 
   const startNewProgram = async (templateId: string, progressionOverride?: any) => {
     console.log("[v0] Starting program:", templateId, "with override:", !!progressionOverride)
+    setIsStartingProgram(true)
+    setStartingTemplateId(templateId)
 
     // Load template from database or hardcoded templates
     const template = await ProgramStateManager.loadTemplate(templateId)
     if (!template) {
       console.error("[v0] Template not found:", templateId)
+      setIsStartingProgram(false)
+      setStartingTemplateId(null)
       return
     }
 
@@ -208,8 +215,12 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
       if (onProgramStarted) {
         onProgramStarted()
       }
+      setIsStartingProgram(false)
+      setStartingTemplateId(null)
     } else {
       console.error("[v0] Failed to activate program:", templateId)
+      setIsStartingProgram(false)
+      setStartingTemplateId(null)
     }
   }
 
@@ -230,7 +241,7 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
 
   // If viewing a historical program, show the viewer
   if (selectedHistoricalProgram) {
-    const historicalWorkouts = ProgramStateManager.getHistoricalProgramWorkouts(
+    const historicalWorkouts = getHistoricalWorkouts(
       selectedHistoricalProgram.instanceId || selectedHistoricalProgram.id
     )
 
@@ -276,6 +287,7 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
           templateId={selectedTemplate}
           onClose={() => setSelectedTemplate(null)}
           onStartProgram={handleStartProgram}
+          isStarting={isStartingProgram && startingTemplateId === selectedTemplate}
           userProfile={userProfile}
         />
       ) : (

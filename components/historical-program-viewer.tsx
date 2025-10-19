@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Calendar, ChevronLeft, Check, Minus, MoreVertical } from "lucide-react"
 import type { WorkoutSession } from "@/lib/workout-logger"
 import type { ProgramHistoryEntry } from "@/lib/program-state"
+import { buildHistoricalProgram } from "@/lib/history"
 import { WorkoutCalendar } from "@/components/workout-calendar"
 import { getExerciseMuscleGroup } from "@/lib/exercise-muscle-groups"
 import { Fragment } from "react"
@@ -20,9 +21,8 @@ export function HistoricalProgramViewer({ historyEntry, workouts, onClose }: His
   const [selectedWeek, setSelectedWeek] = useState(1)
   const [selectedDay, setSelectedDay] = useState(1)
 
-  // Calculate total weeks and days from workouts
-  const totalWeeks = Math.max(...workouts.map((w) => w.week || 1), 1)
-  const daysPerWeek = Math.max(...workouts.map((w) => w.day || 1), 3)
+  // Historical program info derived from history + workouts
+  const historicalProgram = buildHistoricalProgram(historyEntry, workouts)
 
   // Find the current workout to display
   const currentWorkout = workouts.find(
@@ -125,13 +125,7 @@ export function HistoricalProgramViewer({ historyEntry, workouts, onClose }: His
             selectedWeek={selectedWeek}
             selectedDay={selectedDay}
             readOnly={true}
-            historicalProgram={{
-              templateId: historyEntry.templateId,
-              instanceId: historyEntry.instanceId || historyEntry.id,
-              name: historyEntry.name,
-              totalWeeks,
-              daysPerWeek,
-            }}
+            historicalProgram={historicalProgram}
             historicalWorkouts={workouts}
           />
         </div>
