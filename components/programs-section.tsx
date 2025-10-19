@@ -657,13 +657,23 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem onSelect={() => handleRenameMyProgram(program)}>
+                          <DropdownMenuItem
+                            onSelect={(event) => {
+                              event.preventDefault()
+                              event.stopPropagation()
+                              handleRenameMyProgram(program)
+                            }}
+                          >
                             Rename Program
                           </DropdownMenuItem>
                           {isActive && (
                             <DropdownMenuItem
                               className="text-destructive"
-                              onSelect={() => handleEndMyProgram(program)}
+                              onSelect={(event) => {
+                                event.preventDefault()
+                                event.stopPropagation()
+                                handleEndMyProgram(program)
+                              }}
                             >
                               End Program
                             </DropdownMenuItem>
