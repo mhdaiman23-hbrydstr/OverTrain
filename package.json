@@ -90,5 +90,15 @@
     "typescript": "^5",
     "vitest": "^2.1.8",
     "xlsx": "^0.18.5"
-  }
+  },
+  "description": "**Modern workout tracking application for hypertrophy, strength, and athletic training**",
+  "main": "check-exercise-state.js",
+  "directories": {
+    "doc": "docs",
+    "lib": "lib",
+    "test": "tests"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
 }

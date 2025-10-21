@@ -561,6 +561,7 @@ export function ProgramWizard({ onClose, onComplete, initialStep, onStepChange }
             onAddExercise={handleAddExercise}
             onRemoveExercise={removeExerciseFromDay}
             onRandomizeDay={randomizeDay}
+            onReplaceExercise={handleReplaceExercise}
             onBack={() => setStep('muscleGroupSelect')}
             onNext={() => setStep('dayBuilder')}
           />

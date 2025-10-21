@@ -635,11 +635,12 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
 
               <Button
                 size="sm"
-                className="bg-orange-500 hover:bg-orange-600 text-white h-9 sm:h-10 px-4 sm:px-6"
+                className="bg-orange-500 hover:bg-orange-600 text-white h-9 sm:h-10 px-4 sm:px-6 relative z-[61] flex-shrink-0"
                 onClick={handleOpenWizard}
+                style={{ minWidth: 'fit-content' }}
               >
-                <Plus className="h-4 w-4 mr-1 sm:mr-2" />
-                NEW
+                <Plus className="h-4 w-4 mr-1 sm:mr-2 flex-shrink-0" />
+                <span className="truncate">NEW</span>
               </Button>
               </div>
             </div>

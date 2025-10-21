@@ -1,12 +1,14 @@
 import { useMemo, useState } from 'react'
+import { ArrowLeftRight } from 'lucide-react'
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Spinner } from '@/components/ui/spinner'
-import type { DayInWizard } from '../types'
+import type { DayInWizard, ExerciseInWizard } from '../types'
 import type { Exercise } from '@/lib/services/exercise-library-service'
 import { ExerciseRow } from '../components/ExerciseRow'
+import { ExerciseSelectionDialog } from '../components/ExerciseSelectionDialog'
 
 interface StepExerciseAssignmentProps {
   days: DayInWizard[]
@@ -16,6 +18,7 @@ interface StepExerciseAssignmentProps {
   onAddExercise: (dayIndex: number, exercise: Exercise) => void
   onRemoveExercise: (dayIndex: number, tempId: string) => void
   onRandomizeDay: (dayIndex: number) => void
+  onReplaceExercise: (dayIndex: number, tempId: string, exercise: Exercise) => void
   onBack: () => void
   onNext: () => void
 }
@@ -37,11 +40,24 @@ export function StepExerciseAssignment({
   onAddExercise,
   onRemoveExercise,
   onRandomizeDay,
+  onReplaceExercise,
   onBack,
   onNext,
 }: StepExerciseAssignmentProps) {
   const [pickerDayIndex, setPickerDayIndex] = useState<number | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
+  const [dialogContext, setDialogContext] = useState<
+    | {
+        mode: 'replace'
+        dayIndex: number
+        exercise: ExerciseInWizard
+      }
+    | {
+        mode: 'add'
+        dayIndex: number
+      }
+    | null
+  >(null)
 
   const allDaysHaveExercises = days.every(day => day.exercises.length > 0)
 
@@ -59,6 +75,62 @@ export function StepExerciseAssignment({
     onAddExercise(pickerDayIndex, exercise)
     setSearchTerm('')
     setPickerDayIndex(null)
+  }
+
+  const openReplaceDialog = (payload: {
+    dayIndex: number
+    exercise: ExerciseInWizard
+  }) => {
+    setDialogContext({
+      mode: 'replace',
+      dayIndex: payload.dayIndex,
+      exercise: payload.exercise,
+    })
+  }
+
+  const openAddDialog = (dayIndex: number) => {
+    setDialogContext({
+      mode: 'add',
+      dayIndex,
+    })
+  }
+
+  const closeDialog = () => {
+    setDialogContext(null)
+  }
+
+  const handleExerciseSelection = (exercise: Exercise) => {
+    if (!dialogContext) return
+
+    if (dialogContext.mode === 'replace' && dialogContext.exercise) {
+      onReplaceExercise(dialogContext.dayIndex, dialogContext.exercise.tempId, exercise)
+    } else if (dialogContext.mode === 'add') {
+      onAddExercise(dialogContext.dayIndex, exercise)
+    }
+
+    closeDialog()
+  }
+
+  const renderReplaceActions = (params: { exercise: ExerciseInWizard; dayIndex: number; exerciseIndex: number }) => {
+    return (
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        className="text-orange-500 hover:text-orange-600 touch-manipulation min-h-[44px] min-w-[44px]"
+        onClick={event => {
+          event.preventDefault()
+          event.stopPropagation()
+          openReplaceDialog({
+            dayIndex: params.dayIndex,
+            exercise: params.exercise,
+          })
+        }}
+        aria-label={`Replace ${params.exercise.exerciseName}`}
+      >
+        <ArrowLeftRight className="size-4" />
+      </Button>
+    )
   }
 
   return (
@@ -167,11 +239,12 @@ export function StepExerciseAssignment({
                       No exercises assigned. Add them manually or randomize the day to get suggestions.
                     </div>
                   ) : (
-                    day.exercises.map(exercise => (
+                    day.exercises.map((exercise, exerciseIndex) => (
                       <ExerciseRow
                         key={exercise.tempId}
                         exercise={exercise}
                         onRemove={tempId => onRemoveExercise(dayIndex, tempId)}
+                        actionSlot={renderReplaceActions({ exercise, dayIndex, exerciseIndex })}
                       />
                     ))
                   )}
@@ -190,6 +263,18 @@ export function StepExerciseAssignment({
           Continue
         </Button>
       </div>
+
+      <ExerciseSelectionDialog
+        isOpen={dialogContext !== null}
+        mode={dialogContext?.mode ?? 'replace'}
+        onClose={closeDialog}
+        exercises={exercises}
+        isLoading={isLoading}
+        error={error}
+        currentExerciseName={dialogContext?.mode === 'replace' ? dialogContext.exercise.exerciseName : undefined}
+        presetMuscleGroup={dialogContext?.mode === 'replace' ? dialogContext.exercise.muscleGroup : undefined}
+        onSelectExercise={handleExerciseSelection}
+      />
     </div>
   )
 }

@@ -1,10 +1,12 @@
 import { useState } from 'react'
 import { ArrowLeftRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import type { Exercise } from '@/lib/services/exercise-library-service'
 import type { DayInWizard, ExerciseInWizard } from '../types'
 import { DaySection } from '../components/DaySection'
 import { ExerciseSelectionDialog } from '../components/ExerciseSelectionDialog'
+import { ExerciseRow } from '../components/ExerciseRow'
 import { programWizardDebugger } from '@/lib/program-wizard-debug'
 
 interface StepDayBuilderProps {
@@ -152,22 +154,80 @@ export function StepDayBuilder({
       </div>
 
       <div className="space-y-4 pb-6">
-        {days.map((day, index) => (
-          <DaySection
-            key={day.dayNumber}
-            index={index}
-            day={day}
-            onRename={onRenameDay}
-            onEditMuscleGroups={onEditMuscleGroups}
-            onRandomize={onRandomizeDay}
-            onRemoveDay={days.length > 1 ? onRemoveDay : undefined}
-            onRemoveExercise={onRemoveExercise}
-            onReorderExercise={onReorderExercise}
-            renderExerciseActions={renderReplaceActions}
-            onAddExercise={openAddDialog}
-            disableAddExercise={isSelectionDisabled}
-          />
-        ))}
+        {days.map((day, index) => {
+          const groupedByMuscle = day.muscleGroups?.map(group => ({
+            label: `${group.group} x ${group.count} planned`,
+            count: group.count,
+          })) ?? []
+
+          return (
+            <div key={day.dayNumber} className="rounded-lg border border-border/60 bg-card px-3 py-3 sm:px-4 sm:py-4">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-3">
+                    <h3 className="text-base font-semibold">{day.dayName}</h3>
+                    <Badge variant="outline" className="text-xs">
+                      {day.exercises.length} exercises
+                    </Badge>
+                  </div>
+                  {groupedByMuscle.length > 0 && (
+                    <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+                      {groupedByMuscle.map(item => (
+                        <span key={item.label} className="rounded bg-muted/60 px-2 py-1">
+                          {item.label}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <div className="flex flex-wrap items-center gap-2 sm:flex-nowrap">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full sm:w-auto"
+                    onClick={() => onRandomizeDay(index)}
+                  >
+                    Randomize day
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full sm:w-auto"
+                    onClick={() => openAddDialog(index)}
+                    disabled={isSelectionDisabled}
+                  >
+                    Add exercise
+                  </Button>
+                </div>
+              </div>
+
+              <div className="mt-4 space-y-3">
+                {day.exercises.length === 0 ? (
+                  <div className="rounded-md border border-dashed border-border/60 bg-muted/30 px-3 py-4 text-sm text-muted-foreground">
+                    No exercises added yet. Use the assignment step or randomize button to populate this day.
+                  </div>
+                ) : (
+                  day.exercises.map((exercise, exerciseIndex) => (
+                    <ExerciseRow
+                      key={exercise.tempId}
+                      exercise={exercise}
+                      onRemove={tempId => onRemoveExercise(index, tempId)}
+                      actionSlot={renderReplaceActions({ exercise, dayIndex: index, exerciseIndex })}
+                      dragHandlers={{
+                        onDragStart: () => {},
+                        onDragEnter: () => {},
+                        onDragEnd: () => {},
+                        onDrop: () => {},
+                      }}
+                      onMoveUp={() => onReorderExercise(index, exerciseIndex, Math.max(0, exerciseIndex - 1))}
+                      onMoveDown={() => onReorderExercise(index, exerciseIndex, Math.min(day.exercises.length - 1, exerciseIndex + 1))}
+                    />
+                  ))
+                )}
+              </div>
+            </div>
+          )
+        })}
       </div>
 
       <div
