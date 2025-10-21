@@ -39,13 +39,8 @@ export function StepDayCount({
                 variant={isSelected ? "default" : "outline"}
                 className={cn(
                   'w-full justify-center text-center transition-colors font-medium',
-                  isSelected && 'shadow-sm hover:bg-primary/90',
+                  isSelected && 'shadow-sm hover:bg-primary/90 bg-primary text-primary-foreground border-transparent',
                 )}
-                style={isSelected ? {
-                  backgroundColor: '#3b82f6 !important',
-                  color: '#ffffff !important',
-                  borderColor: 'transparent !important'
-                } : {}}
                 onClick={() => onSelectWeek(weeks)}
               >
                 {weeks} weeks
@@ -73,7 +68,7 @@ export function StepDayCount({
                 variant={isSelected ? "default" : "outline"}
                 className={cn(
                   'w-full justify-center text-center transition-colors font-medium',
-                  isSelected && 'shadow-sm hover:bg-primary/90',
+                  isSelected && 'shadow-sm hover:bg-primary/90 bg-primary text-primary-foreground border-transparent',
                 )}
                 style={isSelected ? {
                   backgroundColor: '#3b82f6 !important',
