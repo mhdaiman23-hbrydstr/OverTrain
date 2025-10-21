@@ -49,6 +49,7 @@ export class ProgramForkService {
         forked_at: new Date().toISOString(),
         origin_name_snapshot: source.name,
         created_from: 'template',
+        is_public: false,
       })
       .select('id')
       .single()
@@ -128,6 +129,7 @@ export class ProgramForkService {
         forked_at: null,
         origin_name_snapshot: null,
         created_from: 'blank',
+        is_public: false,
       })
       .select('id')
       .single()

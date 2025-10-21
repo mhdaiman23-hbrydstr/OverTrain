@@ -83,6 +83,7 @@ export interface GymTemplate {
   originTemplateId?: string | null
   forkedAt?: string | null
   createdFrom?: string | null
+  isPublic?: boolean
   schedule: {
     [key: string]: WorkoutDay
   }

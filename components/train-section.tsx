@@ -12,9 +12,10 @@ import { ProgramStateManager, type ActiveProgram } from "@/lib/program-state"
 interface TrainSectionProps {
   onStartWorkout: () => void
   onAddProgram: () => void
+  shouldAutoStart?: boolean
 }
 
-export function TrainSection({ onStartWorkout, onAddProgram }: TrainSectionProps) {
+export function TrainSection({ onStartWorkout, onAddProgram, shouldAutoStart = false }: TrainSectionProps) {
   const [activeProgram, setActiveProgram] = useState<ActiveProgram | null>(null)
   const [currentWorkout, setCurrentWorkout] = useState<{ name: string; exercises: any[] } | null>(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -60,9 +61,13 @@ export function TrainSection({ onStartWorkout, onAddProgram }: TrainSectionProps
 
         // CRITICAL: Auto-start workout immediately when active program exists
         // This skips the summary screen and goes directly to workout logger
-        console.log("[TrainSection] Active program found - auto-starting workout")
         setIsLoading(false)
-        onStartWorkout()
+        if (shouldAutoStart) {
+          console.log("[TrainSection] Active program found - auto-starting workout")
+          onStartWorkout()
+        } else {
+          console.log("[TrainSection] Active program loaded but auto-start deferred (tab hidden)")
+        }
       } else {
         console.warn("[TrainSection] No active program returned from ProgramStateManager")
         setActiveProgram(null)
@@ -126,7 +131,14 @@ export function TrainSection({ onStartWorkout, onAddProgram }: TrainSectionProps
       window.removeEventListener("programEnded", handleProgramEnded)
       document.removeEventListener("visibilitychange", handleVisibilityChange)
     }
-  }, [])
+  }, [shouldAutoStart])
+
+  useEffect(() => {
+    if (shouldAutoStart && activeProgram && currentWorkout) {
+      console.log("[TrainSection] Auto-start triggered from visibility change")
+      onStartWorkout()
+    }
+  }, [shouldAutoStart, activeProgram, currentWorkout, onStartWorkout])
 
   const handleStartWorkout = () => {
     console.log("[v0] Starting workout with current workout data:", currentWorkout)

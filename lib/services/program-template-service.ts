@@ -27,6 +27,7 @@ interface DbProgramTemplate {
   experience_level: string[]
   progression_type: string
   is_active: boolean
+  is_public: boolean
   // Custom program ownership/origin (nullable for canonical templates)
   owner_user_id?: string | null
   origin_template_id?: string | null
@@ -352,6 +353,7 @@ export class ProgramTemplateService {
       originTemplateId: dbTemplate.origin_template_id ?? null,
       forkedAt: dbTemplate.forked_at ?? null,
       createdFrom: dbTemplate.created_from ?? null,
+      isPublic: dbTemplate.is_public ?? false,
       progressionScheme: {
         type: 'linear',
         deloadWeek: dbTemplate.deload_week || dbTemplate.total_weeks,
@@ -442,9 +444,14 @@ export class ProgramTemplateService {
   async createTemplate(template: Omit<DbProgramTemplate, 'id' | 'created_at' | 'updated_at'>): Promise<string> {
     this.ensureSupabase()
 
+    const payload = {
+      ...template,
+      is_public: template.is_public ?? false,
+    }
+
     const { data, error } = await supabase
       .from('program_templates')
-      .insert(template)
+      .insert(payload)
       .select('id')
       .single()
 

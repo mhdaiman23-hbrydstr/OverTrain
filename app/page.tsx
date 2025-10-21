@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -28,6 +28,7 @@ export default function HomePage() {
   const [currentView, setCurrentView] = useState<
     "dashboard" | "programs" | "workout" | "analytics" | "train" | "profile" | null
   >(null)
+  const overrideViewRef = useRef(false)
 
   const [formData, setFormData] = useState({
     email: "",
@@ -36,7 +37,27 @@ export default function HomePage() {
   })
 
   useEffect(() => {
+    if (typeof window === "undefined") return
+    const params = new URLSearchParams(window.location.search)
+    const viewParam = params.get("view")
+    const allowedViews = new Set(["dashboard", "programs", "workout", "analytics", "train", "profile"])
+
+    if (viewParam && allowedViews.has(viewParam)) {
+      setCurrentView(viewParam as "dashboard" | "programs" | "workout" | "analytics" | "train" | "profile")
+      overrideViewRef.current = true
+
+      params.delete("view")
+      const queryString = params.toString()
+      const nextUrl = `${window.location.pathname}${queryString ? `?${queryString}` : ""}`
+      if (nextUrl !== `${window.location.pathname}${window.location.search}`) {
+        window.history.replaceState(null, "", nextUrl)
+      }
+    }
+  }, [])
+
+  useEffect(() => {
     if (user && user.gender) {
+      if (overrideViewRef.current) return
       // Immediately check for active program without delay
       const initializeView = async () => {
         const activeProgram = await ProgramStateManager.getActiveProgram()
@@ -237,6 +258,7 @@ export default function HomePage() {
           <TrainSection
             onStartWorkout={handleStartWorkout}
             onAddProgram={() => setCurrentView("programs")}
+            shouldAutoStart={currentView === "train"}
           />
         </div>
 

@@ -1,6 +1,7 @@
 ﻿"use client"
 
 import { useState, useEffect, useCallback } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Spinner } from "@/components/ui/spinner"
@@ -64,12 +65,40 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
   const [renameTarget, setRenameTarget] = useState<MyProgramInfo | null>(null)
   const [isRenamingProgram, setIsRenamingProgram] = useState(false)
   const [suppressNextRowClick, setSuppressNextRowClick] = useState(false)
-  const [defaultTab, setDefaultTab] = useState<"templates" | "my-templates">("templates")
+  const [activeTab, setActiveTab] = useState<"templates" | "my-templates" | "history">(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search)
+      const tabParam = params.get("tab")
+      if (tabParam === "my-programs") return "my-templates"
+      if (tabParam === "history") return "history"
+    }
+    return "templates"
+  })
   const { toast } = useToast()
+  const router = useRouter()
 
   const renameValueTrimmed = renameValue.trim()
   const isRenameSaveDisabled =
     !renameTarget || renameValueTrimmed.length === 0 || renameValueTrimmed === renameTarget.name || isRenamingProgram
+
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    const params = new URLSearchParams(window.location.search)
+
+    if (activeTab === "my-templates") {
+      params.set("tab", "my-programs")
+    } else if (activeTab === "history") {
+      params.set("tab", "history")
+    } else {
+      params.delete("tab")
+    }
+
+    const queryString = params.toString()
+    const newUrl = `${window.location.pathname}${queryString ? `?${queryString}` : ""}`
+    if (newUrl !== `${window.location.pathname}${window.location.search}`) {
+      window.history.replaceState(null, "", newUrl)
+    }
+  }, [activeTab])
 
   const loadMyPrograms = useCallback(async (savedLocal?: any[], active?: any) => {
     const activeId = active?.templateId
@@ -103,12 +132,25 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
       }
     }
 
-    if (savedLocal) {
+  if (savedLocal) {
       setMyPrograms(mapLocal(savedLocal))
     } else {
       setMyPrograms([])
     }
   }, [])
+
+  const handleOpenWizard = useCallback(() => {
+    onAddProgram()
+
+    const pathname = typeof window !== "undefined" ? window.location.pathname : "/"
+    const returnLocation = `${pathname}?view=programs`
+
+    const params = new URLSearchParams()
+    params.set("return", returnLocation)
+    params.set("tab", "my-programs")
+
+    router.push(`/program-wizard?${params.toString()}`)
+  }, [onAddProgram, router])
 
   const loadData = useCallback(async () => {
     // Only show loading spinner if we don't have templates yet (cold start)
@@ -144,10 +186,12 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
     await loadMyPrograms(saved, active)
 
     // Smart tab routing: If current program is a custom program, show My Programs tab by default
-    if (active?.isCustom) {
-      setDefaultTab("my-templates")
+    if (!active) {
+      setActiveTab("templates")
+    } else if (active.isCustom) {
+      setActiveTab("my-templates")
     } else {
-      setDefaultTab("templates")
+      setActiveTab("templates")
     }
   }, [loadMyPrograms])
 
@@ -544,7 +588,11 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
                 </DialogContent>
               </Dialog>
 
-              <Button size="sm" className="bg-orange-500 hover:bg-orange-600 text-white h-9 sm:h-10 px-4 sm:px-6" onClick={onAddProgram}>
+              <Button
+                size="sm"
+                className="bg-orange-500 hover:bg-orange-600 text-white h-9 sm:h-10 px-4 sm:px-6"
+                onClick={handleOpenWizard}
+              >
                 <Plus className="h-4 w-4 mr-1 sm:mr-2" />
                 NEW
               </Button>
@@ -553,7 +601,7 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
           </div>
 
           <div className="px-2 pt-4">
-            <Tabs defaultValue={defaultTab} className="w-full max-w-4xl mx-auto">
+            <Tabs value={activeTab} onValueChange={value => setActiveTab(value as "templates" | "my-templates" | "history")} className="w-full max-w-4xl mx-auto">
               <TabsList className="grid w-full grid-cols-3 h-auto p-1 bg-muted/50 rounded-lg">
               <TabsTrigger
                 value="templates"

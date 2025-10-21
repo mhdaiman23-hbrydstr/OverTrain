@@ -271,4 +271,120 @@
       padding-top: 4px !important;
     }
   }
+
+  /* Scrollbar utilities */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Custom Program Wizard Mobile Fixes */
+  /* iPhone 14 Pro Max (430px) and similar large phones */
+  @media (max-width: 450px) {
+    /* Program wizard dialog fixes */
+    [data-state="open"] > div[role="dialog"].fixed.inset-0 {
+      overflow-x: hidden !important;
+    }
+
+    /* Muscle group picker dialog */
+    .bg-background.border-border\/80.rounded-lg.shadow-lg.max-w-\[95vw\] {
+      max-height: 90vh !important;
+      overflow-y: auto !important;
+    }
+
+    /* Day section button fixes */
+    .flex.flex-wrap.items-start.gap-2 {
+      overflow-x: hidden !important;
+      width: 100% !important;
+    }
+
+    /* Muscle group grid fixes */
+    .grid.gap-3.sm\:grid-cols-2 {
+      grid-template-columns: 1fr !important;
+      gap: 0.75rem !important;
+    }
+
+    /* Badge spacing fixes */
+    .flex.flex-wrap.gap-1.sm\:gap-2 {
+      gap: 0.25rem !important;
+    }
+
+    /* Button text truncation */
+    .text-xs.px-2.py-1.h-auto {
+      min-width: 0 !important;
+      flex-shrink: 1 !important;
+    }
+
+    /* Day card overflow fixes */
+    .rounded-lg.border.border-border\/60.bg-card {
+      overflow: hidden !important;
+      word-wrap: break-word !important;
+      hyphens: auto !important;
+    }
+
+    /* Header spacing fixes */
+    .flex.flex-col.gap-3.border-b.border-border\/60.bg-muted\/40.px-4.py-3 {
+      gap: 0.5rem !important;
+      padding: 0.75rem !important;
+    }
+
+    /* Exercise row fixes */
+    .space-y-3 > div {
+      min-width: 0 !important;
+      overflow: hidden !important;
+    }
+  }
+
+  /* Tablet fixes (iPad mini, iPad, etc.) */
+  @media (min-width: 768px) and (max-width: 1024px) {
+    /* Stepper fixes for tablet */
+    .flex.items-center.gap-2.overflow-x-auto.overflow-y-hidden {
+      padding: 0.5rem 0 !important;
+    }
+    
+    /* Program wizard content fixes */
+    .flex-1.overflow-hidden.px-4.py-6.sm\:px-6 {
+      padding-left: 1rem !important;
+      padding-right: 1rem !important;
+    }
+    
+    /* Text overflow fixes for tablet */
+    .text-xs.text-muted-foreground.leading-relaxed {
+      line-height: 1.5 !important;
+      word-wrap: break-word !important;
+    }
+  }
+
+  /* Extra small phones (iPhone SE, etc.) */
+  @media (max-width: 390px) {
+    /* Further reduce padding and spacing */
+    .px-3.sm\:px-4 {
+      padding-left: 0.5rem !important;
+      padding-right: 0.5rem !important;
+    }
+
+    .py-3.sm\:py-4 {
+      padding-top: 0.5rem !important;
+      padding-bottom: 0.5rem !important;
+    }
+
+    /* Smaller buttons */
+    .text-xs.px-2.py-1.h-auto {
+      font-size: 0.625rem !important;
+      padding: 0.25rem 0.5rem !important;
+    }
+
+    /* Tighter spacing */
+    .space-y-3 {
+      gap: 0.5rem !important;
+    }
+
+    .space-y-4 {
+      gap: 0.75rem !important;
+    }
+  }
 }

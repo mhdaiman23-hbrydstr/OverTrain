@@ -76,6 +76,7 @@ export interface MyProgramInfo {
   originTemplateId?: string | null
   createdFrom?: string | null
   isActive: boolean
+  isPublic?: boolean
 }
 
 export interface ProgramProgress {
@@ -300,6 +301,11 @@ export class ProgramStateManager {
           weeks: t.total_weeks,
           gender: t.gender as ('male' | 'female')[],
           experience: t.experience_level as ('beginner' | 'intermediate' | 'advanced')[],
+          ownerUserId: t.owner_user_id ?? null,
+          originTemplateId: t.origin_template_id ?? null,
+          forkedAt: t.forked_at ?? null,
+          createdFrom: t.created_from ?? null,
+          isPublic: t.is_public ?? false,
           progressionScheme: {
             type: 'linear',
             deloadWeek: t.deload_week || t.total_weeks,
@@ -362,6 +368,7 @@ export class ProgramStateManager {
         originTemplateId: t.origin_template_id ?? null,
         createdFrom: t.created_from ?? null,
         isActive: activeProgram?.templateId === t.id,
+        isPublic: t.is_public ?? false,
       }))
     } catch (error) {
       console.error('[ProgramState] Failed to load My Programs:', error)
