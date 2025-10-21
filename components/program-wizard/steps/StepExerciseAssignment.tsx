@@ -1,10 +1,11 @@
 import { useMemo, useState } from 'react'
-import { ArrowLeftRight } from 'lucide-react'
+import { ArrowLeftRight, ChevronDown } from 'lucide-react'
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Spinner } from '@/components/ui/spinner'
+import { Input } from '@/components/ui/input'
 import type { DayInWizard, ExerciseInWizard } from '../types'
 import type { Exercise } from '@/lib/services/exercise-library-service'
 import { ExerciseRow } from '../components/ExerciseRow'
@@ -19,6 +20,7 @@ interface StepExerciseAssignmentProps {
   onRemoveExercise: (dayIndex: number, tempId: string) => void
   onRandomizeDay: (dayIndex: number) => void
   onReplaceExercise: (dayIndex: number, tempId: string, exercise: Exercise) => void
+  onRenameDay: (dayIndex: number, newName: string) => void
   onBack: () => void
   onNext: () => void
 }
@@ -41,11 +43,16 @@ export function StepExerciseAssignment({
   onRemoveExercise,
   onRandomizeDay,
   onReplaceExercise,
+  onRenameDay,
   onBack,
   onNext,
 }: StepExerciseAssignmentProps) {
   const [pickerDayIndex, setPickerDayIndex] = useState<number | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
+  const [selectedMuscleGroup, setSelectedMuscleGroup] = useState<string | null>(null)
+  const [expandedDays, setExpandedDays] = useState<Set<number>>(new Set(days.map((_, index) => index)))
+  const [editingDayIndex, setEditingDayIndex] = useState<number | null>(null)
+  const [editingDayName, setEditingDayName] = useState('')
   const [dialogContext, setDialogContext] = useState<
     | {
         mode: 'replace'
@@ -61,19 +68,67 @@ export function StepExerciseAssignment({
 
   const allDaysHaveExercises = days.every(day => day.exercises.length > 0)
 
+  const toggleDayExpansion = (dayIndex: number) => {
+    setExpandedDays(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(dayIndex)) {
+        newSet.delete(dayIndex)
+      } else {
+        newSet.add(dayIndex)
+      }
+      return newSet
+    })
+  }
+
+  const startEditingDayName = (dayIndex: number, currentName: string) => {
+    setEditingDayIndex(dayIndex)
+    setEditingDayName(currentName)
+  }
+
+  const cancelEditingDayName = () => {
+    setEditingDayIndex(null)
+    setEditingDayName('')
+  }
+
+  const saveDayName = () => {
+    if (editingDayIndex !== null && editingDayName.trim()) {
+      onRenameDay(editingDayIndex, editingDayName.trim())
+      cancelEditingDayName()
+    }
+  }
+
+  const handleDayNameKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      saveDayName()
+    } else if (e.key === 'Escape') {
+      cancelEditingDayName()
+    }
+  }
+
   const filteredExercises = useMemo(() => {
     if (pickerDayIndex === null) return []
     const day = days[pickerDayIndex]
-    const baseList = filterExercisesForDay(day, exercises)
-    if (!searchTerm) return baseList
-    const normalized = searchTerm.trim().toLowerCase()
-    return baseList.filter(exercise => exercise.name.toLowerCase().includes(normalized))
-  }, [pickerDayIndex, days, exercises, searchTerm])
+    let baseList = filterExercisesForDay(day, exercises)
+    
+    // Apply muscle group filter
+    if (selectedMuscleGroup) {
+      baseList = baseList.filter(exercise => exercise.muscleGroup === selectedMuscleGroup)
+    }
+    
+    // Apply search term filter
+    if (searchTerm) {
+      const normalized = searchTerm.trim().toLowerCase()
+      baseList = baseList.filter(exercise => exercise.name.toLowerCase().includes(normalized))
+    }
+    
+    return baseList
+  }, [pickerDayIndex, days, exercises, searchTerm, selectedMuscleGroup])
 
   const handleSelectExercise = (exercise: Exercise) => {
     if (pickerDayIndex === null) return
     onAddExercise(pickerDayIndex, exercise)
     setSearchTerm('')
+    setSelectedMuscleGroup(null)
     setPickerDayIndex(null)
   }
 
@@ -168,7 +223,35 @@ export function StepExerciseAssignment({
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div className="space-y-1">
                     <div className="flex items-center gap-3">
-                      <h3 className="text-base font-semibold">{day.dayName}</h3>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 w-6 p-0 hover:bg-muted"
+                        onClick={() => toggleDayExpansion(dayIndex)}
+                      >
+                        <ChevronDown 
+                          className={`h-4 w-4 transition-transform ${
+                            expandedDays.has(dayIndex) ? 'rotate-0' : '-rotate-90'
+                          }`} 
+                        />
+                      </Button>
+                      {editingDayIndex === dayIndex ? (
+                        <Input
+                          value={editingDayName}
+                          onChange={(e) => setEditingDayName(e.target.value)}
+                          onKeyDown={handleDayNameKeyDown}
+                          onBlur={saveDayName}
+                          className="h-8 w-32 text-base font-semibold"
+                          autoFocus
+                        />
+                      ) : (
+                        <h3 
+                          className="text-base font-semibold cursor-pointer hover:text-primary"
+                          onClick={() => startEditingDayName(dayIndex, day.dayName)}
+                        >
+                          {day.dayName}
+                        </h3>
+                      )}
                       <Badge variant="outline" className="text-xs">
                         {day.exercises.length} exercises
                       </Badge>
@@ -183,18 +266,25 @@ export function StepExerciseAssignment({
                       </div>
                     )}
                   </div>
-                  <div className="flex flex-wrap items-center gap-2 sm:flex-nowrap">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full sm:w-auto"
-                      onClick={() => onRandomizeDay(dayIndex)}
-                    >
-                      Randomize day
-                    </Button>
+                  {expandedDays.has(dayIndex) && (
+                    <div className="flex flex-wrap items-center gap-2 sm:flex-nowrap">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full sm:w-auto"
+                        onClick={() => onRandomizeDay(dayIndex)}
+                      >
+                        Randomize day
+                      </Button>
                     <Popover
                       open={pickerDayIndex === dayIndex}
-                      onOpenChange={open => setPickerDayIndex(open ? dayIndex : null)}
+                      onOpenChange={open => {
+                        setPickerDayIndex(open ? dayIndex : null)
+                        if (!open) {
+                          setSearchTerm('')
+                          setSelectedMuscleGroup(null)
+                        }
+                      }}
                     >
                       <PopoverTrigger asChild>
                         <Button variant="outline" size="sm" className="w-full sm:w-auto">
@@ -208,6 +298,33 @@ export function StepExerciseAssignment({
                             onValueChange={setSearchTerm}
                             placeholder="Search exercises..."
                           />
+                          
+                          {/* Muscle Group Filter */}
+                          <div className="border-t px-3 py-2">
+                            <div className="text-xs font-medium text-muted-foreground mb-2">Filter by muscle group:</div>
+                            <div className="flex flex-wrap gap-1">
+                              <Button
+                                variant={selectedMuscleGroup === null ? "default" : "outline"}
+                                size="sm"
+                                className="h-7 px-2 text-xs"
+                                onClick={() => setSelectedMuscleGroup(null)}
+                              >
+                                All
+                              </Button>
+                              {Array.from(new Set(exercises.map(e => e.muscleGroup))).map(group => (
+                                <Button
+                                  key={group}
+                                  variant={selectedMuscleGroup === group ? "default" : "outline"}
+                                  size="sm"
+                                  className="h-7 px-2 text-xs"
+                                  onClick={() => setSelectedMuscleGroup(group)}
+                                >
+                                  {group}
+                                </Button>
+                              ))}
+                            </div>
+                          </div>
+                          
                           <CommandList>
                             <CommandEmpty>No exercises found.</CommandEmpty>
                             <CommandGroup>
@@ -230,10 +347,12 @@ export function StepExerciseAssignment({
                         </Command>
                       </PopoverContent>
                     </Popover>
-                  </div>
+                    </div>
+                  )}
                 </div>
 
-                <div className="mt-4 space-y-3">
+                {expandedDays.has(dayIndex) && (
+                  <div className="mt-4 space-y-3">
                   {day.exercises.length === 0 ? (
                     <div className="rounded-md border border-dashed border-border/60 bg-muted/30 px-3 py-4 text-sm text-muted-foreground">
                       No exercises assigned. Add them manually or randomize the day to get suggestions.
@@ -248,7 +367,8 @@ export function StepExerciseAssignment({
                       />
                     ))
                   )}
-                </div>
+                  </div>
+                )}
               </div>
             )
           })}
