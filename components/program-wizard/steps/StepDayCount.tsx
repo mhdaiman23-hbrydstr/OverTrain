@@ -36,11 +36,16 @@ export function StepDayCount({
               <Button
                 key={weeks}
                 size="sm"
-                variant="outline"
+                variant={isSelected ? "default" : "outline"}
                 className={cn(
-                  'w-full justify-center text-center transition-colors',
-                  isSelected && 'border-transparent bg-primary text-primary-foreground hover:bg-primary/90',
+                  'w-full justify-center text-center transition-colors font-medium',
+                  isSelected && 'shadow-sm hover:bg-primary/90',
                 )}
+                style={isSelected ? {
+                  backgroundColor: '#3b82f6 !important',
+                  color: '#ffffff !important',
+                  borderColor: 'transparent !important'
+                } : {}}
                 onClick={() => onSelectWeek(weeks)}
               >
                 {weeks} weeks
@@ -65,11 +70,16 @@ export function StepDayCount({
               <Button
                 key={count}
                 size="sm"
-                variant="outline"
+                variant={isSelected ? "default" : "outline"}
                 className={cn(
-                  'w-full justify-center text-center transition-colors',
-                  isSelected && 'border-transparent bg-primary text-primary-foreground hover:bg-primary/90',
+                  'w-full justify-center text-center transition-colors font-medium',
+                  isSelected && 'shadow-sm hover:bg-primary/90',
                 )}
+                style={isSelected ? {
+                  backgroundColor: '#3b82f6 !important',
+                  color: '#ffffff !important',
+                  borderColor: 'transparent !important'
+                } : {}}
                 onClick={() => onSelectDay(count)}
               >
                 {count} days/week
