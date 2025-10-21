@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
@@ -28,6 +28,26 @@ export function ExerciseLibrary({ open, onOpenChange, onSelectExercise, currentE
   const [exercises, setExercises] = useState<Exercise[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  const availableMuscleGroups = useMemo(() => {
+    const groups = new Set<string>()
+    exercises.forEach((exercise) => {
+      if (exercise.muscleGroup) {
+        groups.add(exercise.muscleGroup)
+      }
+    })
+    return Array.from(groups).sort((a, b) => a.localeCompare(b))
+  }, [exercises])
+
+  const availableEquipmentTypes = useMemo(() => {
+    const equipmentSet = new Set<string>()
+    exercises.forEach((exercise) => {
+      if (exercise.equipmentType) {
+        equipmentSet.add(exercise.equipmentType)
+      }
+    })
+    return Array.from(equipmentSet).sort((a, b) => a.localeCompare(b))
+  }, [exercises])
 
   // Load exercises when dialog opens
   useEffect(() => {
@@ -158,6 +178,8 @@ export function ExerciseLibrary({ open, onOpenChange, onSelectExercise, currentE
         onOpenChange={setShowFilters}
         onApply={handleApplyFilters}
         currentFilters={selectedFilters}
+        muscleGroups={availableMuscleGroups}
+        equipmentTypes={availableEquipmentTypes}
       />
     </>
   )

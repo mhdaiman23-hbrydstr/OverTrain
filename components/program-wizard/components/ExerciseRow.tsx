@@ -1,7 +1,6 @@
 import type { ReactNode } from 'react'
-import { GripVertical, Trash2 } from 'lucide-react'
+import { GripVertical, Trash2, ChevronUp, ChevronDown, ArrowLeftRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import type { ExerciseInWizard } from '../types'
 import { cn } from '@/lib/utils'
 
@@ -20,6 +19,8 @@ interface ExerciseRowProps {
   isDragOver?: boolean
   actionSlot?: ReactNode
   disableDrag?: boolean
+  onMoveUp?: () => void
+  onMoveDown?: () => void
 }
 
 export function ExerciseRow({
@@ -29,6 +30,8 @@ export function ExerciseRow({
   isDragOver,
   actionSlot,
   disableDrag,
+  onMoveUp,
+  onMoveDown,
 }: ExerciseRowProps) {
   const isDraggable = !!dragHandlers && !disableDrag
 
@@ -37,8 +40,18 @@ export function ExerciseRow({
       className={cn(
         'flex items-center gap-3 rounded-md border border-dashed border-border/60 bg-background px-3 py-2 transition-colors',
         'hover:border-primary/60',
-        isDragOver && 'border-primary bg-primary/5',
+        isDraggable && 'cursor-grab active:cursor-grabbing hover:shadow-md hover:scale-[1.02] active:scale-[1.02]',
+        isDragOver && 'border-primary bg-primary/5 shadow-lg scale-[1.02]',
       )}
+      draggable={isDraggable}
+      onDragStart={(e) => { 
+        if (e.dataTransfer) { 
+          e.dataTransfer.setData('text/plain','reorder'); 
+          e.dataTransfer.effectAllowed = 'move'; 
+        } 
+        dragHandlers?.onDragStart?.(e) 
+      }}
+      onDragEnd={dragHandlers?.onDragEnd}
       onDragEnter={event => {
         event.preventDefault()
         dragHandlers?.onDragEnter?.(event)
@@ -51,36 +64,52 @@ export function ExerciseRow({
         event.preventDefault()
         dragHandlers?.onDrop?.(event)
       }}
+      onTouchStart={(e) => {
+        // Enable touch events for mobile drag functionality
+        if (isDraggable) {
+          e.stopPropagation()
+          // Add haptic feedback on touch devices if available
+          if ('vibrate' in navigator) {
+            navigator.vibrate(50)
+          }
+        }
+      }}
+      onTouchMove={(e) => {
+        if (isDraggable) {
+          // Only prevent default if we're actually dragging
+          // This allows scrolling when not actively dragging
+          e.stopPropagation()
+        }
+      }}
+      onTouchEnd={(e) => {
+        if (isDraggable) {
+          e.stopPropagation()
+        }
+      }}
+      aria-label={`Exercise: ${exercise.exerciseName}${isDraggable ? ' - Drag to reorder' : ''}`}
     >
-      <button
-        type="button"
-        className={cn(
-          'flex size-8 items-center justify-center rounded-md bg-transparent text-muted-foreground transition-colors',
-          isDraggable &&
-            'cursor-grab active:cursor-grabbing hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60',
-        )}
-        draggable={isDraggable}
-        onDragStart={(e) => { if (e.dataTransfer) { e.dataTransfer.setData('text/plain','reorder'); e.dataTransfer.effectAllowed = 'move'; } dragHandlers?.onDragStart?.(e) }}
-        onDragEnd={dragHandlers?.onDragEnd}
-        aria-label="Reorder exercise"
-        disabled={!isDraggable}
-      >
-        <GripVertical className="size-4" />
-      </button>
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2">
-          <span className="font-medium text-sm truncate">{exercise.exerciseName}</span>
-          <Badge variant="secondary" className="text-[10px] uppercase tracking-wide">
-            {exercise.category}
-          </Badge>
+      {/* Subtle drag indicator */}
+      {isDraggable && (
+        <div className="flex items-center justify-center text-muted-foreground/30">
+          <GripVertical className="size-4" />
         </div>
-        <div className="text-xs text-muted-foreground space-x-3">
-          <span>{exercise.muscleGroup}</span>
-          {exercise.equipmentType && <span>{exercise.equipmentType}</span>}
-          <span>{exercise.restTime}s rest</span>
+      )}
+      
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2 mb-1">
+          <span className="font-medium text-sm flex-1" title={exercise.exerciseName}>{exercise.exerciseName}</span>
+        </div>
+        <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
+          <span title={exercise.muscleGroup}>{exercise.muscleGroup}</span>
+          {exercise.equipmentType && (
+            <>
+              <span className="text-border/40">•</span>
+              <span title={exercise.equipmentType}>{exercise.equipmentType}</span>
+            </>
+          )}
         </div>
       </div>
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-1 flex-shrink-0">
         {actionSlot}
         <Button
           variant="ghost"

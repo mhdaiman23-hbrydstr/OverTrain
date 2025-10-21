@@ -2,11 +2,9 @@ import { ChangeEvent } from 'react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
-import {
-  AVAILABLE_EXPERIENCE,
-  AVAILABLE_GENDERS,
-  AVAILABLE_WEEKS,
-} from '../constants'
+import { Checkbox } from '@/components/ui/checkbox'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { AVAILABLE_EXPERIENCE } from '../constants'
 import type { ProgramMetadata } from '../types'
 
 interface StepFinalizeProps {
@@ -26,35 +24,35 @@ export function StepFinalize({
   onBack,
   onSave,
 }: StepFinalizeProps) {
+  type GenderOption = 'all' | 'male' | 'female'
+
   const handleNameChange = (event: ChangeEvent<HTMLInputElement>) => {
     onUpdateMetadata({ name: event.target.value })
   }
 
-  const handleWeeksChange = (weeks: number) => {
-    onUpdateMetadata({
-      weeks,
-      deloadWeek: Math.min(metadata.deloadWeek, weeks),
-    })
+  const formatLabel = (value: string) => value.charAt(0).toUpperCase() + value.slice(1)
+
+  const selectedGenderOption: GenderOption =
+    metadata.gender.length === 2 ? 'all' : (metadata.gender[0] as GenderOption) || 'all'
+
+  const handleGenderChange = (option: GenderOption) => {
+    if (option === 'all') {
+      onUpdateMetadata({ gender: ['male', 'female'] })
+      return
+    }
+    onUpdateMetadata({ gender: [option] })
   }
 
-  const toggleGender = (value: string) => {
-    const exists = metadata.gender.includes(value)
-    onUpdateMetadata({
-      gender: exists ? metadata.gender.filter(item => item !== value) : [...metadata.gender, value].sort(),
-    })
-  }
+  const handleExperienceToggle = (value: string, checked: boolean) => {
+    const current = new Set(metadata.experience)
+    if (checked) {
+      current.add(value)
+    } else {
+      current.delete(value)
+    }
 
-  const toggleExperience = (value: string) => {
-    const exists = metadata.experience.includes(value)
-    onUpdateMetadata({
-      experience: exists
-        ? metadata.experience.filter(item => item !== value)
-        : [...metadata.experience, value].sort(),
-    })
-  }
-
-  const handleDeloadWeekChange = (week: number) => {
-    onUpdateMetadata({ deloadWeek: week })
+    const next = AVAILABLE_EXPERIENCE.filter(level => current.has(level))
+    onUpdateMetadata({ experience: next })
   }
 
   return (
@@ -79,78 +77,39 @@ export function StepFinalize({
 
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
-            <Label>Program length (weeks)</Label>
-            <div className="flex flex-wrap gap-2">
-              {AVAILABLE_WEEKS.map(weeks => {
-                const isSelected = metadata.weeks === weeks
-                return (
-                  <Button
-                    key={weeks}
-                    variant={isSelected ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => handleWeeksChange(weeks)}
-                  >
-                    {weeks} weeks
-                  </Button>
-                )
-              })}
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label>Deload week</Label>
-            <div className="flex flex-wrap gap-2">
-              {Array.from({ length: metadata.weeks }, (_, index) => index + 1).map(week => {
-                const isSelected = metadata.deloadWeek === week
-                return (
-                  <Button
-                    key={week}
-                    variant={isSelected ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => handleDeloadWeekChange(week)}
-                  >
-                    Week {week}
-                  </Button>
-                )
-              })}
-            </div>
-          </div>
-        </div>
-
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div className="space-y-2">
             <Label>Gender focus</Label>
-            <div className="flex flex-wrap gap-2">
-              {AVAILABLE_GENDERS.map(gender => {
-                const isSelected = metadata.gender.includes(gender)
+            <RadioGroup
+              value={selectedGenderOption}
+              onValueChange={value => handleGenderChange(value as GenderOption)}
+              className="space-y-3"
+            >
+              {(['all', 'male', 'female'] as GenderOption[]).map(option => {
+                const id = `wizard-gender-${option}`
                 return (
-                  <Button
-                    key={gender}
-                    variant={isSelected ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => toggleGender(gender)}
-                  >
-                    {gender}
-                  </Button>
+                  <div key={option} className="flex items-center gap-3">
+                    <RadioGroupItem value={option} id={id} />
+                    <Label htmlFor={id}>{formatLabel(option)}</Label>
+                  </div>
                 )
               })}
-            </div>
+            </RadioGroup>
           </div>
 
           <div className="space-y-2">
             <Label>Experience level</Label>
-            <div className="flex flex-wrap gap-2">
+            <div className="space-y-3">
               {AVAILABLE_EXPERIENCE.map(level => {
-                const isSelected = metadata.experience.includes(level)
+                const id = `wizard-experience-${level}`
+                const isChecked = metadata.experience.includes(level)
                 return (
-                  <Button
-                    key={level}
-                    variant={isSelected ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => toggleExperience(level)}
-                  >
-                    {level}
-                  </Button>
+                  <div key={level} className="flex items-center gap-3">
+                    <Checkbox
+                      id={id}
+                      checked={isChecked}
+                      onCheckedChange={checked => handleExperienceToggle(level, checked === true)}
+                    />
+                    <Label htmlFor={id}>{formatLabel(level)}</Label>
+                  </div>
                 )
               })}
             </div>

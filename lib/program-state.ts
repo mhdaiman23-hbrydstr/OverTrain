@@ -764,6 +764,62 @@ export class ProgramStateManager {
     window.dispatchEvent(new Event('programChanged'))
   }
 
+  static async deleteCustomProgram(templateId: string): Promise<void> {
+    const userId = this.getCurrentUserId()
+    if (!userId) {
+      throw new Error('User not authenticated')
+    }
+
+    // Check if user owns this program
+    const ownedTemplates = await programTemplateService.getMyPrograms(userId)
+    const targetTemplate = ownedTemplates.find(t => t.id === templateId)
+    if (!targetTemplate) {
+      throw new Error('Custom program not found or not owned by user')
+    }
+
+    // Check if program is currently active
+    const activeProgram = await this.getActiveProgram({ skipDatabaseLoad: true })
+    if (activeProgram && activeProgram.templateId === templateId) {
+      throw new Error('Cannot delete a program that is currently active. Please end the program first.')
+    }
+
+    // Remove owner_user_id to "delete" from user's profile (keeps in database)
+    if (supabase) {
+      const { error } = await supabase
+        .from('program_templates')
+        .update({ owner_user_id: null })
+        .eq('id', templateId)
+        .eq('owner_user_id', userId)
+
+      if (error) {
+        throw new Error(`Failed to delete program: ${error.message}`)
+      }
+    }
+
+    // Clear cache and refresh
+    programTemplateService.clearCache()
+
+    // Remove from program history
+    const history = this.getProgramHistory()
+    let historyChanged = false
+    const filteredHistory = history.filter(entry => {
+      if (entry.templateId === templateId) {
+        historyChanged = true
+        return false
+      }
+      return true
+    })
+    
+    if (historyChanged) {
+      this.saveProgramHistory(filteredHistory)
+    }
+
+    // Dispatch events to update UI
+    window.dispatchEvent(new Event('programChanged'))
+    
+    console.log(`[ProgramState] Successfully deleted program ${templateId} from user ${userId}'s profile`)
+  }
+
   static clearActiveProgram(): void {
     if (typeof window === "undefined") return
     localStorage.removeItem(this.ACTIVE_PROGRAM_KEY)
@@ -1464,10 +1520,3 @@ export class ProgramStateManager {
     }
   }
 }
-
-
-
-
-
-
-

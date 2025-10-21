@@ -81,11 +81,13 @@ export default function ProgramWizardPage() {
   )
 
   return (
-    <ProgramWizard
-      onClose={handleClose}
-      onComplete={handleComplete}
-      initialStep={initialStep}
-      onStepChange={handleStepChange}
-    />
+    <div className="min-h-[100svh] pb-16 lg:pb-0">
+      <ProgramWizard
+        onClose={handleClose}
+        onComplete={handleComplete}
+        initialStep={initialStep}
+        onStepChange={handleStepChange}
+      />
+    </div>
   )
 }

@@ -234,10 +234,3 @@ export function getMuscleGroupBadgeClass(value?: string | null) {
 export function getMuscleGroupLabel(value?: string | null) {
   return getMuscleGroupStyle(value).label
 }
-
-export const MUSCLE_GROUP_FILTER_OPTIONS = BASE_STYLES
-  .filter((style) => style.includeInFilter !== false)
-  .map((style) => ({
-    name: style.label,
-    accentClass: style.accentClass,
-  }))

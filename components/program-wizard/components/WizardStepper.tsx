@@ -42,7 +42,7 @@ export function WizardStepper({ currentStep }: WizardStepperProps) {
                   status === 'current' && 'text-primary',
                   // Completed labels should remain readable on the page background
                   status === 'complete' && 'text-foreground',
-                  'whitespace-nowrap sm:whitespace-normal'
+                  'whitespace-nowrap'
                 )}
               >
                 {step.label}

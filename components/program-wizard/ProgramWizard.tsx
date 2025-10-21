@@ -93,6 +93,11 @@ export function ProgramWizard({ onClose, onComplete, initialStep, onStepChange }
 
   const exerciseCache = useExerciseCache({ enabled: true })
   const templateCache = useTemplateCache({ enabled: state.source === 'template' })
+  const {
+    refresh: refreshTemplates,
+    hasLoaded: templateCacheLoaded,
+    isLoading: templateCacheLoading,
+  } = templateCache
 
   const currentStep = state.step
 
@@ -135,6 +140,22 @@ export function ProgramWizard({ onClose, onComplete, initialStep, onStepChange }
     if (!initialized) return
     onStepChange?.(currentStep)
   }, [currentStep, initialized, onStepChange])
+
+  useEffect(() => {
+    if (!initialized) return
+    if (state.source !== 'template') return
+    if (currentStep !== 'templateSelect') return
+    if (templateCacheLoaded || templateCacheLoading) return
+
+    void refreshTemplates()
+  }, [
+    initialized,
+    state.source,
+    currentStep,
+    templateCacheLoaded,
+    templateCacheLoading,
+    refreshTemplates,
+  ])
 
   const attemptClose = () => {
     if (isSaving) return
@@ -221,7 +242,25 @@ export function ProgramWizard({ onClose, onComplete, initialStep, onStepChange }
     const day = state.days[dayIndex]
     if (!day) return
 
-    const selections = day.muscleGroups ?? []
+    // Prefer explicit muscle group selections when present; otherwise
+    // derive a fallback distribution from the current exercises so
+    // templates (which often lack selections) can still randomize.
+    const selections = (day.muscleGroups && day.muscleGroups.length > 0)
+      ? day.muscleGroups
+      : (() => {
+          const counts = new Map<string, number>()
+          day.exercises.forEach(ex => {
+            const key = ex.muscleGroup?.toLowerCase?.() || ''
+            if (!key) return
+            counts.set(key, (counts.get(key) || 0) + 1)
+          })
+          return Array.from(counts.entries()).map(([groupLower, count]) => ({
+            category: 'accessories' as const,
+            group: groupLower.replace(/\b\w/g, c => c.toUpperCase()),
+            count,
+          }))
+        })()
+
     if (selections.length === 0) return
 
     const newExercises: ExerciseInWizard[] = []
@@ -229,9 +268,22 @@ export function ProgramWizard({ onClose, onComplete, initialStep, onStepChange }
       const pool = exerciseCache.exercises.filter(
         exercise => exercise.muscleGroup.toLowerCase() === selection.group.toLowerCase(),
       )
+      
+      // If no exercises found for this muscle group, keep existing exercises for this group
       if (pool.length === 0) {
+        console.warn(`[ProgramWizard] No exercises found for muscle group: ${selection.group}`)
+        const existingInGroup = day.exercises.filter(ex => 
+          ex.muscleGroup?.toLowerCase() === selection.group.toLowerCase()
+        )
+        existingInGroup.forEach(exercise => {
+          newExercises.push({
+            ...exercise,
+            order: newExercises.length,
+          })
+        })
         return
       }
+      
       const chosen = shuffle(pool).slice(0, selection.count)
       chosen.forEach(exercise => {
         newExercises.push({
@@ -246,6 +298,17 @@ export function ProgramWizard({ onClose, onComplete, initialStep, onStepChange }
         })
       })
     })
+
+    // Ensure we don't end up with an empty exercise list
+    if (newExercises.length === 0) {
+      console.warn('[ProgramWizard] Randomize resulted in no exercises, keeping original exercises')
+      return // Don't update if we'd end up with no exercises
+    }
+
+    // If we have fewer exercises than before, log a warning but still proceed
+    if (newExercises.length < day.exercises.length) {
+      console.warn(`[ProgramWizard] Randomize reduced exercises from ${day.exercises.length} to ${newExercises.length}`)
+    }
 
     setDayExercises(dayIndex, newExercises)
   }
@@ -393,10 +456,24 @@ export function ProgramWizard({ onClose, onComplete, initialStep, onStepChange }
         const dayId = dayIdMap.get(day.dayNumber)
         if (!dayId) return []
 
-        return day.exercises.map(exercise => ({
+        // Sort exercises by current order and normalize to sequential 1-based indexing
+        const sortedExercises = [...day.exercises]
+          .sort((a, b) => (a.order || 0) - (b.order || 0))
+          .map((exercise, index) => ({
+            ...exercise,
+            normalizedOrder: index + 1 // Ensure 1-based sequential ordering
+          }))
+
+        console.log('[ProgramWizard] Day', day.dayNumber, 'exercises:', sortedExercises.map(ex => ({
+          name: ex.exerciseName,
+          originalOrder: ex.order,
+          normalizedOrder: ex.normalizedOrder
+        })))
+
+        return sortedExercises.map(exercise => ({
           template_day_id: dayId,
           exercise_id: exercise.exerciseLibraryId,
-          exercise_order: exercise.order,
+          exercise_order: exercise.normalizedOrder,
           category: exercise.category,
           rest_time_seconds: exercise.restTime,
           progression_config: generateProgressionConfig(exercise, state.metadata.weeks),
@@ -498,6 +575,7 @@ export function ProgramWizard({ onClose, onComplete, initialStep, onStepChange }
             onRemoveExercise={removeExerciseFromDay}
             onReorderExercise={updateExerciseOrder}
             onAddDay={addDay}
+            onAddExercise={handleAddExercise}
             exercises={exerciseCache.exercises}
             isExerciseLoading={exerciseCache.isLoading}
             exerciseError={exerciseCache.error}
@@ -550,7 +628,7 @@ export function ProgramWizard({ onClose, onComplete, initialStep, onStepChange }
   const showStepper = wizardOrder.indexOf(currentStep) >= 0 && currentStep !== 'source'
 
   return (
-    <div className="min-h-[100svh] bg-background text-foreground">
+    <div className="min-h-[100svh] bg-background text-foreground relative">
       <div className="flex min-h-[100svh] flex-col">
         <header
           className="border-b border-border/60"
@@ -621,4 +699,3 @@ export function ProgramWizard({ onClose, onComplete, initialStep, onStepChange }
     </div>
   )
 }
-

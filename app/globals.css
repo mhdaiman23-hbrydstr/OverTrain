@@ -337,6 +337,69 @@
       min-width: 0 !important;
       overflow: hidden !important;
     }
+
+    /* Enhanced touch target sizes for mobile */
+    button[aria-label*="Replace"],
+    button[aria-label*="Shuffle"],
+    button[aria-label*="Reorder"],
+    button[aria-label*="Remove"] {
+      min-height: 44px !important;
+      min-width: 44px !important;
+      touch-action: manipulation !important;
+    }
+
+    /* Fix dropdown overlay on mobile */
+    .absolute.z-\[100\] {
+      z-index: 9999 !important;
+      pointer-events: auto !important;
+    }
+
+    /* Ensure buttons are clickable on mobile */
+    .fixed.inset-0.z-\[90\] {
+      pointer-events: auto !important;
+    }
+
+    /* Touch-friendly exercise rows */
+    .flex.items-center.gap-3.rounded-md.border {
+      touch-action: pan-y !important;
+    }
+  }
+
+  /* Tablet specific fixes */
+  @media (min-width: 768px) and (max-width: 1024px) {
+    /* Enhanced touch targets for tablet */
+    button[aria-label*="Replace"],
+    button[aria-label*="Shuffle"],
+    button[aria-label*="Reorder"],
+    button[aria-label*="Remove"] {
+      min-height: 40px !important;
+      min-width: 40px !important;
+      touch-action: manipulation !important;
+    }
+
+    /* Fix dropdown positioning on tablet */
+    .absolute.right-0.top-full.z-\[100\] {
+      z-index: 9999 !important;
+    }
+  }
+
+  /* Touch device specific fixes */
+  @media (hover: none) and (pointer: coarse) {
+    /* Remove hover effects on touch devices */
+    button:hover {
+      background-color: transparent !important;
+    }
+
+    /* Ensure proper touch handling */
+    button {
+      touch-action: manipulation !important;
+      -webkit-tap-highlight-color: transparent !important;
+    }
+
+    /* Fix dropdown touch handling */
+    .absolute.z-\[100\] * {
+      touch-action: manipulation !important;
+    }
   }
 
   /* Tablet fixes (iPad mini, iPad, etc.) */

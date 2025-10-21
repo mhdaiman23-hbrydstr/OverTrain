@@ -1,13 +1,11 @@
-import { useMemo, useState } from 'react'
-import { RefreshCcw } from 'lucide-react'
+import { useState } from 'react'
+import { ArrowLeftRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { Separator } from '@/components/ui/separator'
-import { Spinner } from '@/components/ui/spinner'
 import type { Exercise } from '@/lib/services/exercise-library-service'
 import type { DayInWizard, ExerciseInWizard } from '../types'
 import { DaySection } from '../components/DaySection'
+import { ExerciseSelectionDialog } from '../components/ExerciseSelectionDialog'
+import { programWizardDebugger } from '@/lib/program-wizard-debug'
 
 interface StepDayBuilderProps {
   days: DayInWizard[]
@@ -18,6 +16,7 @@ interface StepDayBuilderProps {
   onRemoveExercise: (dayIndex: number, tempId: string) => void
   onReorderExercise: (dayIndex: number, fromIndex: number, toIndex: number) => void
   onAddDay: () => void
+  onAddExercise: (dayIndex: number, exercise: Exercise) => void
   exercises: Exercise[]
   isExerciseLoading: boolean
   exerciseError: string | null
@@ -35,6 +34,7 @@ export function StepDayBuilder({
   onRemoveExercise,
   onReorderExercise,
   onAddDay,
+  onAddExercise,
   exercises,
   isExerciseLoading,
   exerciseError,
@@ -43,150 +43,97 @@ export function StepDayBuilder({
   onNext,
 }: StepDayBuilderProps) {
   const hasAtLeastOneExercise = days.every(day => day.exercises.length > 0)
-  const [replaceTarget, setReplaceTarget] = useState<{
+  const [dialogContext, setDialogContext] = useState<
+    | {
+        mode: 'replace'
+        dayIndex: number
+        exercise: ExerciseInWizard
+      }
+    | {
+        mode: 'add'
+        dayIndex: number
+      }
+    | null
+  >(null)
+
+  const hasExerciseLibraryData = exercises.length > 0
+  const isSelectionDisabled = isExerciseLoading && !hasExerciseLibraryData
+
+  const openReplaceDialog = (payload: {
     dayIndex: number
     exercise: ExerciseInWizard
-    exerciseIndex: number
-  } | null>(null)
-  const [searchValue, setSearchValue] = useState('')
-
-  const { recommendedOptions, allOptions } = useMemo(() => {
-    if (!replaceTarget) {
-      return { recommendedOptions: [] as Exercise[], allOptions: [] as Exercise[] }
-    }
-
-    const normalized = searchValue.trim().toLowerCase()
-    const matchesSearch = (exercise: Exercise) => {
-      if (!normalized) return true
-      return (
-        exercise.name.toLowerCase().includes(normalized) ||
-        exercise.muscleGroup.toLowerCase().includes(normalized) ||
-        (exercise.equipmentType?.toLowerCase() ?? '').includes(normalized)
-      )
-    }
-
-    const allMatches = exercises.filter(matchesSearch)
-
-    const currentMuscle = replaceTarget.exercise.muscleGroup?.toLowerCase()
-    const recommended = currentMuscle
-      ? allMatches.filter(item => item.muscleGroup.toLowerCase() === currentMuscle)
-      : allMatches.slice(0, 20)
-
-    const recommendedIds = new Set(recommended.map(item => item.id))
-    const rest = allMatches.filter(item => !recommendedIds.has(item.id))
-
-    return { recommendedOptions: recommended, allOptions: rest }
-  }, [replaceTarget, exercises, searchValue])
-
-  const handleSelectReplacement = (exercise: Exercise) => {
-    if (!replaceTarget) return
-    onReplaceExercise(replaceTarget.dayIndex, replaceTarget.exercise.tempId, exercise)
-    setReplaceTarget(null)
-    setSearchValue('')
+  }) => {
+    if (isSelectionDisabled) return
+    programWizardDebugger.logDropdownOpen(payload.exercise.exerciseName)
+    setDialogContext({
+      mode: 'replace',
+      dayIndex: payload.dayIndex,
+      exercise: payload.exercise,
+    })
   }
 
+  const openAddDialog = (dayIndex: number) => {
+    if (isSelectionDisabled) return
+    programWizardDebugger.logDropdownOpen('add-exercise')
+    setDialogContext({
+      mode: 'add',
+      dayIndex,
+    })
+  }
+
+  const closeDialog = () => {
+    setDialogContext(null)
+    programWizardDebugger.logDropdownClose()
+  }
+
+  const handleExerciseSelection = (exercise: Exercise) => {
+    if (!dialogContext) return
+
+    if (dialogContext.mode === 'replace' && dialogContext.exercise) {
+      onReplaceExercise(dialogContext.dayIndex, dialogContext.exercise.tempId, exercise)
+    } else if (dialogContext.mode === 'add') {
+      onAddExercise(dialogContext.dayIndex, exercise)
+    }
+
+    closeDialog()
+  }
+
+  const presetMuscleGroup = (() => {
+    if (!dialogContext) return null
+    if (dialogContext.mode === 'replace') {
+      return dialogContext.exercise.muscleGroup
+    }
+    const day = days[dialogContext.dayIndex]
+    if (!day) return null
+    if (day.exercises.length > 0) {
+      return day.exercises[0].muscleGroup
+    }
+    if (day.muscleGroups && day.muscleGroups.length > 0) {
+      return day.muscleGroups[0].group
+    }
+    return null
+  })()
+
   const renderReplaceActions = (params: { exercise: ExerciseInWizard; dayIndex: number; exerciseIndex: number }) => {
-    const isOpen =
-      replaceTarget?.exercise.tempId === params.exercise.tempId &&
-      replaceTarget?.dayIndex === params.dayIndex &&
-      replaceTarget?.exerciseIndex === params.exerciseIndex
-
-    const hasExercises = exercises.length > 0
-    const isDisabled = isExerciseLoading && !hasExercises
-    const hasResults = recommendedOptions.length > 0 || allOptions.length > 0
-
     return (
-      <Popover
-        
-        onOpenChange={open => {
-          if (open) {
-            setReplaceTarget(params)
-            setSearchValue('')
-          } else if (isOpen) {
-            setReplaceTarget(null)
-            setSearchValue('')
-          }
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        className="text-muted-foreground hover:text-foreground touch-manipulation min-h-[44px] min-w-[44px]"
+        disabled={isSelectionDisabled}
+        onClick={event => {
+          event.preventDefault()
+          event.stopPropagation()
+          openReplaceDialog({
+            dayIndex: params.dayIndex,
+            exercise: params.exercise,
+          })
         }}
+        aria-label={`Replace ${params.exercise.exerciseName}`}
       >
-        <PopoverTrigger asChild>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="text-muted-foreground hover:text-foreground"
-            disabled={isDisabled}
-            aria-label={`Replace ${params.exercise.exerciseName}`}
-          >
-            <RefreshCcw className="size-4" />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-[min(20rem,calc(100vw-3rem))] p-0" sideOffset={8}>
-          <Command shouldFilter={false}>
-            <CommandInput
-              value={searchValue}
-              onValueChange={setSearchValue}
-              placeholder="Search exercises..."
-              disabled={isDisabled}
-            />
-            <CommandList>
-              {isExerciseLoading && (
-                <div className="flex items-center gap-2 px-3 py-3 text-sm text-muted-foreground">
-                  <Spinner className="size-4" />
-                  Loading exercises...
-                </div>
-              )}
-              {!isExerciseLoading && exerciseError && (
-                <div className="px-3 py-3 text-sm text-destructive">{exerciseError}</div>
-              )}
-              {!isExerciseLoading && !exerciseError && (
-                <>
-                  {!hasResults && <CommandEmpty>No exercises found.</CommandEmpty>}
-                  {recommendedOptions.length > 0 && (
-                    <CommandGroup heading="Recommended">
-                      {recommendedOptions.map(option => (
-                        <CommandItem
-                          key={option.id}
-                          value={option.name}
-                          onSelect={() => handleSelectReplacement(option)}
-                        >
-                          <div className="flex flex-col">
-                            <span className="text-sm font-medium">{option.name}</span>
-                            <span className="text-xs text-muted-foreground">
-                              {option.muscleGroup} · {option.equipmentType}
-                            </span>
-                          </div>
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  )}
-                  {allOptions.length > 0 && (
-                    <CommandGroup heading={recommendedOptions.length > 0 ? 'All exercises' : 'Exercises'}>
-                      {allOptions.map(option => (
-                        <CommandItem
-                          key={option.id}
-                          value={option.name}
-                          onSelect={() => handleSelectReplacement(option)}
-                        >
-                          <div className="flex flex-col">
-                            <span className="text-sm font-medium">{option.name}</span>
-                            <span className="text-xs text-muted-foreground">
-                              {option.muscleGroup} · {option.equipmentType}
-                            </span>
-                          </div>
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  )}
-                </>
-              )}
-            </CommandList>
-          </Command>
-          <Separator />
-          <div className="px-3 py-2 text-[10px] uppercase text-muted-foreground tracking-wide">
-            Replaces {params.exercise.exerciseName}
-          </div>
-        </PopoverContent>
-      </Popover>
+        <ArrowLeftRight className="size-4" />
+      </Button>
     )
   }
 
@@ -217,6 +164,8 @@ export function StepDayBuilder({
             onRemoveExercise={onRemoveExercise}
             onReorderExercise={onReorderExercise}
             renderExerciseActions={renderReplaceActions}
+            onAddExercise={openAddDialog}
+            disableAddExercise={isSelectionDisabled}
           />
         ))}
       </div>
@@ -234,9 +183,18 @@ export function StepDayBuilder({
           </Button>
         </div>
       </div>
+
+      <ExerciseSelectionDialog
+        isOpen={dialogContext !== null}
+        mode={dialogContext?.mode ?? 'replace'}
+        onClose={closeDialog}
+        exercises={exercises}
+        isLoading={isExerciseLoading}
+        error={exerciseError}
+        currentExerciseName={dialogContext?.mode === 'replace' ? dialogContext.exercise.exerciseName : undefined}
+        presetMuscleGroup={presetMuscleGroup}
+        onSelectExercise={handleExerciseSelection}
+      />
     </div>
   )
 }
-
-
-

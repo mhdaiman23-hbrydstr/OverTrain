@@ -1,5 +1,6 @@
 import { AVAILABLE_DAY_COUNTS, AVAILABLE_WEEKS } from '../constants'
 import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 
 interface StepDayCountProps {
   selectedWeekCount: number
@@ -34,9 +35,12 @@ export function StepDayCount({
             return (
               <Button
                 key={weeks}
-                variant={isSelected ? 'default' : 'outline'}
                 size="sm"
-                className="w-full justify-center text-center"
+                variant="outline"
+                className={cn(
+                  'w-full justify-center text-center transition-colors',
+                  isSelected && 'border-transparent bg-primary text-primary-foreground hover:bg-primary/90',
+                )}
                 onClick={() => onSelectWeek(weeks)}
               >
                 {weeks} weeks
@@ -60,9 +64,12 @@ export function StepDayCount({
             return (
               <Button
                 key={count}
-                variant={isSelected ? 'default' : 'outline'}
                 size="sm"
-                className="w-full justify-center text-center"
+                variant="outline"
+                className={cn(
+                  'w-full justify-center text-center transition-colors',
+                  isSelected && 'border-transparent bg-primary text-primary-foreground hover:bg-primary/90',
+                )}
                 onClick={() => onSelectDay(count)}
               >
                 {count} days/week

@@ -65,6 +65,9 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
   const [renameTarget, setRenameTarget] = useState<MyProgramInfo | null>(null)
   const [isRenamingProgram, setIsRenamingProgram] = useState(false)
   const [suppressNextRowClick, setSuppressNextRowClick] = useState(false)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [deleteTarget, setDeleteTarget] = useState<MyProgramInfo | null>(null)
+  const [isDeletingProgram, setIsDeletingProgram] = useState(false)
   const [activeTab, setActiveTab] = useState<"templates" | "my-templates" | "history">(() => {
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search)
@@ -260,6 +263,48 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
     },
     [loadData, toast]
   )
+
+  const handleDeleteMyProgram = useCallback((program: MyProgramInfo) => {
+    setSuppressNextRowClick(true)
+    setDeleteTarget(program)
+    setDeleteDialogOpen(true)
+  }, [])
+
+  const handleCloseDeleteDialog = useCallback(() => {
+    if (isDeletingProgram) return
+    setDeleteDialogOpen(false)
+    setDeleteTarget(null)
+  }, [isDeletingProgram])
+
+  const handleConfirmDelete = useCallback(async () => {
+    if (!deleteTarget) return
+
+    try {
+      setIsDeletingProgram(true)
+      
+      // Delete the program from user's profile (remove owner_user_id)
+      // This keeps it in the database but removes it from "My Programs"
+      await ProgramStateManager.deleteCustomProgram(deleteTarget.id)
+      
+      toast({ 
+        title: "Program deleted",
+        description: "The program has been removed from your profile."
+      })
+      
+      await loadData()
+      setDeleteDialogOpen(false)
+      setDeleteTarget(null)
+    } catch (error) {
+      console.error("[ProgramsSection] Failed to delete program:", error)
+      toast({
+        title: "Failed to delete program",
+        description: error instanceof Error ? error.message : 'Please try again.',
+        variant: "destructive",
+      })
+    } finally {
+      setIsDeletingProgram(false)
+    }
+  }, [deleteTarget, loadData, toast])
 
   useEffect(() => {
     loadData()
@@ -738,6 +783,20 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
                           >
                             Rename Program
                           </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onPointerDown={(event) => {
+                              
+                              event.stopPropagation()
+                            }}
+                            onSelect={(event) => {
+                              
+                              event.stopPropagation()
+                              handleDeleteMyProgram(program)
+                            }}
+                            className="text-destructive"
+                          >
+                            Delete Program
+                          </DropdownMenuItem>
                           {isActive && (
                             <DropdownMenuItem
                               className="text-destructive"
@@ -877,6 +936,32 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
             </Button>
             <Button onClick={handleConfirmRename} disabled={isRenameSaveDisabled}>
               {isRenamingProgram ? "Saving..." : "Save"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={deleteDialogOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            handleCloseDeleteDialog()
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Delete Program</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete "{deleteTarget?.name}"? This will remove the program from your profile, but it will remain in the database. You won't be able to see it in "My Programs" anymore.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={handleCloseDeleteDialog} disabled={isDeletingProgram}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleConfirmDelete} disabled={isDeletingProgram}>
+              {isDeletingProgram ? "Deleting..." : "Delete"}
             </Button>
           </DialogFooter>
         </DialogContent>

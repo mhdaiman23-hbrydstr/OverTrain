@@ -17,6 +17,8 @@ interface DaySectionProps {
   onRemoveExercise: (dayIndex: number, tempId: string) => void
   onReorderExercise: (dayIndex: number, fromIndex: number, toIndex: number) => void
   renderExerciseActions?: (params: { exercise: ExerciseInWizard; dayIndex: number; exerciseIndex: number }) => ReactNode
+  onAddExercise?: (dayIndex: number) => void
+  disableAddExercise?: boolean
 }
 
 export function DaySection({
@@ -29,6 +31,8 @@ export function DaySection({
   onRemoveExercise,
   onReorderExercise,
   renderExerciseActions,
+  onAddExercise,
+  disableAddExercise,
 }: DaySectionProps) {
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)
@@ -55,6 +59,10 @@ export function DaySection({
     setDragOverIndex(null)
   }
 
+  const handleAddExerciseClick = () => {
+    onAddExercise?.(index)
+  }
+
   return (
     <Collapsible
       open={open}
@@ -79,13 +87,16 @@ export function DaySection({
           <h3 className="text-base font-semibold">{day.dayName}</h3>
         </div>
 
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
           <DayNameEditor dayName={day.dayName} onSave={name => onRename(index, name)} />
           {onEditMuscleGroups && (
             <Button
               variant="ghost"
               size="icon"
-              onPointerDown={e => e.stopPropagation()} onClick={e => { e.stopPropagation(); onEditMuscleGroups?.(index) }}
+              onClick={(e) => {
+                e.stopPropagation();
+                onEditMuscleGroups?.(index);
+              }}
               aria-label="Adjust muscle groups"
             >
               <Plus className="size-4" />
@@ -95,7 +106,10 @@ export function DaySection({
             <Button
               variant="ghost"
               size="icon"
-              onPointerDown={e => e.stopPropagation()} onClick={e => { e.stopPropagation(); onRandomize?.(index) }}
+              onClick={(e) => {
+                e.stopPropagation();
+                onRandomize?.(index);
+              }}
               aria-label="Shuffle exercises for this day"
             >
               <Shuffle className="size-4" />
@@ -105,7 +119,10 @@ export function DaySection({
             <Button
               variant="ghost"
               size="icon"
-              onPointerDown={e => e.stopPropagation()} onClick={e => { e.stopPropagation(); onRemoveDay?.(index) }}
+              onClick={(e) => {
+                e.stopPropagation();
+                onRemoveDay?.(index);
+              }}
               className="text-destructive hover:text-destructive"
               aria-label="Delete training day"
             >
@@ -129,7 +146,20 @@ export function DaySection({
 
           {day.exercises.length === 0 ? (
             <div className="rounded-md border border-dashed border-border/60 bg-muted/30 px-3 py-4 text-sm text-muted-foreground">
-              No exercises added yet. Use the assignment step or randomize button to populate this day.
+              <p>No exercises added yet. Use the assignment step or randomize button to populate this day.</p>
+              {onAddExercise && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="mt-3"
+                  onClick={handleAddExerciseClick}
+                  disabled={disableAddExercise}
+                >
+                  <Plus className="mr-2 size-4" />
+                  Add exercise
+                </Button>
+              )}
             </div>
           ) : (
             <div className="space-y-3">
@@ -145,9 +175,25 @@ export function DaySection({
                     onDragEnd: handleDragEnd,
                     onDrop: handleDrop(exerciseIndex),
                   }}
+                  onMoveUp={() => onReorderExercise(index, exerciseIndex, Math.max(0, exerciseIndex - 1))}
+                  onMoveDown={() => onReorderExercise(index, exerciseIndex, Math.min(day.exercises.length - 1, exerciseIndex + 1))}
                   isDragOver={dragOverIndex === exerciseIndex && draggedIndex !== null && draggedIndex !== exerciseIndex}
                 />
               ))}
+
+              {onAddExercise && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="mt-2"
+                  onClick={handleAddExerciseClick}
+                  disabled={disableAddExercise}
+                >
+                  <Plus className="mr-2 size-4" />
+                  Add exercise
+                </Button>
+              )}
             </div>
           )}
         </div>
@@ -155,4 +201,3 @@ export function DaySection({
     </Collapsible>
   )
 }
-

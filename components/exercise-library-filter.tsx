@@ -1,9 +1,9 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { MUSCLE_GROUP_FILTER_OPTIONS } from "@/lib/exercise-muscle-groups"
+import { getMuscleGroupAccentClass } from "@/lib/exercise-muscle-groups"
 
 export interface ExerciseLibraryFilterValues {
   muscleGroups: string[]
@@ -15,27 +15,71 @@ interface ExerciseLibraryFilterProps {
   onOpenChange: (open: boolean) => void
   onApply: (filters: ExerciseLibraryFilterValues) => void
   currentFilters: ExerciseLibraryFilterValues
+  muscleGroups: string[]
+  equipmentTypes: string[]
 }
 
-const EQUIPMENT_TYPES = [
-  { name: "Barbell", color: "bg-gray-600" },
-  { name: "Bodyweight Loadable", color: "bg-emerald-500" },
-  { name: "Bodyweight Only", color: "bg-green-500" },
-  { name: "Cable", color: "bg-orange-500" },
-  { name: "Dumbbell", color: "bg-blue-500" },
-  { name: "Machine", color: "bg-purple-500" },
-  { name: "Machine Assistance", color: "bg-indigo-500" },
-  { name: "Smith Machine", color: "bg-slate-500" },
-]
+const EQUIPMENT_TYPE_COLORS: Record<string, string> = {
+  Barbell: "bg-gray-600",
+  "Bodyweight Loadable": "bg-emerald-500",
+  "Bodyweight Only": "bg-green-500",
+  Cable: "bg-orange-500",
+  Dumbbell: "bg-blue-500",
+  Machine: "bg-purple-500",
+  "Machine Assistance": "bg-indigo-500",
+  "Smith Machine": "bg-slate-500",
+}
 
-export function ExerciseLibraryFilter({ open, onOpenChange, onApply, currentFilters }: ExerciseLibraryFilterProps) {
+const getEquipmentAccentClass = (equipmentType: string) =>
+  EQUIPMENT_TYPE_COLORS[equipmentType] ?? "bg-gray-400"
+
+export function ExerciseLibraryFilter({
+  open,
+  onOpenChange,
+  onApply,
+  currentFilters,
+  muscleGroups,
+  equipmentTypes,
+}: ExerciseLibraryFilterProps) {
   const [selectedMuscleGroups, setSelectedMuscleGroups] = useState<string[]>(currentFilters.muscleGroups)
   const [selectedEquipmentTypes, setSelectedEquipmentTypes] = useState<string[]>(currentFilters.equipmentTypes)
 
   useEffect(() => {
-    setSelectedMuscleGroups(currentFilters.muscleGroups)
-    setSelectedEquipmentTypes(currentFilters.equipmentTypes)
-  }, [currentFilters])
+    const validMuscleGroups = currentFilters.muscleGroups.filter((group) =>
+      muscleGroups.includes(group)
+    )
+    const validEquipmentTypes = currentFilters.equipmentTypes.filter((type) =>
+      equipmentTypes.includes(type)
+    )
+    setSelectedMuscleGroups(validMuscleGroups)
+    setSelectedEquipmentTypes(validEquipmentTypes)
+  }, [currentFilters, muscleGroups, equipmentTypes])
+
+  useEffect(() => {
+    setSelectedMuscleGroups((prev) => prev.filter((group) => muscleGroups.includes(group)))
+  }, [muscleGroups])
+
+  useEffect(() => {
+    setSelectedEquipmentTypes((prev) => prev.filter((type) => equipmentTypes.includes(type)))
+  }, [equipmentTypes])
+
+  const muscleGroupOptions = useMemo(
+    () =>
+      muscleGroups.map((group) => ({
+        name: group,
+        accentClass: getMuscleGroupAccentClass(group),
+      })),
+    [muscleGroups]
+  )
+
+  const equipmentTypeOptions = useMemo(
+    () =>
+      equipmentTypes.map((type) => ({
+        name: type,
+        color: getEquipmentAccentClass(type),
+      })),
+    [equipmentTypes]
+  )
 
   const toggleMuscleGroup = (group: string) => {
     setSelectedMuscleGroups((prev) =>
@@ -51,15 +95,21 @@ export function ExerciseLibraryFilter({ open, onOpenChange, onApply, currentFilt
 
   const handleApply = () => {
     onApply({
-      muscleGroups: selectedMuscleGroups,
-      equipmentTypes: selectedEquipmentTypes,
+      muscleGroups: selectedMuscleGroups.filter((group) => muscleGroups.includes(group)),
+      equipmentTypes: selectedEquipmentTypes.filter((type) => equipmentTypes.includes(type)),
     })
   }
 
   const handleCancel = () => {
     // Reset to current filters
-    setSelectedMuscleGroups(currentFilters.muscleGroups)
-    setSelectedEquipmentTypes(currentFilters.equipmentTypes)
+    const validMuscleGroups = currentFilters.muscleGroups.filter((group) =>
+      muscleGroups.includes(group)
+    )
+    const validEquipmentTypes = currentFilters.equipmentTypes.filter((type) =>
+      equipmentTypes.includes(type)
+    )
+    setSelectedMuscleGroups(validMuscleGroups)
+    setSelectedEquipmentTypes(validEquipmentTypes)
     onOpenChange(false)
   }
 
@@ -75,7 +125,7 @@ export function ExerciseLibraryFilter({ open, onOpenChange, onApply, currentFilt
           <div>
             <h3 className="font-semibold mb-3">Muscle groups</h3>
             <div className="grid grid-cols-2 gap-2">
-              {MUSCLE_GROUP_FILTER_OPTIONS.map((group) => (
+              {muscleGroupOptions.map((group) => (
                 <button
                   key={group.name}
                   onClick={() => toggleMuscleGroup(group.name)}
@@ -99,7 +149,7 @@ export function ExerciseLibraryFilter({ open, onOpenChange, onApply, currentFilt
           <div>
             <h3 className="font-semibold mb-3">Equipment</h3>
             <div className="grid grid-cols-2 gap-2">
-              {EQUIPMENT_TYPES.map((equipment) => (
+              {equipmentTypeOptions.map((equipment) => (
                 <button
                   key={equipment.name}
                   onClick={() => toggleEquipmentType(equipment.name)}
