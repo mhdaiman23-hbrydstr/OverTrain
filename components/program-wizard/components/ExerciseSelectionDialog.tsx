@@ -168,7 +168,7 @@ export function ExerciseSelectionDialog({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={open => (!open ? onClose() : undefined)}>
-        <DialogContent className="flex max-h-[80vh] max-w-2xl flex-col gap-4 overflow-hidden">
+        <DialogContent className="flex max-h-[90vh] max-w-2xl flex-col gap-4 overflow-hidden sm:max-h-[80vh]">
           <DialogHeader className="space-y-2">
             <DialogTitle>{mode === 'replace' ? 'Replace Exercise' : 'Add Exercise'}</DialogTitle>
             <DialogDescription>{description}</DialogDescription>

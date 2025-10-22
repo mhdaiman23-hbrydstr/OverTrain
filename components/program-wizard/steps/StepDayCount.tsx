@@ -1,6 +1,7 @@
+'use client'
+
 import { AVAILABLE_DAY_COUNTS, AVAILABLE_WEEKS } from '../constants'
 import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
 
 interface StepDayCountProps {
   selectedWeekCount: number
@@ -19,6 +20,9 @@ export function StepDayCount({
   onNext,
   onBack,
 }: StepDayCountProps) {
+  // Log state changes
+  console.log('=== StepDayCount rendered ===', { selectedWeekCount, selectedDayCount })
+
   return (
     <div className="space-y-6 sm:space-y-8">
       <div className="space-y-3 sm:space-y-4">
@@ -37,11 +41,22 @@ export function StepDayCount({
                 key={weeks}
                 size="sm"
                 variant={isSelected ? "default" : "outline"}
-                className={cn(
-                  'w-full justify-center text-center transition-colors font-medium',
-                  isSelected && 'shadow-sm hover:bg-primary/90 bg-primary text-primary-foreground border-transparent',
-                )}
-                onClick={() => onSelectWeek(weeks)}
+                className="w-full justify-center text-center transition-colors font-medium"
+                onClick={(e) => {
+                  const btn = e.currentTarget as HTMLButtonElement
+                  const styles = window.getComputedStyle(btn)
+                  console.log(`✓ Week ${weeks} clicked | Selected: ${isSelected}`)
+                  console.log(`  Color: ${styles.color} | BG: ${styles.backgroundColor}`)
+                  console.log(`  Display: ${styles.display} | Visibility: ${styles.visibility} | Opacity: ${styles.opacity}`)
+                  console.log(`  Position: ${styles.position} | zIndex: ${styles.zIndex}`)
+
+                  // Check what elements are covering this button
+                  const rect = btn.getBoundingClientRect()
+                  const topElement = document.elementFromPoint(rect.left + 5, rect.top + 5)
+                  console.log(`  Element at click point: ${topElement?.tagName}.${topElement?.className}`)
+
+                  onSelectWeek(weeks)
+                }}
               >
                 {weeks} weeks
               </Button>
@@ -66,16 +81,22 @@ export function StepDayCount({
                 key={count}
                 size="sm"
                 variant={isSelected ? "default" : "outline"}
-                className={cn(
-                  'w-full justify-center text-center transition-colors font-medium',
-                  isSelected && 'shadow-sm hover:bg-primary/90 bg-primary text-primary-foreground border-transparent',
-                )}
-                style={isSelected ? {
-                  backgroundColor: '#3b82f6 !important',
-                  color: '#ffffff !important',
-                  borderColor: 'transparent !important'
-                } : {}}
-                onClick={() => onSelectDay(count)}
+                className="w-full justify-center text-center transition-colors font-medium"
+                onClick={(e) => {
+                  const btn = e.currentTarget as HTMLButtonElement
+                  const styles = window.getComputedStyle(btn)
+                  console.log(`✓ Day ${count} clicked | Selected: ${isSelected}`)
+                  console.log(`  Color: ${styles.color} | BG: ${styles.backgroundColor}`)
+                  console.log(`  Display: ${styles.display} | Visibility: ${styles.visibility} | Opacity: ${styles.opacity}`)
+                  console.log(`  Position: ${styles.position} | zIndex: ${styles.zIndex}`)
+
+                  // Check what elements are covering this button
+                  const rect = btn.getBoundingClientRect()
+                  const topElement = document.elementFromPoint(rect.left + 5, rect.top + 5)
+                  console.log(`  Element at click point: ${topElement?.tagName}.${topElement?.className}`)
+
+                  onSelectDay(count)
+                }}
               >
                 {count} days/week
               </Button>

@@ -1,5 +1,8 @@
+'use client'
+
 import { useState, useEffect } from 'react'
-import { ArrowLeftRight, Edit3 } from 'lucide-react'
+import { ArrowLeftRight, Edit3, Trash2 } from 'lucide-react'
+import { useToast } from '@/hooks/use-toast'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
@@ -45,6 +48,7 @@ export function StepDayBuilder({
   onBack,
   onNext,
 }: StepDayBuilderProps) {
+  const { toast } = useToast()
   const hasAtLeastOneExercise = days.every(day => day.exercises.length > 0)
   const [dialogContext, setDialogContext] = useState<
     | {
@@ -62,6 +66,7 @@ export function StepDayBuilder({
   // State for day name editing
   const [editingDayIndex, setEditingDayIndex] = useState<number | null>(null)
   const [tempDayName, setTempDayName] = useState('')
+
 
   const hasExerciseLibraryData = exercises.length > 0
   const isSelectionDisabled = isExerciseLoading && !hasExerciseLibraryData
@@ -176,6 +181,14 @@ export function StepDayBuilder({
     setTempDayName('')
   }
 
+  const handleDeleteDay = (index: number, dayName: string) => {
+    onRemoveDay(index)
+    toast({
+      title: 'Day removed',
+      description: `${dayName} has been deleted from your program.`,
+    })
+  }
+
   const handleExerciseSelection = (exercise: Exercise) => {
     if (!dialogContext) return
 
@@ -204,13 +217,14 @@ export function StepDayBuilder({
     return null
   })()
 
+
   const renderReplaceActions = (params: { exercise: ExerciseInWizard; dayIndex: number; exerciseIndex: number }) => {
     return (
       <Button
         type="button"
         variant="ghost"
         size="icon"
-        className="text-muted-foreground hover:text-foreground touch-manipulation min-h-[44px] min-w-[44px]"
+        className="text-orange-500 hover:text-orange-600 touch-manipulation min-h-[44px] min-w-[44px]"
         disabled={isSelectionDisabled}
         onClick={event => {
           event.preventDefault()
@@ -229,16 +243,18 @@ export function StepDayBuilder({
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="space-y-1">
-          <h2 className="text-lg font-semibold sm:text-xl">Fine-tune your program</h2>
-          <p className="text-sm text-muted-foreground">
-            Rename days, reorder exercises, and make final adjustments before saving.
-          </p>
+      <div className="sticky top-0 z-20 -mx-4 -mt-4 bg-background/95 px-4 py-4 sm:mx-0 sm:mt-0 sm:bg-transparent sm:px-0 sm:py-0 backdrop-blur-sm sm:backdrop-blur-none border-b sm:border-b-0 border-border/60">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="space-y-1">
+            <h2 className="text-lg font-semibold sm:text-xl">Fine-tune your program</h2>
+            <p className="text-sm text-muted-foreground">
+              Rename days, reorder exercises, and make final adjustments before saving.
+            </p>
+          </div>
+          <Button variant="outline" className="self-start sm:self-auto" onClick={onAddDay}>
+            Add training day
+          </Button>
         </div>
-        <Button variant="outline" className="self-start sm:self-auto" onClick={onAddDay}>
-          Add training day
-        </Button>
       </div>
 
       <div className="space-y-4 pb-6">
@@ -335,10 +351,19 @@ export function StepDayBuilder({
                   >
                     Add exercise
                   </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full sm:w-auto text-destructive hover:text-destructive"
+                    onClick={() => handleDeleteDay(index, day.dayName)}
+                  >
+                    <Trash2 className="mr-2 size-4" />
+                    Delete day
+                  </Button>
                 </div>
               </div>
 
-              <div className="mt-4 space-y-3">
+              <div className="mt-4 space-y-3 pb-4">
                 {day.exercises.length === 0 ? (
                   <div className="rounded-md border border-dashed border-border/60 bg-muted/30 px-3 py-4 text-sm text-muted-foreground">
                     No exercises added yet. Use the assignment step or randomize button to populate this day.
@@ -350,14 +375,6 @@ export function StepDayBuilder({
                       exercise={exercise}
                       onRemove={tempId => onRemoveExercise(index, tempId)}
                       actionSlot={renderReplaceActions({ exercise, dayIndex: index, exerciseIndex })}
-                      dragHandlers={{
-                        onDragStart: () => {},
-                        onDragEnter: () => {},
-                        onDragEnd: () => {},
-                        onDrop: () => {},
-                      }}
-                      onMoveUp={() => onReorderExercise(index, exerciseIndex, Math.max(0, exerciseIndex - 1))}
-                      onMoveDown={() => onReorderExercise(index, exerciseIndex, Math.min(day.exercises.length - 1, exerciseIndex + 1))}
                     />
                   ))
                 )}
