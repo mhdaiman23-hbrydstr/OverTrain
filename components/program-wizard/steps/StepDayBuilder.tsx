@@ -1,7 +1,8 @@
-import { useState } from 'react'
-import { ArrowLeftRight } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { ArrowLeftRight, Edit3 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Input } from '@/components/ui/input'
 import type { Exercise } from '@/lib/services/exercise-library-service'
 import type { DayInWizard, ExerciseInWizard } from '../types'
 import { DaySection } from '../components/DaySection'
@@ -58,8 +59,26 @@ export function StepDayBuilder({
     | null
   >(null)
 
+  // State for day name editing
+  const [editingDayIndex, setEditingDayIndex] = useState<number | null>(null)
+  const [tempDayName, setTempDayName] = useState('')
+
   const hasExerciseLibraryData = exercises.length > 0
   const isSelectionDisabled = isExerciseLoading && !hasExerciseLibraryData
+
+  // Auto-suggest day names when component loads or exercises change
+  useEffect(() => {
+    days.forEach((day, index) => {
+      // Only auto-suggest if day has generic name and exercises
+      const isGenericName = day.dayName.match(/^Day \d+$/)
+      if (isGenericName && day.exercises.length > 0) {
+        const suggestion = getSmartDayNameSuggestion(day)
+        if (suggestion !== day.dayName) {
+          onRenameDay(index, suggestion)
+        }
+      }
+    })
+  }, [days.map(d => d.exercises.length).join(','), days.map(d => d.dayName).join(',')]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const openReplaceDialog = (payload: {
     dayIndex: number
@@ -86,6 +105,75 @@ export function StepDayBuilder({
   const closeDialog = () => {
     setDialogContext(null)
     programWizardDebugger.logDropdownClose()
+  }
+
+  // Smart suggestion logic for day names based on exercises
+  const getSmartDayNameSuggestion = (day: DayInWizard): string => {
+    const muscleGroups = day.exercises.map(ex => ex.muscleGroup?.toLowerCase()).filter(Boolean)
+    const exerciseNames = day.exercises.map(ex => ex.exerciseName.toLowerCase()).filter(Boolean)
+    
+    // Push Day detection
+    const pushMuscles = ['chest', 'shoulders', 'triceps']
+    const hasPush = pushMuscles.some(muscle => muscleGroups.includes(muscle)) ||
+                   exerciseNames.some(name => name.includes('bench') || name.includes('press') || name.includes('overhead'))
+    
+    // Pull Day detection  
+    const pullMuscles = ['back', 'biceps']
+    const hasPull = pullMuscles.some(muscle => muscleGroups.includes(muscle)) ||
+                   exerciseNames.some(name => name.includes('row') || name.includes('pull') || name.includes('curl'))
+    
+    // Leg Day detection
+    const legMuscles = ['quadriceps', 'hamstrings', 'glutes', 'calves']
+    const hasLegs = legMuscles.some(muscle => muscleGroups.includes(muscle)) ||
+                   exerciseNames.some(name => name.includes('squat') || name.includes('deadlift') || name.includes('lunge'))
+    
+    // Full Body detection
+    const uniqueMuscleGroups = new Set(muscleGroups)
+    const isFullBody = uniqueMuscleGroups.size >= 4 || (hasPush && hasPull && hasLegs)
+    
+    // Upper/Lower detection
+    const upperMuscles = ['chest', 'back', 'shoulders', 'biceps', 'triceps']
+    const lowerMuscles = ['quadriceps', 'hamstrings', 'glutes', 'calves']
+    const hasUpper = upperMuscles.some(muscle => muscleGroups.includes(muscle))
+    const hasLower = lowerMuscles.some(muscle => muscleGroups.includes(muscle))
+    const isUpperLower = hasUpper && hasLower && !isFullBody
+    
+    // Return suggestions based on analysis
+    if (isFullBody) return 'Full Body'
+    if (hasPush && hasPull && !hasLegs) return 'Upper Body'
+    if (hasLegs && !hasPush && !hasPull) return 'Lower Body'
+    if (hasPush && !hasPull && !hasLegs) return 'Push Day'
+    if (hasPull && !hasPush && !hasLegs) return 'Pull Day'
+    if (hasLegs && (hasPush || hasPull)) return 'Leg Day + Upper'
+    if (hasLegs) return 'Leg Day'
+    if (isUpperLower) return 'Upper/Lower Split'
+    
+    // Fallback to primary muscle group
+    if (muscleGroups.length > 0) {
+      const primaryMuscle = muscleGroups[0]
+      return `${primaryMuscle.charAt(0).toUpperCase() + primaryMuscle.slice(1)} Day`
+    }
+    
+    return `Day ${day.dayNumber}`
+  }
+
+  // Day name editing functions
+  const startEditingDayName = (index: number) => {
+    setEditingDayIndex(index)
+    setTempDayName(days[index].dayName)
+  }
+
+  const saveDayName = () => {
+    if (editingDayIndex !== null && tempDayName.trim()) {
+      onRenameDay(editingDayIndex, tempDayName.trim())
+      setEditingDayIndex(null)
+      setTempDayName('')
+    }
+  }
+
+  const cancelEditingDayName = () => {
+    setEditingDayIndex(null)
+    setTempDayName('')
   }
 
   const handleExerciseSelection = (exercise: Exercise) => {
@@ -162,25 +250,74 @@ export function StepDayBuilder({
 
           return (
             <div key={day.dayNumber} className="rounded-lg border border-border/60 bg-card px-3 py-3 sm:px-4 sm:py-4">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-3">
-                    <h3 className="text-base font-semibold">{day.dayName}</h3>
-                    <Badge variant="outline" className="text-xs">
-                      {day.exercises.length} exercises
-                    </Badge>
+              <div className="flex flex-col gap-3">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                  <div className="space-y-1 flex-1">
+                    {editingDayIndex === index ? (
+                      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                        <Input
+                          value={tempDayName}
+                          onChange={(e) => setTempDayName(e.target.value)}
+                          onBlur={saveDayName}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') saveDayName()
+                            if (e.key === 'Escape') cancelEditingDayName()
+                          }}
+                          className="text-base font-semibold h-8"
+                          placeholder="Enter day name..."
+                          autoFocus
+                        />
+                        <div className="flex gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={saveDayName}
+                            className="h-8 px-2"
+                            disabled={!tempDayName.trim()}
+                          >
+                            Save
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={cancelEditingDayName}
+                            className="h-8 px-2"
+                          >
+                            Cancel
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <h3 className="text-base font-semibold">{day.dayName}</h3>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6 text-muted-foreground hover:text-foreground"
+                            onClick={() => startEditingDayName(index)}
+                            aria-label={`Edit ${day.dayName} name`}
+                          >
+                            <Edit3 className="h-3 w-3" />
+                          </Button>
+                        </div>
+                        <Badge variant="outline" className="text-xs">
+                          {day.exercises.length} exercises
+                        </Badge>
+                      </div>
+                    )}
+                    {groupedByMuscle.length > 0 && (
+                      <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+                        {groupedByMuscle.map(item => (
+                          <span key={item.label} className="rounded bg-muted/60 px-2 py-1">
+                            {item.label}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                  {groupedByMuscle.length > 0 && (
-                    <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
-                      {groupedByMuscle.map(item => (
-                        <span key={item.label} className="rounded bg-muted/60 px-2 py-1">
-                          {item.label}
-                        </span>
-                      ))}
-                    </div>
-                  )}
                 </div>
-                <div className="flex flex-wrap items-center gap-2 sm:flex-nowrap">
+                <div className="flex flex-wrap items-center gap-2 sm:flex-nowrap sm:justify-end">
                   <Button
                     variant="outline"
                     size="sm"
