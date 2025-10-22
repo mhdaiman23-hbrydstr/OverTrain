@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { ArrowLeftRight, Edit3, Trash2 } from 'lucide-react'
+import { ArrowLeftRight, Edit3, Trash2, ChevronDown } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -12,6 +12,7 @@ import { DaySection } from '../components/DaySection'
 import { ExerciseSelectionDialog } from '../components/ExerciseSelectionDialog'
 import { ExerciseRow } from '../components/ExerciseRow'
 import { programWizardDebugger } from '@/lib/program-wizard-debug'
+import { cn } from '@/lib/utils'
 
 interface StepDayBuilderProps {
   days: DayInWizard[]
@@ -66,6 +67,9 @@ export function StepDayBuilder({
   // State for day name editing
   const [editingDayIndex, setEditingDayIndex] = useState<number | null>(null)
   const [tempDayName, setTempDayName] = useState('')
+
+  // State for day collapse/expand
+  const [collapsedDays, setCollapsedDays] = useState<Set<number>>(new Set())
 
 
   const hasExerciseLibraryData = exercises.length > 0
@@ -189,6 +193,18 @@ export function StepDayBuilder({
     })
   }
 
+  const toggleDayCollapse = (index: number) => {
+    setCollapsedDays(prev => {
+      const updated = new Set(prev)
+      if (updated.has(index)) {
+        updated.delete(index)
+      } else {
+        updated.add(index)
+      }
+      return updated
+    })
+  }
+
   const handleExerciseSelection = (exercise: Exercise) => {
     if (!dialogContext) return
 
@@ -264,13 +280,24 @@ export function StepDayBuilder({
             count: group.count,
           })) ?? []
 
+          const isDayCollapsed = collapsedDays.has(index)
+
           return (
-            <div key={day.dayNumber} className="rounded-lg border border-border/60 bg-card px-3 py-3 sm:px-4 sm:py-4">
-              <div className="flex flex-col gap-3">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                  <div className="space-y-1 flex-1">
+            <div key={day.dayNumber} className="rounded-lg border border-border/60 bg-card overflow-hidden">
+              {/* Day Header - Always visible, clickable to collapse */}
+              <div className="cursor-pointer transition-colors hover:bg-muted/30 px-3 py-3 sm:px-4 sm:py-4" onClick={() => toggleDayCollapse(index)}>
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center flex-1 min-w-0 gap-3">
+                    {/* Collapse/Expand Icon */}
+                    <ChevronDown
+                      className={cn(
+                        'h-5 w-5 text-muted-foreground flex-shrink-0 transition-transform',
+                        isDayCollapsed && '-rotate-90'
+                      )}
+                    />
+
                     {editingDayIndex === index ? (
-                      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                      <div className="flex flex-col gap-2 sm:flex-row sm:items-center flex-1">
                         <Input
                           value={tempDayName}
                           onChange={(e) => setTempDayName(e.target.value)}
@@ -282,12 +309,16 @@ export function StepDayBuilder({
                           className="text-base font-semibold h-8"
                           placeholder="Enter day name..."
                           autoFocus
+                          onClick={(e) => e.stopPropagation()}
                         />
                         <div className="flex gap-2">
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={saveDayName}
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              saveDayName()
+                            }}
                             className="h-8 px-2"
                             disabled={!tempDayName.trim()}
                           >
@@ -296,7 +327,10 @@ export function StepDayBuilder({
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={cancelEditingDayName}
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              cancelEditingDayName()
+                            }}
                             className="h-8 px-2"
                           >
                             Cancel
@@ -304,81 +338,101 @@ export function StepDayBuilder({
                         </div>
                       </div>
                     ) : (
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <h3 className="text-base font-semibold">{day.dayName}</h3>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-6 w-6 text-muted-foreground hover:text-foreground"
-                            onClick={() => startEditingDayName(index)}
-                            aria-label={`Edit ${day.dayName} name`}
-                          >
-                            <Edit3 className="h-3 w-3" />
-                          </Button>
-                        </div>
-                        <Badge variant="outline" className="text-xs">
-                          {day.exercises.length} exercises
-                        </Badge>
-                      </div>
-                    )}
-                    {groupedByMuscle.length > 0 && (
-                      <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
-                        {groupedByMuscle.map(item => (
-                          <span key={item.label} className="rounded bg-muted/60 px-2 py-1">
-                            {item.label}
-                          </span>
-                        ))}
+                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                        <h3 className="text-base font-semibold truncate">{day.dayName}</h3>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6 text-muted-foreground hover:text-foreground flex-shrink-0"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            startEditingDayName(index)
+                          }}
+                          aria-label={`Edit ${day.dayName} name`}
+                        >
+                          <Edit3 className="h-3 w-3" />
+                        </Button>
                       </div>
                     )}
                   </div>
-                </div>
-                <div className="flex flex-wrap items-center gap-2 sm:flex-nowrap sm:justify-end">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full sm:w-auto"
-                    onClick={() => onRandomizeDay(index)}
-                  >
-                    Randomize day
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full sm:w-auto"
-                    onClick={() => openAddDialog(index)}
-                    disabled={isSelectionDisabled}
-                  >
-                    Add exercise
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full sm:w-auto text-destructive hover:text-destructive"
-                    onClick={() => handleDeleteDay(index, day.dayName)}
-                  >
-                    <Trash2 className="mr-2 size-4" />
-                    Delete day
-                  </Button>
-                </div>
-              </div>
 
-              <div className="mt-4 space-y-3 pb-4">
-                {day.exercises.length === 0 ? (
-                  <div className="rounded-md border border-dashed border-border/60 bg-muted/30 px-3 py-4 text-sm text-muted-foreground">
-                    No exercises added yet. Use the assignment step or randomize button to populate this day.
+                  {/* Right side: Badge and Delete button */}
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <Badge variant="outline" className="text-xs">
+                      {day.exercises.length} exercises
+                    </Badge>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6 text-destructive hover:text-destructive hover:bg-destructive/10 flex-shrink-0"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleDeleteDay(index, day.dayName)
+                      }}
+                      aria-label={`Delete ${day.dayName}`}
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
                   </div>
-                ) : (
-                  day.exercises.map((exercise, exerciseIndex) => (
-                    <ExerciseRow
-                      key={exercise.tempId}
-                      exercise={exercise}
-                      onRemove={tempId => onRemoveExercise(index, tempId)}
-                      actionSlot={renderReplaceActions({ exercise, dayIndex: index, exerciseIndex })}
-                    />
-                  ))
+                </div>
+
+                {/* Metadata shown in header */}
+                {groupedByMuscle.length > 0 && (
+                  <div className="flex flex-wrap gap-2 text-xs text-muted-foreground mt-2 ml-8">
+                    {groupedByMuscle.map(item => (
+                      <span key={item.label} className="rounded bg-muted/60 px-2 py-1">
+                        {item.label}
+                      </span>
+                    ))}
+                  </div>
                 )}
               </div>
+
+              {/* Expandable Content */}
+              {!isDayCollapsed && (
+                <>
+                  {/* Action Buttons - Separated from header */}
+                  <div className="border-t border-border/40 px-3 py-3 sm:px-4 sm:py-4 bg-muted/20">
+                    <div className="flex flex-wrap items-center gap-2 sm:flex-nowrap">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1 sm:flex-none"
+                        onClick={() => onRandomizeDay(index)}
+                      >
+                        Randomize day
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1 sm:flex-none"
+                        onClick={() => openAddDialog(index)}
+                        disabled={isSelectionDisabled}
+                      >
+                        Add exercise
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Exercise List */}
+                  <div className="px-3 py-3 sm:px-4 sm:py-4 space-y-3">
+                    {day.exercises.length === 0 ? (
+                      <div className="rounded-md border border-dashed border-border/60 bg-muted/30 px-3 py-4 text-sm text-muted-foreground">
+                        No exercises added yet. Use the assignment step or randomize button to populate this day.
+                      </div>
+                    ) : (
+                      day.exercises.map((exercise, exerciseIndex) => (
+                        <ExerciseRow
+                          key={exercise.tempId}
+                          exercise={exercise}
+                          onRemove={tempId => onRemoveExercise(index, tempId)}
+                          actionSlot={renderReplaceActions({ exercise, dayIndex: index, exerciseIndex })}
+                        />
+                      ))
+                    )}
+                  </div>
+                </>
+              )}
             </div>
           )
         })}

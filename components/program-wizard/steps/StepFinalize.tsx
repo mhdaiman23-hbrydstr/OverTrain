@@ -66,12 +66,16 @@ export function StepFinalize({
 
       <div className="grid gap-6">
         <div className="space-y-2">
-          <Label htmlFor="program-name">Program name</Label>
+          <Label htmlFor="program-name">
+            Program name
+            <span className="text-destructive ml-1">*</span>
+          </Label>
           <Input
             id="program-name"
             value={metadata.name}
             onChange={handleNameChange}
             placeholder="e.g. Custom Push/Pull/Legs"
+            required
           />
         </div>
 
@@ -81,7 +85,7 @@ export function StepFinalize({
             <RadioGroup
               value={selectedGenderOption}
               onValueChange={value => handleGenderChange(value as GenderOption)}
-              className="space-y-3"
+              className="space-y-1"
             >
               {(['all', 'male', 'female'] as GenderOption[]).map(option => {
                 const id = `wizard-gender-${option}`

@@ -107,18 +107,21 @@ export class ProgramForkService {
   /**
    * Create a blank user-owned program skeleton and return its ID.
    */
-  async createBlankProgram(ownerUserId: string, name?: string): Promise<string> {
+  async createBlankProgram(ownerUserId: string, name?: string, weeks?: number, deloadWeekParam?: number): Promise<string> {
     this.ensureSupabase()
 
     const programName = name?.trim() || 'New Program'
-    const { data: newTemplate, error } = await supabase
+    const totalWeeks = weeks || 1
+    const deloadWeek = deloadWeekParam || totalWeeks
+    
+    const { data: newTemplate, error } = await supabase!
       .from('program_templates')
       .insert({
         name: programName,
         description: null,
         days_per_week: 1,
-        total_weeks: 1,
-        deload_week: 1,
+        total_weeks: totalWeeks,
+        deload_week: deloadWeek,
         gender: ['male', 'female'],
         experience_level: ['beginner'],
         progression_type: 'linear',
@@ -137,7 +140,7 @@ export class ProgramForkService {
     if (error || !newTemplate) throw error ?? new Error('Failed to create blank program')
 
     // Create minimal day 1
-    const { error: dayError } = await supabase
+    const { error: dayError } = await supabase!
       .from('program_template_days')
       .insert({
         program_template_id: newTemplate.id,

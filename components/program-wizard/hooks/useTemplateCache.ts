@@ -32,7 +32,10 @@ export const useTemplateCache = ({ enabled }: UseTemplateCacheOptions) => {
   }, [])
 
   useEffect(() => {
-    if (!enabled || hasLoaded || isLoading) return
+    // Auto-load templates when cache is enabled for the first time
+    if (!enabled) return
+    if (hasLoaded || isLoading) return
+
     let cancelled = false
 
     const fetch = async () => {

@@ -175,6 +175,10 @@ export function ProgramWizard({ onClose, onComplete, initialStep, onStepChange }
 
   const handleSelectSource = (source: Exclude<ProgramSource, null>) => {
     setSource(source)
+    // Pre-load templates if creating from template to avoid waiting on template selection step
+    if (source === 'template') {
+      void templateCache.refresh()
+    }
     setStep('dayCount')
   }
 
@@ -387,7 +391,12 @@ export function ProgramWizard({ onClose, onComplete, initialStep, onStepChange }
       const userId = user.id
       let templateId: string
       if (state.source === 'scratch') {
-        templateId = await programForkService.createBlankProgram(userId, state.metadata.name)
+        templateId = await programForkService.createBlankProgram(
+          userId, 
+          state.metadata.name,
+          state.metadata.weeks,
+          state.metadata.deloadWeek
+        )
       } else {
         if (!state.selectedTemplateId) {
           throw new Error('Template not selected.')
@@ -500,7 +509,15 @@ export function ProgramWizard({ onClose, onComplete, initialStep, onStepChange }
       handleClose()
     } catch (error) {
       console.error('[ProgramWizard] Save failed:', error)
-      const message = error instanceof Error ? error.message : 'Failed to save program. Please try again.'
+      let message = 'Failed to save program. Please try again.'
+
+      if (error instanceof Error) {
+        message = error.message
+      } else if (typeof error === 'object' && error !== null) {
+        // Handle Supabase errors and other objects
+        message = (error as any).message || (error as any).details || JSON.stringify(error)
+      }
+
       toast({
         title: 'Save failed',
         description: message,
@@ -519,6 +536,7 @@ export function ProgramWizard({ onClose, onComplete, initialStep, onStepChange }
       case 'dayCount':
         return (
           <StepDayCount
+            key={`dayCount-${state.metadata.weeks}-${state.dayCount}`}
             selectedWeekCount={state.metadata.weeks}
             selectedDayCount={state.dayCount}
             onSelectWeek={handleSelectWeekCount}
@@ -563,6 +581,7 @@ export function ProgramWizard({ onClose, onComplete, initialStep, onStepChange }
             onRandomizeDay={randomizeDay}
             onReplaceExercise={handleReplaceExercise}
             onRenameDay={updateDayName}
+            onRemoveDay={removeDay}
             onBack={() => setStep('muscleGroupSelect')}
             onNext={() => setStep('dayBuilder')}
           />

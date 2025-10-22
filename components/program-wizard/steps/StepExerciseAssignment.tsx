@@ -1,15 +1,17 @@
 import { useMemo, useState } from 'react'
-import { ArrowLeftRight, ChevronDown } from 'lucide-react'
+import { ArrowLeftRight, ChevronDown, Edit3, Trash2 } from 'lucide-react'
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Spinner } from '@/components/ui/spinner'
 import { Input } from '@/components/ui/input'
+import { useToast } from '@/hooks/use-toast'
 import type { DayInWizard, ExerciseInWizard } from '../types'
 import type { Exercise } from '@/lib/services/exercise-library-service'
 import { ExerciseRow } from '../components/ExerciseRow'
 import { ExerciseSelectionDialog } from '../components/ExerciseSelectionDialog'
+import { cn } from '@/lib/utils'
 
 interface StepExerciseAssignmentProps {
   days: DayInWizard[]
@@ -21,6 +23,7 @@ interface StepExerciseAssignmentProps {
   onRandomizeDay: (dayIndex: number) => void
   onReplaceExercise: (dayIndex: number, tempId: string, exercise: Exercise) => void
   onRenameDay: (dayIndex: number, newName: string) => void
+  onRemoveDay?: (dayIndex: number) => void
   onBack: () => void
   onNext: () => void
 }
@@ -44,9 +47,11 @@ export function StepExerciseAssignment({
   onRandomizeDay,
   onReplaceExercise,
   onRenameDay,
+  onRemoveDay,
   onBack,
   onNext,
 }: StepExerciseAssignmentProps) {
+  const { toast } = useToast()
   const [pickerDayIndex, setPickerDayIndex] = useState<number | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedMuscleGroup, setSelectedMuscleGroup] = useState<string | null>(null)
@@ -97,6 +102,16 @@ export function StepExerciseAssignment({
     }
   }
 
+  const handleDeleteDay = (index: number, dayName: string) => {
+    if (onRemoveDay) {
+      onRemoveDay(index)
+      toast({
+        title: 'Day removed',
+        description: `${dayName} has been deleted from your program.`,
+      })
+    }
+  }
+
   const handleDayNameKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       saveDayName()
@@ -140,13 +155,6 @@ export function StepExerciseAssignment({
       mode: 'replace',
       dayIndex: payload.dayIndex,
       exercise: payload.exercise,
-    })
-  }
-
-  const openAddDialog = (dayIndex: number) => {
-    setDialogContext({
-      mode: 'add',
-      dayIndex,
     })
   }
 
@@ -217,157 +225,219 @@ export function StepExerciseAssignment({
               label: `${group.group} x ${group.count} planned`,
               count: group.count,
             })) ?? []
+            const isDayExpanded = expandedDays.has(dayIndex)
 
             return (
-              <div key={day.dayNumber} className="rounded-lg border border-border/60 bg-card px-3 py-3 sm:px-4 sm:py-4">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-3">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-6 w-6 p-0 hover:bg-muted"
-                        onClick={() => toggleDayExpansion(dayIndex)}
-                      >
-                        <ChevronDown 
-                          className={`h-4 w-4 transition-transform ${
-                            expandedDays.has(dayIndex) ? 'rotate-0' : '-rotate-90'
-                          }`} 
-                        />
-                      </Button>
+              <div key={day.dayNumber} className="rounded-lg border border-border/60 bg-card overflow-hidden">
+                {/* Day Header - Always visible, clickable to expand */}
+                <div className="cursor-pointer transition-colors hover:bg-muted/30 px-3 py-3 sm:px-4 sm:py-4" onClick={() => toggleDayExpansion(dayIndex)}>
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center flex-1 min-w-0 gap-3">
+                      {/* Collapse/Expand Icon */}
+                      <ChevronDown
+                        className={cn(
+                          'h-5 w-5 text-muted-foreground flex-shrink-0 transition-transform',
+                          !isDayExpanded && '-rotate-90'
+                        )}
+                      />
+
                       {editingDayIndex === dayIndex ? (
-                        <Input
-                          value={editingDayName}
-                          onChange={(e) => setEditingDayName(e.target.value)}
-                          onKeyDown={handleDayNameKeyDown}
-                          onBlur={saveDayName}
-                          className="h-8 w-32 text-base font-semibold"
-                          autoFocus
-                        />
+                        <div className="flex flex-col gap-2 sm:flex-row sm:items-center flex-1">
+                          <Input
+                            value={editingDayName}
+                            onChange={(e) => setEditingDayName(e.target.value)}
+                            onKeyDown={handleDayNameKeyDown}
+                            onBlur={saveDayName}
+                            className="h-8 text-base font-semibold"
+                            placeholder="Enter day name..."
+                            autoFocus
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                          <div className="flex gap-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                saveDayName()
+                              }}
+                              className="h-8 px-2"
+                              disabled={!editingDayName.trim()}
+                            >
+                              Save
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                cancelEditingDayName()
+                              }}
+                              className="h-8 px-2"
+                            >
+                              Cancel
+                            </Button>
+                          </div>
+                        </div>
                       ) : (
-                        <h3 
-                          className="text-base font-semibold cursor-pointer hover:text-primary"
-                          onClick={() => startEditingDayName(dayIndex, day.dayName)}
-                        >
-                          {day.dayName}
-                        </h3>
+                        <div className="flex items-center gap-2 flex-1 min-w-0">
+                          <h3 className="text-base font-semibold truncate">{day.dayName}</h3>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6 text-muted-foreground hover:text-foreground flex-shrink-0"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              startEditingDayName(dayIndex, day.dayName)
+                            }}
+                            aria-label={`Edit ${day.dayName} name`}
+                          >
+                            <Edit3 className="h-3 w-3" />
+                          </Button>
+                        </div>
                       )}
+                    </div>
+
+                    {/* Right side: Badge and Delete button */}
+                    <div className="flex items-center gap-2 flex-shrink-0">
                       <Badge variant="outline" className="text-xs">
                         {day.exercises.length} exercises
                       </Badge>
-                    </div>
-                    {groupedByMuscle.length > 0 && (
-                      <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
-                        {groupedByMuscle.map(item => (
-                          <span key={item.label} className="rounded bg-muted/60 px-2 py-1">
-                            {item.label}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                  {expandedDays.has(dayIndex) && (
-                    <div className="flex flex-wrap items-center gap-2 sm:flex-nowrap">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="w-full sm:w-auto"
-                        onClick={() => onRandomizeDay(dayIndex)}
-                      >
-                        Randomize day
-                      </Button>
-                    <Popover
-                      open={pickerDayIndex === dayIndex}
-                      onOpenChange={open => {
-                        setPickerDayIndex(open ? dayIndex : null)
-                        if (!open) {
-                          setSearchTerm('')
-                          setSelectedMuscleGroup(null)
-                        }
-                      }}
-                    >
-                      <PopoverTrigger asChild>
-                        <Button variant="outline" size="sm" className="w-full sm:w-auto">
-                          Add exercise
+                      {onRemoveDay && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6 text-destructive hover:text-destructive hover:bg-destructive/10 flex-shrink-0"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleDeleteDay(dayIndex, day.dayName)
+                          }}
+                          aria-label={`Delete ${day.dayName}`}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
                         </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-[min(18rem,calc(100vw-2rem))] p-0">
-                        <Command shouldFilter={false}>
-                          <CommandInput
-                            value={searchTerm}
-                            onValueChange={setSearchTerm}
-                            placeholder="Search exercises..."
-                          />
-                          
-                          {/* Muscle Group Filter */}
-                          <div className="border-t px-3 py-2">
-                            <div className="text-xs font-medium text-muted-foreground mb-2">Filter by muscle group:</div>
-                            <div className="flex flex-wrap gap-1">
-                              <Button
-                                variant={selectedMuscleGroup === null ? "default" : "outline"}
-                                size="sm"
-                                className="h-7 px-2 text-xs"
-                                onClick={() => setSelectedMuscleGroup(null)}
-                              >
-                                All
-                              </Button>
-                              {Array.from(new Set(exercises.map(e => e.muscleGroup))).map(group => (
-                                <Button
-                                  key={group}
-                                  variant={selectedMuscleGroup === group ? "default" : "outline"}
-                                  size="sm"
-                                  className="h-7 px-2 text-xs"
-                                  onClick={() => setSelectedMuscleGroup(group)}
-                                >
-                                  {group}
-                                </Button>
-                              ))}
-                            </div>
-                          </div>
-                          
-                          <CommandList>
-                            <CommandEmpty>No exercises found.</CommandEmpty>
-                            <CommandGroup>
-                              {filteredExercises.map(exercise => (
-                                <CommandItem
-                                  key={exercise.id}
-                                  value={exercise.name}
-                                  onSelect={() => handleSelectExercise(exercise)}
-                                >
-                                  <div className="flex flex-col">
-                                    <span className="text-sm font-medium">{exercise.name}</span>
-                                    <span className="text-xs text-muted-foreground">
-                                      {exercise.muscleGroup} - {exercise.equipmentType}
-                                    </span>
-                                  </div>
-                                </CommandItem>
-                              ))}
-                            </CommandGroup>
-                          </CommandList>
-                        </Command>
-                      </PopoverContent>
-                    </Popover>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Metadata shown in header */}
+                  {groupedByMuscle.length > 0 && (
+                    <div className="flex flex-wrap gap-2 text-xs text-muted-foreground mt-2 ml-8">
+                      {groupedByMuscle.map(item => (
+                        <span key={item.label} className="rounded bg-muted/60 px-2 py-1">
+                          {item.label}
+                        </span>
+                      ))}
                     </div>
                   )}
                 </div>
 
-                {expandedDays.has(dayIndex) && (
-                  <div className="mt-4 space-y-3">
-                  {day.exercises.length === 0 ? (
-                    <div className="rounded-md border border-dashed border-border/60 bg-muted/30 px-3 py-4 text-sm text-muted-foreground">
-                      No exercises assigned. Add them manually or randomize the day to get suggestions.
+                {/* Expandable Content */}
+                {isDayExpanded && (
+                  <>
+                    {/* Action Buttons - Separated from header */}
+                    <div className="border-t border-border/40 px-3 py-3 sm:px-4 sm:py-4 bg-muted/20">
+                      <div className="flex flex-wrap items-center gap-2 sm:flex-nowrap">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex-1 sm:flex-none"
+                          onClick={() => onRandomizeDay(dayIndex)}
+                        >
+                          Randomize day
+                        </Button>
+                        <Popover
+                          open={pickerDayIndex === dayIndex}
+                          onOpenChange={open => {
+                            setPickerDayIndex(open ? dayIndex : null)
+                            if (!open) {
+                              setSearchTerm('')
+                              setSelectedMuscleGroup(null)
+                            }
+                          }}
+                        >
+                          <PopoverTrigger asChild>
+                            <Button variant="outline" size="sm" className="flex-1 sm:flex-none">
+                              Add exercise
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-[min(18rem,calc(100vw-2rem))] p-0">
+                            <Command shouldFilter={false}>
+                              <CommandInput
+                                value={searchTerm}
+                                onValueChange={setSearchTerm}
+                                placeholder="Search exercises..."
+                              />
+
+                              {/* Muscle Group Filter */}
+                              <div className="border-t px-3 py-2">
+                                <div className="text-xs font-medium text-muted-foreground mb-2">Filter by muscle group:</div>
+                                <div className="flex flex-wrap gap-1">
+                                  <Button
+                                    variant={selectedMuscleGroup === null ? "default" : "outline"}
+                                    size="sm"
+                                    className="h-7 px-2 text-xs"
+                                    onClick={() => setSelectedMuscleGroup(null)}
+                                  >
+                                    All
+                                  </Button>
+                                  {Array.from(new Set(exercises.map(e => e.muscleGroup))).map(group => (
+                                    <Button
+                                      key={group}
+                                      variant={selectedMuscleGroup === group ? "default" : "outline"}
+                                      size="sm"
+                                      className="h-7 px-2 text-xs"
+                                      onClick={() => setSelectedMuscleGroup(group)}
+                                    >
+                                      {group}
+                                    </Button>
+                                  ))}
+                                </div>
+                              </div>
+
+                              <CommandList>
+                                <CommandEmpty>No exercises found.</CommandEmpty>
+                                <CommandGroup>
+                                  {filteredExercises.map(exercise => (
+                                    <CommandItem
+                                      key={exercise.id}
+                                      value={exercise.name}
+                                      onSelect={() => handleSelectExercise(exercise)}
+                                    >
+                                      <div className="flex flex-col">
+                                        <span className="text-sm font-medium">{exercise.name}</span>
+                                        <span className="text-xs text-muted-foreground">
+                                          {exercise.muscleGroup} - {exercise.equipmentType}
+                                        </span>
+                                      </div>
+                                    </CommandItem>
+                                  ))}
+                                </CommandGroup>
+                              </CommandList>
+                            </Command>
+                          </PopoverContent>
+                        </Popover>
+                      </div>
                     </div>
-                  ) : (
-                    day.exercises.map((exercise, exerciseIndex) => (
-                      <ExerciseRow
-                        key={exercise.tempId}
-                        exercise={exercise}
-                        onRemove={tempId => onRemoveExercise(dayIndex, tempId)}
-                        actionSlot={renderReplaceActions({ exercise, dayIndex, exerciseIndex })}
-                      />
-                    ))
-                  )}
-                  </div>
+
+                    {/* Exercise List */}
+                    <div className="px-3 py-3 sm:px-4 sm:py-4 space-y-3">
+                      {day.exercises.length === 0 ? (
+                        <div className="rounded-md border border-dashed border-border/60 bg-muted/30 px-3 py-4 text-sm text-muted-foreground">
+                          No exercises assigned. Add them manually or randomize the day to get suggestions.
+                        </div>
+                      ) : (
+                        day.exercises.map((exercise, exerciseIndex) => (
+                          <ExerciseRow
+                            key={exercise.tempId}
+                            exercise={exercise}
+                            onRemove={tempId => onRemoveExercise(dayIndex, tempId)}
+                            actionSlot={renderReplaceActions({ exercise, dayIndex, exerciseIndex })}
+                          />
+                        ))
+                      )}
+                    </div>
+                  </>
                 )}
               </div>
             )
