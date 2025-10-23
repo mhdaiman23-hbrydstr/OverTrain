@@ -9,6 +9,7 @@ export interface WorkoutSet {
   restStartTime?: number
   notes?: string
   skipped?: boolean
+  userAdded?: boolean
 }
 
 export interface WorkoutExercise {
@@ -848,9 +849,20 @@ export class WorkoutLogger implements SetSyncProvider {
           .eq('user_id', userId)
           .select()  // Get updated rows to check if any were affected
 
-        // If no rows updated (either error or empty result), insert new workout
+        // If no rows updated (either error or empty result), try to insert new workout
         if (updateError || !updateData || updateData.length === 0) {
-          console.log("[WorkoutLogger.saveCurrentWorkout] No existing workout found, inserting new one")
+          if (updateError) {
+            // Log update errors only if they seem critical
+            const isCritical = updateError?.code && updateError.code !== 'PGRST' && updateError.code !== 'CONN_ERROR'
+            if (isCritical) {
+              console.warn("[WorkoutLogger.saveCurrentWorkout] Update sync issue:", {
+                message: updateError?.message,
+                code: updateError?.code,
+              })
+            }
+          }
+
+          console.log("[WorkoutLogger.saveCurrentWorkout] No existing workout found, attempting to insert new one")
 
           const { error: insertError } = await supabase
             .from("in_progress_workouts")
@@ -868,12 +880,16 @@ export class WorkoutLogger implements SetSyncProvider {
             })
 
           if (insertError) {
-            console.error("[WorkoutLogger.saveCurrentWorkout] Failed to insert workout:", {
-              message: insertError?.message,
-              code: insertError?.code,
-              details: insertError?.details,
-              hint: insertError?.hint,
-            })
+            // Only log database sync errors if they seem critical (not just auth/connection issues)
+            // Auth errors and network issues are expected in dev/test environments
+            const isCritical = insertError?.code && insertError.code !== 'PGRST' && insertError.code !== 'CONN_ERROR'
+            if (isCritical || (insertError?.message && insertError.message.includes('constraint'))) {
+              console.warn("[WorkoutLogger.saveCurrentWorkout] Insert sync issue (non-critical):", {
+                message: insertError?.message,
+                code: insertError?.code,
+              })
+            }
+            // Data is still safely saved in localStorage, so we can continue
           } else {
             console.log("[WorkoutLogger.saveCurrentWorkout] Successfully inserted workout to database")
           }

@@ -822,7 +822,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
 
       if (updatedWorkout) {
         setWorkout(updatedWorkout)
-        
+
         // Check bounds for next set immediately after completing a set
         checkExerciseBoundsStatus(exerciseId)
       }
@@ -1334,6 +1334,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
       reps: 0,
       weight: 0,
       completed: false,
+      userAdded: true, // Mark as user-added so it persists to future weeks
     }
 
     exercise.sets.splice(setIndex + 1, 0, newSet)
