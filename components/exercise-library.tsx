@@ -155,7 +155,7 @@ export function ExerciseLibrary({ open, onOpenChange, onSelectExercise, currentE
 
           {/* Repeat Checkbox */}
           <div className="flex items-center space-x-2 py-2">
-            <Checkbox id="repeat" checked={repeat} onCheckedChange={(checked) => setRepeat(checked as boolean)} />
+            <Checkbox id="repeat" checked={repeat} onCheckedChange={(checked) => setRepeat(checked === true)} />
             <label htmlFor="repeat" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer">
               Repeat <span className="text-muted-foreground">(i)</span>
             </label>
