@@ -945,3 +945,280 @@ Checklist
 - [ ] No use of preventDefault that blocks menu opening
 - [ ] Heavy operations (navigation/data load) only occur when row click is intentional
 
+---
+
+## 🎨 UI Component Patterns
+
+### Button Component Rules
+
+**NEVER use native `<button>` HTML elements.** Always use the shadcn `<Button>` component.
+
+#### Button Sizes
+
+```typescript
+// Mobile-optimized touch targets
+<Button size="touch">Click me</Button>  // h-11 (44px) - Mobile primary
+<Button size="icon">☰</Button>          // h-9 w-9 (36px) - Icon buttons
+<Button>Click me</Button>               // h-9 (36px) - Default text button
+<Button size="sm">Compact</Button>      // h-8 (32px) - Compact contexts
+<Button size="lg">Large</Button>        // h-10 (40px) - Featured actions
+```
+
+**Key Rules:**
+- ✅ Use `size="touch"` for mobile-first interfaces (dialog buttons, footer actions)
+- ✅ Use `size="icon"` for icon buttons (menus, toggles, etc.)
+- ✅ Never use responsive className overrides like `h-9 sm:h-10 sm:w-10`
+- ✅ Responsive sizing is handled by Button component variant system
+- ❌ Never hardcode button height/padding with `px-` or `py-` classes
+- ❌ Never use `min-h-[44px]` or similar custom sizing
+
+#### Button Variants
+
+```typescript
+<Button variant="default">Primary action</Button>      // Blue, filled
+<Button variant="outline">Secondary action</Button>   // Bordered, minimal
+<Button variant="ghost">Tertiary action</Button>      // No background
+<Button variant="destructive">Delete</Button>         // Red, filled
+<Button variant="link">Text link</Button>             // Underlined text
+```
+
+**Key Rules:**
+- ✅ Use appropriate variant for context
+- ✅ Focus states, disabled states handled automatically
+- ❌ Never add custom className for focus/hover/disabled states
+
+#### Button with Icons
+
+```typescript
+// Icon + Text (default spacing)
+<Button>
+  <Download className="h-4 w-4 mr-2" />
+  Download
+</Button>
+
+// Icon only
+<Button variant="ghost" size="icon">
+  <Menu className="h-4 w-4" />
+</Button>
+
+// Text + Icon
+<Button>
+  Send
+  <ArrowRight className="h-4 w-4 ml-2" />
+</Button>
+```
+
+**Key Rules:**
+- ✅ Icon size should match text size (h-4 w-4 for text buttons)
+- ✅ Use `ml-2` or `mr-2` for spacing between icon and text
+- ✅ Icon-only buttons use `size="icon"`
+- ❌ Never set custom icon sizes larger than button height
+
+### Card Components
+
+Use specialized card components instead of generic `<Card>`. This improves:
+- Consistency across similar patterns
+- Reusability across features
+- Maintainability (styling in one place)
+- Type safety
+
+#### StatCard: Metrics with Icon + Value + Label
+
+**Use for:** Analytics dashboards, key metrics, quick stats
+
+```typescript
+import { StatCard } from "@/components/ui/stat-card"
+
+<StatCard
+  icon={<Trophy className="h-8 w-8" />}
+  value={42}
+  label="Workouts Completed"
+  variant="gradient"
+  size="md"
+/>
+```
+
+**Variants:** default, gradient, accent
+**Sizes:** sm (compact), md (standard), lg (spacious)
+**Accent Colors:** primary, success, warning, error
+
+#### DetailCard: Header + Content Layout
+
+**Use for:** Profile sections, detail views, analytics with explanations
+
+```typescript
+import { DetailCard } from "@/components/ui/detail-card"
+
+<DetailCard
+  title="Weekly Progress"
+  description="Your workout frequency over the past 8 weeks"
+  size="md"
+  action={<Button size="sm">View Details</Button>}
+>
+  <div>{/* Content here */}</div>
+</DetailCard>
+```
+
+**Variants:** default, highlighted, minimal
+**Sizes:** sm, md, lg
+
+#### MetricListCard: Metrics with Trends
+
+**Use for:** Strength gains, progress tracking, performance metrics
+
+```typescript
+import { MetricListCard } from "@/components/ui/metric-list-card"
+
+<MetricListCard
+  title="Strength Gains"
+  description="Percentage increase by muscle group"
+  items={[
+    { label: "Chest", value: "+15%", trend: "up" },
+    { label: "Back", value: "+8%", trend: "up" }
+  ]}
+  showTrendIcons={true}
+/>
+```
+
+#### ExerciseCard: Exercise Display with Status
+
+**Use for:** Exercise lists, workout details, exercise tracking
+
+```typescript
+import { ExerciseCard } from "@/components/ui/exercise-card"
+
+<ExerciseCard status="current" zone="strength" intensity="high">
+  <ExerciseCardContent>
+    <h3>Bench Press</h3>
+  </ExerciseCardContent>
+</ExerciseCard>
+```
+
+**Status:** pending, current, completed, warmup
+**Zone:** strength, endurance, power, warmup, recovery
+**Intensity:** normal, high, maximum
+
+#### ExerciseListCard: Exercise Items in Lists
+
+**Use for:** Program templates, exercise selection, exercise lists
+
+```typescript
+import { ExerciseListCard } from "@/components/ui/exercise-list-card"
+
+<ExerciseListCard
+  exerciseName="Bench Press"
+  subtitle="Barbell"
+  badges={[{ label: "4 sets" }]}
+  metadata={[{ label: "Max Weight:", value: "100kg" }]}
+  action={<Button size="icon" variant="ghost">⋮</Button>}
+/>
+```
+
+#### ProgramCard: Program Template Display
+
+**Use for:** Program recommendations, template selection, program browsing
+
+```typescript
+import { ProgramCard } from "@/components/ui/program-card"
+
+<ProgramCard
+  title="Upper/Lower Split"
+  description="4-day split for strength and hypertrophy"
+  difficulty="Intermediate"
+  duration="8 weeks"
+  workouts={16}
+  frequency="4 days/week"
+  goals={["Strength", "Hypertrophy"]}
+  action={<Button>Select</Button>}
+/>
+```
+
+#### AccentCard: Colored Status/Alert Cards
+
+**Use for:** Alerts, notifications, status indicators, tips
+
+```typescript
+import { AccentCard } from "@/components/ui/accent-card"
+
+<AccentCard
+  variant="success"
+  icon={<CheckCircle className="h-5 w-5" />}
+  title="Great job!"
+  description="You've completed your weekly goal"
+/>
+```
+
+**Variants:** info (blue), success (green), warning (orange), error (red)
+
+### Card Component Rules
+
+**DO:**
+- ✅ Use specialized card components (StatCard, DetailCard, etc.)
+- ✅ Props control all styling (variant, size, accentColor)
+- ✅ Extract repeated card patterns into new components
+- ✅ Use TypeScript props for type safety
+- ✅ Keep card styling centralized in component, not in consumers
+
+**DON'T:**
+- ❌ Create generic `<Card>` when a specialized component exists
+- ❌ Override card styling with custom `className` props (use variant instead)
+- ❌ Repeat the same card pattern in multiple files (extract to component)
+- ❌ Mix multiple card patterns in same file (use appropriate component)
+- ❌ Add responsive className overrides (`sm:`, `md:` prefixes on cards)
+
+### Dialog Component Rules
+
+**Use DialogWrapper for consistency:**
+
+```typescript
+import { DialogWrapper } from "@/components/ui/dialog-wrapper"
+
+<DialogWrapper
+  open={isOpen}
+  onOpenChange={setIsOpen}
+  title="Delete Exercise?"
+  description="This action cannot be undone"
+  size="compact"
+>
+  <p>Are you sure?</p>
+</DialogWrapper>
+```
+
+**Sizes:** compact (md), default (lg), medium (2xl), large (4xl), fullscreen
+
+**Key Rules:**
+- ✅ Always use DialogWrapper for consistent dialog sizing
+- ✅ Never hardcode `max-w-[value]` on DialogContent
+- ✅ Mobile dialogs automatically responsive (size="compact" → medium on desktop)
+- ❌ Never use hardcoded `max-w-2xl` or `max-w-md` in dialogs
+
+### Mobile-First CSS Rules
+
+**All components must be mobile-first. CSS should NOT contain mobile overrides.**
+
+✅ CORRECT - Uses Tailwind responsive prefixes naturally:
+```tsx
+<div className="p-4 sm:p-6 md:p-8 text-sm sm:text-base md:text-lg">
+```
+
+❌ WRONG - Excessive mobile overrides:
+```tsx
+<button className="text-xs sm:text-sm md:text-base py-1.5 sm:py-2 md:py-3 h-auto min-h-[32px] sm:min-h-[36px] md:min-h-[44px]">
+```
+
+**Use Component Variants Instead:**
+```tsx
+// Instead of responsive className bloat, use Button sizes
+<Button size="touch">Click me</Button>
+// Automatically 44px on mobile, 36px on desktop (if needed)
+```
+
+**Key Rules:**
+- ✅ Define base styles for mobile (default)
+- ✅ Add `sm:`, `md:`, `lg:` prefixes for larger screens only
+- ✅ Use component `size` props instead of responsive overrides
+- ❌ Never have more than 1-2 responsive prefixes per property
+- ❌ Never use `h-auto min-h-[px]` patterns (use component sizes instead)
+
+---
+

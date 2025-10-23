@@ -2,6 +2,9 @@
 
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { StatCard } from "@/components/ui/stat-card"
+import { DetailCard } from "@/components/ui/detail-card"
+import { MetricListCard } from "@/components/ui/metric-list-card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -121,37 +124,33 @@ export function ProgressAnalytics({ onBack }: ProgressAnalyticsProps) {
 
         {/* Key Metrics */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Card>
-            <CardContent className="p-6 text-center">
-              <Calendar className="h-8 w-8 text-primary mx-auto mb-2" />
-              <div className="text-2xl font-bold">{metrics.totalWorkouts}</div>
-              <div className="text-sm text-muted-foreground">Total Workouts</div>
-            </CardContent>
-          </Card>
+          <StatCard
+            icon={<Calendar className="h-8 w-8" />}
+            value={metrics.totalWorkouts}
+            label="Total Workouts"
+            size="md"
+          />
 
-          <Card>
-            <CardContent className="p-6 text-center">
-              <Weight className="h-8 w-8 text-primary mx-auto mb-2" />
-              <div className="text-2xl font-bold">{formatVolume(metrics.totalVolume)}</div>
-              <div className="text-sm text-muted-foreground">Total Volume</div>
-            </CardContent>
-          </Card>
+          <StatCard
+            icon={<Weight className="h-8 w-8" />}
+            value={formatVolume(metrics.totalVolume)}
+            label="Total Volume"
+            size="md"
+          />
 
-          <Card>
-            <CardContent className="p-6 text-center">
-              <Clock className="h-8 w-8 text-primary mx-auto mb-2" />
-              <div className="text-2xl font-bold">{formatDuration(metrics.averageWorkoutDuration)}</div>
-              <div className="text-sm text-muted-foreground">Avg Duration</div>
-            </CardContent>
-          </Card>
+          <StatCard
+            icon={<Clock className="h-8 w-8" />}
+            value={formatDuration(metrics.averageWorkoutDuration)}
+            label="Avg Duration"
+            size="md"
+          />
 
-          <Card>
-            <CardContent className="p-6 text-center">
-              <TrendingUp className="h-8 w-8 text-primary mx-auto mb-2" />
-              <div className="text-2xl font-bold">{Object.keys(metrics.strengthGains).length}</div>
-              <div className="text-sm text-muted-foreground">Exercises Tracked</div>
-            </CardContent>
-          </Card>
+          <StatCard
+            icon={<TrendingUp className="h-8 w-8" />}
+            value={Object.keys(metrics.strengthGains).length}
+            label="Exercises Tracked"
+            size="md"
+          />
         </div>
 
         <Tabs defaultValue="overview" className="w-full">
@@ -163,54 +162,50 @@ export function ProgressAnalytics({ onBack }: ProgressAnalyticsProps) {
 
           <TabsContent value="overview" className="space-y-6">
             {/* Weekly Progress */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Weekly Progress</CardTitle>
-                <CardDescription>Your workout frequency and volume over the past 8 weeks</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {metrics.weeklyProgress.map((week, index) => (
-                    <div key={week.week} className="flex items-center justify-between p-3 border rounded-lg">
-                      <div className="space-y-1">
-                        <div className="font-medium">Week of {new Date(week.week).toLocaleDateString()}</div>
-                        <div className="text-sm text-muted-foreground">
-                          {week.workouts} workouts • {formatVolume(week.volume)} volume
-                        </div>
-                      </div>
-                      <div className="w-32">
-                        <Progress value={(week.workouts / 7) * 100} className="h-2" />
+            <DetailCard
+              title="Weekly Progress"
+              description="Your workout frequency and volume over the past 8 weeks"
+              size="md"
+            >
+              <div className="space-y-4">
+                {metrics.weeklyProgress.map((week, index) => (
+                  <div key={week.week} className="flex items-center justify-between p-3 border rounded-lg">
+                    <div className="space-y-1">
+                      <div className="font-medium">Week of {new Date(week.week).toLocaleDateString()}</div>
+                      <div className="text-sm text-muted-foreground">
+                        {week.workouts} workouts • {formatVolume(week.volume)} volume
                       </div>
                     </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+                    <div className="w-32">
+                      <Progress value={(week.workouts / 7) * 100} className="h-2" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </DetailCard>
 
             {/* Strength Gains */}
             {Object.keys(metrics.strengthGains).length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Strength Gains</CardTitle>
-                  <CardDescription>Percentage increase in maximum weight lifted</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid gap-4">
-                    {Object.entries(metrics.strengthGains).map(([exerciseId, gain]) => (
-                      <div key={exerciseId} className="flex items-center justify-between p-3 border rounded-lg">
-                        <div className="font-medium capitalize">{exerciseId.replace("-", " ")}</div>
-                        <Badge
-                          variant={gain > 0 ? "default" : "secondary"}
-                          className={gain > 0 ? "bg-green-100 text-green-800" : ""}
-                        >
-                          {gain > 0 ? "+" : ""}
-                          {gain}%
-                        </Badge>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+              <DetailCard
+                title="Strength Gains"
+                description="Percentage increase in maximum weight lifted"
+                size="md"
+              >
+                <div className="grid gap-4">
+                  {Object.entries(metrics.strengthGains).map(([exerciseId, gain]) => (
+                    <div key={exerciseId} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div className="font-medium capitalize">{exerciseId.replace("-", " ")}</div>
+                      <Badge
+                        variant={gain > 0 ? "default" : "secondary"}
+                        className={gain > 0 ? "bg-green-100 text-green-800" : ""}
+                      >
+                        {gain > 0 ? "+" : ""}
+                        {gain}%
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+              </DetailCard>
             )}
           </TabsContent>
 
