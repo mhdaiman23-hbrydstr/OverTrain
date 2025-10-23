@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Spinner } from "@/components/ui/spinner"
-import { Plus, Minus, Calendar } from "lucide-react"
+import { Calendar } from "lucide-react"
 import { ProgramStateManager, type ActiveProgram } from "@/lib/program-state"
 import { WorkoutLogger } from "@/lib/workout-logger"
 import { useAuth } from "@/contexts/auth-context"
@@ -565,28 +565,12 @@ export function WorkoutCalendar({ onWorkoutClick, selectedWeek, selectedDay, rea
     onWorkoutClick?.(week, day)
   }
 
-  const addWeek = () => {
-    setTotalWeeks((prev) => Math.min(prev + 1, 12))
-  }
-
-  const removeWeek = () => {
-    setTotalWeeks((prev) => Math.max(prev - 1, 4))
-  }
-
   return (
     <Card className="mb-0 border-0 shadow-none bg-transparent overflow-visible">
       <CardContent className="p-3 sm:p-4 overflow-visible">
-        {/* Week controls */}
-        <div className="flex items-center justify-between mb-4">
+        {/* Week label */}
+        <div className="flex items-center mb-4">
           <span className="text-sm font-medium text-muted-foreground">WEEKS</span>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={removeWeek} disabled={totalWeeks <= 4}>
-              <Minus className="h-3 w-3" />
-            </Button>
-            <Button variant="outline" size="sm" onClick={addWeek} disabled={totalWeeks >= 12}>
-              <Plus className="h-3 w-3" />
-            </Button>
-          </div>
         </div>
 
         <div className="overflow-x-auto -mx-3 sm:-mx-4 px-3 sm:px-4">
