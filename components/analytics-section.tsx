@@ -2,6 +2,8 @@
 
 import { useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { StatCard } from "@/components/ui/stat-card"
+import { DetailCard } from "@/components/ui/detail-card"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -74,58 +76,54 @@ export function AnalyticsSection() {
       <div className="space-y-6 p-4 pt-6">
         {/* Key Stats Grid */}
         <div className="grid grid-cols-2 gap-3">
-          <Card className="gradient-card">
-            <CardContent className="p-4 text-center">
-              <Trophy className="h-6 w-6 text-primary mx-auto mb-2" />
-              <div className="text-xl font-bold">{analyticsData.programsCompleted}</div>
-              <div className="text-xs text-muted-foreground">Programs Completed</div>
-            </CardContent>
-          </Card>
+          <StatCard
+            icon={<Trophy className="h-6 w-6" />}
+            value={analyticsData.programsCompleted}
+            label="Programs Completed"
+            variant="gradient"
+            size="sm"
+          />
 
-          <Card className="gradient-card">
-            <CardContent className="p-4 text-center">
-              <Flame className="h-6 w-6 text-orange-500 mx-auto mb-2" />
-              <div className="text-xl font-bold">{analyticsData.currentStreak}</div>
-              <div className="text-xs text-muted-foreground">Day Streak</div>
-            </CardContent>
-          </Card>
+          <StatCard
+            icon={<Flame className="h-6 w-6 text-orange-500" />}
+            value={analyticsData.currentStreak}
+            label="Day Streak"
+            variant="gradient"
+            size="sm"
+          />
 
-          <Card>
-            <CardContent className="p-4 text-center">
-              <Calendar className="h-6 w-6 text-primary mx-auto mb-2" />
-              <div className="text-xl font-bold">{analyticsData.totalWorkouts}</div>
-              <div className="text-xs text-muted-foreground">Total Workouts</div>
-            </CardContent>
-          </Card>
+          <StatCard
+            icon={<Calendar className="h-6 w-6" />}
+            value={analyticsData.totalWorkouts}
+            label="Total Workouts"
+            size="sm"
+          />
 
-          <Card>
-            <CardContent className="p-4 text-center">
-              <Weight className="h-6 w-6 text-primary mx-auto mb-2" />
-              <div className="text-xl font-bold">{formatVolume(analyticsData.totalVolume)}</div>
-              <div className="text-xs text-muted-foreground">Total Volume</div>
-            </CardContent>
-          </Card>
+          <StatCard
+            icon={<Weight className="h-6 w-6" />}
+            value={formatVolume(analyticsData.totalVolume)}
+            label="Total Volume"
+            size="sm"
+          />
         </div>
 
         {/* Weekly Progress */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg">This Week</CardTitle>
-            <CardDescription>Your weekly workout goal progress</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Workouts Completed</span>
-              <span className="text-sm text-muted-foreground">
-                {analyticsData.weeklyCompleted}/{analyticsData.weeklyGoal}
-              </span>
-            </div>
-            <Progress value={(analyticsData.weeklyCompleted / analyticsData.weeklyGoal) * 100} className="h-2" />
-            <div className="text-xs text-muted-foreground">
-              {analyticsData.weeklyGoal - analyticsData.weeklyCompleted} more to reach your goal
-            </div>
-          </CardContent>
-        </Card>
+        <DetailCard
+          title="This Week"
+          description="Your weekly workout goal progress"
+          size="md"
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium">Workouts Completed</span>
+            <span className="text-sm text-muted-foreground">
+              {analyticsData.weeklyCompleted}/{analyticsData.weeklyGoal}
+            </span>
+          </div>
+          <Progress value={(analyticsData.weeklyCompleted / analyticsData.weeklyGoal) * 100} className="h-2" />
+          <div className="text-xs text-muted-foreground">
+            {analyticsData.weeklyGoal - analyticsData.weeklyCompleted} more to reach your goal
+          </div>
+        </DetailCard>
 
         {/* Tabs for detailed analytics */}
         <Tabs defaultValue="overview" className="w-full">
@@ -137,34 +135,32 @@ export function AnalyticsSection() {
 
           <TabsContent value="overview" className="space-y-4 mt-4">
             {/* Monthly Stats */}
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg">This Month</CardTitle>
-                <CardDescription>Your monthly performance summary</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-primary">
-                      {analyticsData.monthlyStats.workoutsCompleted}
-                    </div>
-                    <div className="text-xs text-muted-foreground">Workouts</div>
+            <DetailCard
+              title="This Month"
+              description="Your monthly performance summary"
+              size="md"
+            >
+              <div className="grid grid-cols-2 gap-4">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-primary">
+                    {analyticsData.monthlyStats.workoutsCompleted}
                   </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-primary">{analyticsData.monthlyStats.programsFinished}</div>
-                    <div className="text-xs text-muted-foreground">Programs Finished</div>
-                  </div>
+                  <div className="text-xs text-muted-foreground">Workouts</div>
                 </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-primary">{analyticsData.monthlyStats.programsFinished}</div>
+                  <div className="text-xs text-muted-foreground">Programs Finished</div>
+                </div>
+              </div>
 
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span>Consistency Score</span>
-                    <span className="font-medium">{analyticsData.monthlyStats.consistencyScore}%</span>
-                  </div>
-                  <Progress value={analyticsData.monthlyStats.consistencyScore} className="h-2" />
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span>Consistency Score</span>
+                  <span className="font-medium">{analyticsData.monthlyStats.consistencyScore}%</span>
                 </div>
-              </CardContent>
-            </Card>
+                <Progress value={analyticsData.monthlyStats.consistencyScore} className="h-2" />
+              </div>
+            </DetailCard>
 
             {/* Average Workout Duration */}
             <Card>
