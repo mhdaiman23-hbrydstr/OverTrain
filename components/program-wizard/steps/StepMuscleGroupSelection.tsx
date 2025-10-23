@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
+import { DetailCard } from '@/components/ui/detail-card'
 import { Badge } from '@/components/ui/badge'
 import type { DayInWizard, MuscleGroupSelection } from '../types'
 import { MuscleGroupPicker } from '../components/MuscleGroupPicker'
@@ -36,17 +37,21 @@ export function StepMuscleGroupSelection({ days, onUpdateDay, onNext, onBack }: 
 
       <div className="space-y-3 sm:space-y-4">
         {days.map((day, index) => (
-          <div key={day.dayNumber} className="rounded-lg border border-border/60 bg-card px-3 sm:px-4 py-3 sm:py-4">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div className="min-w-0 flex-1">
-                <h3 className="text-sm sm:text-base font-semibold truncate">{day.dayName}</h3>
-                <p className="text-xs text-muted-foreground">
-                  {day.muscleGroups && day.muscleGroups.length > 0
-                    ? 'Selected muscle groups shown below.'
-                    : 'No muscle groups selected yet.'}
-                </p>
-              </div>
-              <Button variant="outline" size="sm" onClick={() => handleOpenPicker(index)} className="text-xs px-2 py-1 h-auto sm:text-sm sm:px-3 sm:py-2 sm:h-8">
+          <DetailCard
+            key={day.dayNumber}
+            title={day.dayName}
+            description={
+              day.muscleGroups && day.muscleGroups.length > 0
+                ? 'Selected muscle groups shown below.'
+                : 'No muscle groups selected yet.'
+            }
+            size="md"
+            action={
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleOpenPicker(index)}
+              >
                 {day.muscleGroups && day.muscleGroups.length > 0 ? (
                   <>
                     <span className="hidden sm:inline">Edit selection</span>
@@ -59,18 +64,18 @@ export function StepMuscleGroupSelection({ days, onUpdateDay, onNext, onBack }: 
                   </>
                 )}
               </Button>
-            </div>
-
+            }
+          >
             {day.muscleGroups && day.muscleGroups.length > 0 && (
-              <div className="mt-2 sm:mt-3 flex flex-wrap gap-1 sm:gap-2">
+              <div className="flex flex-wrap gap-2">
                 {day.muscleGroups.map(group => (
-                  <Badge key={`${group.category}:${group.group}`} variant="secondary" className="text-xs">
+                  <Badge key={`${group.category}:${group.group}`} variant="secondary">
                     {group.group} × {group.count}
                   </Badge>
                 ))}
               </div>
             )}
-          </div>
+          </DetailCard>
         ))}
       </div>
 

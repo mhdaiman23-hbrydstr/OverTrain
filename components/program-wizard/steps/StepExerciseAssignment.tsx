@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Spinner } from '@/components/ui/spinner'
 import { Input } from '@/components/ui/input'
+import { Card, CardContent } from '@/components/ui/card'
 import { useToast } from '@/hooks/use-toast'
 import type { DayInWizard, ExerciseInWizard } from '../types'
 import type { Exercise } from '@/lib/services/exercise-library-service'
@@ -180,7 +181,7 @@ export function StepExerciseAssignment({
         type="button"
         variant="ghost"
         size="icon"
-        className="text-orange-500 hover:text-orange-600 touch-manipulation min-h-[44px] min-w-[44px]"
+        className="text-orange-500 hover:text-orange-600"
         onClick={event => {
           event.preventDefault()
           event.stopPropagation()
@@ -228,9 +229,9 @@ export function StepExerciseAssignment({
             const isDayExpanded = expandedDays.has(dayIndex)
 
             return (
-              <div key={day.dayNumber} className="rounded-lg border border-border/60 bg-card overflow-hidden">
+              <Card key={day.dayNumber} className="overflow-hidden">
                 {/* Day Header - Always visible, clickable to expand */}
-                <div className="cursor-pointer transition-colors hover:bg-muted/30 px-3 py-3 sm:px-4 sm:py-4" onClick={() => toggleDayExpansion(dayIndex)}>
+                <div className="cursor-pointer transition-colors hover:bg-muted/30 px-4 py-3 sm:py-4" onClick={() => toggleDayExpansion(dayIndex)}>
                   <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center flex-1 min-w-0 gap-3">
                       {/* Collapse/Expand Icon */}
@@ -439,7 +440,7 @@ export function StepExerciseAssignment({
                     </div>
                   </>
                 )}
-              </div>
+              </Card>
             )
           })}
         </div>
