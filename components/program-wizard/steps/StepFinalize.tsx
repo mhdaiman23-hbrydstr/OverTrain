@@ -43,9 +43,11 @@ export function StepFinalize({
     onUpdateMetadata({ gender: [option] })
   }
 
-  const handleExperienceToggle = (value: string, checked: boolean) => {
+  const handleExperienceToggle = (value: string, checked: boolean | 'indeterminate') => {
+    // Handle indeterminate state - treat as checked (true)
+    const isChecked = checked === true
     const current = new Set(metadata.experience)
-    if (checked) {
+    if (isChecked) {
       current.add(value)
     } else {
       current.delete(value)
@@ -110,7 +112,7 @@ export function StepFinalize({
                     <Checkbox
                       id={id}
                       checked={isChecked}
-                      onCheckedChange={checked => handleExperienceToggle(level, checked === true)}
+                      onCheckedChange={checked => handleExperienceToggle(level, checked)}
                     />
                     <Label htmlFor={id}>{formatLabel(level)}</Label>
                   </div>

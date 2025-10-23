@@ -1,0 +1,529 @@
+VM2864:17 Console was cleared
+VM2864:18 ═══════════════════════════════════════════════════════
+VM2864:19 🔍 COMPREHENSIVE DAY BUILDER DIAGNOSTICS
+VM2864:20 ═══════════════════════════════════════════════════════
+VM2864:23 📱 DEVICE INFORMATION
+VM2864:24 Viewport: 412x915
+VM2864:25 User Agent: Mozilla/5.0 (Linux; Android 13; SM-G981B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Mobile Safari/537.36
+VM2864:26 Touch Support: ✅ YES
+VM2864:27 Pointer Events: ✅ YES
+
+VM2864:30 🔘 SCANNING ALL BUTTONS
+VM2864:36 Found 43 visible buttons
+
+VM2864:88 ✅ Button 1: Close wizard
+VM2864:89    Position: (undefined, undefined)
+VM2864:90    Size: ⚠️ 36x36 (too small for touch!)
+VM2864:91    Accessible: YES
+VM2864:131 
+VM2864:88 ✅ Button 2: Add training day
+VM2864:89    Position: (undefined, undefined)
+VM2864:90    Size: ⚠️ 144x36 (too small for touch!)
+VM2864:91    Accessible: YES
+VM2864:131 
+VM2864:88 ✅ Button 3: Edit Upper Body Strength name
+VM2864:89    Position: (undefined, undefined)
+VM2864:90    Size: ⚠️ 24x24 (too small for touch!)
+VM2864:91    Accessible: YES
+VM2864:131 
+VM2864:88 ✅ Button 4: Randomize day
+VM2864:89    Position: (undefined, undefined)
+VM2864:90    Size: ⚠️ 338x32 (too small for touch!)
+VM2864:91    Accessible: YES
+VM2864:131 
+VM2864:88 ✅ Button 5: Add exercise
+VM2864:89    Position: (undefined, undefined)
+VM2864:90    Size: ⚠️ 338x32 (too small for touch!)
+VM2864:91    Accessible: YES
+VM2864:131 
+VM2864:88 ✅ Button 6: Move Barbell Squat down
+VM2864:89    Position: (undefined, undefined)
+VM2864:90    Size: ⚠️ 36x36 (too small for touch!)
+VM2864:91    Accessible: YES
+VM2864:131 
+VM2864:88 ✅ Button 7: Replace Barbell Squat
+VM2864:89    Position: (undefined, undefined)
+VM2864:90    Size: ✅ 44x44 
+VM2864:91    Accessible: YES
+VM2864:131 
+VM2864:88 ✅ Button 8: Remove Barbell Squat
+VM2864:89    Position: (undefined, undefined)
+VM2864:90    Size: ✅ 44x44 
+VM2864:91    Accessible: YES
+VM2864:131 
+VM2864:88 ✅ Button 9: Move Bench Press (Flat) up
+VM2864:89    Position: (undefined, undefined)
+VM2864:90    Size: ⚠️ 36x36 (too small for touch!)
+VM2864:91    Accessible: YES
+VM2864:131 
+VM2864:88 ✅ Button 10: Move Bench Press (Flat) down
+VM2864:89    Position: (undefined, undefined)
+VM2864:90    Size: ⚠️ 36x36 (too small for touch!)
+VM2864:91    Accessible: YES
+VM2864:131 
+VM2864:88 ✅ Button 11: Replace Bench Press (Flat)
+VM2864:89    Position: (undefined, undefined)
+VM2864:90    Size: ✅ 44x44 
+VM2864:91    Accessible: YES
+VM2864:131 
+VM2864:88 ✅ Button 12: Remove Bench Press (Flat)
+VM2864:89    Position: (undefined, undefined)
+VM2864:90    Size: ✅ 44x44 
+VM2864:91    Accessible: YES
+VM2864:131 
+VM2864:88 ✅ Button 13: Move Barbell Bent Over Row up
+VM2864:89    Position: (undefined, undefined)
+VM2864:90    Size: ⚠️ 36x36 (too small for touch!)
+VM2864:91    Accessible: YES
+VM2864:131 
+VM2864:88 ✅ Button 14: Replace Barbell Bent Over Row
+VM2864:89    Position: (undefined, undefined)
+VM2864:90    Size: ✅ 44x44 
+VM2864:91    Accessible: YES
+VM2864:131 
+VM2864:88 ✅ Button 15: Remove Barbell Bent Over Row
+VM2864:89    Position: (undefined, undefined)
+VM2864:90    Size: ✅ 44x44 
+VM2864:91    Accessible: YES
+VM2864:131 
+VM2864:88 ✅ Button 16: Edit Lower Body Power name
+VM2864:89    Position: (undefined, undefined)
+VM2864:90    Size: ⚠️ 24x24 (too small for touch!)
+VM2864:91    Accessible: YES
+VM2864:131 
+VM2864:88 ✅ Button 17: Randomize day
+VM2864:89    Position: (undefined, undefined)
+VM2864:90    Size: ⚠️ 338x32 (too small for touch!)
+VM2864:91    Accessible: YES
+VM2864:131 
+VM2864:88 ✅ Button 18: Add exercise
+VM2864:89    Position: (undefined, undefined)
+VM2864:90    Size: ⚠️ 338x32 (too small for touch!)
+VM2864:91    Accessible: YES
+VM2864:131 
+VM2864:88 ❌ Button 19: Move Deadlift (Conventional) down
+VM2864:89    Position: (undefined, undefined)
+VM2864:90    Size: ⚠️ 36x36 (too small for touch!)
+VM2864:91    Accessible: NO - blocked by: null
+VM2864:94    ⚠️  DEBUG: null is on top
+VM2864:131 
+VM2864:88 ❌ Button 20: Replace Deadlift (Conventional)
+VM2864:89    Position: (undefined, undefined)
+VM2864:90    Size: ✅ 44x44 
+VM2864:91    Accessible: NO - blocked by: null
+VM2864:94    ⚠️  DEBUG: null is on top
+VM2864:131 
+VM2864:88 ❌ Button 21: Remove Deadlift (Conventional)
+VM2864:89    Position: (undefined, undefined)
+VM2864:90    Size: ✅ 44x44 
+VM2864:91    Accessible: NO - blocked by: null
+VM2864:94    ⚠️  DEBUG: null is on top
+VM2864:131 
+VM2864:88 ❌ Button 22: Move Barbell Shoulder Press (Standing) up
+VM2864:89    Position: (undefined, undefined)
+VM2864:90    Size: ⚠️ 36x36 (too small for touch!)
+VM2864:91    Accessible: NO - blocked by: null
+VM2864:94    ⚠️  DEBUG: null is on top
+VM2864:131 
+VM2864:88 ❌ Button 23: Move Barbell Shoulder Press (Standing) down
+VM2864:89    Position: (undefined, undefined)
+VM2864:90    Size: ⚠️ 36x36 (too small for touch!)
+VM2864:91    Accessible: NO - blocked by: null
+VM2864:94    ⚠️  DEBUG: null is on top
+VM2864:131 
+VM2864:88 ❌ Button 24: Replace Barbell Shoulder Press (Standing)
+VM2864:89    Position: (undefined, undefined)
+VM2864:90    Size: ✅ 44x44 
+VM2864:91    Accessible: NO - blocked by: null
+VM2864:94    ⚠️  DEBUG: null is on top
+VM2864:131 
+VM2864:88 ❌ Button 25: Remove Barbell Shoulder Press (Standing)
+VM2864:89    Position: (undefined, undefined)
+VM2864:90    Size: ✅ 44x44 
+VM2864:91    Accessible: NO - blocked by: null
+VM2864:94    ⚠️  DEBUG: null is on top
+VM2864:131 
+VM2864:88 ❌ Button 26: Move Barbell Curl (Normal Grip) up
+VM2864:89    Position: (undefined, undefined)
+VM2864:90    Size: ⚠️ 36x36 (too small for touch!)
+VM2864:91    Accessible: NO - blocked by: null
+VM2864:94    ⚠️  DEBUG: null is on top
+VM2864:131 
+VM2864:88 ❌ Button 27: Replace Barbell Curl (Normal Grip)
+VM2864:89    Position: (undefined, undefined)
+VM2864:90    Size: ✅ 44x44 
+VM2864:91    Accessible: NO - blocked by: null
+VM2864:94    ⚠️  DEBUG: null is on top
+VM2864:131 
+VM2864:88 ❌ Button 28: Remove Barbell Curl (Normal Grip)
+VM2864:89    Position: (undefined, undefined)
+VM2864:90    Size: ✅ 44x44 
+VM2864:91    Accessible: NO - blocked by: null
+VM2864:94    ⚠️  DEBUG: null is on top
+VM2864:131 
+VM2864:88 ❌ Button 29: Edit Full Body Accessory name
+VM2864:89    Position: (undefined, undefined)
+VM2864:90    Size: ⚠️ 24x24 (too small for touch!)
+VM2864:91    Accessible: NO - blocked by: null
+VM2864:94    ⚠️  DEBUG: null is on top
+VM2864:131 
+VM2864:88 ❌ Button 30: Randomize day
+VM2864:89    Position: (undefined, undefined)
+VM2864:90    Size: ⚠️ 338x32 (too small for touch!)
+VM2864:91    Accessible: NO - blocked by: null
+VM2864:94    ⚠️  DEBUG: null is on top
+VM2864:131 
+VM2864:88 ❌ Button 31: Add exercise
+VM2864:89    Position: (undefined, undefined)
+VM2864:90    Size: ⚠️ 338x32 (too small for touch!)
+VM2864:91    Accessible: NO - blocked by: null
+VM2864:94    ⚠️  DEBUG: null is on top
+VM2864:131 
+VM2864:88 ❌ Button 32: Move Front Squat down
+VM2864:89    Position: (undefined, undefined)
+VM2864:90    Size: ⚠️ 36x36 (too small for touch!)
+VM2864:91    Accessible: NO - blocked by: null
+VM2864:94    ⚠️  DEBUG: null is on top
+VM2864:131 
+VM2864:88 ❌ Button 33: Replace Front Squat
+VM2864:89    Position: (undefined, undefined)
+VM2864:90    Size: ✅ 44x44 
+VM2864:91    Accessible: NO - blocked by: null
+VM2864:94    ⚠️  DEBUG: null is on top
+VM2864:131 
+VM2864:88 ❌ Button 34: Remove Front Squat
+VM2864:89    Position: (undefined, undefined)
+VM2864:90    Size: ✅ 44x44 
+VM2864:91    Accessible: NO - blocked by: null
+VM2864:94    ⚠️  DEBUG: null is on top
+VM2864:131 
+VM2864:88 ❌ Button 35: Move Pullup (Normal Grip) up
+VM2864:89    Position: (undefined, undefined)
+VM2864:90    Size: ⚠️ 36x36 (too small for touch!)
+VM2864:91    Accessible: NO - blocked by: null
+VM2864:94    ⚠️  DEBUG: null is on top
+VM2864:131 
+VM2864:88 ❌ Button 36: Move Pullup (Normal Grip) down
+VM2864:89    Position: (undefined, undefined)
+VM2864:90    Size: ⚠️ 36x36 (too small for touch!)
+VM2864:91    Accessible: NO - blocked by: null
+VM2864:94    ⚠️  DEBUG: null is on top
+VM2864:131 
+VM2864:88 ❌ Button 37: Replace Pullup (Normal Grip)
+VM2864:89    Position: (undefined, undefined)
+VM2864:90    Size: ✅ 44x44 
+VM2864:91    Accessible: NO - blocked by: null
+VM2864:94    ⚠️  DEBUG: null is on top
+VM2864:131 
+VM2864:88 ❌ Button 38: Remove Pullup (Normal Grip)
+VM2864:89    Position: (undefined, undefined)
+VM2864:90    Size: ✅ 44x44 
+VM2864:91    Accessible: NO - blocked by: null
+VM2864:94    ⚠️  DEBUG: null is on top
+VM2864:131 
+VM2864:88 ❌ Button 39: Move Dumbbell Lateral Raise up
+VM2864:89    Position: (undefined, undefined)
+VM2864:90    Size: ⚠️ 36x36 (too small for touch!)
+VM2864:91    Accessible: NO - blocked by: null
+VM2864:94    ⚠️  DEBUG: null is on top
+VM2864:131 
+VM2864:88 ❌ Button 40: Replace Dumbbell Lateral Raise
+VM2864:89    Position: (undefined, undefined)
+VM2864:90    Size: ✅ 44x44 
+VM2864:91    Accessible: NO - blocked by: null
+VM2864:94    ⚠️  DEBUG: null is on top
+VM2864:131 
+VM2864:88 ❌ Button 41: Remove Dumbbell Lateral Raise
+VM2864:89    Position: (undefined, undefined)
+VM2864:90    Size: ✅ 44x44 
+VM2864:91    Accessible: NO - blocked by: null
+VM2864:94    ⚠️  DEBUG: null is on top
+VM2864:131 
+VM2864:88 ❌ Button 42: Back
+VM2864:89    Position: (undefined, undefined)
+VM2864:90    Size: ⚠️ 364x36 (too small for touch!)
+VM2864:91    Accessible: NO - blocked by: null
+VM2864:94    ⚠️  DEBUG: null is on top
+VM2864:131 
+VM2864:88 ❌ Button 43: Continue
+VM2864:89    Position: (undefined, undefined)
+VM2864:90    Size: ⚠️ 364x36 (too small for touch!)
+VM2864:91    Accessible: NO - blocked by: null
+VM2864:94    ⚠️  DEBUG: null is on top
+VM2864:131 
+VM2864:135 🚨 CHECKING FOR OVERFLOW & CLIPPING
+VM2864:137 Found 5 potential scroll containers
+
+VM2864:145 Container 1: overflow = auto hidden
+VM2864:146   Position: (24, 113)
+VM2864:147   Size: 364x44
+VM2864:145 Container 2: overflow = hidden auto
+VM2864:146   Position: (0, 170)
+VM2864:147   Size: 412x1623
+VM2864:145 Container 3: overflow = hidden
+VM2864:146   Position: (292, 352)
+VM2864:147   Size: 83x22
+VM2864:145 Container 4: overflow = hidden
+VM2864:146   Position: (292, 774)
+VM2864:147   Size: 83x22
+VM2864:145 Container 5: overflow = hidden
+VM2864:146   Position: (292, 1212)
+VM2864:147   Size: 83x22
+VM2864:167 
+VM2864:170 🗺️ VISUAL POSITION MAP
+VM2864:171 This map shows button positions relative to viewport:
+
+VM2864:188 ┌────────────────────────────────────────────────────────────────────────────────┐
+VM2864:190 │                                                                                │
+VM2864:190 │                                                                    0           │
+VM2864:190 │                                                                                │
+VM2864:190 │                                                                                │
+VM2864:190 │                                                                                │
+VM2864:190 │                                                                                │
+VM2864:190 │                                                                                │
+VM2864:190 │                                                                                │
+VM2864:190 │                                                                                │
+VM2864:190 │     1                                                                          │
+VM2864:190 │                                                                                │
+VM2864:190 │                                                                                │
+VM2864:190 │                                        2                                       │
+VM2864:190 │       3                                                                        │
+VM2864:190 │       4                                                                        │
+VM2864:190 │                                                                                │
+VM2864:190 │          5                                         6         7                 │
+VM2864:190 │                                                                                │
+VM2864:190 │          8                                                                     │
+VM2864:190 │                                                    *         *                 │
+VM2864:190 │          9                                                                     │
+VM2864:190 │                                                                                │
+VM2864:190 │          *                                         *         *                 │
+VM2864:190 │                                                                                │
+VM2864:190 │                                                                                │
+VM2864:190 │                                    *                                           │
+VM2864:190 │                                                                                │
+VM2864:190 │       *                                                                        │
+VM2864:190 │       *                                                                        │
+VM2864:190 │     * *  *                            *            *         *                 │
+VM2864:192 └────────────────────────────────────────────────────────────────────────────────┘
+VM2864:193 Numbers = button indices (0-9), * = multiple buttons
+
+VM2864:196 ⚠️ DEAD ZONES DETECTED
+VM2864:199 Found 25 inaccessible buttons:
+
+VM2864:201 ❌ "Move Deadlift (Conventional) down"
+VM2864:202    Position: (undefined, undefined)
+VM2864:203    Blocked by: null
+VM2864:201 ❌ "Replace Deadlift (Conventional)"
+VM2864:202    Position: (undefined, undefined)
+VM2864:203    Blocked by: null
+VM2864:201 ❌ "Remove Deadlift (Conventional)"
+VM2864:202    Position: (undefined, undefined)
+VM2864:203    Blocked by: null
+VM2864:201 ❌ "Move Barbell Shoulder Press (Standing) up"
+VM2864:202    Position: (undefined, undefined)
+VM2864:203    Blocked by: null
+VM2864:201 ❌ "Move Barbell Shoulder Press (Standing) down"
+VM2864:202    Position: (undefined, undefined)
+VM2864:203    Blocked by: null
+VM2864:201 ❌ "Replace Barbell Shoulder Press (Standing)"
+VM2864:202    Position: (undefined, undefined)
+VM2864:203    Blocked by: null
+VM2864:201 ❌ "Remove Barbell Shoulder Press (Standing)"
+VM2864:202    Position: (undefined, undefined)
+VM2864:203    Blocked by: null
+VM2864:201 ❌ "Move Barbell Curl (Normal Grip) up"
+VM2864:202    Position: (undefined, undefined)
+VM2864:203    Blocked by: null
+VM2864:201 ❌ "Replace Barbell Curl (Normal Grip)"
+VM2864:202    Position: (undefined, undefined)
+VM2864:203    Blocked by: null
+VM2864:201 ❌ "Remove Barbell Curl (Normal Grip)"
+VM2864:202    Position: (undefined, undefined)
+VM2864:203    Blocked by: null
+VM2864:201 ❌ "Edit Full Body Accessory name"
+VM2864:202    Position: (undefined, undefined)
+VM2864:203    Blocked by: null
+VM2864:201 ❌ "Randomize day"
+VM2864:202    Position: (undefined, undefined)
+VM2864:203    Blocked by: null
+VM2864:201 ❌ "Add exercise"
+VM2864:202    Position: (undefined, undefined)
+VM2864:203    Blocked by: null
+VM2864:201 ❌ "Move Front Squat down"
+VM2864:202    Position: (undefined, undefined)
+VM2864:203    Blocked by: null
+VM2864:201 ❌ "Replace Front Squat"
+VM2864:202    Position: (undefined, undefined)
+VM2864:203    Blocked by: null
+VM2864:201 ❌ "Remove Front Squat"
+VM2864:202    Position: (undefined, undefined)
+VM2864:203    Blocked by: null
+VM2864:201 ❌ "Move Pullup (Normal Grip) up"
+VM2864:202    Position: (undefined, undefined)
+VM2864:203    Blocked by: null
+VM2864:201 ❌ "Move Pullup (Normal Grip) down"
+VM2864:202    Position: (undefined, undefined)
+VM2864:203    Blocked by: null
+VM2864:201 ❌ "Replace Pullup (Normal Grip)"
+VM2864:202    Position: (undefined, undefined)
+VM2864:203    Blocked by: null
+VM2864:201 ❌ "Remove Pullup (Normal Grip)"
+VM2864:202    Position: (undefined, undefined)
+VM2864:203    Blocked by: null
+VM2864:201 ❌ "Move Dumbbell Lateral Raise up"
+VM2864:202    Position: (undefined, undefined)
+VM2864:203    Blocked by: null
+VM2864:201 ❌ "Replace Dumbbell Lateral Raise"
+VM2864:202    Position: (undefined, undefined)
+VM2864:203    Blocked by: null
+VM2864:201 ❌ "Remove Dumbbell Lateral Raise"
+VM2864:202    Position: (undefined, undefined)
+VM2864:203    Blocked by: null
+VM2864:201 ❌ "Back"
+VM2864:202    Position: (undefined, undefined)
+VM2864:203    Blocked by: null
+VM2864:201 ❌ "Continue"
+VM2864:202    Position: (undefined, undefined)
+VM2864:203    Blocked by: null
+VM2864:208 
+VM2864:211 💡 ISSUES & RECOMMENDATIONS
+VM2864:213 Found 25 issues:
+
+VM2864:215 1. Move Deadlift (Conventional) down
+VM2864:216    Issue: Button blocked by another element
+VM2864:218 
+VM2864:215 2. Replace Deadlift (Conventional)
+VM2864:216    Issue: Button blocked by another element
+VM2864:218 
+VM2864:215 3. Remove Deadlift (Conventional)
+VM2864:216    Issue: Button blocked by another element
+VM2864:218 
+VM2864:215 4. Move Barbell Shoulder Press (Standing) up
+VM2864:216    Issue: Button blocked by another element
+VM2864:218 
+VM2864:215 5. Move Barbell Shoulder Press (Standing) down
+VM2864:216    Issue: Button blocked by another element
+VM2864:218 
+VM2864:215 6. Replace Barbell Shoulder Press (Standing)
+VM2864:216    Issue: Button blocked by another element
+VM2864:218 
+VM2864:215 7. Remove Barbell Shoulder Press (Standing)
+VM2864:216    Issue: Button blocked by another element
+VM2864:218 
+VM2864:215 8. Move Barbell Curl (Normal Grip) up
+VM2864:216    Issue: Button blocked by another element
+VM2864:218 
+VM2864:215 9. Replace Barbell Curl (Normal Grip)
+VM2864:216    Issue: Button blocked by another element
+VM2864:218 
+VM2864:215 10. Remove Barbell Curl (Normal Grip)
+VM2864:216    Issue: Button blocked by another element
+VM2864:218 
+VM2864:215 11. Edit Full Body Accessory name
+VM2864:216    Issue: Button blocked by another element
+VM2864:218 
+VM2864:215 12. Randomize day
+VM2864:216    Issue: Button blocked by another element
+VM2864:218 
+VM2864:215 13. Add exercise
+VM2864:216    Issue: Button blocked by another element
+VM2864:218 
+VM2864:215 14. Move Front Squat down
+VM2864:216    Issue: Button blocked by another element
+VM2864:218 
+VM2864:215 15. Replace Front Squat
+VM2864:216    Issue: Button blocked by another element
+VM2864:218 
+VM2864:215 16. Remove Front Squat
+VM2864:216    Issue: Button blocked by another element
+VM2864:218 
+VM2864:215 17. Move Pullup (Normal Grip) up
+VM2864:216    Issue: Button blocked by another element
+VM2864:218 
+VM2864:215 18. Move Pullup (Normal Grip) down
+VM2864:216    Issue: Button blocked by another element
+VM2864:218 
+VM2864:215 19. Replace Pullup (Normal Grip)
+VM2864:216    Issue: Button blocked by another element
+VM2864:218 
+VM2864:215 20. Remove Pullup (Normal Grip)
+VM2864:216    Issue: Button blocked by another element
+VM2864:218 
+VM2864:215 21. Move Dumbbell Lateral Raise up
+VM2864:216    Issue: Button blocked by another element
+VM2864:218 
+VM2864:215 22. Replace Dumbbell Lateral Raise
+VM2864:216    Issue: Button blocked by another element
+VM2864:218 
+VM2864:215 23. Remove Dumbbell Lateral Raise
+VM2864:216    Issue: Button blocked by another element
+VM2864:218 
+VM2864:215 24. Back
+VM2864:216    Issue: Button blocked by another element
+VM2864:218 
+VM2864:215 25. Continue
+VM2864:216    Issue: Button blocked by another element
+VM2864:218 
+VM2864:225 🧪 SIMULATING CLICKS
+VM2864:226 Attempting to simulate clicks on each button...
+
+page-48a960ddc12d15ec.js:1 [ProgramWizard Debug] Dropdown opened for exercise: add-exercise
+page-48a960ddc12d15ec.js:1 [ProgramWizard Debug] Dropdown opened for exercise: add-exercise
+page-48a960ddc12d15ec.js:1 [ProgramWizard Debug] Dropdown opened for exercise: Barbell Squat
+page-48a960ddc12d15ec.js:1 [ProgramWizard Debug] Dropdown opened for exercise: Barbell Squat
+page-48a960ddc12d15ec.js:1 [ProgramWizard Debug] Dropdown opened for exercise: Bench Press (Flat)
+page-48a960ddc12d15ec.js:1 [ProgramWizard Debug] Dropdown opened for exercise: Bench Press (Flat)
+page-48a960ddc12d15ec.js:1 [ProgramWizard Debug] Dropdown opened for exercise: Barbell Bent Over Row
+page-48a960ddc12d15ec.js:1 [ProgramWizard Debug] Dropdown opened for exercise: Barbell Bent Over Row
+page-48a960ddc12d15ec.js:1 [ProgramWizard Debug] Dropdown opened for exercise: add-exercise
+page-48a960ddc12d15ec.js:1 [ProgramWizard Debug] Dropdown opened for exercise: add-exercise
+page-48a960ddc12d15ec.js:1 [ProgramWizard Debug] Dropdown opened for exercise: Deadlift (Conventional)
+page-48a960ddc12d15ec.js:1 [ProgramWizard Debug] Dropdown opened for exercise: Deadlift (Conventional)
+page-48a960ddc12d15ec.js:1 [ProgramWizard Debug] Dropdown opened for exercise: Barbell Shoulder Press (Standing)
+page-48a960ddc12d15ec.js:1 [ProgramWizard Debug] Dropdown opened for exercise: Barbell Shoulder Press (Standing)
+page-48a960ddc12d15ec.js:1 [ProgramWizard Debug] Dropdown opened for exercise: Barbell Curl (Normal Grip)
+page-48a960ddc12d15ec.js:1 [ProgramWizard Debug] Dropdown opened for exercise: Barbell Curl (Normal Grip)
+page-48a960ddc12d15ec.js:1 [ProgramWizard Debug] Dropdown opened for exercise: add-exercise
+page-48a960ddc12d15ec.js:1 [ProgramWizard Debug] Dropdown opened for exercise: add-exercise
+page-48a960ddc12d15ec.js:1 [ProgramWizard Debug] Dropdown opened for exercise: Front Squat
+page-48a960ddc12d15ec.js:1 [ProgramWizard Debug] Dropdown opened for exercise: Front Squat
+page-48a960ddc12d15ec.js:1 [ProgramWizard Debug] Dropdown opened for exercise: Pullup (Normal Grip)
+page-48a960ddc12d15ec.js:1 [ProgramWizard Debug] Dropdown opened for exercise: Pullup (Normal Grip)
+page-48a960ddc12d15ec.js:1 [ProgramWizard Debug] Dropdown opened for exercise: Dumbbell Lateral Raise
+page-48a960ddc12d15ec.js:1 [ProgramWizard Debug] Dropdown opened for exercise: Dumbbell Lateral Raise
+VM2864:283 
+═══════════════════════════════════════════════════════
+VM2864:284 📊 SUMMARY
+VM2864:285 ═══════════════════════════════════════════════════════
+VM2864:290 Total Buttons: 43
+VM2864:291 Accessible: 18/43 ❌
+VM2864:292 Touch Size OK (44px): 18/43 ❌
+VM2864:293 Critical Issues: 25 ❌
+VM2864:295 
+📋 NEXT STEPS:
+VM2864:296 1. Copy the ENTIRE output above (use Ctrl+C in DevTools)
+VM2864:297 2. Share it with the developer
+VM2864:298 3. Also answer these questions:
+VM2864:299    - What buttons are you trying to click?
+VM2864:300    - Does clicking/tapping anywhere work on mobile?
+VM2864:301    - Are you testing on real device or emulator?
+VM2864:302    - Can you drag on desktop?
+VM2864:303    - Are you using Chrome, Firefox, Safari, or other?
+VM2864:304 
+VM2864:308 ✅ Results stored in window.dayBuilderDiagnostics
+VM2864:309 You can export with: JSON.stringify(window.dayBuilderDiagnostics, null, 2)
+
+Promise {<fulfilled>: undefined}
+696-5923c3f9562dcb92.js:1 [SessionManager] Session check: {expiresIn: '50 minutes', expiresAt: '3:01:11 AM', userId: '6bf0e5d0...'}
+355-f50c377b4103c85b.js:1 [WorkoutLogger] Starting periodic sync
+355-f50c377b4103c85b.js:1 [WorkoutLogger] Loading user data from database (forceRefresh: false )
+355-f50c377b4103c85b.js:1 [WorkoutLogger] Testing database access...
+355-f50c377b4103c85b.js:1 [WorkoutLogger] Loading completed workouts...
+355-f50c377b4103c85b.js:1 [WorkoutLogger] Found 179 workouts in database
+355-f50c377b4103c85b.js:1 [WorkoutLogger] Sample workout data: {id: 'cif9ol8hn', user_id: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c', program_id: '4a6e88cc-f1d8-4fe9-833b-7750ccc49735', workout_name: 'Upper Body Strength', start_time: 1761084154911, …}
+355-f50c377b4103c85b.js:1 [WorkoutLogger] Preserving local workouts, found 257335 characters of local data
+355-f50c377b4103c85b.js:1 [WorkoutLogger] Loading in-progress workouts...
+355-f50c377b4103c85b.js:1 [WorkoutLogger] Found 1 in-progress workouts in database
+355-f50c377b4103c85b.js:1 [WorkoutLogger] Preserving local in-progress workouts, found 1838 characters of local data
+355-f50c377b4103c85b.js:1 [WorkoutLogger] Database loading completed. Total records loaded: 180
+355-f50c377b4103c85b.js:1 [WorkoutLogger] Periodic sync completed
