@@ -114,9 +114,9 @@ export function ExerciseGroups({
                       <div className="flex items-center gap-2">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <button className="inline-flex items-center justify-center min-h-[44px] min-w-[44px] rounded-md hover:bg-accent hover:text-accent-foreground text-muted-foreground">
+                            <Button variant="ghost" size="icon">
                               <MoreVertical className="h-4 w-4" />
-                            </button>
+                            </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" className="z-[100]">
                             <DropdownMenuItem onClick={() => onExerciseNotes(exercise.id)}>
@@ -182,9 +182,9 @@ export function ExerciseGroups({
                               <div className="col-span-1">
                                 <DropdownMenu>
                                   <DropdownMenuTrigger asChild>
-                                    <button className="inline-flex items-center justify-center min-h-[44px] min-w-[44px] rounded-md hover:bg-accent hover:text-accent-foreground text-muted-foreground">
+                                    <Button variant="ghost" size="icon">
                                       <MoreVertical className="h-4 w-4" />
-                                    </button>
+                                    </Button>
                                   </DropdownMenuTrigger>
                                   <DropdownMenuContent align="start" className="z-[100]">
                                     <DropdownMenuItem onClick={() => onAddSet(exercise.id, set.id)}>

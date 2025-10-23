@@ -1,5 +1,6 @@
 "use client"
 import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
 import { Dumbbell, Calendar, BarChart3, User } from "lucide-react"
 
 interface BottomNavigationProps {
@@ -39,17 +40,19 @@ export function BottomNavigation({ currentView, onViewChange }: BottomNavigation
           const isActive = currentView === item.id
 
           return (
-            <button
+            <Button
               key={item.id}
+              variant="ghost"
+              size="touch"
               onClick={() => onViewChange(item.id)}
               className={cn(
-                "flex flex-col items-center justify-center py-2 px-4 rounded-lg transition-colors min-h-[48px] min-w-[48px]",
-                isActive ? "text-primary bg-primary/10" : "text-muted-foreground hover:text-foreground",
+                "flex-col gap-1.5",
+                isActive && "text-primary bg-primary/10",
               )}
             >
-              <Icon className="h-5 w-5 mb-1" />
+              <Icon className="h-5 w-5" />
               <span className="text-xs font-medium">{item.label}</span>
-            </button>
+            </Button>
           )
         })}
       </div>

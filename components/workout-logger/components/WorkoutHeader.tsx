@@ -85,9 +85,9 @@ export function WorkoutHeader({
             </Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="inline-flex items-center justify-center h-9 w-9 sm:h-10 sm:w-10 rounded-md hover:bg-accent hover:text-accent-foreground">
+                <Button variant="ghost" size="icon">
                   <MoreVertical className="h-4 w-4" />
-                </button>
+                </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="z-[100]">
                 <DropdownMenuItem onClick={onOpenNotes}>

@@ -235,24 +235,24 @@ export function WorkoutCompletionDialog({
           </div>
         </ScrollArea>
 
-        <DialogFooter className="dialog-footer flex-col space-y-1.5 sm:space-y-2 flex-shrink-0 pt-1.5 sm:pt-2 md:pt-4">
-          <Button variant="outline" onClick={onViewMuscleGroupStats} className="dialog-button w-full bg-transparent text-xs sm:text-sm md:text-base py-1.5 sm:py-2 md:py-3 h-auto min-h-[32px] sm:min-h-[36px] md:min-h-[44px]">
-            <TrendingUp className="button-icon h-3 w-3 sm:h-4 sm:w-4 md:h-4 md:w-4 mr-1 sm:mr-2" />
+        <DialogFooter className="dialog-footer flex-col space-y-2 flex-shrink-0 pt-4">
+          <Button variant="outline" onClick={onViewMuscleGroupStats} size="touch" className="w-full">
+            <TrendingUp className="h-4 w-4 mr-2" />
             <span className="truncate">View Muscle Group Stats</span>
           </Button>
           {hasNext ? (
-            <Button onClick={handleNextWorkout} className="dialog-button w-full gradient-primary text-primary-foreground text-xs sm:text-sm md:text-base py-1.5 sm:py-2 md:py-3 h-auto min-h-[32px] sm:min-h-[36px] md:min-h-[44px]">
-              <Calendar className="button-icon h-3 w-3 sm:h-4 sm:w-4 md:h-4 md:w-4 mr-1 sm:mr-2" />
+            <Button onClick={handleNextWorkout} size="touch" className="w-full">
+              <Calendar className="h-4 w-4 mr-2" />
               <span className="truncate">Start Next Workout</span>
             </Button>
           ) : (
             <>
-              <Button onClick={handleViewProgramSummary} className="dialog-button w-full gradient-primary text-primary-foreground text-xs sm:text-sm md:text-base py-1.5 sm:py-2 md:py-3 h-auto min-h-[32px] sm:min-h-[36px] md:min-h-[44px]">
-                <Trophy className="button-icon h-3 w-3 sm:h-4 sm:w-4 md:h-4 md:w-4 mr-1 sm:mr-2" />
+              <Button onClick={handleViewProgramSummary} size="touch" className="w-full">
+                <Trophy className="h-4 w-4 mr-2" />
                 <span className="truncate">View Program Summary</span>
               </Button>
-              <Button onClick={handleStartNewProgram} variant="outline" className="dialog-button w-full text-xs sm:text-sm md:text-base py-1.5 sm:py-2 md:py-3 h-auto min-h-[32px] sm:min-h-[36px] md:min-h-[44px]">
-                <Zap className="button-icon h-3 w-3 sm:h-4 sm:w-4 md:h-4 md:w-4 mr-1 sm:mr-2" />
+              <Button onClick={handleStartNewProgram} variant="outline" size="touch" className="w-full">
+                <Zap className="h-4 w-4 mr-2" />
                 <span className="truncate">Start New Program</span>
               </Button>
             </>
