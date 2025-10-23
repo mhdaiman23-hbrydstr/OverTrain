@@ -41,10 +41,11 @@ RLS (to add in a separate policy migration):
 
 ### ProgramTemplateService
 - Extends DB type with new columns; compatibility layer converts DB → GymTemplate.
-- Canonical templates listing excludes user‑owned rows:
-  - `getAllTemplates()` → `is_active = true AND owner_user_id IS NULL`
-- My Programs listing (metadata only):
-  - `getMyPrograms(userId: string)`
+- Canonical templates listing (admin-created only):
+  - `getAllTemplates()` → `is_active = true AND owner_user_id IS NULL AND origin_template_id IS NULL`
+  - Excludes both user-owned and forked templates
+- My Programs listing (user-owned, includes forked with replacements):
+  - `getMyPrograms(userId: string)` → `owner_user_id = userId`
 
 File: `lib/services/program-template-service.ts`
 

@@ -163,6 +163,7 @@ export class ProgramTemplateService {
       .select('*')
       .eq('is_active', true)
       .is('owner_user_id', null)
+      .is('origin_template_id', null)
       .order('name')
 
     if (error) throw error
