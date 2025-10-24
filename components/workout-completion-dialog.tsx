@@ -143,7 +143,7 @@ export function WorkoutCompletionDialog({
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-h-[85vh] sm:max-h-[90vh] flex flex-col !p-3 sm:!p-4 lg:left-[calc(256px+50%)]">
+      <DialogContent className="max-h-[85vh] sm:max-h-[90vh] flex flex-col !p-3 sm:!p-4 lg:left-[calc(128px+50%)]">
         <DialogHeader className="dialog-header text-center sm:text-center flex-shrink-0 pb-2 sm:pb-3 space-y-2">
           <div className="mx-auto mb-1 sm:mb-2 md:mb-4">
             {showCelebration ? (
