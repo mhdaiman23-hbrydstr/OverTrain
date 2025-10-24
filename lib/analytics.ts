@@ -18,6 +18,58 @@ export interface ExerciseStats {
   averageWeight: number
   lastPerformed: string
   progressTrend: "up" | "down" | "stable"
+  frequency: number // times per month
+  bestSet: { weight: number; reps: number; date: string }
+}
+
+export interface TrainingLoadData {
+  date: string
+  load: number // volume × RPE
+  volume: number
+  avgRPE: number
+}
+
+export interface ACWRData {
+  acuteLoad: number // 7-day average
+  chronicLoad: number // 28-day average
+  ratio: number
+  zone: "safe" | "caution" | "high-risk"
+  recommendation: string
+}
+
+export interface PersonalRecord {
+  exerciseId: string
+  exerciseName: string
+  weight: number
+  reps: number
+  date: string
+  type: "weight" | "reps" | "volume"
+}
+
+export interface HeatmapData {
+  date: string
+  value: number // workout count or volume
+  intensity: "low" | "medium" | "high"
+}
+
+export interface SmartInsight {
+  id: string
+  type: "deload" | "progression" | "consistency" | "recovery"
+  title: string
+  description: string
+  actionText: string
+  priority: "high" | "medium" | "low"
+  actionable: boolean
+}
+
+export interface AdvancedAnalytics {
+  trainingLoad: TrainingLoadData[]
+  acwr: ACWRData
+  personalRecords: PersonalRecord[]
+  heatmap: HeatmapData[]
+  insights: SmartInsight[]
+  consistencyScore: number
+  topExercises: ExerciseStats[]
 }
 
 export class AnalyticsEngine {
@@ -99,6 +151,8 @@ export class AnalyticsEngine {
             averageWeight: 0,
             lastPerformed: "",
             progressTrend: "stable" as const,
+            frequency: 0,
+            bestSet: { weight: 0, reps: 0, date: "" },
           }
         }
 
@@ -108,6 +162,17 @@ export class AnalyticsEngine {
         const averageWeight = sets.reduce((sum, set) => sum + set.weight, 0) / sets.length
         const lastPerformed = sets[sets.length - 1].date
         const progressTrend = this.calculateProgressTrend(sets)
+        
+        // Calculate frequency (times per month)
+        const uniqueDays = new Set(sets.map(s => s.date.split('-').slice(0, 2).join('-'))).size
+        const frequency = Math.round((uniqueDays / Math.max(1, sets.length / 30)) * 10) / 10
+        
+        // Find best set (highest volume)
+        const bestSet = sets.reduce((best, current) => {
+          const currentVolume = current.weight * current.reps
+          const bestVolume = best.weight * best.reps
+          return currentVolume > bestVolume ? current : best
+        })
 
         return {
           exerciseId,
@@ -118,9 +183,263 @@ export class AnalyticsEngine {
           averageWeight: Math.round(averageWeight * 10) / 10,
           lastPerformed,
           progressTrend,
+          frequency,
+          bestSet,
         }
       })
       .sort((a, b) => b.totalSets - a.totalSets)
+  }
+
+  static calculateAdvancedAnalytics(workouts: WorkoutSession[]): AdvancedAnalytics {
+    const completedWorkouts = workouts.filter((w) => w.completed)
+    
+    if (completedWorkouts.length === 0) {
+      return {
+        trainingLoad: [],
+        acwr: { acuteLoad: 0, chronicLoad: 0, ratio: 0, zone: "safe", recommendation: "No data available" },
+        personalRecords: [],
+        heatmap: [],
+        insights: [],
+        consistencyScore: 0,
+        topExercises: [],
+      }
+    }
+
+    const trainingLoad = this.calculateTrainingLoad(completedWorkouts)
+    const acwr = this.calculateACWR(trainingLoad)
+    const personalRecords = this.calculatePersonalRecords(completedWorkouts)
+    const heatmap = this.calculateHeatmap(completedWorkouts)
+    const insights = this.generateSmartInsights(completedWorkouts, acwr)
+    const consistencyScore = this.calculateConsistencyScore(completedWorkouts)
+    const topExercises = this.getExerciseStats(workouts).slice(0, 6)
+
+    return {
+      trainingLoad,
+      acwr,
+      personalRecords,
+      heatmap,
+      insights,
+      consistencyScore,
+      topExercises,
+    }
+  }
+
+  private static calculateTrainingLoad(workouts: WorkoutSession[]): TrainingLoadData[] {
+    const dailyLoad = new Map<string, { volume: number; totalRPE: number; setCount: number }>()
+
+    workouts.forEach((workout) => {
+      const date = new Date(workout.startTime).toISOString().split("T")[0]
+      let volume = 0
+      let totalRPE = 0
+      let setCount = 0
+
+      workout.exercises.forEach((exercise) => {
+        exercise.sets.forEach((set) => {
+          if (set.completed) {
+            volume += set.weight * set.reps
+            // Use default RPE of 7 since it's not stored in WorkoutSet
+            totalRPE += 7
+            setCount++
+          }
+        })
+      })
+
+      const avgRPE = setCount > 0 ? totalRPE / setCount : 7
+      const load = volume * (avgRPE / 10) // Normalized load
+
+      if (!dailyLoad.has(date)) {
+        dailyLoad.set(date, { volume: 0, totalRPE: 0, setCount: 0 })
+      }
+
+      const existing = dailyLoad.get(date)!
+      existing.volume += volume
+      existing.totalRPE += totalRPE
+      existing.setCount += setCount
+    })
+
+    return Array.from(dailyLoad.entries())
+      .map(([date, data]) => ({
+        date,
+        load: data.volume * (data.setCount > 0 ? (data.totalRPE / data.setCount) / 10 : 0.7),
+        volume: data.volume,
+        avgRPE: data.setCount > 0 ? Math.round((data.totalRPE / data.setCount) * 10) / 10 : 7,
+      }))
+      .sort((a, b) => a.date.localeCompare(b.date))
+      .slice(-30) // Last 30 days
+  }
+
+  private static calculateACWR(trainingLoad: TrainingLoadData[]): ACWRData {
+    if (trainingLoad.length < 7) {
+      return {
+        acuteLoad: 0,
+        chronicLoad: 0,
+        ratio: 0,
+        zone: "safe",
+        recommendation: "Need more data to calculate ACWR",
+      }
+    }
+
+    const recent7Days = trainingLoad.slice(-7)
+    const recent28Days = trainingLoad.slice(-28)
+
+    const acuteLoad = recent7Days.reduce((sum, day) => sum + day.load, 0) / 7
+    const chronicLoad = recent28Days.length > 0 ? recent28Days.reduce((sum, day) => sum + day.load, 0) / 28 : acuteLoad
+
+    const ratio = chronicLoad > 0 ? acuteLoad / chronicLoad : 0
+
+    let zone: "safe" | "caution" | "high-risk"
+    let recommendation: string
+
+    if (ratio < 0.8) {
+      zone = "safe"
+      recommendation = "Training load is well-managed. Continue current progression."
+    } else if (ratio < 1.3) {
+      zone = "caution"
+      recommendation = "Approaching high training load. Consider lighter session this week."
+    } else {
+      zone = "high-risk"
+      recommendation = "High training load detected. Recommend deload week for recovery."
+    }
+
+    return {
+      acuteLoad: Math.round(acuteLoad),
+      chronicLoad: Math.round(chronicLoad),
+      ratio: Math.round(ratio * 100) / 100,
+      zone,
+      recommendation,
+    }
+  }
+
+  private static calculatePersonalRecords(workouts: WorkoutSession[]): PersonalRecord[] {
+    const exerciseRecords = new Map<string, { name: string; weight: number; reps: number; date: string }>()
+
+    workouts.forEach((workout) => {
+      const date = new Date(workout.startTime).toISOString().split("T")[0]
+
+      workout.exercises.forEach((exercise) => {
+        exercise.sets.forEach((set) => {
+          if (set.completed) {
+            const key = exercise.exerciseId
+
+            if (!exerciseRecords.has(key)) {
+              exerciseRecords.set(key, { name: exercise.exerciseName || exercise.exerciseId || "Unknown", weight: 0, reps: 0, date: "" })
+            }
+
+            const current = exerciseRecords.get(key)!
+
+            // Check for weight PR
+            if (set.weight > current.weight) {
+              current.weight = set.weight
+              current.reps = set.reps
+              current.date = date
+            }
+          }
+        })
+      })
+    })
+
+    return Array.from(exerciseRecords.entries())
+      .map(([exerciseId, record]) => ({
+        exerciseId,
+        exerciseName: record.name,
+        weight: record.weight,
+        reps: record.reps,
+        date: record.date,
+        type: "weight" as const,
+      }))
+      .filter(pr => pr.weight > 0)
+      .sort((a, b) => b.date.localeCompare(a.date))
+      .slice(0, 10)
+  }
+
+  private static calculateHeatmap(workouts: WorkoutSession[]): HeatmapData[] {
+    const dailyData = new Map<string, number>()
+
+    workouts.forEach((workout) => {
+      const date = new Date(workout.startTime).toISOString().split("T")[0]
+      dailyData.set(date, (dailyData.get(date) || 0) + 1)
+    })
+
+    return Array.from(dailyData.entries()).map(([date, value]) => {
+      let intensity: "low" | "medium" | "high"
+      if (value === 1) intensity = "low"
+      else if (value === 2) intensity = "medium"
+      else intensity = "high"
+
+      return { date, value, intensity }
+    })
+  }
+
+  private static generateSmartInsights(workouts: WorkoutSession[], acwr: ACWRData): SmartInsight[] {
+    const insights: SmartInsight[] = []
+
+    // ACWR-based insights
+    if (acwr.zone === "high-risk") {
+      insights.push({
+        id: "deload-recommendation",
+        type: "deload",
+        title: "Deload Recommended",
+        description: "Your training load is in the high-risk zone. A deload week will help prevent overtraining.",
+        actionText: "Schedule Deload Week",
+        priority: "high",
+        actionable: true,
+      })
+    }
+
+    // Consistency insights
+    const recentWorkouts = workouts.filter(w => {
+      const workoutDate = new Date(w.startTime)
+      const twoWeeksAgo = new Date()
+      twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14)
+      return workoutDate > twoWeeksAgo
+    })
+
+    if (recentWorkouts.length < 3) {
+      insights.push({
+        id: "consistency-reminder",
+        type: "consistency",
+        title: "Build Consistency",
+        description: "You've had fewer than 3 workouts in the past 2 weeks. Consistency is key to progress.",
+        actionText: "Schedule Next Workout",
+        priority: "medium",
+        actionable: true,
+      })
+    }
+
+    // Progression insights
+    const exerciseStats = this.getExerciseStats(workouts)
+    const stagnantExercises = exerciseStats.filter(ex => ex.progressTrend === "stable" && ex.totalSets > 10)
+
+    if (stagnantExercises.length > 0) {
+      insights.push({
+        id: "progression-opportunity",
+        type: "progression",
+        title: "Time to Progress",
+        description: `Consider increasing weight or reps on ${stagnantExercises[0].exerciseName} to break through plateau.`,
+        actionText: "View Exercise Details",
+        priority: "medium",
+        actionable: true,
+      })
+    }
+
+    return insights
+  }
+
+  private static calculateConsistencyScore(workouts: WorkoutSession[]): number {
+    if (workouts.length === 0) return 0
+
+    const last30Days = workouts.filter(w => {
+      const workoutDate = new Date(w.startTime)
+      const thirtyDaysAgo = new Date()
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+      return workoutDate > thirtyDaysAgo
+    })
+
+    const uniqueDays = new Set(last30Days.map(w => 
+      new Date(w.startTime).toISOString().split("T")[0]
+    )).size
+
+    return Math.round((uniqueDays / 30) * 100)
   }
 
   private static calculateTotalVolume(workouts: WorkoutSession[]): number {

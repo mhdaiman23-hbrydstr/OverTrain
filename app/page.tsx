@@ -14,7 +14,7 @@ import { WorkoutLoggerComponent } from "@/components/workout-logger"
 import { TrainSection } from "@/components/train-section"
 import { SidebarNavigation } from "@/components/sidebar-navigation"
 import { BottomNavigation } from "@/components/bottom-navigation"
-import { AnalyticsSection } from "@/components/analytics-section"
+import { MobileAnalyticsTab } from "@/components/mobile-analytics-tab"
 import { ProfileSection } from "@/components/profile-section"
 import { ProgramStateManager } from "@/lib/program-state"
 
@@ -280,7 +280,10 @@ export default function HomePage() {
           className="flex-1 lg:ml-64 overflow-y-auto overflow-x-hidden h-screen"
           style={{ display: currentView === "analytics" ? "block" : "none" }}
         >
-          <AnalyticsSection />
+          <MobileAnalyticsTab
+            onLogWorkout={() => setCurrentView("train")}
+            onQuickAdd={() => setCurrentView("train")}
+          />
         </div>
 
         {/* Profile Section - Hidden but mounted */}

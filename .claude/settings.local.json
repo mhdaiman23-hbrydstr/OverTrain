@@ -19,7 +19,8 @@
       "Bash(timeout 15 bash:*)",
       "Bash(npx tsc:*)",
       "Bash(find:*)",
-      "Bash(cd:*)"
+      "Bash(cd:*)",
+      "Bash(npm run test:*)"
     ],
     "deny": [],
     "ask": []
