@@ -874,8 +874,8 @@ Checklist
 
 ---
 
-*Last Updated: 2025-10-20*
-*Version: 1.7 - Added in-app rename dialog requirement for My Programs.*
+*Last Updated: 2025-10-24*
+*Version: 1.8 - Added Pattern 17: Dialog Positioning with Sidebar Compensation.*
 
 ---
 
@@ -1191,6 +1191,49 @@ import { DialogWrapper } from "@/components/ui/dialog-wrapper"
 - ✅ Never hardcode `max-w-[value]` on DialogContent
 - ✅ Mobile dialogs automatically responsive (size="compact" → medium on desktop)
 - ❌ Never use hardcoded `max-w-2xl` or `max-w-md` in dialogs
+
+### Pattern 17: Dialog Positioning with Sidebar Compensation
+
+**When dialogs need to center in the main content area (accounting for sidebar):**
+
+The shadcn `DialogContent` component has built-in centering: `fixed top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%]`. This centers dialogs in the **full viewport** on all screen sizes.
+
+However, when you have a sidebar (e.g., `lg:left-64`), you need to override this on desktop to center the dialog in the **remaining content area** after the sidebar.
+
+```typescript
+// ✅ CORRECT - Override left position on desktop
+<DialogContent className="max-h-[85vh] sm:max-h-[90vh] flex flex-col lg:left-[calc(128px+50%)]">
+  {/* Dialog content */}
+</DialogContent>
+
+// The math:
+// - Sidebar width = 256px (left-64 in Tailwind)
+// - Remaining space = 100vw - 256px
+// - Center point = 256px + ((100vw - 256px) / 2)
+//               = 256px + 50vw - 128px
+//               = 128px + 50vw
+// - The existing -translate-x-1/2 shift handles the rest
+
+// ❌ WRONG - Using full sidebar width
+lg:left-[calc(256px+50%)]  // Centers too far right
+
+// ❌ WRONG - Removing default centering entirely
+className="fixed top-[50%] left-1/2 -translate-x-1/2 -translate-y-1/2..."
+// This conflicts with DialogContent's built-in transforms
+
+// ❌ WRONG - Trying to add margin-based centering
+className="mx-auto"  // Doesn't work with fixed positioning
+```
+
+**Key Rules:**
+- ✅ Let DialogContent's default centering work for mobile/tablet
+- ✅ Override only on desktop (lg breakpoint) with `lg:left-[calc(128px+50%)]`
+- ✅ Use half the sidebar width (128px = 256px/2) in the calculation
+- ✅ Keep the default `-translate-x-1/2` shift (it works with both positions)
+- ✅ Test centering on both mobile (full viewport) and desktop (content area)
+- ❌ Never remove the default fixed positioning classes
+- ❌ Never add custom transform overrides that conflict with defaults
+- ❌ Never use full sidebar width (256px) in the calculation
 
 ### Mobile-First CSS Rules
 
