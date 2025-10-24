@@ -144,8 +144,8 @@ export function WorkoutCompletionDialog({
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="w-full max-w-[calc(100vw-1rem)] left-2 right-2 bottom-2 top-auto translate-x-0 translate-y-0 sm:left-[50%] sm:top-[50%] sm:translate-x-[-50%] sm:translate-y-[-50%] sm:right-auto sm:bottom-auto max-h-[85vh] sm:max-h-[90vh] sm:max-w-md flex flex-col p-3 sm:p-6">
-        <DialogHeader className="dialog-header text-center flex-shrink-0 pb-1 sm:pb-2 md:pb-4">
+      <DialogContent className="w-full max-w-[calc(100vw-1rem)] left-2 right-2 bottom-2 top-auto translate-x-0 translate-y-0 sm:left-[50%] sm:top-[50%] sm:translate-x-[-50%] sm:translate-y-[-50%] sm:right-auto sm:bottom-auto max-h-[85vh] sm:max-h-[90vh] sm:max-w-md flex flex-col gap-3 sm:gap-4 p-3 sm:p-6">
+        <DialogHeader className="dialog-header text-center flex-shrink-0">
           <div className="mx-auto mb-1 sm:mb-2 md:mb-4">
             {showCelebration ? (
               <div className="animate-bounce">
@@ -161,8 +161,8 @@ export function WorkoutCompletionDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <ScrollArea className="dialog-content flex-1 min-h-0 pr-1 sm:pr-2 md:pr-4">
-          <div className="space-y-1.5 sm:space-y-2 md:space-y-4">
+        <ScrollArea className="dialog-content flex-1 min-h-0 pr-3 sm:pr-4">
+          <div className="space-y-1.5 sm:space-y-2 md:space-y-4 pr-2 sm:pr-2">
             {/* Responsive summary cards - stack on very small screens */}
             <div className="summary-cards grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-1 md:gap-3">
               <Card className="w-full">
@@ -235,7 +235,7 @@ export function WorkoutCompletionDialog({
           </div>
         </ScrollArea>
 
-        <DialogFooter className="dialog-footer flex-col space-y-2 flex-shrink-0 pt-4">
+        <DialogFooter className="dialog-footer flex-col space-y-2 flex-shrink-0">
           <Button variant="outline" onClick={onViewMuscleGroupStats} size="touch" className="w-full">
             <TrendingUp className="h-4 w-4 mr-2" />
             <span className="truncate">View Muscle Group Stats</span>
