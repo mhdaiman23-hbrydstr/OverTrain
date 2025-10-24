@@ -1,7 +1,9 @@
 "use client"
 
 import { useMemo } from "react"
+import { HelpCircle } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import {
   ChartContainer,
   ChartTooltip,
@@ -48,11 +50,23 @@ export function VolumeTrendChart({ trainingLoad }: VolumeTrendChartProps) {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-lg">Volume Trend</CardTitle>
-      </CardHeader>
-      <CardContent>
+    <TooltipProvider>
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-lg">Volume Trend</CardTitle>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help hover:text-foreground transition-colors" />
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Total weight lifted per workout day.</p>
+                <p className="text-xs mt-1">Shows your training volume over time to track progression.</p>
+              </TooltipContent>
+            </Tooltip>
+          </div>
+        </CardHeader>
+        <CardContent>
         <ChartContainer config={chartConfig} className="h-64 w-full">
           <LineChart
             data={chartData}
@@ -80,7 +94,8 @@ export function VolumeTrendChart({ trainingLoad }: VolumeTrendChartProps) {
             />
           </LineChart>
         </ChartContainer>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </TooltipProvider>
   )
 }
