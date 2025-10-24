@@ -14,10 +14,9 @@ import type { WorkoutSession } from "@/lib/workout-logger"
 
 interface MobileAnalyticsTabProps {
   onLogWorkout?: () => void
-  onQuickAdd?: () => void
 }
 
-export function MobileAnalyticsTab({ onLogWorkout, onQuickAdd }: MobileAnalyticsTabProps) {
+export function MobileAnalyticsTab({ onLogWorkout }: MobileAnalyticsTabProps) {
   const [selectedPeriod, setSelectedPeriod] = useState("28d")
   const [activeTab, setActiveTab] = useState("overview")
 
@@ -89,7 +88,6 @@ export function MobileAnalyticsTab({ onLogWorkout, onQuickAdd }: MobileAnalytics
           workouts={filteredWorkouts}
           weeklyGoal={weeklyGoal}
           onLogWorkout={onLogWorkout}
-          onQuickAdd={onQuickAdd}
         />
 
         {/* Tabs */}

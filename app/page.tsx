@@ -282,7 +282,6 @@ export default function HomePage() {
         >
           <MobileAnalyticsTab
             onLogWorkout={() => setCurrentView("train")}
-            onQuickAdd={() => setCurrentView("train")}
           />
         </div>
 

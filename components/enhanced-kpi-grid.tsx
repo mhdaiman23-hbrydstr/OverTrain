@@ -51,7 +51,7 @@ function KPICard({ icon, value, label, trend, trendValue, onClick, className }: 
       )}
       onClick={onClick}
     >
-      <CardContent className="p-4">
+      <CardContent className="p-3">
         <div className="flex items-start justify-between">
           <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary/10 text-primary">
             {icon}
@@ -67,12 +67,12 @@ function KPICard({ icon, value, label, trend, trendValue, onClick, className }: 
             </div>
           )}
         </div>
-        
-        <div className="mt-3">
+
+        <div className="mt-2">
           <div className="text-2xl font-bold text-foreground tabular-nums">
             {value}
           </div>
-          <div className="text-xs text-muted-foreground mt-1">
+          <div className="text-xs text-muted-foreground mt-0.5">
             {label}
           </div>
         </div>

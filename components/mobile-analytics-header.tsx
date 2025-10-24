@@ -1,7 +1,6 @@
 "use client"
 
 import { TrendingUp } from "lucide-react"
-import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
 interface MobileAnalyticsHeaderProps {
@@ -33,18 +32,18 @@ export function MobileAnalyticsHeader({ selectedPeriod, onPeriodChange }: Mobile
           {periods.map((period) => {
             const isSelected = selectedPeriod === period.value
             return (
-              <Button
+              <button
                 key={period.value}
-                variant={isSelected ? "default" : "ghost"}
-                size="sm"
                 onClick={() => onPeriodChange(period.value)}
                 className={cn(
-                  "h-7 rounded-full text-xs font-medium transition-all duration-200",
-                  isSelected && "shadow-sm"
+                  "h-7 rounded-full text-xs font-medium transition-all duration-200 px-3",
+                  isSelected
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
                 )}
               >
                 {period.label}
-              </Button>
+              </button>
             )
           })}
         </div>
