@@ -143,8 +143,8 @@ export function WorkoutCompletionDialog({
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="fixed top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2 w-[95vw] max-w-md max-h-[85vh] sm:max-h-[90vh] lg:left-[calc(256px+50%)] lg:w-[384px] flex flex-col p-3 sm:p-4">
-        <DialogHeader className="dialog-header text-center flex-shrink-0 pb-2 sm:pb-3">
+      <DialogContent className="fixed top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2 w-[95vw] max-w-md max-h-[85vh] sm:max-h-[90vh] flex flex-col p-3 sm:p-4">
+        <DialogHeader className="dialog-header text-center flex-shrink-0 pb-2 sm:pb-3 space-y-2">
           <div className="mx-auto mb-1 sm:mb-2 md:mb-4">
             {showCelebration ? (
               <div className="animate-bounce">
