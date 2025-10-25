@@ -17,6 +17,12 @@ import { BottomNavigation } from "@/components/bottom-navigation"
 import { MobileAnalyticsTab } from "@/components/mobile-analytics-tab"
 import { ProfileSection } from "@/components/profile-section"
 import { ProgramStateManager } from "@/lib/program-state"
+import { debugLogCapture } from "@/lib/debug-logs"
+
+// Start log capture automatically in development
+if (typeof window !== "undefined" && process.env.NODE_ENV === "development") {
+  debugLogCapture.start()
+}
 
 export default function HomePage() {
   const { user, signIn, signUp, signInWithGoogle, signOut, isLoading: authLoading } = useAuth()
