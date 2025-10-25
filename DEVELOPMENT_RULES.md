@@ -704,7 +704,44 @@ useEffect(() => {
 
 **Applied to**:
 - [train-section.tsx:24-30](train-section.tsx#L24-L30): `shouldAutoStartRef` for auto-start logic
+- [app/page.tsx:39-50](app/page.tsx#L39-L50): `currentViewRef` and `userRef` for programChanged listener
 - Pattern 8 update: Added guidance on scoping side effects to active tabs
+
+**When This Race Occurs**:
+This pattern appears in ANY component that:
+1. Registers long-lived event listeners (window.addEventListener)
+2. Closes over props/state values
+3. Has those values in the dependency array (causing re-registration)
+
+Example vulnerable patterns:
+```typescript
+// ❌ VULNERABLE - Listener re-registered on every prop change
+const MyComponent = ({ currentView }) => {
+  useEffect(() => {
+    const handler = () => {
+      if (currentView === "train") { ... }  // ← Stale closure!
+    }
+    window.addEventListener("event", handler)
+    return () => window.removeEventListener("event", handler)
+  }, [currentView])  // ← Dependencies cause re-registration!
+}
+
+// ✅ SAFE - Listener registered once, uses ref
+const MyComponent = ({ currentView }) => {
+  const currentViewRef = useRef(currentView)
+  useEffect(() => {
+    currentViewRef.current = currentView
+  }, [currentView])
+
+  useEffect(() => {
+    const handler = () => {
+      if (currentViewRef.current === "train") { ... }  // ← Current value!
+    }
+    window.addEventListener("event", handler)
+    return () => window.removeEventListener("event", handler)
+  }, [])  // ← No dependencies! Registered once forever
+}
+```
 
 ---
 
