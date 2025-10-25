@@ -609,7 +609,82 @@ Run through this final checklist:
 - Test with page refresh
 - Ask: "Am I fixing the root cause or just the symptom?"
 
-### Mistake 9: Component Unmounting Causing Loading Spinners (Oct 2025)
+### Mistake 9: Stale Closures in Event Listeners (Oct 2025)
+**Problem**: Navigating between tabs (e.g., Programs → Analytics → Profile) unexpectedly redirects user back to Train tab and auto-starts workout.
+
+**Root Cause**: Race condition between prop changes and event listener execution:
+1. User on Train tab: `shouldAutoStart = true`
+2. useEffect runs, registers `handleProgramChange` listener with closure over `shouldAutoStart=true`
+3. User navigates away: `shouldAutoStart` prop becomes `false`
+4. useEffect cleanup scheduled (to remove old listener)
+5. BUT if navigation preloading triggers `programChanged` event IMMEDIATELY:
+6. Old listener (with OLD closure capturing `shouldAutoStart=true`) executes BEFORE cleanup finishes
+7. Calls `loadProgramData()` with stale `shouldAutoStart=true` from closure
+8. Auto-starts workout, redirects user back to Train tab ❌
+
+**Timeline of Race**:
+```
+useEffect runs (shouldAutoStart=true)
+  → listener = () => { if (shouldAutoStart) ... }  // Captures true
+  → addEventListener("programChanged", listener)
+
+shouldAutoStart prop changes to false
+  → React schedules: cleanup (removeEventListener) + new effect setup
+
+Navigation preloading fires programChanged event IMMEDIATELY
+  → Old listener still registered! (cleanup hasn't run yet)
+  → Executes with OLD closure (shouldAutoStart=true)
+  → Calls onStartWorkout()
+  → User gets pulled back to Train tab!
+
+[Then cleanup finally runs]
+  → removeEventListener (too late, already executed)
+```
+
+**Fix**: Use `useRef` to track current value instead of closing over prop:
+
+```typescript
+// ✅ CORRECT - Use ref to track current value
+const shouldAutoStartRef = useRef(shouldAutoStart)
+
+useEffect(() => {
+  shouldAutoStartRef.current = shouldAutoStart  // Always sync current value
+}, [shouldAutoStart])
+
+const handleProgramChange = () => {
+  if (shouldAutoStartRef.current) {  // ← Check CURRENT value, not closed-over
+    loadProgramData()
+  }
+}
+
+useEffect(() => {
+  window.addEventListener("programChanged", handleProgramChange)
+  return () => {
+    window.removeEventListener("programChanged", handleProgramChange)
+  }
+}, [])  // ← Empty dependency array! Listener registered once
+```
+
+**Why This Works**:
+- Listener registered ONCE (empty dependencies)
+- Even if old listener executes during race, it checks `ref.current`
+- `ref.current` is always up-to-date (synced in separate effect)
+- No stale closure problem!
+
+**Lesson**:
+- Event listeners that close over props are vulnerable to races
+- When prop changes, old listener can execute with old closure
+- Use refs for values accessed in long-lived listeners
+- Keep listeners on empty dependency array ([]) to prevent re-registration
+- Sync ref value in separate effect when prop changes
+
+**Applied to**:
+- [train-section.tsx:24-30](train-section.tsx#L24-L30): `shouldAutoStartRef` for auto-start logic
+- Pattern 8 update: Added guidance on scoping side effects to active tabs
+
+---
+
+### Mistake 10: Component Unmounting Causing Loading Spinners (Oct 2025)
 **Problem**: Switching between tabs (Programs â†” Train â†” Analytics â†” Profile) showed loading spinners every time
 **Root Cause**: Conditional rendering with `if (currentView === "programs")` unmounted components when switching tabs, losing all state and cached data
 **Fix**:
@@ -671,7 +746,11 @@ if (user && currentView === "train") {
 - Remounting triggers `useEffect`, causing unnecessary data fetching
 - Users see loading spinners on every tab switch
 - CSS `display: none` keeps components alive with preserved state
-- Keep background effects scoped to the active tab. Example: pass `shouldAutoStart={currentView === "train"}` into `TrainSection` and only call `onStartWorkout()` when that flag is true so hidden views can't hijack navigation.
+- **CRITICAL: Scope side effects to active tab** - Example: pass `shouldAutoStart={currentView === "train"}` into `TrainSection`
+  - This way, `TrainSection` only auto-starts when actively visible
+  - Hidden views (Programs, Analytics) don't have `shouldAutoStart=true`, so they don't auto-start
+  - BUT watch for stale closures! (See Mistake 9)
+  - Use refs for values accessed in long-lived event listeners
 
 ### Pattern 9: Conditional Loading Spinners
 
