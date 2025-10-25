@@ -1,10 +1,10 @@
 "use client"
 import { Button } from "@/components/ui/button"
-import { Dumbbell, Calendar, BarChart3, User, HelpCircle, LogOut, FilePlus2, MessageSquare } from "lucide-react"
+import { Dumbbell, Calendar, BarChart3, User, HelpCircle, LogOut, FilePlus2, MessageSquare, Check, AlertCircle, Wifi, WifiOff } from "lucide-react"
 import { useAuth } from "@/contexts/auth-context"
 import { useRouter } from "next/navigation"
 import { ThemeToggle } from "@/components/theme-toggle"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,7 +25,46 @@ export function SidebarNavigation({ currentView, onViewChange }: SidebarNavigati
   const { signOut, user } = useAuth()
   const router = useRouter()
   const [showSignOutDialog, setShowSignOutDialog] = useState(false)
+  const [syncStatus, setSyncStatus] = useState<'synced' | 'syncing' | 'failed' | 'offline'>('synced')
+  const [isOnline, setIsOnline] = useState(true)
   const isAdmin = !!user?.email?.includes('admin') // Simple admin check based on email
+
+  // Listen for sync status updates
+  useEffect(() => {
+    const handleSyncStatus = (event: any) => {
+      if (event.detail?.status) {
+        setSyncStatus(event.detail.status)
+      }
+    }
+
+    // Monitor online/offline status
+    const handleOnline = () => {
+      setIsOnline(true)
+      setSyncStatus('syncing')
+    }
+
+    const handleOffline = () => {
+      setIsOnline(false)
+      setSyncStatus('offline')
+    }
+
+    if (typeof window !== "undefined") {
+      window.addEventListener('syncStatusChanged', handleSyncStatus)
+      window.addEventListener('online', handleOnline)
+      window.addEventListener('offline', handleOffline)
+
+      // Set initial online status
+      setIsOnline(navigator.onLine)
+    }
+
+    return () => {
+      if (typeof window !== "undefined") {
+        window.removeEventListener('syncStatusChanged', handleSyncStatus)
+        window.removeEventListener('online', handleOnline)
+        window.removeEventListener('offline', handleOffline)
+      }
+    }
+  }, [])
 
   const baseNavigationItems = [
     { id: "train", label: "Train", icon: Dumbbell },
@@ -143,8 +182,38 @@ export function SidebarNavigation({ currentView, onViewChange }: SidebarNavigati
           </Button>
         </div>
 
-        {/* Version */}
-        <div className="px-4 py-2 text-xs text-muted-foreground border-t border-border">Version 0.9.11</div>
+        {/* Version & Sync Status */}
+        <div className="px-4 py-3 text-xs border-t border-border space-y-2">
+          <div className="text-muted-foreground">Version 0.9.11</div>
+
+          {/* Sync Status Indicator */}
+          <div className="flex items-center gap-2">
+            {syncStatus === 'synced' && (
+              <div className="flex items-center gap-1 text-green-600 dark:text-green-500">
+                <Check className="h-3 w-3" />
+                <span>Synced</span>
+              </div>
+            )}
+            {syncStatus === 'syncing' && (
+              <div className="flex items-center gap-1 text-blue-600 dark:text-blue-500 animate-pulse">
+                <Wifi className="h-3 w-3 animate-spin" />
+                <span>Syncing...</span>
+              </div>
+            )}
+            {syncStatus === 'failed' && (
+              <div className="flex items-center gap-1 text-red-600 dark:text-red-500" title="Sync failed - will retry">
+                <AlertCircle className="h-3 w-3" />
+                <span>Sync failed</span>
+              </div>
+            )}
+            {syncStatus === 'offline' && (
+              <div className="flex items-center gap-1 text-amber-600 dark:text-amber-500">
+                <WifiOff className="h-3 w-3" />
+                <span>Offline</span>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </div>
 
