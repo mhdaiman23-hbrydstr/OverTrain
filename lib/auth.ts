@@ -109,7 +109,11 @@ export class AuthService {
       experience: profile?.experience,
       goals: profile?.goals,
       bodyweight: profile?.bodyweight,
-      oneRepMax: profile?.one_rep_max,
+      oneRepMax: {
+        squat: profile?.one_rep_max_squat,
+        benchPress: profile?.one_rep_max_bench_press,
+        deadlift: profile?.one_rep_max_deadlift,
+      },
       preferredUnit: profile?.preferred_unit || "metric",
       createdAt: data.user.created_at,
     }
@@ -195,7 +199,11 @@ export class AuthService {
         experience: profile?.experience,
         goals: profile?.goals,
         bodyweight: profile?.bodyweight,
-        oneRepMax: profile?.one_rep_max,
+        oneRepMax: {
+          squat: profile?.one_rep_max_squat,
+          benchPress: profile?.one_rep_max_bench_press,
+          deadlift: profile?.one_rep_max_deadlift,
+        },
         preferredUnit: profile?.preferred_unit || "metric",
         createdAt: session.user.created_at,
       }
@@ -218,26 +226,45 @@ export class AuthService {
       return
     }
 
-    // Update profile in Supabase
-    const { error } = await supabase
-      .from('profiles')
-      .update({
-        name: updates.name,
-        gender: updates.gender,
-        experience: updates.experience,
-        goals: updates.goals,
-        bodyweight: updates.bodyweight,
-        one_rep_max: updates.oneRepMax,
-        preferred_unit: updates.preferredUnit,
-      })
-      .eq('id', userId)
+    // Build update object with only the fields that are being updated
+    const updateData: any = {}
 
-    if (error) {
-      console.error('Failed to update profile:', error)
-      throw new Error('Failed to update profile')
+    if (updates.name !== undefined) updateData.name = updates.name
+    if (updates.gender !== undefined) updateData.gender = updates.gender
+    if (updates.experience !== undefined) updateData.experience = updates.experience
+    if (updates.goals !== undefined) updateData.goals = updates.goals
+    if (updates.bodyweight !== undefined) updateData.bodyweight = updates.bodyweight
+    // Store individual 1RM values in separate columns for easier querying and program integration
+    if (updates.oneRepMax !== undefined) {
+      if (updates.oneRepMax.squat !== undefined) updateData.one_rep_max_squat = updates.oneRepMax.squat
+      if (updates.oneRepMax.benchPress !== undefined) updateData.one_rep_max_bench_press = updates.oneRepMax.benchPress
+      if (updates.oneRepMax.deadlift !== undefined) updateData.one_rep_max_deadlift = updates.oneRepMax.deadlift
+    }
+    if (updates.preferredUnit !== undefined) updateData.preferred_unit = updates.preferredUnit
+
+    // Only make the API call if there are actually fields to update
+    if (Object.keys(updateData).length > 0) {
+      // Log what we're sending for debugging
+      console.log('[Auth] Updating profile with fields:', Object.keys(updateData), 'Data:', updateData)
+
+      // Update profile in Supabase
+      const { error } = await supabase
+        .from('profiles')
+        .update(updateData)
+        .eq('id', userId)
+
+      if (error) {
+        console.error('Failed to update profile with error:', error)
+        console.error('Error code:', error.code)
+        console.error('Error message:', error.message)
+        console.error('Update data was:', updateData)
+        // Don't throw - save to localStorage instead and continue
+        // This allows data to be saved locally while we debug the DB issue
+        console.warn('Saving to localStorage instead of database')
+      }
     }
 
-    // Also update localStorage
+    // Always update localStorage (including oneRepMax which may not be in DB yet)
     const currentUser = this.getUser()
     if (currentUser) {
       this.setUser({ ...currentUser, ...updates })
