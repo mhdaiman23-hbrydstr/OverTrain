@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -20,6 +20,14 @@ export function TrainSection({ onStartWorkout, onAddProgram, shouldAutoStart = f
   const [currentWorkout, setCurrentWorkout] = useState<{ name: string; exercises: any[] } | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // FIX: Use ref to track current shouldAutoStart value to prevent race conditions
+  // This prevents stale closures in event listeners when shouldAutoStart prop changes
+  const shouldAutoStartRef = useRef(shouldAutoStart)
+
+  useEffect(() => {
+    shouldAutoStartRef.current = shouldAutoStart
+  }, [shouldAutoStart])
 
   const loadProgramData = async () => {
     try {
@@ -62,8 +70,9 @@ export function TrainSection({ onStartWorkout, onAddProgram, shouldAutoStart = f
 
         // CRITICAL: Auto-start workout immediately when active program exists
         // This skips the summary screen and goes directly to workout logger
+        // FIX: Use shouldAutoStartRef to prevent stale closure race conditions
         setIsLoading(false)
-        if (shouldAutoStart) {
+        if (shouldAutoStartRef.current) {
           console.log("[TrainSection] Active program found - auto-starting workout")
           onStartWorkout()
         } else {
@@ -168,7 +177,8 @@ export function TrainSection({ onStartWorkout, onAddProgram, shouldAutoStart = f
   }, [shouldAutoStart])
 
   useEffect(() => {
-    if (shouldAutoStart && activeProgram && currentWorkout) {
+    // FIX: Check ref instead of prop to avoid race conditions with event listeners
+    if (shouldAutoStartRef.current && activeProgram && currentWorkout) {
       console.log("[TrainSection] Auto-start triggered from visibility change")
       onStartWorkout()
     }

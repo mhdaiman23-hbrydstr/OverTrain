@@ -1,0 +1,704 @@
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 Exercise 1: Deadlift (Conventional) - 3 sets
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 Exercise 2: Barbell Shoulder Press (Standing) - 3 sets
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 Exercise 3: Barbell Curl (Normal Grip) - 3 sets
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 Exercise 1: Deadlift (Conventional) - 3 sets
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 Exercise 2: Barbell Shoulder Press (Standing) - 3 sets
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 Exercise 3: Barbell Curl (Normal Grip) - 3 sets
+S:\Program Files\LiftLog\lib\debug-logs.ts:57 The width(0) and height(0) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+captureLog @ S:\Program Files\LiftLog\lib\debug-logs.ts:57
+console.warn @ S:\Program Files\LiftLog\lib\debug-logs.ts:69
+warn @ LogUtils.js:19
+ResponsiveContainer.useMemo[chartContent] @ ResponsiveContainer.js:216
+updateMemo @ react-dom-client.development.js:7887
+useMemo @ react-dom-client.development.js:24153
+exports.useMemo @ react.development.js:1240
+eval @ ResponsiveContainer.js:192
+react_stack_bottom_frame @ react-dom-client.development.js:23584
+renderWithHooks @ react-dom-client.development.js:6793
+updateForwardRef @ react-dom-client.development.js:8807
+beginWork @ react-dom-client.development.js:11197
+runWithFiberInDEV @ react-dom-client.development.js:872
+performUnitOfWork @ react-dom-client.development.js:15727
+workLoopSync @ react-dom-client.development.js:15547
+renderRootSync @ react-dom-client.development.js:15527
+performWorkOnRoot @ react-dom-client.development.js:14991
+performSyncWorkOnRoot @ react-dom-client.development.js:16831
+flushSyncWorkAcrossRoots_impl @ react-dom-client.development.js:16677
+processRootScheduleInMicrotask @ react-dom-client.development.js:16715
+eval @ react-dom-client.development.js:16850
+S:\Program Files\LiftLog\lib\debug-logs.ts:57 The width(0) and height(0) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+captureLog @ S:\Program Files\LiftLog\lib\debug-logs.ts:57
+console.warn @ S:\Program Files\LiftLog\lib\debug-logs.ts:69
+warn @ LogUtils.js:19
+ResponsiveContainer.useMemo[chartContent] @ ResponsiveContainer.js:216
+updateMemo @ react-dom-client.development.js:7891
+useMemo @ react-dom-client.development.js:24153
+exports.useMemo @ react.development.js:1240
+eval @ ResponsiveContainer.js:192
+react_stack_bottom_frame @ react-dom-client.development.js:23584
+renderWithHooks @ react-dom-client.development.js:6793
+updateForwardRef @ react-dom-client.development.js:8807
+beginWork @ react-dom-client.development.js:11197
+runWithFiberInDEV @ react-dom-client.development.js:872
+performUnitOfWork @ react-dom-client.development.js:15727
+workLoopSync @ react-dom-client.development.js:15547
+renderRootSync @ react-dom-client.development.js:15527
+performWorkOnRoot @ react-dom-client.development.js:14991
+performSyncWorkOnRoot @ react-dom-client.development.js:16831
+flushSyncWorkAcrossRoots_impl @ react-dom-client.development.js:16677
+processRootScheduleInMicrotask @ react-dom-client.development.js:16715
+eval @ react-dom-client.development.js:16850
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [TrainSection] Component mounted or updated, loading program data...
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [TrainSection] Loading active program...
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [TrainSection] localStorage has active program: true
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [TrainSection] Active program templateId in localStorage: 0f1a9e64-fd05-4b88-94c0-2f79ce754b28
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [TrainSection] Has template data: true
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [WorkoutLogger] Loading user data from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [WorkoutLogger] Testing database access...
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [TrainSection] Auto-start triggered from visibility change
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 Exercise 1: Deadlift (Conventional) - 3 sets
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 Exercise 2: Barbell Shoulder Press (Standing) - 3 sets
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 Exercise 3: Barbell Curl (Normal Grip) - 3 sets
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 Exercise 1: Deadlift (Conventional) - 3 sets
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 Exercise 2: Barbell Shoulder Press (Standing) - 3 sets
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 Exercise 3: Barbell Curl (Normal Grip) - 3 sets
+S:\Program Files\LiftLog\lib\debug-logs.ts:57 The width(0) and height(0) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+captureLog @ S:\Program Files\LiftLog\lib\debug-logs.ts:57
+console.warn @ S:\Program Files\LiftLog\lib\debug-logs.ts:69
+warn @ LogUtils.js:19
+ResponsiveContainer.useMemo[chartContent] @ ResponsiveContainer.js:216
+updateMemo @ react-dom-client.development.js:7887
+useMemo @ react-dom-client.development.js:24153
+exports.useMemo @ react.development.js:1240
+eval @ ResponsiveContainer.js:192
+react_stack_bottom_frame @ react-dom-client.development.js:23584
+renderWithHooks @ react-dom-client.development.js:6793
+updateForwardRef @ react-dom-client.development.js:8807
+beginWork @ react-dom-client.development.js:11197
+runWithFiberInDEV @ react-dom-client.development.js:872
+performUnitOfWork @ react-dom-client.development.js:15727
+workLoopSync @ react-dom-client.development.js:15547
+renderRootSync @ react-dom-client.development.js:15527
+performWorkOnRoot @ react-dom-client.development.js:14991
+performSyncWorkOnRoot @ react-dom-client.development.js:16831
+flushSyncWorkAcrossRoots_impl @ react-dom-client.development.js:16677
+processRootScheduleInMicrotask @ react-dom-client.development.js:16715
+eval @ react-dom-client.development.js:16850
+S:\Program Files\LiftLog\lib\debug-logs.ts:57 The width(0) and height(0) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+captureLog @ S:\Program Files\LiftLog\lib\debug-logs.ts:57
+console.warn @ S:\Program Files\LiftLog\lib\debug-logs.ts:69
+warn @ LogUtils.js:19
+ResponsiveContainer.useMemo[chartContent] @ ResponsiveContainer.js:216
+updateMemo @ react-dom-client.development.js:7891
+useMemo @ react-dom-client.development.js:24153
+exports.useMemo @ react.development.js:1240
+eval @ ResponsiveContainer.js:192
+react_stack_bottom_frame @ react-dom-client.development.js:23584
+renderWithHooks @ react-dom-client.development.js:6793
+updateForwardRef @ react-dom-client.development.js:8807
+beginWork @ react-dom-client.development.js:11197
+runWithFiberInDEV @ react-dom-client.development.js:872
+performUnitOfWork @ react-dom-client.development.js:15727
+workLoopSync @ react-dom-client.development.js:15547
+renderRootSync @ react-dom-client.development.js:15527
+performWorkOnRoot @ react-dom-client.development.js:14991
+performSyncWorkOnRoot @ react-dom-client.development.js:16831
+flushSyncWorkAcrossRoots_impl @ react-dom-client.development.js:16677
+processRootScheduleInMicrotask @ react-dom-client.development.js:16715
+eval @ react-dom-client.development.js:16850
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [TrainSection] Component mounted or updated, loading program data...
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [TrainSection] Loading active program...
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [TrainSection] localStorage has active program: true
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [TrainSection] Active program templateId in localStorage: 0f1a9e64-fd05-4b88-94c0-2f79ce754b28
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [TrainSection] Has template data: true
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [WorkoutLogger] Loading user data from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [WorkoutLogger] Testing database access...
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 Exercise 1: Deadlift (Conventional) - 3 sets
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 Exercise 2: Barbell Shoulder Press (Standing) - 3 sets
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 Exercise 3: Barbell Curl (Normal Grip) - 3 sets
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 Exercise 1: Deadlift (Conventional) - 3 sets
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 Exercise 2: Barbell Shoulder Press (Standing) - 3 sets
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 Exercise 3: Barbell Curl (Normal Grip) - 3 sets
+S:\Program Files\LiftLog\lib\debug-logs.ts:57 The width(0) and height(0) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+captureLog @ S:\Program Files\LiftLog\lib\debug-logs.ts:57
+console.warn @ S:\Program Files\LiftLog\lib\debug-logs.ts:69
+warn @ LogUtils.js:19
+ResponsiveContainer.useMemo[chartContent] @ ResponsiveContainer.js:216
+updateMemo @ react-dom-client.development.js:7887
+useMemo @ react-dom-client.development.js:24153
+exports.useMemo @ react.development.js:1240
+eval @ ResponsiveContainer.js:192
+react_stack_bottom_frame @ react-dom-client.development.js:23584
+renderWithHooks @ react-dom-client.development.js:6793
+updateForwardRef @ react-dom-client.development.js:8807
+beginWork @ react-dom-client.development.js:11197
+runWithFiberInDEV @ react-dom-client.development.js:872
+performUnitOfWork @ react-dom-client.development.js:15727
+workLoopSync @ react-dom-client.development.js:15547
+renderRootSync @ react-dom-client.development.js:15527
+performWorkOnRoot @ react-dom-client.development.js:14991
+performSyncWorkOnRoot @ react-dom-client.development.js:16831
+flushSyncWorkAcrossRoots_impl @ react-dom-client.development.js:16677
+processRootScheduleInMicrotask @ react-dom-client.development.js:16715
+eval @ react-dom-client.development.js:16850
+S:\Program Files\LiftLog\lib\debug-logs.ts:57 The width(0) and height(0) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+captureLog @ S:\Program Files\LiftLog\lib\debug-logs.ts:57
+console.warn @ S:\Program Files\LiftLog\lib\debug-logs.ts:69
+warn @ LogUtils.js:19
+ResponsiveContainer.useMemo[chartContent] @ ResponsiveContainer.js:216
+updateMemo @ react-dom-client.development.js:7891
+useMemo @ react-dom-client.development.js:24153
+exports.useMemo @ react.development.js:1240
+eval @ ResponsiveContainer.js:192
+react_stack_bottom_frame @ react-dom-client.development.js:23584
+renderWithHooks @ react-dom-client.development.js:6793
+updateForwardRef @ react-dom-client.development.js:8807
+beginWork @ react-dom-client.development.js:11197
+runWithFiberInDEV @ react-dom-client.development.js:872
+performUnitOfWork @ react-dom-client.development.js:15727
+workLoopSync @ react-dom-client.development.js:15547
+renderRootSync @ react-dom-client.development.js:15527
+performWorkOnRoot @ react-dom-client.development.js:14991
+performSyncWorkOnRoot @ react-dom-client.development.js:16831
+flushSyncWorkAcrossRoots_impl @ react-dom-client.development.js:16677
+processRootScheduleInMicrotask @ react-dom-client.development.js:16715
+eval @ react-dom-client.development.js:16850
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [TrainSection] Preloading next workout: Week 1, Day 3
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [WorkoutLogger] Loading completed workouts...
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [WorkoutLogger] Loading completed workouts...
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 Exercise 1: Deadlift (Conventional) - 3 sets
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 Exercise 2: Barbell Shoulder Press (Standing) - 3 sets
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 Exercise 3: Barbell Curl (Normal Grip) - 3 sets
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 Exercise 1: Deadlift (Conventional) - 3 sets
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 Exercise 2: Barbell Shoulder Press (Standing) - 3 sets
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 Exercise 3: Barbell Curl (Normal Grip) - 3 sets
+S:\Program Files\LiftLog\lib\debug-logs.ts:57 The width(0) and height(0) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+captureLog @ S:\Program Files\LiftLog\lib\debug-logs.ts:57
+console.warn @ S:\Program Files\LiftLog\lib\debug-logs.ts:69
+warn @ LogUtils.js:19
+ResponsiveContainer.useMemo[chartContent] @ ResponsiveContainer.js:216
+updateMemo @ react-dom-client.development.js:7887
+useMemo @ react-dom-client.development.js:24153
+exports.useMemo @ react.development.js:1240
+eval @ ResponsiveContainer.js:192
+react_stack_bottom_frame @ react-dom-client.development.js:23584
+renderWithHooks @ react-dom-client.development.js:6793
+updateForwardRef @ react-dom-client.development.js:8807
+beginWork @ react-dom-client.development.js:11197
+runWithFiberInDEV @ react-dom-client.development.js:872
+performUnitOfWork @ react-dom-client.development.js:15727
+workLoopSync @ react-dom-client.development.js:15547
+renderRootSync @ react-dom-client.development.js:15527
+performWorkOnRoot @ react-dom-client.development.js:14991
+performSyncWorkOnRoot @ react-dom-client.development.js:16831
+flushSyncWorkAcrossRoots_impl @ react-dom-client.development.js:16677
+processRootScheduleInMicrotask @ react-dom-client.development.js:16715
+eval @ react-dom-client.development.js:16850
+S:\Program Files\LiftLog\lib\debug-logs.ts:57 The width(0) and height(0) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+captureLog @ S:\Program Files\LiftLog\lib\debug-logs.ts:57
+console.warn @ S:\Program Files\LiftLog\lib\debug-logs.ts:69
+warn @ LogUtils.js:19
+ResponsiveContainer.useMemo[chartContent] @ ResponsiveContainer.js:216
+updateMemo @ react-dom-client.development.js:7891
+useMemo @ react-dom-client.development.js:24153
+exports.useMemo @ react.development.js:1240
+eval @ ResponsiveContainer.js:192
+react_stack_bottom_frame @ react-dom-client.development.js:23584
+renderWithHooks @ react-dom-client.development.js:6793
+updateForwardRef @ react-dom-client.development.js:8807
+beginWork @ react-dom-client.development.js:11197
+runWithFiberInDEV @ react-dom-client.development.js:872
+performUnitOfWork @ react-dom-client.development.js:15727
+workLoopSync @ react-dom-client.development.js:15547
+renderRootSync @ react-dom-client.development.js:15527
+performWorkOnRoot @ react-dom-client.development.js:14991
+performSyncWorkOnRoot @ react-dom-client.development.js:16831
+flushSyncWorkAcrossRoots_impl @ react-dom-client.development.js:16677
+processRootScheduleInMicrotask @ react-dom-client.development.js:16715
+eval @ react-dom-client.development.js:16850
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [WorkoutLogger] Found 233 workouts in database
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [WorkoutLogger] Sample workout data: {id: 'csctfcnan', user_id: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c', program_id: '0f1a9e64-fd05-4b88-94c0-2f79ce754b28', workout_name: 'Upper Body Strength', start_time: 1761337561658, …}
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [WorkoutLogger] Loaded 233 workouts from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [WorkoutLogger] Loading in-progress workouts...
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [WorkoutLogger] Found 233 workouts in database
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [WorkoutLogger] Sample workout data: {id: 'csctfcnan', user_id: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c', program_id: '0f1a9e64-fd05-4b88-94c0-2f79ce754b28', workout_name: 'Upper Body Strength', start_time: 1761337561658, …}
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [WorkoutLogger] Loaded 233 workouts from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [WorkoutLogger] Loading in-progress workouts...
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [WorkoutLogger] Found 1 in-progress workouts in database
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [WorkoutLogger] Loaded 1 in-progress workouts from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [WorkoutLogger] Database loading completed. Total records loaded: 234
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 Exercise 1: Deadlift (Conventional) - 3 sets
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 Exercise 2: Barbell Shoulder Press (Standing) - 3 sets
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 Exercise 3: Barbell Curl (Normal Grip) - 3 sets
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 Exercise 1: Deadlift (Conventional) - 3 sets
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 Exercise 2: Barbell Shoulder Press (Standing) - 3 sets
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 Exercise 3: Barbell Curl (Normal Grip) - 3 sets
+S:\Program Files\LiftLog\lib\debug-logs.ts:57 The width(0) and height(0) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+captureLog @ S:\Program Files\LiftLog\lib\debug-logs.ts:57
+console.warn @ S:\Program Files\LiftLog\lib\debug-logs.ts:69
+warn @ LogUtils.js:19
+ResponsiveContainer.useMemo[chartContent] @ ResponsiveContainer.js:216
+updateMemo @ react-dom-client.development.js:7887
+useMemo @ react-dom-client.development.js:24153
+exports.useMemo @ react.development.js:1240
+eval @ ResponsiveContainer.js:192
+react_stack_bottom_frame @ react-dom-client.development.js:23584
+renderWithHooks @ react-dom-client.development.js:6793
+updateForwardRef @ react-dom-client.development.js:8807
+beginWork @ react-dom-client.development.js:11197
+runWithFiberInDEV @ react-dom-client.development.js:872
+performUnitOfWork @ react-dom-client.development.js:15727
+workLoopSync @ react-dom-client.development.js:15547
+renderRootSync @ react-dom-client.development.js:15527
+performWorkOnRoot @ react-dom-client.development.js:14991
+performWorkOnRootViaSchedulerTask @ react-dom-client.development.js:16816
+performWorkUntilDeadline @ scheduler.development.js:45
+S:\Program Files\LiftLog\lib\debug-logs.ts:57 The width(0) and height(0) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+captureLog @ S:\Program Files\LiftLog\lib\debug-logs.ts:57
+console.warn @ S:\Program Files\LiftLog\lib\debug-logs.ts:69
+warn @ LogUtils.js:19
+ResponsiveContainer.useMemo[chartContent] @ ResponsiveContainer.js:216
+updateMemo @ react-dom-client.development.js:7891
+useMemo @ react-dom-client.development.js:24153
+exports.useMemo @ react.development.js:1240
+eval @ ResponsiveContainer.js:192
+react_stack_bottom_frame @ react-dom-client.development.js:23584
+renderWithHooks @ react-dom-client.development.js:6793
+updateForwardRef @ react-dom-client.development.js:8807
+beginWork @ react-dom-client.development.js:11197
+runWithFiberInDEV @ react-dom-client.development.js:872
+performUnitOfWork @ react-dom-client.development.js:15727
+workLoopSync @ react-dom-client.development.js:15547
+renderRootSync @ react-dom-client.development.js:15527
+performWorkOnRoot @ react-dom-client.development.js:14991
+performWorkOnRootViaSchedulerTask @ react-dom-client.development.js:16816
+performWorkUntilDeadline @ scheduler.development.js:45
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [WorkoutLogger] Found 1 in-progress workouts in database
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [WorkoutLogger] Loaded 1 in-progress workouts from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [WorkoutLogger] Database loading completed. Total records loaded: 234
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [ProgramState] Found active program in database: 0f1a9e64-fd05-4b88-94c0-2f79ce754b28
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [ProgramState] Found active program in database: 0f1a9e64-fd05-4b88-94c0-2f79ce754b28
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [ProgramState] Loaded template from database: 0f1a9e64-fd05-4b88-94c0-2f79ce754b28
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [WorkoutLogger] Week 1 Day 1 completion: {found: true, userId: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c'}
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 Exercise 1: Deadlift (Conventional) - 3 sets
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 Exercise 2: Barbell Shoulder Press (Standing) - 3 sets
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 Exercise 3: Barbell Curl (Normal Grip) - 3 sets
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 Exercise 1: Deadlift (Conventional) - 3 sets
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 Exercise 2: Barbell Shoulder Press (Standing) - 3 sets
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 Exercise 3: Barbell Curl (Normal Grip) - 3 sets
+S:\Program Files\LiftLog\lib\debug-logs.ts:57 The width(0) and height(0) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+captureLog @ S:\Program Files\LiftLog\lib\debug-logs.ts:57
+console.warn @ S:\Program Files\LiftLog\lib\debug-logs.ts:69
+warn @ LogUtils.js:19
+ResponsiveContainer.useMemo[chartContent] @ ResponsiveContainer.js:216
+updateMemo @ react-dom-client.development.js:7887
+useMemo @ react-dom-client.development.js:24153
+exports.useMemo @ react.development.js:1240
+eval @ ResponsiveContainer.js:192
+react_stack_bottom_frame @ react-dom-client.development.js:23584
+renderWithHooks @ react-dom-client.development.js:6793
+updateForwardRef @ react-dom-client.development.js:8807
+beginWork @ react-dom-client.development.js:11197
+runWithFiberInDEV @ react-dom-client.development.js:872
+performUnitOfWork @ react-dom-client.development.js:15727
+workLoopSync @ react-dom-client.development.js:15547
+renderRootSync @ react-dom-client.development.js:15527
+performWorkOnRoot @ react-dom-client.development.js:14991
+performSyncWorkOnRoot @ react-dom-client.development.js:16831
+flushSyncWorkAcrossRoots_impl @ react-dom-client.development.js:16677
+processRootScheduleInMicrotask @ react-dom-client.development.js:16715
+eval @ react-dom-client.development.js:16850
+S:\Program Files\LiftLog\lib\debug-logs.ts:57 The width(0) and height(0) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+captureLog @ S:\Program Files\LiftLog\lib\debug-logs.ts:57
+console.warn @ S:\Program Files\LiftLog\lib\debug-logs.ts:69
+warn @ LogUtils.js:19
+ResponsiveContainer.useMemo[chartContent] @ ResponsiveContainer.js:216
+updateMemo @ react-dom-client.development.js:7891
+useMemo @ react-dom-client.development.js:24153
+exports.useMemo @ react.development.js:1240
+eval @ ResponsiveContainer.js:192
+react_stack_bottom_frame @ react-dom-client.development.js:23584
+renderWithHooks @ react-dom-client.development.js:6793
+updateForwardRef @ react-dom-client.development.js:8807
+beginWork @ react-dom-client.development.js:11197
+runWithFiberInDEV @ react-dom-client.development.js:872
+performUnitOfWork @ react-dom-client.development.js:15727
+workLoopSync @ react-dom-client.development.js:15547
+renderRootSync @ react-dom-client.development.js:15527
+performWorkOnRoot @ react-dom-client.development.js:14991
+performSyncWorkOnRoot @ react-dom-client.development.js:16831
+flushSyncWorkAcrossRoots_impl @ react-dom-client.development.js:16677
+processRootScheduleInMicrotask @ react-dom-client.development.js:16715
+eval @ react-dom-client.development.js:16850
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [ProgramState] Synced active program to database: {week: 1, day: 2}
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [ProgramState] Loaded active program from database
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [ProgramState] Loaded template from database: 0f1a9e64-fd05-4b88-94c0-2f79ce754b28
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [WorkoutLogger] Week 1 Day 1 completion: {found: true, userId: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c'}
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [ProgramState] Loaded program history from database
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [WorkoutLogger] Loading user data from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [WorkoutLogger] Testing database access...
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [ProgramState] Synced active program to database: {week: 1, day: 2}
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [ProgramState] Loaded active program from database
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 Exercise 1: Deadlift (Conventional) - 3 sets
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 Exercise 2: Barbell Shoulder Press (Standing) - 3 sets
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 Exercise 3: Barbell Curl (Normal Grip) - 3 sets
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 Exercise 1: Deadlift (Conventional) - 3 sets
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 Exercise 2: Barbell Shoulder Press (Standing) - 3 sets
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 Exercise 3: Barbell Curl (Normal Grip) - 3 sets
+S:\Program Files\LiftLog\lib\debug-logs.ts:57 The width(0) and height(0) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+captureLog @ S:\Program Files\LiftLog\lib\debug-logs.ts:57
+console.warn @ S:\Program Files\LiftLog\lib\debug-logs.ts:69
+warn @ LogUtils.js:19
+ResponsiveContainer.useMemo[chartContent] @ ResponsiveContainer.js:216
+updateMemo @ react-dom-client.development.js:7887
+useMemo @ react-dom-client.development.js:24153
+exports.useMemo @ react.development.js:1240
+eval @ ResponsiveContainer.js:192
+react_stack_bottom_frame @ react-dom-client.development.js:23584
+renderWithHooks @ react-dom-client.development.js:6793
+updateForwardRef @ react-dom-client.development.js:8807
+beginWork @ react-dom-client.development.js:11197
+runWithFiberInDEV @ react-dom-client.development.js:872
+performUnitOfWork @ react-dom-client.development.js:15727
+workLoopSync @ react-dom-client.development.js:15547
+renderRootSync @ react-dom-client.development.js:15527
+performWorkOnRoot @ react-dom-client.development.js:14991
+performWorkOnRootViaSchedulerTask @ react-dom-client.development.js:16816
+performWorkUntilDeadline @ scheduler.development.js:45
+S:\Program Files\LiftLog\lib\debug-logs.ts:57 The width(0) and height(0) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+captureLog @ S:\Program Files\LiftLog\lib\debug-logs.ts:57
+console.warn @ S:\Program Files\LiftLog\lib\debug-logs.ts:69
+warn @ LogUtils.js:19
+ResponsiveContainer.useMemo[chartContent] @ ResponsiveContainer.js:216
+updateMemo @ react-dom-client.development.js:7891
+useMemo @ react-dom-client.development.js:24153
+exports.useMemo @ react.development.js:1240
+eval @ ResponsiveContainer.js:192
+react_stack_bottom_frame @ react-dom-client.development.js:23584
+renderWithHooks @ react-dom-client.development.js:6793
+updateForwardRef @ react-dom-client.development.js:8807
+beginWork @ react-dom-client.development.js:11197
+runWithFiberInDEV @ react-dom-client.development.js:872
+performUnitOfWork @ react-dom-client.development.js:15727
+workLoopSync @ react-dom-client.development.js:15547
+renderRootSync @ react-dom-client.development.js:15527
+performWorkOnRoot @ react-dom-client.development.js:14991
+performWorkOnRootViaSchedulerTask @ react-dom-client.development.js:16816
+performWorkUntilDeadline @ scheduler.development.js:45
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [WorkoutLogger] Loading completed workouts...
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [ProgramState] Loaded program history from database
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [WorkoutLogger] Loading user data from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [WorkoutLogger] Testing database access...
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [WorkoutLogger] Loading completed workouts...
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [ProgramState] Synced active program to database: {week: 1, day: 2}
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [ProgressionRouter] Routing progression calculation: {exerciseName: 'Barbell Shoulder Press (Standing)', category: 'compound', templateSchemeType: 'linear', templateConfigType: undefined, resolvedStrategy: 'linear', …}
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [ProgressionTierResolver] Resolving tier for: Barbell Shoulder Press (Standing) {exerciseLibraryId: 'b44628a3-1f85-4b5f-8855-25fb151e96e9', category: 'compound', hasExerciseId: true}
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [ProgressionRouter] Routing progression calculation: {exerciseName: 'Deadlift (Conventional)', category: 'compound', templateSchemeType: 'linear', templateConfigType: undefined, resolvedStrategy: 'linear', …}
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [ProgressionTierResolver] Resolving tier for: Deadlift (Conventional) {exerciseLibraryId: '11903e7a-7358-4d7b-b5a0-352378216298', category: 'compound', hasExerciseId: true}
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [ProgressionRouter] Routing progression calculation: {exerciseName: 'Barbell Curl (Normal Grip)', category: 'isolation', templateSchemeType: 'linear', templateConfigType: undefined, resolvedStrategy: 'linear', …}
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [ProgressionTierResolver] Resolving tier for: Barbell Curl (Normal Grip) {exerciseLibraryId: '7296e9ef-cd09-4d25-be45-e0c533360fac', category: 'isolation', hasExerciseId: true}
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [WorkoutLogger] Found 233 workouts in database
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [WorkoutLogger] Sample workout data: {id: 'csctfcnan', user_id: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c', program_id: '0f1a9e64-fd05-4b88-94c0-2f79ce754b28', workout_name: 'Upper Body Strength', start_time: 1761337561658, …}
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [WorkoutLogger] Loaded 233 workouts from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [WorkoutLogger] Loading in-progress workouts...
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 Exercise 1: Deadlift (Conventional) - 3 sets
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 Exercise 2: Barbell Shoulder Press (Standing) - 3 sets
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 Exercise 3: Barbell Curl (Normal Grip) - 3 sets
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 Exercise 1: Deadlift (Conventional) - 3 sets
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 Exercise 2: Barbell Shoulder Press (Standing) - 3 sets
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 Exercise 3: Barbell Curl (Normal Grip) - 3 sets
+S:\Program Files\LiftLog\lib\debug-logs.ts:57 The width(0) and height(0) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+captureLog @ S:\Program Files\LiftLog\lib\debug-logs.ts:57
+console.warn @ S:\Program Files\LiftLog\lib\debug-logs.ts:69
+warn @ LogUtils.js:19
+ResponsiveContainer.useMemo[chartContent] @ ResponsiveContainer.js:216
+updateMemo @ react-dom-client.development.js:7887
+useMemo @ react-dom-client.development.js:24153
+exports.useMemo @ react.development.js:1240
+eval @ ResponsiveContainer.js:192
+react_stack_bottom_frame @ react-dom-client.development.js:23584
+renderWithHooks @ react-dom-client.development.js:6793
+updateForwardRef @ react-dom-client.development.js:8807
+beginWork @ react-dom-client.development.js:11197
+runWithFiberInDEV @ react-dom-client.development.js:872
+performUnitOfWork @ react-dom-client.development.js:15727
+workLoopSync @ react-dom-client.development.js:15547
+renderRootSync @ react-dom-client.development.js:15527
+performWorkOnRoot @ react-dom-client.development.js:14991
+performSyncWorkOnRoot @ react-dom-client.development.js:16831
+flushSyncWorkAcrossRoots_impl @ react-dom-client.development.js:16677
+processRootScheduleInMicrotask @ react-dom-client.development.js:16715
+eval @ react-dom-client.development.js:16850
+S:\Program Files\LiftLog\lib\debug-logs.ts:57 The width(0) and height(0) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+captureLog @ S:\Program Files\LiftLog\lib\debug-logs.ts:57
+console.warn @ S:\Program Files\LiftLog\lib\debug-logs.ts:69
+warn @ LogUtils.js:19
+ResponsiveContainer.useMemo[chartContent] @ ResponsiveContainer.js:216
+updateMemo @ react-dom-client.development.js:7891
+useMemo @ react-dom-client.development.js:24153
+exports.useMemo @ react.development.js:1240
+eval @ ResponsiveContainer.js:192
+react_stack_bottom_frame @ react-dom-client.development.js:23584
+renderWithHooks @ react-dom-client.development.js:6793
+updateForwardRef @ react-dom-client.development.js:8807
+beginWork @ react-dom-client.development.js:11197
+runWithFiberInDEV @ react-dom-client.development.js:872
+performUnitOfWork @ react-dom-client.development.js:15727
+workLoopSync @ react-dom-client.development.js:15547
+renderRootSync @ react-dom-client.development.js:15527
+performWorkOnRoot @ react-dom-client.development.js:14991
+performSyncWorkOnRoot @ react-dom-client.development.js:16831
+flushSyncWorkAcrossRoots_impl @ react-dom-client.development.js:16677
+processRootScheduleInMicrotask @ react-dom-client.development.js:16715
+eval @ react-dom-client.development.js:16850
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [ProgressionTierResolver] ✅ Resolved from DATABASE: {exerciseName: 'Deadlift (Conventional)', tierName: 'large_compound', tierRules: {…}}
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [ProgressionRouter] Tier resolution: {exerciseName: 'Deadlift (Conventional)', source: 'database', tierName: 'large_compound', tierRules: {…}}
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [LinearProgressionEngine] Calculating progression: {exerciseName: 'Deadlift (Conventional)', currentWeek: 1, hasPreviousData: false, userWeightAdjustment: undefined}
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [ProgressionTierResolver] ✅ Resolved from DATABASE: {exerciseName: 'Barbell Curl (Normal Grip)', tierName: 'small_isolation', tierRules: {…}}
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [ProgressionRouter] Tier resolution: {exerciseName: 'Barbell Curl (Normal Grip)', source: 'database', tierName: 'small_isolation', tierRules: {…}}
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [LinearProgressionEngine] Calculating progression: {exerciseName: 'Barbell Curl (Normal Grip)', currentWeek: 1, hasPreviousData: false, userWeightAdjustment: undefined}
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [ProgressionTierResolver] ✅ Resolved from DATABASE: {exerciseName: 'Barbell Shoulder Press (Standing)', tierName: 'medium_compound', tierRules: {…}}
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [ProgressionRouter] Tier resolution: {exerciseName: 'Barbell Shoulder Press (Standing)', source: 'database', tierName: 'medium_compound', tierRules: {…}}
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [LinearProgressionEngine] Calculating progression: {exerciseName: 'Barbell Shoulder Press (Standing)', currentWeek: 1, hasPreviousData: false, userWeightAdjustment: undefined}
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [WorkoutLogger] Found 1 in-progress workouts in database
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [WorkoutLogger] Loaded 1 in-progress workouts from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [WorkoutLogger] Database loading completed. Total records loaded: 234
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [ProgramState] Refreshing template from database...
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [ProgramState] Loaded template from database: 0f1a9e64-fd05-4b88-94c0-2f79ce754b28
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [WorkoutLogger] Found 233 workouts in database
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [WorkoutLogger] Sample workout data: {id: 'csctfcnan', user_id: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c', program_id: '0f1a9e64-fd05-4b88-94c0-2f79ce754b28', workout_name: 'Upper Body Strength', start_time: 1761337561658, …}
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [WorkoutLogger] Loaded 233 workouts from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [WorkoutLogger] Loading in-progress workouts...
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [ProgramState] Synced active program to database: {week: 1, day: 2}
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [ProgramState] Template refreshed with latest database version
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [TrainSection] Loaded active program: {templateId: '0f1a9e64-fd05-4b88-94c0-2f79ce754b28', templateName: '2-Week Test Program (DEV ONLY) v2', currentWeek: 1, currentDay: 2}
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [WorkoutLogger] Found 1 in-progress workouts in database
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [WorkoutLogger] Loaded 1 in-progress workouts from database (forceRefresh: true )
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [WorkoutLogger] Database loading completed. Total records loaded: 234
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [ProgramState] Refreshing template from database...
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [ProgramState] Loaded template from database: 0f1a9e64-fd05-4b88-94c0-2f79ce754b28
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [ProgressionRouter] Routing progression calculation: {exerciseName: 'Barbell Curl (Normal Grip)', category: 'isolation', templateSchemeType: 'linear', templateConfigType: undefined, resolvedStrategy: 'linear', …}
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [ProgressionTierResolver] Resolving tier for: Barbell Curl (Normal Grip) {exerciseLibraryId: '7296e9ef-cd09-4d25-be45-e0c533360fac', category: 'isolation', hasExerciseId: true}
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [ProgressionRouter] Routing progression calculation: {exerciseName: 'Deadlift (Conventional)', category: 'compound', templateSchemeType: 'linear', templateConfigType: undefined, resolvedStrategy: 'linear', …}
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [ProgressionTierResolver] Resolving tier for: Deadlift (Conventional) {exerciseLibraryId: '11903e7a-7358-4d7b-b5a0-352378216298', category: 'compound', hasExerciseId: true}
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [ProgressionRouter] Routing progression calculation: {exerciseName: 'Barbell Shoulder Press (Standing)', category: 'compound', templateSchemeType: 'linear', templateConfigType: undefined, resolvedStrategy: 'linear', …}
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [ProgressionTierResolver] Resolving tier for: Barbell Shoulder Press (Standing) {exerciseLibraryId: 'b44628a3-1f85-4b5f-8855-25fb151e96e9', category: 'compound', hasExerciseId: true}
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [ProgramState] Synced active program to database: {week: 1, day: 2}
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [ProgramState] Template refreshed with latest database version
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [TrainSection] Loaded active program: {templateId: '0f1a9e64-fd05-4b88-94c0-2f79ce754b28', templateName: '2-Week Test Program (DEV ONLY) v2', currentWeek: 1, currentDay: 2}
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [ProgressionTierResolver] ✅ Resolved from DATABASE: {exerciseName: 'Barbell Curl (Normal Grip)', tierName: 'small_isolation', tierRules: {…}}
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [ProgressionRouter] Tier resolution: {exerciseName: 'Barbell Curl (Normal Grip)', source: 'database', tierName: 'small_isolation', tierRules: {…}}
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [LinearProgressionEngine] Calculating progression: {exerciseName: 'Barbell Curl (Normal Grip)', currentWeek: 1, hasPreviousData: false, userWeightAdjustment: undefined}
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [ProgressionTierResolver] ✅ Resolved from DATABASE: {exerciseName: 'Barbell Shoulder Press (Standing)', tierName: 'medium_compound', tierRules: {…}}
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [ProgressionRouter] Tier resolution: {exerciseName: 'Barbell Shoulder Press (Standing)', source: 'database', tierName: 'medium_compound', tierRules: {…}}
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [LinearProgressionEngine] Calculating progression: {exerciseName: 'Barbell Shoulder Press (Standing)', currentWeek: 1, hasPreviousData: false, userWeightAdjustment: undefined}
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [ProgressionTierResolver] ✅ Resolved from DATABASE: {exerciseName: 'Deadlift (Conventional)', tierName: 'large_compound', tierRules: {…}}
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [ProgressionRouter] Tier resolution: {exerciseName: 'Deadlift (Conventional)', source: 'database', tierName: 'large_compound', tierRules: {…}}
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [LinearProgressionEngine] Calculating progression: {exerciseName: 'Deadlift (Conventional)', currentWeek: 1, hasPreviousData: false, userWeightAdjustment: undefined}
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [TrainSection] Loaded current workout: {name: 'Lower Body Power', exercises: Array(3)}
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [TrainSection] Active program found - auto-starting workout
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 Exercise 1: Deadlift (Conventional) - 3 sets
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 Exercise 2: Barbell Shoulder Press (Standing) - 3 sets
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 Exercise 3: Barbell Curl (Normal Grip) - 3 sets
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 Exercise 1: Deadlift (Conventional) - 3 sets
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 Exercise 2: Barbell Shoulder Press (Standing) - 3 sets
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 Exercise 3: Barbell Curl (Normal Grip) - 3 sets
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 Exercise 1: Deadlift (Conventional) - 3 sets
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 Exercise 2: Barbell Shoulder Press (Standing) - 3 sets
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 Exercise 3: Barbell Curl (Normal Grip) - 3 sets
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 Exercise 1: Deadlift (Conventional) - 3 sets
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 Exercise 2: Barbell Shoulder Press (Standing) - 3 sets
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 Exercise 3: Barbell Curl (Normal Grip) - 3 sets
+S:\Program Files\LiftLog\lib\debug-logs.ts:57 The width(0) and height(0) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+captureLog @ S:\Program Files\LiftLog\lib\debug-logs.ts:57
+console.warn @ S:\Program Files\LiftLog\lib\debug-logs.ts:69
+warn @ LogUtils.js:19
+ResponsiveContainer.useMemo[chartContent] @ ResponsiveContainer.js:216
+updateMemo @ react-dom-client.development.js:7887
+useMemo @ react-dom-client.development.js:24153
+exports.useMemo @ react.development.js:1240
+eval @ ResponsiveContainer.js:192
+react_stack_bottom_frame @ react-dom-client.development.js:23584
+renderWithHooks @ react-dom-client.development.js:6793
+updateForwardRef @ react-dom-client.development.js:8807
+beginWork @ react-dom-client.development.js:11197
+runWithFiberInDEV @ react-dom-client.development.js:872
+performUnitOfWork @ react-dom-client.development.js:15727
+workLoopSync @ react-dom-client.development.js:15547
+renderRootSync @ react-dom-client.development.js:15527
+performWorkOnRoot @ react-dom-client.development.js:14991
+performSyncWorkOnRoot @ react-dom-client.development.js:16831
+flushSyncWorkAcrossRoots_impl @ react-dom-client.development.js:16677
+processRootScheduleInMicrotask @ react-dom-client.development.js:16715
+eval @ react-dom-client.development.js:16850
+S:\Program Files\LiftLog\lib\debug-logs.ts:57 The width(0) and height(0) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+captureLog @ S:\Program Files\LiftLog\lib\debug-logs.ts:57
+console.warn @ S:\Program Files\LiftLog\lib\debug-logs.ts:69
+warn @ LogUtils.js:19
+ResponsiveContainer.useMemo[chartContent] @ ResponsiveContainer.js:216
+updateMemo @ react-dom-client.development.js:7891
+useMemo @ react-dom-client.development.js:24153
+exports.useMemo @ react.development.js:1240
+eval @ ResponsiveContainer.js:192
+react_stack_bottom_frame @ react-dom-client.development.js:23584
+renderWithHooks @ react-dom-client.development.js:6793
+updateForwardRef @ react-dom-client.development.js:8807
+beginWork @ react-dom-client.development.js:11197
+runWithFiberInDEV @ react-dom-client.development.js:872
+performUnitOfWork @ react-dom-client.development.js:15727
+workLoopSync @ react-dom-client.development.js:15547
+renderRootSync @ react-dom-client.development.js:15527
+performWorkOnRoot @ react-dom-client.development.js:14991
+performSyncWorkOnRoot @ react-dom-client.development.js:16831
+flushSyncWorkAcrossRoots_impl @ react-dom-client.development.js:16677
+processRootScheduleInMicrotask @ react-dom-client.development.js:16715
+eval @ react-dom-client.development.js:16850
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [ProgressionRouter] Routing progression calculation: {exerciseName: 'Barbell Shoulder Press (Standing)', category: 'compound', templateSchemeType: 'linear', templateConfigType: undefined, resolvedStrategy: 'linear', …}
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [ProgressionTierResolver] Resolving tier for: Barbell Shoulder Press (Standing) {exerciseLibraryId: 'b44628a3-1f85-4b5f-8855-25fb151e96e9', category: 'compound', hasExerciseId: true}
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [ProgressionRouter] Routing progression calculation: {exerciseName: 'Deadlift (Conventional)', category: 'compound', templateSchemeType: 'linear', templateConfigType: undefined, resolvedStrategy: 'linear', …}
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [ProgressionTierResolver] Resolving tier for: Deadlift (Conventional) {exerciseLibraryId: '11903e7a-7358-4d7b-b5a0-352378216298', category: 'compound', hasExerciseId: true}
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [ProgressionRouter] Routing progression calculation: {exerciseName: 'Barbell Curl (Normal Grip)', category: 'isolation', templateSchemeType: 'linear', templateConfigType: undefined, resolvedStrategy: 'linear', …}
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [ProgressionTierResolver] Resolving tier for: Barbell Curl (Normal Grip) {exerciseLibraryId: '7296e9ef-cd09-4d25-be45-e0c533360fac', category: 'isolation', hasExerciseId: true}
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [ProgressionTierResolver] ✅ Resolved from DATABASE: {exerciseName: 'Barbell Shoulder Press (Standing)', tierName: 'medium_compound', tierRules: {…}}
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [ProgressionRouter] Tier resolution: {exerciseName: 'Barbell Shoulder Press (Standing)', source: 'database', tierName: 'medium_compound', tierRules: {…}}
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [LinearProgressionEngine] Calculating progression: {exerciseName: 'Barbell Shoulder Press (Standing)', currentWeek: 1, hasPreviousData: false, userWeightAdjustment: undefined}
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [ProgressionTierResolver] ✅ Resolved from DATABASE: {exerciseName: 'Deadlift (Conventional)', tierName: 'large_compound', tierRules: {…}}
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [ProgressionRouter] Tier resolution: {exerciseName: 'Deadlift (Conventional)', source: 'database', tierName: 'large_compound', tierRules: {…}}
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [LinearProgressionEngine] Calculating progression: {exerciseName: 'Deadlift (Conventional)', currentWeek: 1, hasPreviousData: false, userWeightAdjustment: undefined}
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [ProgressionTierResolver] ✅ Resolved from DATABASE: {exerciseName: 'Barbell Curl (Normal Grip)', tierName: 'small_isolation', tierRules: {…}}
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [ProgressionRouter] Tier resolution: {exerciseName: 'Barbell Curl (Normal Grip)', source: 'database', tierName: 'small_isolation', tierRules: {…}}
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [LinearProgressionEngine] Calculating progression: {exerciseName: 'Barbell Curl (Normal Grip)', currentWeek: 1, hasPreviousData: false, userWeightAdjustment: undefined}
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [TrainSection] Loaded current workout: {name: 'Lower Body Power', exercises: Array(3)}
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 [TrainSection] Active program loaded but auto-start deferred (tab hidden)
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 Exercise 1: Deadlift (Conventional) - 3 sets
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 Exercise 2: Barbell Shoulder Press (Standing) - 3 sets
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 Exercise 3: Barbell Curl (Normal Grip) - 3 sets
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 Rendering workout with 3 exercises
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 Exercise 1: Deadlift (Conventional) - 3 sets
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 Exercise 2: Barbell Shoulder Press (Standing) - 3 sets
+S:\Program Files\LiftLog\lib\debug-logs.ts:54 Exercise 3: Barbell Curl (Normal Grip) - 3 sets
+S:\Program Files\LiftLog\lib\debug-logs.ts:57 The width(0) and height(0) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+captureLog @ S:\Program Files\LiftLog\lib\debug-logs.ts:57
+console.warn @ S:\Program Files\LiftLog\lib\debug-logs.ts:69
+warn @ LogUtils.js:19
+ResponsiveContainer.useMemo[chartContent] @ ResponsiveContainer.js:216
+updateMemo @ react-dom-client.development.js:7887
+useMemo @ react-dom-client.development.js:24153
+exports.useMemo @ react.development.js:1240
+eval @ ResponsiveContainer.js:192
+react_stack_bottom_frame @ react-dom-client.development.js:23584
+renderWithHooks @ react-dom-client.development.js:6793
+updateForwardRef @ react-dom-client.development.js:8807
+beginWork @ react-dom-client.development.js:11197
+runWithFiberInDEV @ react-dom-client.development.js:872
+performUnitOfWork @ react-dom-client.development.js:15727
+workLoopSync @ react-dom-client.development.js:15547
+renderRootSync @ react-dom-client.development.js:15527
+performWorkOnRoot @ react-dom-client.development.js:14991
+performSyncWorkOnRoot @ react-dom-client.development.js:16831
+flushSyncWorkAcrossRoots_impl @ react-dom-client.development.js:16677
+processRootScheduleInMicrotask @ react-dom-client.development.js:16715
+eval @ react-dom-client.development.js:16850
+S:\Program Files\LiftLog\lib\debug-logs.ts:57 The width(0) and height(0) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+captureLog @ S:\Program Files\LiftLog\lib\debug-logs.ts:57
+console.warn @ S:\Program Files\LiftLog\lib\debug-logs.ts:69
+warn @ LogUtils.js:19
+ResponsiveContainer.useMemo[chartContent] @ ResponsiveContainer.js:216
+updateMemo @ react-dom-client.development.js:7891
+useMemo @ react-dom-client.development.js:24153
+exports.useMemo @ react.development.js:1240
+eval @ ResponsiveContainer.js:192
+react_stack_bottom_frame @ react-dom-client.development.js:23584
+renderWithHooks @ react-dom-client.development.js:6793
+updateForwardRef @ react-dom-client.development.js:8807
+beginWork @ react-dom-client.development.js:11197
+runWithFiberInDEV @ react-dom-client.development.js:872
+performUnitOfWork @ react-dom-client.development.js:15727
+workLoopSync @ react-dom-client.development.js:15547
+renderRootSync @ react-dom-client.development.js:15527
+performWorkOnRoot @ react-dom-client.development.js:14991
+performSyncWorkOnRoot @ react-dom-client.development.js:16831
+flushSyncWorkAcrossRoots_impl @ react-dom-client.development.js:16677
+processRootScheduleInMicrotask @ react-dom-client.development.js:16715
+eval @ react-dom-client.development.js:16850
