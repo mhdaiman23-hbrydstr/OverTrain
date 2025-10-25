@@ -162,8 +162,11 @@ export function ProfileSection() {
     }
   }
 
-  const has1RMChanges = JSON.stringify(oneRMData) !== JSON.stringify(initial1RMData) || 
+  const has1RMChanges = JSON.stringify(oneRMData) !== JSON.stringify(initial1RMData) ||
                        JSON.stringify(preferredUnit) !== JSON.stringify(initialPreferredUnit)
+
+  // Check if at least one 1RM value is set (greater than 0)
+  const hasValidOneRMData = oneRMData.squat > 0 || oneRMData.benchPress > 0 || oneRMData.deadlift > 0
 
   const handleUnitChange = (unit: "metric" | "imperial") => {
     setPreferredUnit(unit)
@@ -361,10 +364,7 @@ export function ProfileSection() {
               </CardContent>
             </Card>
 
-            {/* Subscription Management */}
-            <SubscriptionManagement />
-
-            {/* Edit Actions */}
+            {/* Edit Actions - Show immediately after Personal Information */}
             {isEditing && (
               <div className="flex gap-3">
                 <Button variant="outline" className="flex-1" onClick={handleCancel}>
@@ -377,6 +377,9 @@ export function ProfileSection() {
                 </Button>
               </div>
             )}
+
+            {/* Subscription Management */}
+            <SubscriptionManagement />
 
             {/* Account Actions */}
             {!isEditing && (
@@ -483,6 +486,20 @@ export function ProfileSection() {
               </CardContent>
             </Card>
 
+            {/* Edit Actions for Training - Show immediately after Fitness Profile */}
+            {isEditing && (
+              <div className="flex gap-3">
+                <Button variant="outline" className="flex-1" onClick={handleCancel}>
+                  <X className="h-4 w-4 mr-2" />
+                  Cancel
+                </Button>
+                <Button className="flex-1 gradient-primary text-primary-foreground" onClick={handleSave}>
+                  <Check className="h-4 w-4 mr-2" />
+                  Save Changes
+                </Button>
+              </div>
+            )}
+
             {/* 1RM Card */}
             <Card>
               <CardHeader>
@@ -534,14 +551,19 @@ export function ProfileSection() {
                   </div>
                 </div>
 
-                {/* Show save buttons when user makes changes */}
+                {/* Show save buttons when user makes changes and has at least one valid 1RM value */}
                 {has1RMChanges && (
                   <div className="flex gap-3 pt-2">
                     <Button variant="outline" className="flex-1" onClick={handleCancel1RM}>
                       <X className="h-4 w-4 mr-2" />
                       Cancel
                     </Button>
-                    <Button className="flex-1 gradient-primary text-primary-foreground" onClick={handleSave1RM}>
+                    <Button
+                      className="flex-1 gradient-primary text-primary-foreground"
+                      onClick={handleSave1RM}
+                      disabled={!hasValidOneRMData}
+                      title={!hasValidOneRMData ? "Enter at least one 1RM value to save" : ""}
+                    >
                       <Check className="h-4 w-4 mr-2" />
                       Save 1RM
                     </Button>
@@ -549,20 +571,6 @@ export function ProfileSection() {
                 )}
               </CardContent>
             </Card>
-
-            {/* Edit Actions for Training */}
-            {isEditing && (
-              <div className="flex gap-3">
-                <Button variant="outline" className="flex-1" onClick={handleCancel}>
-                  <X className="h-4 w-4 mr-2" />
-                  Cancel
-                </Button>
-                <Button className="flex-1 gradient-primary text-primary-foreground" onClick={handleSave}>
-                  <Check className="h-4 w-4 mr-2" />
-                  Save Changes
-                </Button>
-              </div>
-            )}
           </TabsContent>
 
           {/* Settings Tab */}

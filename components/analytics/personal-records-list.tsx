@@ -58,8 +58,8 @@ export function PersonalRecordsList({ records }: PersonalRecordsListProps) {
       </CardHeader>
       <CardContent>
         <div className="space-y-3">
-          {paginatedRecords.map((record, idx) => (
-            <div key={`${record.exerciseId}-${idx}`} className="flex items-center justify-between p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
+          {paginatedRecords.map((record) => (
+            <div key={`${record.exerciseId}-${record.weight}-${record.date}-${record.reps}`} className="flex items-center justify-between p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
               <div className="flex-1 min-w-0">
                 <div className="font-medium text-sm text-foreground truncate">
                   {record.exerciseName}

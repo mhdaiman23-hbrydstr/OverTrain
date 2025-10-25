@@ -13,10 +13,6 @@ interface CompletionBarProps {
 }
 
 export function CompletionBar({ workout, isWorkoutBlocked, isCompletingWorkout, canFinishWorkout, onCompleteWorkout }: CompletionBarProps) {
-  if (isWorkoutBlocked) {
-    return null
-  }
-
   const renderCompletedState = () => (
     <div className="w-full px-4 py-3 bg-green-50 border-2 border-green-500 rounded-lg">
       <div className="flex items-center justify-center gap-2">
@@ -51,6 +47,13 @@ export function CompletionBar({ workout, isWorkoutBlocked, isCompletingWorkout, 
       )}
     </Button>
   )
+
+  // When workout is blocked, still show the spacer to prevent content from being hidden
+  if (isWorkoutBlocked) {
+    return (
+      <div className="h-36 lg:h-20" />
+    )
+  }
 
   return (
     <>

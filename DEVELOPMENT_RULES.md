@@ -568,7 +568,31 @@ liftlog_user                    // Current authenticated user
 - Race conditions happen when async operations aren't properly sequenced
 - Adding artificial delays (100ms timeout) masks the problem but doesn't fix it
 - Event handlers will query database immediately - ensure cleanup is complete first
-- The sequence must be: cleanup database â†’ THEN dispatch event â†’ THEN navigate
+- The sequence must be: cleanup database â†' THEN dispatch event â†' THEN navigate
+
+### Mistake 9: Content Hidden Behind Fixed Bars When Workout Blocked (Oct 2025)
+**Problem**: On locked weeks, user could see suggested weights/reps but couldn't scroll to the bottom of exercise list
+**Root Cause**: `CompletionBar` returned `null` when `isWorkoutBlocked === true`, which prevented the spacer div from rendering:
+- Fixed bottom bars (CompletionBar on mobile, BottomNav) still existed
+- Content scrolled behind them
+- No spacer to push content up, making bottom exercises unreachable
+**Fix**: Always render the spacer div even when workout is blocked:
+```typescript
+// Before: Content hidden when workout is blocked
+if (isWorkoutBlocked) {
+  return null  // No spacer, content hidden behind fixed bars
+}
+
+// After: Always render spacer
+if (isWorkoutBlocked) {
+  return <div className="h-36 lg:h-20" />  // Spacer still needed!
+}
+```
+**Lesson**:
+- Fixed positioning (bottom-16, bottom-0) creates a non-scrollable area above
+- Spacer divs are layout compensation, not UI elements
+- Spacer must always render when fixed bars exist, regardless of state
+- Test mobile scrolling when rendering conditional content
 
 ---
 

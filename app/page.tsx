@@ -36,6 +36,19 @@ export default function HomePage() {
   >(null)
   const overrideViewRef = useRef(false)
 
+  // FIX: Use refs to prevent stale closures in programChanged listener
+  // This prevents being pulled back to Train when saving profile
+  const currentViewRef = useRef(currentView)
+  const userRef = useRef(user)
+
+  useEffect(() => {
+    currentViewRef.current = currentView
+  }, [currentView])
+
+  useEffect(() => {
+    userRef.current = user
+  }, [user])
+
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -118,19 +131,30 @@ export default function HomePage() {
   }, [])
 
   // Listen for program state changes (e.g., after loading from database)
+  // FIX: Use refs to prevent stale closures, empty dependency array to register listener once
   useEffect(() => {
     const handleProgramChange = async () => {
-      if (user && user.gender) {
+      // Check current values from refs, not closed-over props
+      if (userRef.current && userRef.current.gender) {
         const activeProgram = await ProgramStateManager.getActiveProgram()
-        if (activeProgram && currentView === "train") {
+        // Only redirect to workout if:
+        // 1. There is an active program AND
+        // 2. We're currently in train view (not profile, programs, etc.)
+        // This prevents redirecting when saving profile or editing other tabs
+        if (activeProgram && currentViewRef.current === "train") {
+          console.log("[HomePage] Redirecting from train to workout due to active program")
           setCurrentView("workout")
+        } else if (!activeProgram && currentViewRef.current === "workout") {
+          // If program ended, redirect back to train
+          console.log("[HomePage] Program ended, redirecting to train")
+          setCurrentView("train")
         }
       }
     }
 
     window.addEventListener("programChanged", handleProgramChange)
     return () => window.removeEventListener("programChanged", handleProgramChange)
-  }, [user, currentView])
+  }, [])  // FIX: Empty dependencies! Register listener once, use refs for current values
 
   const handleAuth = async (type: "login" | "signup") => {
     setIsLoading(true)
