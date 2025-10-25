@@ -1,6 +1,7 @@
 "use client"
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
+import { BottomActionBar } from "@/components/ui/bottom-action-bar"
 import { X, Play } from "lucide-react"
 import { ProgramStateManager } from "@/lib/program-state"
 import type { GymTemplate } from "@/lib/gym-templates"
@@ -121,7 +122,7 @@ export function TemplateDetailView({ templateId, onClose, onStartProgram, isStar
         </div>
 
         {/* Workout days list */}
-        <div className="flex-1 overflow-y-auto pb-48 lg:pb-32">
+        <div className="flex-1 overflow-y-auto">
           <div className="divide-y divide-border">
             {workoutDays.map((day, dayIndex) => (
               <div key={dayIndex} className="px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
@@ -154,52 +155,55 @@ export function TemplateDetailView({ templateId, onClose, onStartProgram, isStar
               </div>
             ))}
           </div>
-        </div>
 
-        {/* Advanced settings & actions */}
-        <div
-          className="sticky bottom-0 z-40 border-t border-border/60 bg-background shadow-lg"
-        >
-          <div className="px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 space-y-4 pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] sm:pb-[calc(6.5rem+env(safe-area-inset-bottom,0px))] lg:pb-6">
+          {/* Advanced settings section at bottom of scrollable area */}
+          <div className="px-4 sm:px-6 lg:px-8 py-6 border-t border-border/50">
             <AdvancedProgramSettings
               template={template}
               userProfile={currentUserProfile}
               onOverrideChange={setProgressionOverride}
             />
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              {progressionOverride ? (
-                <span className="text-xs font-medium uppercase tracking-wide text-primary sm:text-sm">
-                  Progression override applied
-                </span>
-              ) : (
-                <span className="text-xs text-muted-foreground sm:text-sm">
-                  No custom progression overrides set
-                </span>
-              )}
-              <Button
-                className="w-full sm:w-auto sm:min-w-[200px] bg-blue-600 hover:bg-blue-700 text-white text-base sm:text-lg py-3 sm:py-4"
-                disabled={!!isStarting}
-                onClick={() => {
-                  console.log("[v0] Start Program clicked for:", templateId, "with override:", !!progressionOverride)
-                  onStartProgram(templateId, progressionOverride)
-                }}
-              >
-                {isStarting ? (
-                  <>
-                    <span className="mr-2 inline-block h-4 w-4 sm:h-5 sm:w-5 animate-spin rounded-full border-2 border-white/50 border-t-transparent"></span>
-                    Starting...
-                  </>
-                ) : (
-                  <>
-                    <Play className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
-                    Start Program
-                  </>
-                )}
-              </Button>
-            </div>
           </div>
         </div>
       </div>
+
+      {/* Bottom action bar with start button */}
+      <BottomActionBar
+        leftContent={
+          progressionOverride ? (
+            <span className="text-xs font-medium uppercase tracking-wide text-primary sm:text-sm">
+              Progression override applied
+            </span>
+          ) : (
+            <span className="text-xs text-muted-foreground sm:text-sm">
+              No custom progression overrides set
+            </span>
+          )
+        }
+        rightContent={
+          <Button
+            className="w-full gradient-primary text-primary-foreground h-auto py-2 px-4 sm:py-3 sm:px-6 text-center"
+            disabled={!!isStarting}
+            onClick={() => {
+              console.log("[v0] Start Program clicked for:", templateId, "with override:", !!progressionOverride)
+              onStartProgram(templateId, progressionOverride)
+            }}
+          >
+            {isStarting ? (
+              <span className="flex items-center justify-center">
+                <span className="mr-2 inline-block h-4 w-4 sm:h-5 sm:w-5 animate-spin rounded-full border-2 border-white/50 border-t-transparent"></span>
+                Starting...
+              </span>
+            ) : (
+              <span className="flex items-center justify-center">
+                <Play className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+                Start Program
+              </span>
+            )}
+          </Button>
+        }
+        showFixed={true}
+      />
     </div>
   )
 }

@@ -102,6 +102,7 @@ export interface ProgramHistoryEntry {
   completionRate: number
   totalWorkouts: number
   completedWorkouts: number
+  skippedWorkouts?: number
   isActive: boolean
   endDate?: string
   endedEarly?: boolean
@@ -500,6 +501,7 @@ export class ProgramStateManager {
       completionRate: 0,
       totalWorkouts,
       completedWorkouts: 0,
+      skippedWorkouts: 0,
       isActive: true,
       endedEarly: false,
     }
@@ -992,6 +994,19 @@ export class ProgramStateManager {
     }
   }
 
+  /**
+   * Check if a workout is fully skipped (all sets have skipped=true or reps=0 && weight=0)
+   */
+  private static isWorkoutFullySkipped(workout: any): boolean {
+    if (!workout || !workout.exercises) return false
+
+    // Check if all exercises have all sets skipped
+    return workout.exercises.every((exercise: any) => {
+      if (!exercise.sets || exercise.sets.length === 0) return true
+      return exercise.sets.every((set: any) => set.skipped || (set.reps === 0 && set.weight === 0))
+    })
+  }
+
   static async completeWorkout(userId?: string): Promise<void> {
     const activeProgram = await this.getActiveProgram()
     if (!activeProgram) return
@@ -1052,6 +1067,24 @@ export class ProgramStateManager {
       historyEntry.completedWorkouts = activeProgram.completedWorkouts
       historyEntry.completionRate = activeProgram.progress
       historyEntry.instanceId = historyEntry.instanceId ?? historyEntry.id
+
+      // Check if the workout that was just completed was fully skipped
+      // Get the workout that was just completed (need to look back since currentDay has advanced)
+      let workoutWeek = activeProgram.currentWeek
+      let workoutDay = activeProgram.currentDay - 1
+
+      // Handle week rollover
+      if (workoutDay < 1) {
+        workoutWeek = workoutWeek - 1
+        const scheduleKeys = Object.keys(activeProgram.template.schedule)
+        workoutDay = scheduleKeys.length
+      }
+
+      const completedWorkout = WorkoutLogger.getInProgressWorkout(workoutWeek, workoutDay, resolvedUserId)
+      if (completedWorkout && this.isWorkoutFullySkipped(completedWorkout)) {
+        historyEntry.skippedWorkouts = (historyEntry.skippedWorkouts ?? 0) + 1
+      }
+
       this.saveProgramHistory(history)
     }
 

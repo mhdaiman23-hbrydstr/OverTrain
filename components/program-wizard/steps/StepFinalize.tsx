@@ -1,6 +1,7 @@
 import { ChangeEvent } from 'react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { BottomActionBar } from '@/components/ui/bottom-action-bar'
 import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
@@ -138,14 +139,28 @@ export function StepFinalize({
         </div>
       )}
 
-      <div className="flex justify-between">
-        <Button variant="ghost" onClick={onBack} disabled={isSaving}>
-          Back
-        </Button>
-        <Button onClick={onSave} disabled={isSaving}>
-          {isSaving ? 'Saving…' : 'Save program'}
-        </Button>
-      </div>
+      <BottomActionBar
+        leftContent={
+          <Button
+            variant="ghost"
+            onClick={onBack}
+            disabled={isSaving}
+            className="w-full"
+          >
+            Back
+          </Button>
+        }
+        rightContent={
+          <Button
+            className="w-full gradient-primary text-primary-foreground h-auto py-2 px-4 text-center"
+            onClick={onSave}
+            disabled={isSaving}
+          >
+            {isSaving ? 'Saving…' : 'Save program'}
+          </Button>
+        }
+        showFixed={false}
+      />
     </div>
   )
 }

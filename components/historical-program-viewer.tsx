@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
+import { WorkoutProgressBar } from "@/components/ui/workout-progress-bar"
 import { Calendar, ChevronLeft, Check, Minus, MoreVertical } from "lucide-react"
 import type { WorkoutSession } from "@/lib/workout-logger"
 import type { ProgramHistoryEntry } from "@/lib/program-state"
@@ -123,25 +124,12 @@ export function HistoricalProgramViewer({ historyEntry, workouts, onClose }: His
                 {completedSets + skippedSets}/{totalSets} sets
               </span>
             </div>
-            <div className="flex items-center gap-2 w-full">
-              <div className="relative flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
-                {/* Completed segment */}
-                <div
-                  className="absolute left-0 top-0 bottom-0 bg-primary transition-all duration-300"
-                  style={{ width: `${Math.max(0, Math.min(100, completedPct))}%` }}
-                />
-                {/* Skipped segment */}
-                {skippedPct > 0 && (
-                  <div
-                    className="absolute top-0 bottom-0 bg-orange-500 transition-all duration-300"
-                    style={{ left: `${Math.max(0, Math.min(100, completedPct))}%`, width: `${Math.max(0, Math.min(100, skippedPct))}%` }}
-                  />
-                )}
-              </div>
-              <span className="text-[11px] sm:text-xs font-medium text-muted-foreground tabular-nums shrink-0">
-                {progress}%
-              </span>
-            </div>
+            <WorkoutProgressBar
+              completedPercent={completedPct}
+              skippedPercent={skippedPct}
+              size="md"
+              showLabel={true}
+            />
           </div>
         )}
       </div>

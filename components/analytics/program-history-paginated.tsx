@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Progress } from "@/components/ui/progress"
+import { WorkoutProgressBar } from "@/components/ui/workout-progress-bar"
 import { Button } from "@/components/ui/button"
 import { ChevronDown, ChevronUp } from "lucide-react"
 
@@ -55,7 +55,13 @@ export function ProgramHistoryPaginated({ programHistory, formatVolume }: Progra
                   {(program.completionRate || 0).toFixed(2)}%
                 </Badge>
               </div>
-              <Progress value={program.completionRate || 0} className="h-2" />
+              <WorkoutProgressBar
+                completedPercent={(program.completedWorkouts / program.totalWorkouts) * 100}
+                skippedPercent={((program.skippedWorkouts ?? 0) / program.totalWorkouts) * 100}
+                size="sm"
+                showLabel={false}
+                className="flex-1"
+              />
               <div className="grid grid-cols-3 gap-3 mt-3 text-xs text-muted-foreground">
                 <div>
                   <div className="text-muted-foreground">Duration</div>

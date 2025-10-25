@@ -3,6 +3,7 @@ import { ArrowLeftRight, ChevronDown, Edit3, Trash2 } from 'lucide-react'
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Button } from '@/components/ui/button'
+import { BottomActionBar } from '@/components/ui/bottom-action-bar'
 import { Badge } from '@/components/ui/badge'
 import { Spinner } from '@/components/ui/spinner'
 import { Input } from '@/components/ui/input'
@@ -446,15 +447,6 @@ export function StepExerciseAssignment({
         </div>
       )}
 
-      <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <Button variant="ghost" onClick={onBack}>
-          Back
-        </Button>
-        <Button onClick={onNext} disabled={!allDaysHaveExercises}>
-          Continue
-        </Button>
-      </div>
-
       <ExerciseSelectionDialog
         isOpen={dialogContext !== null}
         mode={dialogContext?.mode ?? 'replace'}
@@ -465,6 +457,24 @@ export function StepExerciseAssignment({
         currentExerciseName={dialogContext?.mode === 'replace' ? dialogContext.exercise.exerciseName : undefined}
         presetMuscleGroup={dialogContext?.mode === 'replace' ? dialogContext.exercise.muscleGroup : undefined}
         onSelectExercise={handleExerciseSelection}
+      />
+
+      <BottomActionBar
+        leftContent={
+          <Button variant="ghost" onClick={onBack} className="w-full">
+            Back
+          </Button>
+        }
+        rightContent={
+          <Button
+            className="w-full gradient-primary text-primary-foreground h-auto py-2 px-4 text-center"
+            onClick={onNext}
+            disabled={!allDaysHaveExercises}
+          >
+            Continue
+          </Button>
+        }
+        showFixed={false}
       />
     </div>
   )

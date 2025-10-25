@@ -11,8 +11,8 @@ import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { MessageSquare, Bug, Lightbulb, Star, Send, CheckCircle } from "lucide-react"
 
-export function ProfileFeedbackSection() {
-  const [feedbackType, setFeedbackType] = useState("general")
+export function ProfileFeedbackSection({ initialType = "general" }: { initialType?: string }) {
+  const [feedbackType, setFeedbackType] = useState(initialType)
   const [rating, setRating] = useState(0)
   const [isSubmitted, setIsSubmitted] = useState(false)
 

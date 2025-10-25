@@ -1,8 +1,8 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
+import { WorkoutProgressBar } from "@/components/ui/workout-progress-bar"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-// Progress component no longer used here (custom bar below)
 import { Spinner } from "@/components/ui/spinner"
 import { Calendar, MoreVertical, FileText, BarChart3, Plus, Check, AlertTriangle } from "lucide-react"
 import { ConnectionStatus } from "@/components/workout-logger/hooks/use-connection-status"
@@ -115,28 +115,13 @@ export function WorkoutHeader({
             </DropdownMenu>
           </div>
         </div>
-        <div className="mt-2 sm:mt-3 flex items-center gap-2 w-full">
-          {/* Segmented progress bar takes remaining space */}
-          <div className="relative flex-1 h-1.5 sm:h-2 bg-muted rounded-full overflow-hidden">
-            {/* Completed (non-skipped) segment in primary */}
-            <div
-              className="absolute left-0 top-0 bottom-0 bg-primary transition-all"
-              style={{ width: `${Math.max(0, Math.min(100, completedPercent ?? progress))}%` }}
-            />
-            {/* Skipped segment in orange, appended to the right of completed */}
-            {((skippedPercent ?? 0) > 0) && (
-              <div
-                className="absolute top-0 bottom-0 bg-orange-500 transition-all"
-                style={{
-                  left: `${Math.max(0, Math.min(100, completedPercent ?? 0))}%`,
-                  width: `${Math.max(0, Math.min(100, skippedPercent ?? 0))}%`,
-                }}
-              />
-            )}
-          </div>
-          <span className="text-[11px] sm:text-xs font-medium text-muted-foreground tabular-nums shrink-0">
-            {Math.round(progress)}%
-          </span>
+        <div className="mt-2 sm:mt-3">
+          <WorkoutProgressBar
+            completedPercent={completedPercent ?? progress}
+            skippedPercent={skippedPercent}
+            size="md"
+            showLabel={true}
+          />
         </div>
       </div>
     </div>

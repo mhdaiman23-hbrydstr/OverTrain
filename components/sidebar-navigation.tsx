@@ -1,9 +1,20 @@
 "use client"
 import { Button } from "@/components/ui/button"
-import { Dumbbell, Calendar, BarChart3, User, HelpCircle, LogOut, FilePlus2 } from "lucide-react"
+import { Dumbbell, Calendar, BarChart3, User, HelpCircle, LogOut, FilePlus2, MessageSquare } from "lucide-react"
 import { useAuth } from "@/contexts/auth-context"
 import { useRouter } from "next/navigation"
 import { ThemeToggle } from "@/components/theme-toggle"
+import { useState } from "react"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 interface SidebarNavigationProps {
   currentView: string
@@ -13,7 +24,8 @@ interface SidebarNavigationProps {
 export function SidebarNavigation({ currentView, onViewChange }: SidebarNavigationProps) {
   const { signOut, user } = useAuth()
   const router = useRouter()
-  const isAdmin = !!user?.isAdmin
+  const [showSignOutDialog, setShowSignOutDialog] = useState(false)
+  const isAdmin = !!user?.email?.includes('admin') // Simple admin check based on email
 
   const baseNavigationItems = [
     { id: "train", label: "Train", icon: Dumbbell },
@@ -29,8 +41,38 @@ export function SidebarNavigation({ currentView, onViewChange }: SidebarNavigati
     { id: "help", label: "Help", icon: HelpCircle },
   ]
 
+  const handleHelpClick = () => {
+    // Navigate to profile and then to help section
+    onViewChange("profile")
+    // Use a timeout to ensure the profile view is loaded first
+    setTimeout(() => {
+      // Dispatch a custom event to navigate to help tab
+      window.dispatchEvent(new CustomEvent('navigateToHelpTab'))
+    }, 100)
+  }
+
+  const handleLeaveReviewClick = () => {
+    // Navigate to profile and then to help -> feedback -> general
+    onViewChange("profile")
+    // Use a timeout to ensure the profile view is loaded first
+    setTimeout(() => {
+      // Dispatch a custom event to navigate to feedback tab with general selected
+      window.dispatchEvent(new CustomEvent('navigateToFeedbackTab', { detail: { type: 'general' } }))
+    }, 100)
+  }
+
+  const handleSignOut = () => {
+    setShowSignOutDialog(true)
+  }
+
+  const confirmSignOut = () => {
+    signOut()
+    setShowSignOutDialog(false)
+  }
+
   return (
-    <div className="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0 bg-muted/30 border-r border-border">
+    <>
+      <div className="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0 bg-muted/30 border-r border-border">
       <div className="flex flex-col flex-1 min-h-0">
         {/* Header */}
         <div className="flex items-center justify-between h-16 px-4 border-b border-border">
@@ -74,14 +116,28 @@ export function SidebarNavigation({ currentView, onViewChange }: SidebarNavigati
               key={item.id}
               variant="ghost"
               className="w-full justify-start text-sm font-normal"
-              onClick={() => onViewChange(item.id)}
+              onClick={item.id === "help" ? handleHelpClick : () => onViewChange(item.id)}
             >
               <item.icon className="mr-3 h-4 w-4" />
               {item.label}
             </Button>
           ))}
 
-          <Button variant="ghost" className="w-full justify-start text-sm font-normal" onClick={signOut}>
+          {/* Leave Your Review Button */}
+          <Button
+            variant="ghost"
+            className="w-full justify-start text-sm font-normal"
+            onClick={handleLeaveReviewClick}
+          >
+            <MessageSquare className="mr-3 h-4 w-4" />
+            Leave Your Review
+          </Button>
+
+          <Button 
+            variant="ghost" 
+            className="w-full justify-start text-sm font-normal text-destructive hover:text-destructive hover:bg-destructive/10" 
+            onClick={handleSignOut}
+          >
             <LogOut className="mr-3 h-4 w-4" />
             Sign out
           </Button>
@@ -91,5 +147,27 @@ export function SidebarNavigation({ currentView, onViewChange }: SidebarNavigati
         <div className="px-4 py-2 text-xs text-muted-foreground border-t border-border">Version 0.9.11</div>
       </div>
     </div>
+
+      {/* Sign Out Confirmation Dialog */}
+      <AlertDialog open={showSignOutDialog} onOpenChange={setShowSignOutDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Sign Out</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to sign out? You'll need to sign in again to access your account and workout data.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmSignOut}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Sign Out
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   )
 }

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { ArrowLeftRight, Edit3, Trash2, ChevronDown } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import { Button } from '@/components/ui/button'
+import { BottomActionBar } from '@/components/ui/bottom-action-bar'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import type { Exercise } from '@/lib/services/exercise-library-service'
@@ -438,19 +439,23 @@ export function StepDayBuilder({
         })}
       </div>
 
-      <div
-        className="sticky bottom-0 z-10 border-t border-border/60 bg-background/95 py-4"
-        style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}
-      >
-        <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <Button variant="ghost" onClick={onBack}>
+      <BottomActionBar
+        leftContent={
+          <Button variant="ghost" onClick={onBack} className="w-full">
             Back
           </Button>
-          <Button onClick={onNext} disabled={!hasAtLeastOneExercise}>
+        }
+        rightContent={
+          <Button
+            className="w-full gradient-primary text-primary-foreground h-auto py-2 px-4 text-center"
+            onClick={onNext}
+            disabled={!hasAtLeastOneExercise}
+          >
             Continue
           </Button>
-        </div>
-      </div>
+        }
+        showFixed={false}
+      />
 
       <ExerciseSelectionDialog
         isOpen={dialogContext !== null}

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -27,6 +27,7 @@ import type { User as UserType } from "@/lib/auth"
 import { ProfileSettingsPanel } from "@/components/profile-settings-panel"
 import { ProfileHelpSection } from "@/components/profile-help-section"
 import { ProfileFeedbackSection } from "@/components/profile-feedback-section"
+import { SubscriptionManagement } from "@/components/subscription-management"
 
 const MALE_GOALS = [
   "Build muscle mass",
@@ -51,6 +52,8 @@ const FEMALE_GOALS = [
 export function ProfileSection() {
   const { user, updateUser, signOut } = useAuth()
   const [isEditing, setIsEditing] = useState(false)
+  const [activeTab, setActiveTab] = useState("profile")
+  const [feedbackType, setFeedbackType] = useState("general")
   const [isEditing1RM, setIsEditing1RM] = useState(false)
   const [formData, setFormData] = useState({
     name: user?.name || "",
@@ -72,6 +75,28 @@ export function ProfileSection() {
   const [preferredUnit, setPreferredUnit] = useState<"metric" | "imperial">(user?.preferredUnit || "metric")
   const [initialPreferredUnit, setInitialPreferredUnit] = useState<"metric" | "imperial">(user?.preferredUnit || "metric")
   const [showSignOutDialog, setShowSignOutDialog] = useState(false)
+
+  // Handle custom events for navigation from sidebar
+  useEffect(() => {
+    const handleNavigateToHelpTab = () => {
+      setActiveTab("help")
+    }
+
+    const handleNavigateToFeedbackTab = (event: any) => {
+      setActiveTab("help")
+      if (event.detail?.type === 'general') {
+        setFeedbackType("general")
+      }
+    }
+
+    window.addEventListener('navigateToHelpTab', handleNavigateToHelpTab)
+    window.addEventListener('navigateToFeedbackTab', handleNavigateToFeedbackTab)
+
+    return () => {
+      window.removeEventListener('navigateToHelpTab', handleNavigateToHelpTab)
+      window.removeEventListener('navigateToFeedbackTab', handleNavigateToFeedbackTab)
+    }
+  }, [])
 
   if (!user) return null
 
@@ -181,7 +206,7 @@ export function ProfileSection() {
       </div>
 
       <div className="p-4 pt-6">
-        <Tabs defaultValue="profile" className="space-y-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="grid w-full grid-cols-4 lg:grid-cols-4">
             <TabsTrigger value="profile" className="flex items-center gap-2">
               <User className="h-4 w-4" />
@@ -335,6 +360,9 @@ export function ProfileSection() {
                 )}
               </CardContent>
             </Card>
+
+            {/* Subscription Management */}
+            <SubscriptionManagement />
 
             {/* Edit Actions */}
             {isEditing && (
@@ -561,7 +589,7 @@ export function ProfileSection() {
               </TabsContent>
 
               <TabsContent value="feedback">
-                <ProfileFeedbackSection />
+                <ProfileFeedbackSection initialType={feedbackType} />
               </TabsContent>
             </Tabs>
           </TabsContent>

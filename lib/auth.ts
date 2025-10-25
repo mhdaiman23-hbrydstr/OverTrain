@@ -14,6 +14,7 @@ export interface User {
     deadlift?: number
   }
   preferredUnit?: "metric" | "imperial"
+  subscriptionTier?: string
   createdAt: string
 }
 

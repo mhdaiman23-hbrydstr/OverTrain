@@ -2,7 +2,8 @@
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { AlertCircle, AlertTriangle, CheckCircle } from "lucide-react"
+import { AlertCircle, AlertTriangle, CheckCircle, HelpCircle } from "lucide-react"
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
 import type { ACWRData } from "@/lib/analytics"
 
@@ -69,8 +70,30 @@ export function ACWRStatusCard({ acwr }: ACWRStatusCardProps) {
   return (
     <Card className={cn("border-2", getZoneColor())}>
       <CardHeader>
-        <CardTitle className="text-lg">Training Load Analysis</CardTitle>
-        <CardDescription>Acute/Chronic Workload Ratio (ACWR)</CardDescription>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="text-lg">Training Load Analysis</CardTitle>
+            <CardDescription>Acute/Chronic Workload Ratio (ACWR)</CardDescription>
+          </div>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <HelpCircle className="h-5 w-5 text-muted-foreground hover:text-foreground transition-colors cursor-help" />
+            </TooltipTrigger>
+            <TooltipContent side="left" className="max-w-xs">
+              <div className="space-y-1">
+                <p className="font-semibold">How ACWR is Calculated:</p>
+                <p>ACWR = Acute Load ÷ Chronic Load</p>
+                <p className="text-xs mt-2">
+                  • <strong>Acute Load:</strong> Total volume from last 7 days (volume = weight × reps × RPE factor)<br/>
+                  • <strong>Chronic Load:</strong> Average daily volume over last 28 days
+                </p>
+                <p className="text-xs mt-2">
+                  Safe: 0.8-1.3 | Caution: 1.3-1.5 | High Risk: &gt;1.5
+                </p>
+              </div>
+            </TooltipContent>
+          </Tooltip>
+        </div>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex items-center justify-between">
@@ -90,14 +113,28 @@ export function ACWRStatusCard({ acwr }: ACWRStatusCardProps) {
         </div>
 
         <div className="grid grid-cols-2 gap-4">
-          <div className="p-3 bg-muted/30 rounded-lg">
-            <div className="text-xs text-muted-foreground">Acute Load (7d)</div>
-            <div className="text-xl font-semibold mt-1">{acwr.acuteLoad}</div>
-          </div>
-          <div className="p-3 bg-muted/30 rounded-lg">
-            <div className="text-xs text-muted-foreground">Chronic Load (28d)</div>
-            <div className="text-xl font-semibold mt-1">{acwr.chronicLoad}</div>
-          </div>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="p-3 bg-muted/30 rounded-lg cursor-help">
+                <div className="text-xs text-muted-foreground">Acute Load (7d)</div>
+                <div className="text-xl font-semibold mt-1">{acwr.acuteLoad}</div>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">
+              Total training load from the last 7 days
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="p-3 bg-muted/30 rounded-lg cursor-help">
+                <div className="text-xs text-muted-foreground">Chronic Load (28d)</div>
+                <div className="text-xl font-semibold mt-1">{acwr.chronicLoad}</div>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">
+              Average daily training load over the last 28 days
+            </TooltipContent>
+          </Tooltip>
         </div>
 
         <div className="p-3 bg-muted/50 rounded-lg">

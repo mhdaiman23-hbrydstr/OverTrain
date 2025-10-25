@@ -2,6 +2,7 @@
 
 import { AVAILABLE_DAY_COUNTS, AVAILABLE_WEEKS } from '../constants'
 import { Button } from '@/components/ui/button'
+import { BottomActionBar } from '@/components/ui/bottom-action-bar'
 
 interface StepDayCountProps {
   selectedWeekCount: number
@@ -105,18 +106,19 @@ export function StepDayCount({
         </div>
       </div>
 
-      <div className="flex justify-between gap-2 pt-2">
-        {onBack ? (
-          <Button variant="ghost" size="sm" onClick={onBack}>
-            Back
+      <BottomActionBar
+        leftContent={onBack ? <Button variant="ghost" onClick={onBack} className="w-full">Back</Button> : undefined}
+        rightContent={
+          <Button
+            className="w-full gradient-primary text-primary-foreground h-auto py-2 px-4 text-center"
+            onClick={onNext}
+            disabled={selectedWeekCount === 0 || selectedDayCount === 0}
+          >
+            Continue
           </Button>
-        ) : (
-          <div />
-        )}
-        <Button size="sm" onClick={onNext} disabled={selectedWeekCount === 0 || selectedDayCount === 0}>
-          Continue
-        </Button>
-      </div>
+        }
+        showFixed={false}
+      />
     </div>
   )
 }

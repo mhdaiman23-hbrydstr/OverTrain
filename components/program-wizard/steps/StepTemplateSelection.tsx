@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/button'
+import { BottomActionBar } from '@/components/ui/bottom-action-bar'
 import { Spinner } from '@/components/ui/spinner'
 import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -125,19 +126,23 @@ export function StepTemplateSelection({
         )}
       </div>
 
-      <div
-        className="sticky bottom-0 z-10 border-t border-border/60 bg-background/95 py-4"
-        style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}
-      >
-        <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <Button variant="ghost" onClick={onBack}>
+      <BottomActionBar
+        leftContent={
+          <Button variant="ghost" onClick={onBack} className="w-full">
             Back
           </Button>
-          <Button onClick={onNext} disabled={!selectedTemplateId || loadingTemplateIds.size > 0}>
+        }
+        rightContent={
+          <Button
+            className="w-full gradient-primary text-primary-foreground h-auto py-2 px-4 text-center"
+            onClick={onNext}
+            disabled={!selectedTemplateId || loadingTemplateIds.size > 0}
+          >
             Continue
           </Button>
-        </div>
-      </div>
+        }
+        showFixed={false}
+      />
     </div>
   )
 }

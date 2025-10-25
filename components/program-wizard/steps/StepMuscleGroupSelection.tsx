@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
+import { BottomActionBar } from '@/components/ui/bottom-action-bar'
 import { DetailCard } from '@/components/ui/detail-card'
 import { Badge } from '@/components/ui/badge'
 import type { DayInWizard, MuscleGroupSelection } from '../types'
@@ -79,15 +80,6 @@ export function StepMuscleGroupSelection({ days, onUpdateDay, onNext, onBack }: 
         ))}
       </div>
 
-      <div className="flex justify-between">
-        <Button variant="ghost" onClick={onBack}>
-          Back
-        </Button>
-        <Button onClick={onNext} disabled={!allDaysConfigured}>
-          Continue
-        </Button>
-      </div>
-
       <MuscleGroupPicker
         open={pickerDayIndex !== null}
         onOpenChange={open => {
@@ -101,6 +93,24 @@ export function StepMuscleGroupSelection({ days, onUpdateDay, onNext, onBack }: 
             onUpdateDay(pickerDayIndex, groups)
           }
         }}
+      />
+
+      <BottomActionBar
+        leftContent={
+          <Button variant="ghost" onClick={onBack} className="w-full">
+            Back
+          </Button>
+        }
+        rightContent={
+          <Button
+            className="w-full gradient-primary text-primary-foreground h-auto py-2 px-4 text-center"
+            onClick={onNext}
+            disabled={!allDaysConfigured}
+          >
+            Continue
+          </Button>
+        }
+        showFixed={false}
       />
     </div>
   )

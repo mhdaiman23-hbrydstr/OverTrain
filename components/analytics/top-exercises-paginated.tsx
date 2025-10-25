@@ -3,7 +3,8 @@
 import { useState, useMemo } from "react"
 import { ExerciseStatsCard } from "./exercise-stats-card"
 import { Button } from "@/components/ui/button"
-import { ChevronDown, ChevronUp } from "lucide-react"
+import { ChevronDown, ChevronUp, HelpCircle } from "lucide-react"
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip"
 import type { ExerciseStats } from "@/lib/analytics"
 
 interface TopExercisesPaginatedProps {
@@ -27,9 +28,27 @@ export function TopExercisesPaginated({ topExercises }: TopExercisesPaginatedPro
   return (
     <div>
       <div className="flex items-center justify-between mb-3 px-4">
-        <h3 className="font-semibold text-sm text-muted-foreground">
-          Top Exercises
-        </h3>
+        <div className="flex items-center gap-2">
+          <h3 className="font-semibold text-sm text-muted-foreground">
+            Top Exercises
+          </h3>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <HelpCircle className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors cursor-help" />
+            </TooltipTrigger>
+            <TooltipContent side="right" className="max-w-xs">
+              <div className="space-y-1">
+                <p className="font-semibold">How This List is Determined:</p>
+                <p className="text-xs">
+                  Exercises are ranked by total sets completed across all your workouts. The more frequently you train an exercise, the higher it appears in this list.
+                </p>
+                <p className="text-xs mt-2">
+                  Use the search bar to find your best performance for any specific exercise.
+                </p>
+              </div>
+            </TooltipContent>
+          </Tooltip>
+        </div>
         <div className="text-xs text-muted-foreground">
           {displayedCount} of {totalCount}
         </div>

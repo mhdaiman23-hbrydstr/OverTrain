@@ -176,13 +176,15 @@ export function AdvancedProgramSettings({ template, userProfile, onOverrideChang
                       <RadioGroupItem value="linear" id="linear" />
                       <Label htmlFor="linear" className="text-sm">Linear</Label>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="percentage" id="percentage" />
-                      <Label htmlFor="percentage" className="text-sm">Percentage (1RM)</Label>
+                    <div className="flex items-center space-x-2 opacity-50 cursor-not-allowed">
+                      <RadioGroupItem value="percentage" id="percentage" disabled />
+                      <Label htmlFor="percentage" className="text-sm text-muted-foreground">Percentage (1RM)</Label>
+                      <Badge variant="outline" className="text-xs ml-2">Coming Soon</Badge>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="hybrid" id="hybrid" />
-                      <Label htmlFor="hybrid" className="text-sm">Hybrid</Label>
+                    <div className="flex items-center space-x-2 opacity-50 cursor-not-allowed">
+                      <RadioGroupItem value="hybrid" id="hybrid" disabled />
+                      <Label htmlFor="hybrid" className="text-sm text-muted-foreground">Hybrid</Label>
+                      <Badge variant="outline" className="text-xs ml-2">Coming Soon</Badge>
                     </div>
                   </RadioGroup>
                 </div>
