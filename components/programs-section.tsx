@@ -41,8 +41,14 @@ interface ProgramsSectionProps {
   }
 }
 
+// Template caching mechanism for instant template list loading
+let templateCache: any[] | null = null
+let templateCacheTimestamp = 0
+const TEMPLATE_CACHE_TTL = 5 * 60 * 1000 // 5 minutes
+
 export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTrain, userProfile }: ProgramsSectionProps) {
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null)
+  const [isLoadingTemplate, setIsLoadingTemplate] = useState(false)
   const [selectedHistoricalProgram, setSelectedHistoricalProgram] = useState<any | null>(null)
   const [showSwitchDialog, setShowSwitchDialog] = useState(false)
   const [pendingProgramId, setPendingProgramId] = useState<{ templateId: string; progressionOverride?: any } | null>(null)
@@ -53,6 +59,7 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
   const [filterOpen, setFilterOpen] = useState(false)
   const [isStartingProgram, setIsStartingProgram] = useState(false)
   const [startingTemplateId, setStartingTemplateId] = useState<string | null>(null)
+  const [startingStep, setStartingStep] = useState<string>("")
 
   const [experienceFilter, setExperienceFilter] = useState<string>("all")
   const [daysFilter, setDaysFilter] = useState<string>("all")
@@ -143,7 +150,9 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
   }, [])
 
   const handleOpenWizard = useCallback(() => {
-    onAddProgram()
+    // INSTANT: Show loading state immediately for responsive feedback
+    setIsStartingProgram(true)
+    setStartingTemplateId('new')
 
     const pathname = typeof window !== "undefined" ? window.location.pathname : "/"
     const returnLocation = `${pathname}?view=programs`
@@ -152,17 +161,39 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
     params.set("return", returnLocation)
     params.set("tab", "my-programs")
 
+    // Navigate immediately (no await)
     router.push(`/program-wizard?${params.toString()}`)
+
+    // Call the parent callback
+    onAddProgram()
+
+    // Clear loading state after navigation starts (500ms buffer)
+    setTimeout(() => {
+      setIsStartingProgram(false)
+      setStartingTemplateId(null)
+    }, 500)
   }, [onAddProgram, router])
 
   const loadData = useCallback(async () => {
-    // Only show loading spinner if we don't have templates yet (cold start)
-    // This prevents spinner flicker when returning to Programs tab with cached data
-    if (allTemplates.length === 0) {
+    // CACHE HIT: Check if we have fresh template cache
+    const now = Date.now()
+    const cacheIsValid = templateCache && (now - templateCacheTimestamp) < TEMPLATE_CACHE_TTL
+
+    // Only show loading spinner if we have NO cache at all (cold start)
+    // This prevents spinner flicker when returning to Programs tab with fresh cache
+    if (allTemplates.length === 0 && !cacheIsValid) {
       setTemplatesLoading(true)
     }
 
-    const templatesPromise = ProgramStateManager.getAllTemplates()
+    // Use cached templates if available, otherwise fetch from database
+    let templatesPromise: Promise<any[]>
+    if (cacheIsValid) {
+      console.log('[ProgramsSection] Using cached templates (TTL: ' + Math.round((now - templateCacheTimestamp) / 1000) + 's ago)')
+      templatesPromise = Promise.resolve(templateCache!)
+    } else {
+      console.log('[ProgramsSection] Fetching fresh templates from database')
+      templatesPromise = ProgramStateManager.getAllTemplates()
+    }
 
     const history = TemplateStorageManager.getProgramHistory()
     setProgramHistory(history)
@@ -177,6 +208,10 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
 
     try {
       const templates = await templatesPromise
+      // Update cache
+      templateCache = templates
+      templateCacheTimestamp = Date.now()
+
       setAllTemplates(templates)
       console.log('[ProgramsSection] Loaded', templates.length, 'lightweight templates (metadata only)')
     } catch (error) {
@@ -314,14 +349,22 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
       loadData()
     }
 
+    const handleProgramChanged = () => {
+      // Invalidate template cache when programs change
+      console.log("[ProgramsSection] Program changed, invalidating template cache...")
+      templateCache = null
+      templateCacheTimestamp = 0
+      loadData()
+    }
+
     if (typeof window !== "undefined") {
-      window.addEventListener("programChanged", loadData)
+      window.addEventListener("programChanged", handleProgramChanged)
       window.addEventListener("programEnded", handleProgramEnded)
     }
 
     return () => {
       if (typeof window !== "undefined") {
-        window.removeEventListener("programChanged", loadData)
+        window.removeEventListener("programChanged", handleProgramChanged)
         window.removeEventListener("programEnded", handleProgramEnded)
       }
     }
@@ -370,18 +413,22 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
       return
     }
 
-    // OPTIMIZATION: Load full template with exercises on-demand
-    // This ensures exercises are cached before showing template detail view
+    // INSTANT: Show skeleton/detail view immediately for responsive UX
+    // Don't wait for template to load - show skeleton while loading in background
+    setSelectedTemplate(templateId)
+    setIsLoadingTemplate(true)
+
+    // BACKGROUND: Load full template with exercises on-demand
     console.log("[ProgramsSection] Loading full template data for:", templateId)
     try {
       await ProgramStateManager.loadTemplate(templateId)
-      console.log("[ProgramsSection] Template loaded successfully, showing detail view")
+      console.log("[ProgramsSection] Template loaded successfully, updating detail view")
     } catch (error) {
       console.error("[ProgramsSection] Failed to load template:", error)
       // Continue anyway - TemplateDetailView will handle the error
+    } finally {
+      setIsLoadingTemplate(false)
     }
-
-    setSelectedTemplate(templateId)
   }
 
   const handleStartProgram = async (templateId: string, progressionOverride?: any) => {
@@ -403,39 +450,66 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
     console.log("[v0] Starting program:", templateId, "with override:", !!progressionOverride)
     setIsStartingProgram(true)
     setStartingTemplateId(templateId)
+    setStartingStep("Loading template...")
 
-    // Load template from database or hardcoded templates
-    const template = await ProgramStateManager.loadTemplate(templateId)
-    if (!template) {
-      console.error("[v0] Template not found:", templateId)
-      setIsStartingProgram(false)
-      setStartingTemplateId(null)
-      return
-    }
-
-    // Clear all in-progress workouts to start fresh
-    WorkoutLogger.clearCurrentWorkout()
-    
-    // Also clear any corrupted workout data
-    WorkoutLogger.cleanupCorruptedWorkouts()
-
-    const activeProgram = await ProgramStateManager.setActiveProgram(templateId, progressionOverride)
-
-    if (activeProgram) {
-      console.log("[v0] Program activated successfully:", activeProgram)
-      setSelectedTemplate(null)
-      setPendingProgramId(null)
-      setActiveProgram(activeProgram)
-
-      if (onProgramStarted) {
-        onProgramStarted()
+    try {
+      // Load template from database or hardcoded templates
+      const template = await ProgramStateManager.loadTemplate(templateId)
+      if (!template) {
+        console.error("[v0] Template not found:", templateId)
+        setStartingStep("Template not found")
+        setTimeout(() => {
+          setIsStartingProgram(false)
+          setStartingTemplateId(null)
+          setStartingStep("")
+        }, 1000)
+        return
       }
-      setIsStartingProgram(false)
-      setStartingTemplateId(null)
-    } else {
-      console.error("[v0] Failed to activate program:", templateId)
-      setIsStartingProgram(false)
-      setStartingTemplateId(null)
+
+      // Clear all in-progress workouts to start fresh
+      setStartingStep("Preparing workouts...")
+      WorkoutLogger.clearCurrentWorkout()
+
+      // Also clear any corrupted workout data
+      WorkoutLogger.cleanupCorruptedWorkouts()
+
+      setStartingStep("Activating program...")
+      const activeProgram = await ProgramStateManager.setActiveProgram(templateId, progressionOverride)
+
+      if (activeProgram) {
+        console.log("[v0] Program activated successfully:", activeProgram)
+        setStartingStep("Ready!")
+        setSelectedTemplate(null)
+        setPendingProgramId(null)
+        setActiveProgram(activeProgram)
+
+        if (onProgramStarted) {
+          onProgramStarted()
+        }
+
+        // Clear states after a short delay
+        setTimeout(() => {
+          setIsStartingProgram(false)
+          setStartingTemplateId(null)
+          setStartingStep("")
+        }, 500)
+      } else {
+        console.error("[v0] Failed to activate program:", templateId)
+        setStartingStep("Failed to start program")
+        setTimeout(() => {
+          setIsStartingProgram(false)
+          setStartingTemplateId(null)
+          setStartingStep("")
+        }, 1000)
+      }
+    } catch (error) {
+      console.error("[v0] Error starting program:", error)
+      setStartingStep("Error starting program")
+      setTimeout(() => {
+        setIsStartingProgram(false)
+        setStartingTemplateId(null)
+        setStartingStep("")
+      }, 1000)
     }
   }
 
@@ -503,6 +577,8 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
           onClose={() => setSelectedTemplate(null)}
           onStartProgram={handleStartProgram}
           isStarting={isStartingProgram && startingTemplateId === selectedTemplate}
+          isLoading={isLoadingTemplate}
+          startingStep={startingStep}
           userProfile={userProfile}
         />
       ) : (

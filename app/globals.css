@@ -130,6 +130,14 @@
   }
   body {
     @apply bg-background text-foreground;
+    touch-action: pan-y;
+    overscroll-behavior-x: none;
+  }
+
+  /* Prevent horizontal swipe gestures from triggering browser back/forward */
+  html {
+    touch-action: pan-y;
+    overscroll-behavior-x: none;
   }
 
   /* Clean, modern typography optimized for fitness apps */

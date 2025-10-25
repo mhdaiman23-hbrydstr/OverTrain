@@ -3,7 +3,7 @@
 import { useMemo } from "react"
 import { HelpCircle } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { MobileTooltip } from "@/components/ui/mobile-tooltip"
 import {
   ChartContainer,
   ChartTooltip,
@@ -50,52 +50,51 @@ export function VolumeTrendChart({ trainingLoad }: VolumeTrendChartProps) {
   }
 
   return (
-    <TooltipProvider>
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-lg">Volume Trend</CardTitle>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help hover:text-foreground transition-colors" />
-              </TooltipTrigger>
-              <TooltipContent>
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-lg">Volume Trend</CardTitle>
+          <MobileTooltip
+            content={
+              <>
                 <p>Total weight lifted per workout day.</p>
                 <p className="text-xs mt-1">Shows your training volume over time to track progression.</p>
-              </TooltipContent>
-            </Tooltip>
-          </div>
-        </CardHeader>
-        <CardContent>
-        <ChartContainer config={chartConfig} className="h-64 w-full">
-          <LineChart
-            data={chartData}
-            margin={{ top: 5, right: 10, left: 0, bottom: 5 }}
+              </>
+            }
           >
-            <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
-            <XAxis
-              dataKey="date"
-              tick={{ fontSize: 12 }}
-              stroke="var(--color-border)"
-            />
-            <YAxis
-              tick={{ fontSize: 12 }}
-              stroke="var(--color-border)"
-              label={{ value: 'Volume (k kg)', angle: -90, position: 'insideLeft' }}
-            />
-            <ChartTooltip content={<ChartTooltipContent />} />
-            <Line
-              type="monotone"
-              dataKey="volume"
-              stroke="var(--color-volume)"
-              strokeWidth={2}
-              dot={{ fill: "var(--color-volume)", r: 3 }}
-              activeDot={{ r: 5 }}
-            />
-          </LineChart>
-        </ChartContainer>
-        </CardContent>
-      </Card>
-    </TooltipProvider>
+            <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help hover:text-foreground transition-colors" />
+          </MobileTooltip>
+        </div>
+      </CardHeader>
+      <CardContent>
+      <ChartContainer config={chartConfig} className="h-64 w-full">
+        <LineChart
+          data={chartData}
+          margin={{ top: 5, right: 10, left: 0, bottom: 5 }}
+        >
+          <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
+          <XAxis
+            dataKey="date"
+            tick={{ fontSize: 12 }}
+            stroke="var(--color-border)"
+          />
+          <YAxis
+            tick={{ fontSize: 12 }}
+            stroke="var(--color-border)"
+            label={{ value: 'Volume (k kg)', angle: -90, position: 'insideLeft' }}
+          />
+          <ChartTooltip content={<ChartTooltipContent />} />
+          <Line
+            type="monotone"
+            dataKey="volume"
+            stroke="var(--color-volume)"
+            strokeWidth={2}
+            dot={{ fill: "var(--color-volume)", r: 3 }}
+            activeDot={{ r: 5 }}
+          />
+        </LineChart>
+      </ChartContainer>
+      </CardContent>
+    </Card>
   )
 }

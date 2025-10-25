@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { Badge } from "@/components/ui/badge"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { MobileTooltip } from "@/components/ui/mobile-tooltip"
 import { cn } from "@/lib/utils"
 import type { WorkoutSession } from "@/lib/workout-logger"
 
@@ -88,27 +88,27 @@ export function WeeklyFocusCard({ workouts, weeklyGoal, onLogWorkout }: WeeklyFo
   const workoutDays = getWorkoutDays()
 
   return (
-    <TooltipProvider>
-      <Card className="gradient-card border-primary/20 shadow-lg">
-        <CardContent className="p-6">
-          <div className="space-y-6">
-            {/* Header */}
-            <div className="text-center">
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <Target className="h-5 w-5 text-primary" />
-                <h3 className="text-lg font-semibold text-foreground">This Week</h3>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help hover:text-foreground transition-colors" />
-                  </TooltipTrigger>
-                  <TooltipContent>
+    <Card className="gradient-card border-primary/20 shadow-lg">
+      <CardContent className="p-6">
+        <div className="space-y-6">
+          {/* Header */}
+          <div className="text-center">
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <Target className="h-5 w-5 text-primary" />
+              <h3 className="text-lg font-semibold text-foreground">This Week</h3>
+              <MobileTooltip
+                content={
+                  <>
                     <p>The circular chart shows your progress toward your weekly goal.</p>
                     <p className="text-xs mt-1">Blue = In progress | Green = Goal achieved</p>
-                  </TooltipContent>
-                </Tooltip>
-              </div>
-              <p className="text-sm text-muted-foreground">Your weekly workout goal progress</p>
+                  </>
+                }
+              >
+                <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help hover:text-foreground transition-colors" />
+              </MobileTooltip>
             </div>
+            <p className="text-sm text-muted-foreground">Your weekly workout goal progress</p>
+          </div>
 
             {/* Progress Circle */}
             <div className="flex items-center justify-center">
@@ -207,15 +207,16 @@ export function WeeklyFocusCard({ workouts, weeklyGoal, onLogWorkout }: WeeklyFo
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-1">
                 <span className="text-xs text-muted-foreground">Workout Days</span>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <HelpCircle className="h-3 w-3 text-muted-foreground cursor-help hover:text-foreground transition-colors" />
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Your workouts for this week:</p>
-                    <p className="text-xs mt-1">Blue = Had workout | Red = Missed | Gray = Future</p>
-                  </TooltipContent>
-                </Tooltip>
+                <MobileTooltip
+                  content={
+                    <>
+                      <p>Your workouts for this week:</p>
+                      <p className="text-xs mt-1">Blue = Had workout | Red = Missed | Gray = Future</p>
+                    </>
+                  }
+                >
+                  <HelpCircle className="h-3 w-3 text-muted-foreground cursor-help hover:text-foreground transition-colors" />
+                </MobileTooltip>
               </div>
               <div className="flex gap-1">
                 {workoutDays.map((day, index) => (
@@ -239,6 +240,5 @@ export function WeeklyFocusCard({ workouts, weeklyGoal, onLogWorkout }: WeeklyFo
         </div>
       </CardContent>
     </Card>
-    </TooltipProvider>
   )
 }

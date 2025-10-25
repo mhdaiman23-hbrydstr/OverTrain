@@ -43,7 +43,7 @@ export function StepSourceSelection({ onSelect }: StepSourceSelectionProps) {
               <li>Full control over progression setup</li>
             </ul>
           </div>
-          <Button className="mt-6 w-full" variant="secondary" onClick={() => onSelect('scratch')}>
+          <Button className="mt-6 w-full bg-green-600 hover:bg-green-700 text-white" onClick={() => onSelect('scratch')}>
             Start from scratch
           </Button>
         </CardContent>

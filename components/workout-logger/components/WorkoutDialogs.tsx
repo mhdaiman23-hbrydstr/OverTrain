@@ -175,7 +175,7 @@ export function WorkoutDialogs({
       </Dialog>
 
       <Dialog open={showEndWorkoutDialog} onOpenChange={setShowEndWorkoutDialog}>
-        <DialogContent>
+        <DialogContent className="flex flex-col max-h-[85vh]">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-orange-600">
               <Check className="h-5 w-5" />
@@ -185,7 +185,7 @@ export function WorkoutDialogs({
               This will mark all remaining sets as skipped and complete your current workout. You'll be able to start the next workout.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
+          <div className="space-y-4 flex-1 overflow-y-auto">
             <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg">
               <p className="text-sm text-orange-800 font-medium">
                 To confirm, please type "End Workout" in the field below:
@@ -195,9 +195,10 @@ export function WorkoutDialogs({
               placeholder="Type 'End Workout' to confirm"
               value={endWorkoutConfirmation}
               onChange={(e) => setEndWorkoutConfirmation(e.target.value)}
+              autoFocus
             />
           </div>
-          <DialogFooter>
+          <DialogFooter className="mt-4 pt-4 border-t border-border/30">
             <Button
               variant="outline"
               onClick={() => {
@@ -219,7 +220,7 @@ export function WorkoutDialogs({
       </Dialog>
 
       <Dialog open={showEndProgramDialog} onOpenChange={setShowEndProgramDialog}>
-        <DialogContent>
+        <DialogContent className="flex flex-col max-h-[85vh]">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-red-600">
               <AlertTriangle className="h-5 w-5" />
@@ -229,7 +230,7 @@ export function WorkoutDialogs({
               This will mark all remaining sets as skipped and end your current program. This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
+          <div className="space-y-4 flex-1 overflow-y-auto">
             <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
               <p className="text-sm text-red-800 font-medium">
                 To confirm, please type "End Program" in the field below:
@@ -239,9 +240,10 @@ export function WorkoutDialogs({
               placeholder="Type 'End Program' to confirm"
               value={endProgramConfirmation}
               onChange={(e) => setEndProgramConfirmation(e.target.value)}
+              autoFocus
             />
           </div>
-          <DialogFooter>
+          <DialogFooter className="mt-4 pt-4 border-t border-border/30">
             <Button
               variant="outline"
               onClick={() => {

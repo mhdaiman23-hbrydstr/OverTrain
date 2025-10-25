@@ -25,8 +25,9 @@ export function TrainSection({ onStartWorkout, onAddProgram, shouldAutoStart = f
     try {
       console.log("[TrainSection] Loading active program...")
 
-      // Only show loading spinner if we don't have data yet (cold start)
+      // CONDITIONAL LOADING: Only show spinner on cold start (no cached data)
       // This prevents spinner flicker when returning to tab with cached data
+      // (Pattern 9: Conditional Loading Spinners - DEVELOPMENT_RULES.md)
       if (!activeProgram && !currentWorkout) {
         setIsLoading(true)
       }
@@ -85,6 +86,36 @@ export function TrainSection({ onStartWorkout, onAddProgram, shouldAutoStart = f
     console.log("[TrainSection] Component mounted or updated, loading program data...")
     loadProgramData()
 
+    // BACKGROUND: Preload next workout data while viewing current
+    // This makes the next workout load instantly when user completes current
+    const preloadNextWorkout = async () => {
+      if (activeProgram) {
+        try {
+          // Calculate next workout coordinates
+          let nextDay = activeProgram.currentDay + 1
+          let nextWeek = activeProgram.currentWeek
+          const daysPerWeek = Object.keys(activeProgram.template?.schedule || {}).length
+
+          if (nextDay > daysPerWeek) {
+            nextWeek += 1
+            nextDay = 1
+          }
+
+          // Only preload if within program bounds
+          if (nextWeek <= (activeProgram.template?.weeks || 0)) {
+            console.log("[TrainSection] Preloading next workout: Week " + nextWeek + ", Day " + nextDay)
+            await ProgramStateManager.getCurrentWorkout({ week: nextWeek, day: nextDay }).catch(() => {})
+          }
+        } catch (error) {
+          // Ignore preload errors - it's just an optimization
+          console.debug("[TrainSection] Next workout preload failed (ignored):", error)
+        }
+      }
+    }
+
+    // Preload on a slight delay to avoid blocking current load
+    const preloadTimer = setTimeout(preloadNextWorkout, 500)
+
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === "liftlog_active_program") {
         console.log("[TrainSection] Active program changed in localStorage, reloading...")
@@ -126,6 +157,9 @@ export function TrainSection({ onStartWorkout, onAddProgram, shouldAutoStart = f
     document.addEventListener("visibilitychange", handleVisibilityChange)
 
     return () => {
+      // Clean up preload timer
+      clearTimeout(preloadTimer)
+
       window.removeEventListener("storage", handleStorageChange)
       window.removeEventListener("programChanged", handleProgramChange)
       window.removeEventListener("programEnded", handleProgramEnded)

@@ -4,7 +4,7 @@ import { useState, useMemo } from "react"
 import { ExerciseStatsCard } from "./exercise-stats-card"
 import { Button } from "@/components/ui/button"
 import { ChevronDown, ChevronUp, HelpCircle } from "lucide-react"
-import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip"
+import { MobileTooltip } from "@/components/ui/mobile-tooltip"
 import type { ExerciseStats } from "@/lib/analytics"
 
 interface TopExercisesPaginatedProps {
@@ -32,11 +32,8 @@ export function TopExercisesPaginated({ topExercises }: TopExercisesPaginatedPro
           <h3 className="font-semibold text-sm text-muted-foreground">
             Top Exercises
           </h3>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <HelpCircle className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors cursor-help" />
-            </TooltipTrigger>
-            <TooltipContent side="right" className="max-w-xs">
+          <MobileTooltip
+            content={
               <div className="space-y-1">
                 <p className="font-semibold">How This List is Determined:</p>
                 <p className="text-xs">
@@ -46,8 +43,12 @@ export function TopExercisesPaginated({ topExercises }: TopExercisesPaginatedPro
                   Use the search bar to find your best performance for any specific exercise.
                 </p>
               </div>
-            </TooltipContent>
-          </Tooltip>
+            }
+            side="right"
+            className="max-w-xs"
+          >
+            <HelpCircle className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors cursor-help" />
+          </MobileTooltip>
         </div>
         <div className="text-xs text-muted-foreground">
           {displayedCount} of {totalCount}

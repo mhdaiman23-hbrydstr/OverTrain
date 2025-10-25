@@ -173,12 +173,33 @@ export default function HomePage() {
   }
 
   const handleViewChange = async (view: string) => {
-    // Redirect train view to workout if program exists, otherwise show train screen
+    // INSTANT: Switch view immediately for responsive UX
     if (view === "train") {
       const activeProgram = await ProgramStateManager.getActiveProgram()
       setCurrentView(activeProgram ? "workout" : "train")
     } else {
       setCurrentView(view as "dashboard" | "programs" | "workout" | "analytics" | "train" | "profile")
+    }
+
+    // BACKGROUND: Preload data for adjacent/likely next tabs (non-blocking)
+    // This makes subsequent tab switches feel instant
+    if (typeof window !== "undefined") {
+      // Fire-and-forget preloading - don't await
+      switch (view) {
+        case "programs":
+          // User in Programs might go to Train next
+          ProgramStateManager.getActiveProgram().catch(() => {})
+          break
+        case "train":
+        case "workout":
+          // User in Train/Workout might go to Programs next
+          ProgramStateManager.getAllTemplates().catch(() => {})
+          break
+        case "analytics":
+          // User in Analytics might go to Train next
+          ProgramStateManager.getActiveProgram().catch(() => {})
+          break
+      }
     }
   }
 
@@ -235,7 +256,7 @@ export default function HomePage() {
   // This keeps components mounted and prevents loading spinners on tab switches
   if (user && (currentView === "programs" || currentView === "train" || currentView === "workout" || currentView === "analytics" || currentView === "profile")) {
     return (
-      <div className="flex h-screen bg-background overflow-hidden">
+      <div className="flex h-screen bg-background overflow-hidden touch-action-none" style={{ touchAction: 'pan-y' }}>
         <SidebarNavigation currentView={currentView} onViewChange={setCurrentView} />
 
         {/* Programs Section - Hidden but mounted */}

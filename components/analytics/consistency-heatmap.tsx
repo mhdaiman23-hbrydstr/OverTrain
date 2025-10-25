@@ -3,7 +3,7 @@
 import { useMemo } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { HelpCircle } from "lucide-react"
-import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip"
+import { MobileTooltip } from "@/components/ui/mobile-tooltip"
 import { cn } from "@/lib/utils"
 import type { HeatmapData } from "@/lib/analytics"
 
@@ -64,11 +64,8 @@ export function ConsistencyHeatmap({ heatmap }: ConsistencyHeatmapProps) {
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg">Consistency</CardTitle>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <HelpCircle className="h-5 w-5 text-muted-foreground hover:text-foreground transition-colors cursor-help" />
-            </TooltipTrigger>
-            <TooltipContent side="left" className="max-w-xs">
+          <MobileTooltip
+            content={
               <div className="space-y-1">
                 <p className="font-semibold">How to Read This Chart:</p>
                 <p className="text-xs">Each square represents one day of the past 12 weeks.</p>
@@ -80,8 +77,12 @@ export function ConsistencyHeatmap({ heatmap }: ConsistencyHeatmapProps) {
                   Hover over a day to see the exact number of workouts completed.
                 </p>
               </div>
-            </TooltipContent>
-          </Tooltip>
+            }
+            side="left"
+            className="max-w-xs"
+          >
+            <HelpCircle className="h-5 w-5 text-muted-foreground hover:text-foreground transition-colors cursor-help" />
+          </MobileTooltip>
         </div>
       </CardHeader>
       <CardContent>

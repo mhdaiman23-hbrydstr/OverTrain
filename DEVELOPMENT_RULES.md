@@ -872,10 +872,241 @@ Checklist
 - [ ] Rename dialog matches design (themed dialog, inline validation, no browser prompt)
 - [ ] UI reacts instantly (toast + list refresh + `programChanged` event)
 
+### Pattern 18: Mobile Navigation & Gesture Handling
+
+**Prevent unintended browser navigation from horizontal swipe gestures:**
+
+Horizontal swipe gestures (left/right) trigger browser back/forward navigation by default on mobile. This breaks the app experience when users try to interact with scrollable content.
+
+```typescript
+// ✅ CORRECT - Prevent horizontal swipes from triggering navigation
+// In app/globals.css:
+@layer base {
+  html {
+    touch-action: pan-y;
+    overscroll-behavior-x: none;
+  }
+
+  body {
+    touch-action: pan-y;
+    overscroll-behavior-x: none;
+  }
+}
+
+// In app/page.tsx (main container):
+<div style={{ touchAction: 'pan-y' }}>
+  {/* Your app content */}
+</div>
+
+// ✅ For specific scrollable areas (tabs, lists):
+<div className="overflow-y-auto overscroll-y-contain">
+  {/* Content that should be scrollable but not swipeable */}
+</div>
+
+// ❌ WRONG - Not preventing horizontal swipes
+// Browser's default gesture handlers will navigate away
+```
+
+**Key Rules:**
+- ✅ Add `touch-action: pan-y` to html/body and main container
+- ✅ Add `overscroll-behavior-x: none` to prevent elasticity effects
+- ✅ Use `overscroll-behavior-y: contain` on scrollable content to prevent rubber-band
+- ✅ Test on actual mobile devices (not just browser dev tools)
+- ❌ Never rely on JavaScript swipe handlers to prevent browser gestures
+- ❌ Don't use `touch-action: none` (disables scrolling entirely)
+
 ---
 
-*Last Updated: 2025-10-24*
-*Version: 1.8 - Added Pattern 17: Dialog Positioning with Sidebar Compensation.*
+### Pattern 19: Mobile Keyboard & Dialog Visibility
+
+**Ensure dialog buttons remain accessible when mobile keyboard appears:**
+
+On mobile, the virtual keyboard can cover dialog content, especially action buttons. Design dialogs to reposition and remain accessible.
+
+```typescript
+// ✅ CORRECT - Mobile-optimized dialog positioning
+function DialogContent({
+  className,
+  children,
+  showCloseButton = true,
+  overlayClassName,
+  ...props
+}: React.ComponentProps<typeof DialogPrimitive.Content> & {
+  showCloseButton?: boolean
+  overlayClassName?: string
+}) {
+  return (
+    <DialogPortal data-slot="dialog-portal">
+      <DialogOverlay className={overlayClassName} />
+      <DialogPrimitive.Content
+        data-slot="dialog-content"
+        className={cn(
+          'bg-background fixed z-[70] grid w-full max-w-[calc(100%-2rem)] gap-4 rounded-lg border p-6 shadow-lg duration-200',
+          // Mobile: Position higher (10% from top) to avoid keyboard
+          'top-[10%] left-[50%] translate-x-[-50%] translate-y-0 max-h-[80vh] overflow-y-auto',
+          // Desktop: Center in viewport (50% from top)
+          'sm:top-[50%] sm:left-[50%] sm:translate-x-[-50%] sm:translate-y-[-50%] sm:max-h-[90vh]',
+          'sm:max-w-sm md:max-w-lg',
+          className,
+        )}
+        {...props}
+      >
+        {children}
+        {/* ... */}
+      </DialogPrimitive.Content>
+    </DialogPortal>
+  )
+}
+
+// ✅ CORRECT - Dialog content with scrollable body and sticky footer
+export function EndWorkoutDialog({
+  showDialog,
+  setShowDialog,
+  confirmationText,
+  setConfirmationText,
+  onConfirm,
+}) {
+  return (
+    <Dialog open={showDialog} onOpenChange={setShowDialog}>
+      <DialogContent className="flex flex-col max-h-[85vh]">
+        <DialogHeader>
+          <DialogTitle>End Workout</DialogTitle>
+          <DialogDescription>Please confirm to continue</DialogDescription>
+        </DialogHeader>
+
+        {/* Scrollable content area */}
+        <div className="space-y-4 flex-1 overflow-y-auto">
+          <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg">
+            <p className="text-sm text-orange-800 font-medium">
+              To confirm, please type "End Workout":
+            </p>
+          </div>
+          <Input
+            placeholder="Type 'End Workout' to confirm"
+            value={confirmationText}
+            onChange={(e) => setConfirmationText(e.target.value)}
+            autoFocus  // ← Auto-focus helps with mobile keyboard
+          />
+        </div>
+
+        {/* Sticky footer - always visible */}
+        <DialogFooter className="mt-4 pt-4 border-t border-border/30">
+          <Button variant="outline" onClick={() => setShowDialog(false)}>
+            Cancel
+          </Button>
+          <Button
+            className="bg-orange-600 hover:bg-orange-700"
+            onClick={onConfirm}
+            disabled={confirmationText !== "End Workout"}
+          >
+            End Workout
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+// ❌ WRONG - Fixed dialog that gets covered by keyboard
+<Dialog>
+  <DialogContent className="fixed top-[50%] left-[50%]">
+    {/* Content */}
+    <DialogFooter>{/* Buttons hidden by keyboard */}</DialogFooter>
+  </DialogContent>
+</Dialog>
+
+// ❌ WRONG - Dialog footer outside scrollable area
+<Dialog>
+  <DialogContent>
+    <div className="overflow-y-auto max-h-[80vh]">
+      {/* Content */}
+    </div>
+    {/* Footer can disappear when scrolling */}
+    <DialogFooter></DialogFooter>
+  </DialogContent>
+</Dialog>
+```
+
+**Key Rules:**
+- ✅ Position mobile dialogs higher (`top-[10%]`) than centered (`top-[50%]`)
+- ✅ Make dialog scrollable: `max-h-[80vh] overflow-y-auto`
+- ✅ Put footer buttons INSIDE the scrollable dialog (within flex column)
+- ✅ Use sticky footer with border separator if needed
+- ✅ Add `autoFocus` to first input for better mobile UX
+- ✅ Test with keyboard visible on actual mobile devices
+- ❌ Never position buttons outside scrollable area
+- ❌ Never use fixed heights that assume keyboard won't appear
+- ❌ Don't hide footer in `DialogHeader` when keyboard appears
+
+---
+
+### Pattern 20: Scrollable Content & Bottom Action Bars
+
+**When combining scrollable content with fixed bottom action bars, ensure the button bar doesn't hide content:**
+
+```typescript
+// ✅ CORRECT - Content scrolls above bottom action bar
+export function TemplateDetailView({ templateId, onClose, onStartProgram }) {
+  return (
+    <div className="min-h-screen h-screen bg-background flex flex-col">
+      <div className="max-w-4xl mx-auto w-full h-screen flex flex-col">
+        {/* Fixed header */}
+        <div className="sticky top-0 z-10 border-b bg-background p-4">
+          <h1>Program Template</h1>
+        </div>
+
+        {/* Scrollable content area - CRITICAL: use flex-1 min-h-0 */}
+        <div className="flex-1 min-h-0 overflow-y-auto overscroll-y-contain">
+          <div className="px-4 py-6">
+            {/* Long content here */}
+          </div>
+
+          {/* Add bottom padding to account for fixed bar */}
+          <div className="pb-24 lg:pb-6">
+            <AdvancedProgramSettings />
+          </div>
+        </div>
+      </div>
+
+      {/* Fixed bottom action bar - positioned outside main container */}
+      <BottomActionBar
+        rightContent={<Button onClick={onStartProgram}>Start Program</Button>}
+        showFixed={true}
+      />
+    </div>
+  )
+}
+
+// ❌ WRONG - No padding accounts for fixed bar
+<div className="overflow-y-auto">
+  <Content />
+  {/* Start button disappears behind fixed bar! */}
+</div>
+<BottomActionBar {...} />
+
+// ❌ WRONG - Incorrect flex sizing
+<div className="flex flex-col h-full">
+  <div className="overflow-y-auto h-full">  {/* h-full doesn't work in flex! */}
+    <Content />
+  </div>
+</div>
+```
+
+**Key Rules:**
+- ✅ Parent container: `h-screen flex flex-col`
+- ✅ Scrollable area: `flex-1 min-h-0 overflow-y-auto`
+- ✅ `min-h-0` is critical - allows flex item to shrink below content size
+- ✅ Add bottom padding to content: `pb-24` (mobile) / `pb-6` (desktop)
+- ✅ Use `overscroll-y-contain` to prevent iOS rubber-band effect
+- ✅ Test scrolling to bottom - button should be fully visible
+- ❌ Never use `h-full` on scrollable elements in flex containers
+- ❌ Don't omit `min-h-0` - causes overflow clipping
+- ❌ Never put footer inside scrollable area without padding
+
+---
+
+*Last Updated: 2025-10-25*
+*Version: 1.9 - Added Patterns 18-20: Mobile Navigation, Keyboard Handling, and Scrollable Content.*
 
 ---
 

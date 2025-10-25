@@ -14,6 +14,8 @@ interface TemplateDetailViewProps {
   onClose: () => void
   onStartProgram: (templateId: string, progressionOverride?: ProgressionOverride) => void
   isStarting?: boolean
+  isLoading?: boolean
+  startingStep?: string
   userProfile?: {
     experience: "beginner" | "intermediate" | "advanced"
     gender: "male" | "female"
@@ -33,7 +35,7 @@ const getMuscleGroupFromExercise = (exerciseName: string): string => {
   return "CHEST" // default
 }
 
-export function TemplateDetailView({ templateId, onClose, onStartProgram, isStarting, userProfile }: TemplateDetailViewProps) {
+export function TemplateDetailView({ templateId, onClose, onStartProgram, isStarting, isLoading: parentIsLoading, startingStep, userProfile }: TemplateDetailViewProps) {
   console.log("[v0] TemplateDetailView rendered with templateId:", templateId)
   const [template, setTemplate] = useState<GymTemplate | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -64,7 +66,8 @@ export function TemplateDetailView({ templateId, onClose, onStartProgram, isStar
     loadTemplate()
   }, [templateId])
 
-  if (isLoading) {
+  // Show skeleton while parent is loading template or while component is loading exercises
+  if (parentIsLoading || isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
@@ -106,8 +109,8 @@ export function TemplateDetailView({ templateId, onClose, onStartProgram, isStar
   console.log("[v0] Workout days:", workoutDays.length)
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="max-w-4xl mx-auto w-full min-h-screen flex flex-col">
+    <div className="min-h-screen h-screen bg-background flex flex-col">
+      <div className="max-w-4xl mx-auto w-full h-screen flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between p-4 sm:p-6 lg:p-8 pt-6 sm:pt-8 border-b bg-background z-10 sticky top-0">
           <div className="flex-1 min-w-0">
@@ -122,7 +125,7 @@ export function TemplateDetailView({ templateId, onClose, onStartProgram, isStar
         </div>
 
         {/* Workout days list */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 min-h-0 overflow-y-auto overscroll-y-contain">
           <div className="divide-y divide-border">
             {workoutDays.map((day, dayIndex) => (
               <div key={dayIndex} className="px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
@@ -157,7 +160,7 @@ export function TemplateDetailView({ templateId, onClose, onStartProgram, isStar
           </div>
 
           {/* Advanced settings section at bottom of scrollable area */}
-          <div className="px-4 sm:px-6 lg:px-8 py-6 border-t border-border/50">
+          <div className="px-4 sm:px-6 lg:px-8 py-6 border-t border-border/50 pb-24 lg:pb-6">
             <AdvancedProgramSettings
               template={template}
               userProfile={currentUserProfile}
@@ -192,7 +195,7 @@ export function TemplateDetailView({ templateId, onClose, onStartProgram, isStar
             {isStarting ? (
               <span className="flex items-center justify-center">
                 <span className="mr-2 inline-block h-4 w-4 sm:h-5 sm:w-5 animate-spin rounded-full border-2 border-white/50 border-t-transparent"></span>
-                Starting...
+                {startingStep || "Starting..."}
               </span>
             ) : (
               <span className="flex items-center justify-center">
