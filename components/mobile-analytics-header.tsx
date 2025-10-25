@@ -26,9 +26,9 @@ export function MobileAnalyticsHeader({ selectedPeriod, onPeriodChange }: Mobile
         </div>
         <p className="text-xs text-muted-foreground dark:text-muted-foreground light:text-slate-600">Track your fitness progress</p>
       </div>
-      
+
       <div className="flex justify-center px-4 pb-3">
-        <div className="inline-flex items-center rounded-full bg-muted/50 p-1">
+        <div className="inline-flex items-center rounded-full border border-border/60 bg-muted/70 p-1">
           {periods.map((period) => {
             const isSelected = selectedPeriod === period.value
             return (
@@ -36,9 +36,9 @@ export function MobileAnalyticsHeader({ selectedPeriod, onPeriodChange }: Mobile
                 key={period.value}
                 onClick={() => onPeriodChange(period.value)}
                 className={cn(
-                  "h-7 rounded-full text-xs font-medium transition-all duration-200 px-3",
+                  "h-7 rounded-full text-xs font-medium transition-all duration-200 px-3 whitespace-nowrap border border-transparent",
                   isSelected
-                    ? "bg-primary text-primary-foreground shadow-sm"
+                    ? "border-primary/60 bg-primary/15 text-primary shadow-sm"
                     : "text-muted-foreground hover:text-foreground hover:bg-muted"
                 )}
               >

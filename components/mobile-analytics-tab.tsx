@@ -8,6 +8,9 @@ import { OverviewTabContent } from "./analytics/overview-tab-content"
 import { ProgramsTabContent } from "./analytics/programs-tab-content"
 import { StrengthTabContent } from "./analytics/strength-tab-content"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
+import { Calendar } from "@/components/ui/calendar"
 import { WorkoutLogger } from "@/lib/workout-logger"
 import { AnalyticsEngine } from "@/lib/analytics"
 import type { WorkoutSession } from "@/lib/workout-logger"
@@ -19,6 +22,9 @@ interface MobileAnalyticsTabProps {
 export function MobileAnalyticsTab({ onLogWorkout }: MobileAnalyticsTabProps) {
   const [selectedPeriod, setSelectedPeriod] = useState("28d")
   const [activeTab, setActiveTab] = useState("overview")
+  const [showCustomDateDialog, setShowCustomDateDialog] = useState(false)
+  const [customStartDate, setCustomStartDate] = useState<Date | undefined>(undefined)
+  const [customEndDate, setCustomEndDate] = useState<Date | undefined>(undefined)
 
   // Load workout data
   const workouts = useMemo(() => {
@@ -28,10 +34,30 @@ export function MobileAnalyticsTab({ onLogWorkout }: MobileAnalyticsTabProps) {
   // Calculate weekly goal (could be configurable)
   const weeklyGoal = 4
 
+  // Handle period change and open custom date dialog if needed
+  const handlePeriodChange = (period: string) => {
+    if (period === "custom") {
+      setShowCustomDateDialog(true)
+    } else {
+      setSelectedPeriod(period)
+      setCustomStartDate(undefined)
+      setCustomEndDate(undefined)
+    }
+  }
+
+  // Apply custom date range
+  const applyCustomDateRange = () => {
+    if (customStartDate && customEndDate) {
+      setSelectedPeriod("custom")
+      setShowCustomDateDialog(false)
+    }
+  }
+
   // Filter workouts based on selected period
   const filteredWorkouts = useMemo(() => {
     const now = new Date()
     let startDate: Date
+    let endDate: Date = now
 
     switch (selectedPeriod) {
       case "7d":
@@ -46,12 +72,23 @@ export function MobileAnalyticsTab({ onLogWorkout }: MobileAnalyticsTabProps) {
       case "ytd":
         startDate = new Date(now.getFullYear(), 0, 1)
         break
+      case "custom":
+        if (!customStartDate || !customEndDate) {
+          startDate = new Date(now.getTime() - 28 * 24 * 60 * 60 * 1000)
+        } else {
+          startDate = customStartDate
+          endDate = customEndDate
+        }
+        break
       default:
         startDate = new Date(now.getTime() - 28 * 24 * 60 * 60 * 1000)
     }
 
-    return workouts.filter(workout => new Date(workout.startTime) >= startDate)
-  }, [workouts, selectedPeriod])
+    return workouts.filter(workout => {
+      const workoutDate = new Date(workout.startTime)
+      return workoutDate >= startDate && workoutDate <= endDate
+    })
+  }, [workouts, selectedPeriod, customStartDate, customEndDate])
 
   // Calculate advanced analytics
   const advancedAnalytics = useMemo(() => {
@@ -72,10 +109,62 @@ export function MobileAnalyticsTab({ onLogWorkout }: MobileAnalyticsTabProps) {
   return (
     <div className="min-h-screen bg-background pb-20">
       {/* Header */}
-      <MobileAnalyticsHeader 
+      <MobileAnalyticsHeader
         selectedPeriod={selectedPeriod}
-        onPeriodChange={setSelectedPeriod}
+        onPeriodChange={handlePeriodChange}
       />
+
+      {/* Custom Date Range Dialog */}
+      <Dialog open={showCustomDateDialog} onOpenChange={setShowCustomDateDialog}>
+        <DialogContent className="w-full max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Select Date Range</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div>
+              <p className="text-sm font-medium mb-2">Start Date</p>
+              <Calendar
+                mode="single"
+                selected={customStartDate}
+                onSelect={setCustomStartDate}
+                disabled={(date) => customEndDate ? date > customEndDate : false}
+              />
+            </div>
+
+            <div>
+              <p className="text-sm font-medium mb-2">End Date</p>
+              <Calendar
+                mode="single"
+                selected={customEndDate}
+                onSelect={setCustomEndDate}
+                disabled={(date) => customStartDate ? date < customStartDate : false}
+              />
+            </div>
+
+            {customStartDate && customEndDate && (
+              <p className="text-xs text-muted-foreground">
+                Selected: {customStartDate.toLocaleDateString()} to {customEndDate.toLocaleDateString()}
+              </p>
+            )}
+          </div>
+
+          <DialogFooter className="gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setShowCustomDateDialog(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={applyCustomDateRange}
+              disabled={!customStartDate || !customEndDate}
+            >
+              Apply
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <div className="space-y-6 p-4 pt-6">
         {/* KPI Grid */}
