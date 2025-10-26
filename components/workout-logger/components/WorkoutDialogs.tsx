@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Plus, Check, AlertTriangle } from "lucide-react"
+import { Plus, Check, AlertTriangle, Loader2 } from "lucide-react"
 
 interface WorkoutDialogsProps {
   showNotesDialog: boolean
@@ -38,6 +38,7 @@ interface WorkoutDialogsProps {
   endProgramConfirmation: string
   setEndProgramConfirmation: Dispatch<SetStateAction<string>>
   onEndProgram: () => void
+  isCompletingWorkout?: boolean
 }
 
 export function WorkoutDialogs({
@@ -66,6 +67,7 @@ export function WorkoutDialogs({
   endProgramConfirmation,
   setEndProgramConfirmation,
   onEndProgram,
+  isCompletingWorkout = false,
 }: WorkoutDialogsProps) {
   return (
     <>
@@ -256,9 +258,16 @@ export function WorkoutDialogs({
             <Button
               variant="destructive"
               onClick={onEndProgram}
-              disabled={endProgramConfirmation !== "End Program"}
+              disabled={endProgramConfirmation !== "End Program" || isCompletingWorkout}
             >
-              End Program
+              {isCompletingWorkout ? (
+                <span className="flex items-center justify-center">
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin flex-shrink-0" />
+                  <span>Ending...</span>
+                </span>
+              ) : (
+                "End Program"
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>

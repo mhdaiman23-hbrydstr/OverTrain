@@ -180,6 +180,7 @@ function WorkoutLoggerView({ initialWorkout, onComplete, onCancel, onViewAnalyti
         endProgramConfirmation={endProgramConfirmation}
         setEndProgramConfirmation={setEndProgramConfirmation}
         onEndProgram={handleEndProgram}
+        isCompletingWorkout={isCompletingWorkout}
       />
 
       <ExerciseGroups
