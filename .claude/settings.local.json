@@ -20,7 +20,9 @@
       "Bash(npx tsc:*)",
       "Bash(find:*)",
       "Bash(cd:*)",
-      "Bash(npm run test:*)"
+      "Bash(npm run test:*)",
+      "Bash(git pull:*)",
+      "Bash(git rm:*)"
     ],
     "deny": [],
     "ask": []
