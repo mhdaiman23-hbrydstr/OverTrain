@@ -67,8 +67,8 @@ export function RpeRirPreferenceToggle({
             Display Mode
           </label>
           <Select value={mode} onValueChange={(value) => setMode(value as RpeRirDisplayMode)} disabled={isLoading}>
-            <SelectTrigger id="intensity-select" className="w-full">
-              <SelectValue placeholder="Select display mode" />
+            <SelectTrigger id="intensity-select" className="w-full overflow-hidden">
+              <SelectValue placeholder="Select display mode" className="truncate" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="rir">RIR (Reps in Reserve) 0-8</SelectItem>
