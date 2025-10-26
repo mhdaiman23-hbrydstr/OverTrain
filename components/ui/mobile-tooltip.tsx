@@ -99,18 +99,23 @@ export function MobileTooltip({
    * aria-expanded: Accessibility - tells screen readers the expanded state
    * onOpenChange: Radix UI calls this when user clicks outside or internally closes
    * controlled open prop: We fully control the tooltip state
+   *
+   * NOTE: We wrap children in a span to ensure the click handler attaches properly.
+   * Raw SVG icons or divs don't reliably receive onClick via asChild in Radix UI.
    */
   if (deviceType === 'touch') {
     return (
       <Tooltip open={open} onOpenChange={setOpen}>
-        <TooltipTrigger
-          asChild
-          onClick={handleTriggerClick}
-          aria-expanded={open}
-          role="button"
-          tabIndex={0}
-        >
-          {children}
+        <TooltipTrigger asChild>
+          <span
+            onClick={handleTriggerClick}
+            aria-expanded={open}
+            role="button"
+            tabIndex={0}
+            className="inline-flex cursor-pointer"
+          >
+            {children}
+          </span>
         </TooltipTrigger>
         <TooltipContent side={side} className={className}>
           {content}
