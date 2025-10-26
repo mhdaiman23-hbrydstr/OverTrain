@@ -117,6 +117,10 @@ export class ProgramStateManager {
   private static databaseLoadPromise: Promise<void> | null = null
   private static ensureCustomTemplatePromise: Promise<void> | null = null
 
+  // RACE CONDITION FIX: Program state locking to prevent concurrent modifications
+  private static programStateLock = false
+  private static lockQueue: Array<() => void> = []
+
   // Migration mapping from old hardcoded IDs to new database IDs
   private static readonly TEMPLATE_ID_MIGRATIONS: Record<string, string> = {
     "fullbody-3day-beginner-male": "template2",
@@ -124,6 +128,43 @@ export class ProgramStateManager {
   }
 
   private static readonly UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+
+  /**
+   * RACE CONDITION FIX: Acquire lock for program state modifications
+   * If lock is already held, queues the resolver for when lock is released
+   */
+  private static async acquireLock(): Promise<void> {
+    if (this.programStateLock) {
+      return new Promise(resolve => this.lockQueue.push(resolve))
+    }
+    this.programStateLock = true
+  }
+
+  /**
+   * Release the lock and process next waiter in queue
+   * Always called in finally block to prevent deadlocks
+   */
+  private static releaseLock(): void {
+    if (this.lockQueue.length > 0) {
+      const nextWaiter = this.lockQueue.shift()
+      nextWaiter?.() // Wake up next waiter, lock stays true
+    } else {
+      this.programStateLock = false // Fully unlock
+    }
+  }
+
+  /**
+   * Wrap async operations with automatic locking
+   * Prevents deadlock even if operation fails (uses try-finally)
+   */
+  private static async withLock<T>(fn: () => Promise<T>): Promise<T> {
+    await this.acquireLock()
+    try {
+      return await fn()
+    } finally {
+      this.releaseLock()
+    }
+  }
 
   private static generateInstanceId(): string {
     const cryptoRef = typeof globalThis !== "undefined" ? (globalThis as any).crypto : undefined
@@ -443,94 +484,96 @@ export class ProgramStateManager {
   static async setActiveProgram(templateId: string, progressionOverride?: ProgressionOverride, userId?: string): Promise<ActiveProgram | null> {
     if (typeof window === "undefined") return null
 
-    // Load template from database or fallback to hardcoded
-    let template = await this.loadTemplate(templateId)
-    if (!template) {
-      console.error('[ProgramState] Template not found:', templateId)
-      return null
-    }
-
-    const isUserOwnedTemplate = !!template.ownerUserId
-    const resolvedOriginTemplateId = template.originTemplateId ?? templateId
-
-    // Process template to add automatic deload weeks
-    template = processTemplateWithDeload(template)
-    console.log("[ProgramState] Processed template with automatic deload weeks")
-
-    // Calculate total workouts in the program
-    const daysInSchedule = Object.keys(template.schedule).length
-    const totalWorkouts = daysInSchedule * template.weeks
-
-    const instanceId = this.generateInstanceId()
-
-    // CRITICAL FIX: Clear in-progress workouts FIRST, before creating new program
-    // This ensures the workout logger doesn't load stale data from previous program
-    const resolvedUserId = userId ?? this.getCurrentUserId()
-    try {
-      await WorkoutLogger.clearInProgress(resolvedUserId)
-      console.log("[ProgramState] Cleared in-progress workouts before starting new program")
-    } catch (error) {
-      console.warn("[ProgramState] Failed to clear in-progress workouts:", error)
-    }
-
-    const activeProgram: ActiveProgram = {
-      templateId,
-      template,
-      instanceId,
-      startDate: Date.now(),
-      currentWeek: 1,
-      currentDay: 1,
-      completedWorkouts: 0,
-      totalWorkouts,
-      progress: 0,
-      progressionOverride,
-      isCustom: isUserOwnedTemplate,
-      originTemplateId: resolvedOriginTemplateId,
-    }
-
-    await this.saveActiveProgram(activeProgram)
-    console.log("[v0] Set active program:", activeProgram)
-
-    const history = this.getProgramHistory()
-    const newHistoryEntry: ProgramHistoryEntry = {
-      id: instanceId,
-      templateId,
-      instanceId,
-      name: template.name,
-      startDate: new Date().toISOString(),
-      completionRate: 0,
-      totalWorkouts,
-      completedWorkouts: 0,
-      skippedWorkouts: 0,
-      isActive: true,
-      endedEarly: false,
-    }
-
-    // End any currently active program in history
-    history.forEach((p) => {
-      if (p.isActive) {
-        const wasCompleted = Number(p.completionRate ?? 0) >= 100
-        p.isActive = false
-        p.endDate = new Date().toISOString()
-        p.endedEarly = !wasCompleted
-        if (!p.instanceId) {
-          p.instanceId = p.id
-        }
+    return this.withLock(async () => {
+      // Load template from database or fallback to hardcoded
+      let template = await this.loadTemplate(templateId)
+      if (!template) {
+        console.error('[ProgramState] Template not found:', templateId)
+        return null
       }
+
+      const isUserOwnedTemplate = !!template.ownerUserId
+      const resolvedOriginTemplateId = template.originTemplateId ?? templateId
+
+      // Process template to add automatic deload weeks
+      template = processTemplateWithDeload(template)
+      console.log("[ProgramState] Processed template with automatic deload weeks")
+
+      // Calculate total workouts in the program
+      const daysInSchedule = Object.keys(template.schedule).length
+      const totalWorkouts = daysInSchedule * template.weeks
+
+      const instanceId = this.generateInstanceId()
+
+      // CRITICAL FIX: Clear in-progress workouts FIRST, before creating new program
+      // This ensures the workout logger doesn't load stale data from previous program
+      const resolvedUserId = userId ?? this.getCurrentUserId()
+      try {
+        await WorkoutLogger.clearInProgress(resolvedUserId)
+        console.log("[ProgramState] Cleared in-progress workouts before starting new program")
+      } catch (error) {
+        console.warn("[ProgramState] Failed to clear in-progress workouts:", error)
+      }
+
+      const activeProgram: ActiveProgram = {
+        templateId,
+        template,
+        instanceId,
+        startDate: Date.now(),
+        currentWeek: 1,
+        currentDay: 1,
+        completedWorkouts: 0,
+        totalWorkouts,
+        progress: 0,
+        progressionOverride,
+        isCustom: isUserOwnedTemplate,
+        originTemplateId: resolvedOriginTemplateId,
+      }
+
+      await this.saveActiveProgram(activeProgram)
+      console.log("[v0] Set active program:", activeProgram)
+
+      const history = this.getProgramHistory()
+      const newHistoryEntry: ProgramHistoryEntry = {
+        id: instanceId,
+        templateId,
+        instanceId,
+        name: template.name,
+        startDate: new Date().toISOString(),
+        completionRate: 0,
+        totalWorkouts,
+        completedWorkouts: 0,
+        skippedWorkouts: 0,
+        isActive: true,
+        endedEarly: false,
+      }
+
+      // End any currently active program in history
+      history.forEach((p) => {
+        if (p.isActive) {
+          const wasCompleted = Number(p.completionRate ?? 0) >= 100
+          p.isActive = false
+          p.endDate = new Date().toISOString()
+          p.endedEarly = !wasCompleted
+          if (!p.instanceId) {
+            p.instanceId = p.id
+          }
+        }
+      })
+
+      history.push(newHistoryEntry)
+      this.saveProgramHistory(history)
+
+      // Sync to database
+      if (resolvedUserId) {
+        await this.syncToDatabase(resolvedUserId)
+      }
+
+      // Dispatch programChanged event AFTER all state is set up
+      window.dispatchEvent(new Event("programChanged"))
+
+      return activeProgram
     })
-
-    history.push(newHistoryEntry)
-    this.saveProgramHistory(history)
-
-    // Sync to database
-    if (resolvedUserId) {
-      await this.syncToDatabase(resolvedUserId)
-    }
-
-    // Dispatch programChanged event AFTER all state is set up
-    window.dispatchEvent(new Event("programChanged"))
-
-    return activeProgram
   }
 
   private static async ensureCustomTemplateForActiveProgram(): Promise<void> {
@@ -592,47 +635,49 @@ export class ProgramStateManager {
   ): Promise<void> {
     if (typeof window === "undefined") return
 
-    const activeProgram = await this.getActiveProgram({ skipDatabaseLoad: true })
-    if (!activeProgram) {
-      console.error("[ProgramState] Cannot repoint active program - no active program found")
-      return
-    }
+    return this.withLock(async () => {
+      const activeProgram = await this.getActiveProgram({ skipDatabaseLoad: true })
+      if (!activeProgram) {
+        console.error("[ProgramState] Cannot repoint active program - no active program found")
+        return
+      }
 
-    const freshTemplate = await this.loadTemplate(newTemplateId)
-    if (!freshTemplate) {
-      console.error("[ProgramState] Cannot repoint active program - template not found", newTemplateId)
-      return
-    }
+      const freshTemplate = await this.loadTemplate(newTemplateId)
+      if (!freshTemplate) {
+        console.error("[ProgramState] Cannot repoint active program - template not found", newTemplateId)
+        return
+      }
 
-    const processedTemplate = processTemplateWithDeload(freshTemplate)
+      const processedTemplate = processTemplateWithDeload(freshTemplate)
 
-    activeProgram.templateId = newTemplateId
-    activeProgram.template = processedTemplate
-    if (options?.originTemplateId && !activeProgram.originTemplateId) {
-      activeProgram.originTemplateId = options.originTemplateId
-    }
-    if (options?.markCustom) {
-      activeProgram.isCustom = true
-    }
+      activeProgram.templateId = newTemplateId
+      activeProgram.template = processedTemplate
+      if (options?.originTemplateId && !activeProgram.originTemplateId) {
+        activeProgram.originTemplateId = options.originTemplateId
+      }
+      if (options?.markCustom) {
+        activeProgram.isCustom = true
+      }
 
-    this.recalculateActiveProgramStats(activeProgram)
+      this.recalculateActiveProgramStats(activeProgram)
 
-    await this.saveActiveProgram(activeProgram)
+      await this.saveActiveProgram(activeProgram)
 
-    const history = this.getProgramHistory()
-    const activeHistory = history.find(entry => entry.isActive)
-    if (activeHistory) {
-      activeHistory.templateId = newTemplateId
-      activeHistory.name = processedTemplate.name
-      activeHistory.totalWorkouts = activeProgram.totalWorkouts
-      activeHistory.completedWorkouts = activeProgram.completedWorkouts
-      activeHistory.completionRate = activeProgram.progress
-      this.saveProgramHistory(history)
-    }
+      const history = this.getProgramHistory()
+      const activeHistory = history.find(entry => entry.isActive)
+      if (activeHistory) {
+        activeHistory.templateId = newTemplateId
+        activeHistory.name = processedTemplate.name
+        activeHistory.totalWorkouts = activeProgram.totalWorkouts
+        activeHistory.completedWorkouts = activeProgram.completedWorkouts
+        activeHistory.completionRate = activeProgram.progress
+        this.saveProgramHistory(history)
+      }
 
-    programTemplateService.clearCache()
+      programTemplateService.clearCache()
 
-    window.dispatchEvent(new Event("programChanged"))
+      window.dispatchEvent(new Event("programChanged"))
+    })
   }
 
   static async applyFutureExerciseReplacement(params: {
@@ -644,126 +689,130 @@ export class ProgramStateManager {
   }): Promise<void> {
     if (typeof window === "undefined") return
 
-    const { dayNumber, fromExerciseId, fromExerciseName, templateExerciseIds, toExercise } = params
+    return this.withLock(async () => {
+      const { dayNumber, fromExerciseId, fromExerciseName, templateExerciseIds, toExercise } = params
 
-    let activeProgram = await this.getActiveProgram({ skipDatabaseLoad: true })
-    if (!activeProgram) {
-      console.warn("[ProgramState] Cannot apply exercise replacement - no active program")
-      return
-    }
+      let activeProgram = await this.getActiveProgram({ skipDatabaseLoad: true })
+      if (!activeProgram) {
+        console.warn("[ProgramState] Cannot apply exercise replacement - no active program")
+        return
+      }
 
-    await this.ensureCustomTemplateForActiveProgram()
+      await this.ensureCustomTemplateForActiveProgram()
 
-    activeProgram = await this.getActiveProgram({ skipDatabaseLoad: true })
-    if (!activeProgram) return
+      activeProgram = await this.getActiveProgram({ skipDatabaseLoad: true })
+      if (!activeProgram) return
 
-    if (!activeProgram.isCustom) {
-      console.warn("[ProgramState] Active program is not marked as custom; skipping template mutation")
-      return
-    }
+      if (!activeProgram.isCustom) {
+        console.warn("[ProgramState] Active program is not marked as custom; skipping template mutation")
+        return
+      }
 
-    const targetTemplateId = activeProgram.templateId
-    try {
-      await programForkService.replaceExerciseInstances({
-        templateId: targetTemplateId,
-        toExerciseId: toExercise.id,
-        templateExerciseIds: templateExerciseIds && templateExerciseIds.length > 0 ? templateExerciseIds : undefined,
-        dayNumber: templateExerciseIds && templateExerciseIds.length > 0 ? undefined : dayNumber,
-        fromExerciseId: templateExerciseIds && templateExerciseIds.length > 0 ? undefined : fromExerciseId,
-      })
-      programTemplateService.clearCache()
-    } catch (error) {
-      const err = error as any
-      console.error("[ProgramState] Failed to update template exercise:", {
-        message: err?.message,
-        code: err?.code,
-        details: err?.details,
-        hint: err?.hint,
-      })
-    }
+      const targetTemplateId = activeProgram.templateId
+      try {
+        await programForkService.replaceExerciseInstances({
+          templateId: targetTemplateId,
+          toExerciseId: toExercise.id,
+          templateExerciseIds: templateExerciseIds && templateExerciseIds.length > 0 ? templateExerciseIds : undefined,
+          dayNumber: templateExerciseIds && templateExerciseIds.length > 0 ? undefined : dayNumber,
+          fromExerciseId: templateExerciseIds && templateExerciseIds.length > 0 ? undefined : fromExerciseId,
+        })
+        programTemplateService.clearCache()
+      } catch (error) {
+        const err = error as any
+        console.error("[ProgramState] Failed to update template exercise:", {
+          message: err?.message,
+          code: err?.code,
+          details: err?.details,
+          hint: err?.hint,
+        })
+      }
 
-    const dayKey = `day${dayNumber}`
-    const replacementNameNormalized = fromExerciseName?.toLowerCase().trim()
-    const dayEntry = activeProgram.template.schedule?.[dayKey]
-    if (dayEntry) {
-      let changed = false
-      dayEntry.exercises = dayEntry.exercises.map(exercise => {
-        const matchesById = fromExerciseId && exercise.exerciseLibraryId === fromExerciseId
-        const matchesByTemplateId = templateExerciseIds?.includes(exercise.id)
-        const matchesByName = replacementNameNormalized
-          ? exercise.exerciseName?.toLowerCase().trim() === replacementNameNormalized
-          : false
+      const dayKey = `day${dayNumber}`
+      const replacementNameNormalized = fromExerciseName?.toLowerCase().trim()
+      const dayEntry = activeProgram.template.schedule?.[dayKey]
+      if (dayEntry) {
+        let changed = false
+        dayEntry.exercises = dayEntry.exercises.map(exercise => {
+          const matchesById = fromExerciseId && exercise.exerciseLibraryId === fromExerciseId
+          const matchesByTemplateId = templateExerciseIds?.includes(exercise.id)
+          const matchesByName = replacementNameNormalized
+            ? exercise.exerciseName?.toLowerCase().trim() === replacementNameNormalized
+            : false
 
-        if (matchesById || matchesByTemplateId || matchesByName) {
-          changed = true
-          return {
-            ...exercise,
-            exerciseLibraryId: toExercise.id,
-            exerciseName: toExercise.name,
-            equipmentType: toExercise.equipmentType,
+          if (matchesById || matchesByTemplateId || matchesByName) {
+            changed = true
+            return {
+              ...exercise,
+              exerciseLibraryId: toExercise.id,
+              exerciseName: toExercise.name,
+              equipmentType: toExercise.equipmentType,
+            }
+          }
+          return exercise
+        })
+
+        if (changed) {
+          await this.saveActiveProgram(activeProgram)
+          window.dispatchEvent(new Event("programChanged"))
+        }
+      }
+
+      const userId = this.getCurrentUserId()
+      if (userId && typeof dayNumber === "number" && dayNumber > 0) {
+        const totalWeeks = activeProgram.template.weeks || 0
+        for (let week = activeProgram.currentWeek + 1; week <= totalWeeks; week++) {
+          try {
+            await WorkoutLogger.clearCurrentWorkout(week, dayNumber, userId)
+          } catch (error) {
+            console.warn("[ProgramState] Failed to clear future in-progress workout", { week, dayNumber, error })
           }
         }
-        return exercise
-      })
-
-      if (changed) {
-        await this.saveActiveProgram(activeProgram)
-        window.dispatchEvent(new Event("programChanged"))
       }
-    }
-
-    const userId = this.getCurrentUserId()
-    if (userId && typeof dayNumber === "number" && dayNumber > 0) {
-      const totalWeeks = activeProgram.template.weeks || 0
-      for (let week = activeProgram.currentWeek + 1; week <= totalWeeks; week++) {
-        try {
-          await WorkoutLogger.clearCurrentWorkout(week, dayNumber, userId)
-        } catch (error) {
-          console.warn("[ProgramState] Failed to clear future in-progress workout", { week, dayNumber, error })
-        }
-      }
-    }
+    })
   }
 
   static async renameCustomProgram(templateId: string, newName: string): Promise<void> {
-    const trimmedName = newName.trim()
-    if (!trimmedName) {
-      throw new Error('Program name cannot be empty')
-    }
-
-    const userId = this.getCurrentUserId()
-    if (!userId) {
-      throw new Error('User not authenticated')
-    }
-
-    const ownedTemplates = await programTemplateService.getMyPrograms(userId)
-    const targetTemplate = ownedTemplates.find(t => t.id === templateId)
-    if (!targetTemplate) {
-      throw new Error('Custom program not found or not owned by user')
-    }
-
-    await programTemplateService.renameUserProgram(templateId, userId, trimmedName)
-    programTemplateService.clearCache()
-
-    const activeProgram = await this.getActiveProgram({ skipDatabaseLoad: true })
-    if (activeProgram && activeProgram.templateId === templateId) {
-      activeProgram.template.name = trimmedName
-      await this.saveActiveProgram(activeProgram)
-    }
-
-    const history = this.getProgramHistory()
-    let historyChanged = false
-    history.forEach(entry => {
-      if (entry.templateId === templateId) {
-        entry.name = trimmedName
-        historyChanged = true
+    return this.withLock(async () => {
+      const trimmedName = newName.trim()
+      if (!trimmedName) {
+        throw new Error('Program name cannot be empty')
       }
-    })
-    if (historyChanged) {
-      this.saveProgramHistory(history)
-    }
 
-    window.dispatchEvent(new Event('programChanged'))
+      const userId = this.getCurrentUserId()
+      if (!userId) {
+        throw new Error('User not authenticated')
+      }
+
+      const ownedTemplates = await programTemplateService.getMyPrograms(userId)
+      const targetTemplate = ownedTemplates.find(t => t.id === templateId)
+      if (!targetTemplate) {
+        throw new Error('Custom program not found or not owned by user')
+      }
+
+      await programTemplateService.renameUserProgram(templateId, userId, trimmedName)
+      programTemplateService.clearCache()
+
+      const activeProgram = await this.getActiveProgram({ skipDatabaseLoad: true })
+      if (activeProgram && activeProgram.templateId === templateId) {
+        activeProgram.template.name = trimmedName
+        await this.saveActiveProgram(activeProgram)
+      }
+
+      const history = this.getProgramHistory()
+      let historyChanged = false
+      history.forEach(entry => {
+        if (entry.templateId === templateId) {
+          entry.name = trimmedName
+          historyChanged = true
+        }
+      })
+      if (historyChanged) {
+        this.saveProgramHistory(history)
+      }
+
+      window.dispatchEvent(new Event('programChanged'))
+    })
   }
 
   static async deleteCustomProgram(templateId: string): Promise<void> {
@@ -1008,172 +1057,176 @@ export class ProgramStateManager {
   }
 
   static async completeWorkout(userId?: string): Promise<void> {
-    const activeProgram = await this.getActiveProgram()
-    if (!activeProgram) return
+    return this.withLock(async () => {
+      const activeProgram = await this.getActiveProgram()
+      if (!activeProgram) return
 
-    // Get current user ID if not provided
-    const resolvedUserId = userId ?? this.getCurrentUserId()
+      // Get current user ID if not provided
+      const resolvedUserId = userId ?? this.getCurrentUserId()
 
-    await WorkoutLogger.ensureDatabaseLoaded(resolvedUserId)
+      await WorkoutLogger.ensureDatabaseLoaded(resolvedUserId)
 
-    activeProgram.completedWorkouts += 1
-    activeProgram.progress = (activeProgram.completedWorkouts / activeProgram.totalWorkouts) * 100
+      activeProgram.completedWorkouts += 1
+      activeProgram.progress = (activeProgram.completedWorkouts / activeProgram.totalWorkouts) * 100
 
-    const scheduleKeys = Object.keys(activeProgram.template.schedule)
-    const daysPerWeek = scheduleKeys.length
+      const scheduleKeys = Object.keys(activeProgram.template.schedule)
+      const daysPerWeek = scheduleKeys.length
 
-    // Check if all days in the current week are now completed
-    const isCurrentWeekComplete = WorkoutLogger.isWeekCompleted(
-      activeProgram.currentWeek,
-      daysPerWeek,
-      resolvedUserId,
-      activeProgram.instanceId
-    )
+      // Check if all days in the current week are now completed
+      const isCurrentWeekComplete = WorkoutLogger.isWeekCompleted(
+        activeProgram.currentWeek,
+        daysPerWeek,
+        resolvedUserId,
+        activeProgram.instanceId
+      )
 
-    if (isCurrentWeekComplete) {
-      // Check if we've reached the program's final week
-      const programWeeks = activeProgram.template.weeks || 6 // Default to 6 weeks if not set
-      if (activeProgram.currentWeek >= programWeeks) {
-        // Program is complete - finalize it instead of advancing to next week
-        console.log("[v0] Program completed! Finalizing program after week", activeProgram.currentWeek)
-        await this.finalizeActiveProgram(resolvedUserId, { endedEarly: false })
-        return
-      }
-      
-      // All days in current week are done, advance to next week
-      activeProgram.currentWeek += 1
-      activeProgram.currentDay = 1
-      console.log("[v0] Week completed! Advanced to week", activeProgram.currentWeek)
-    } else {
-      // Find the next incomplete day in the current week
-      let nextDay = activeProgram.currentDay
-      for (let day = 1; day <= daysPerWeek; day++) {
-        if (!WorkoutLogger.hasCompletedWorkout(activeProgram.currentWeek, day, resolvedUserId, activeProgram.instanceId)) {
-          nextDay = day
-          break
+      if (isCurrentWeekComplete) {
+        // Check if we've reached the program's final week
+        const programWeeks = activeProgram.template.weeks || 6 // Default to 6 weeks if not set
+        if (activeProgram.currentWeek >= programWeeks) {
+          // Program is complete - finalize it instead of advancing to next week
+          console.log("[v0] Program completed! Finalizing program after week", activeProgram.currentWeek)
+          await this.finalizeActiveProgram(resolvedUserId, { endedEarly: false })
+          return
         }
-      }
-      activeProgram.currentDay = nextDay
-      console.log("[v0] Advanced to next incomplete day:", nextDay)
-    }
 
-    await this.saveActiveProgram(activeProgram)
-
-    window.dispatchEvent(new Event("programChanged"))
-
-    const history = this.getProgramHistory()
-    const historyEntry = history.find((p) => p.isActive)
-    if (historyEntry) {
-      historyEntry.completedWorkouts = activeProgram.completedWorkouts
-      historyEntry.completionRate = activeProgram.progress
-      historyEntry.instanceId = historyEntry.instanceId ?? historyEntry.id
-
-      // Check if the workout that was just completed was fully skipped
-      // Get the workout that was just completed (need to look back since currentDay has advanced)
-      let workoutWeek = activeProgram.currentWeek
-      let workoutDay = activeProgram.currentDay - 1
-
-      // Handle week rollover
-      if (workoutDay < 1) {
-        workoutWeek = workoutWeek - 1
-        const scheduleKeys = Object.keys(activeProgram.template.schedule)
-        workoutDay = scheduleKeys.length
+        // All days in current week are done, advance to next week
+        activeProgram.currentWeek += 1
+        activeProgram.currentDay = 1
+        console.log("[v0] Week completed! Advanced to week", activeProgram.currentWeek)
+      } else {
+        // Find the next incomplete day in the current week
+        let nextDay = activeProgram.currentDay
+        for (let day = 1; day <= daysPerWeek; day++) {
+          if (!WorkoutLogger.hasCompletedWorkout(activeProgram.currentWeek, day, resolvedUserId, activeProgram.instanceId)) {
+            nextDay = day
+            break
+          }
+        }
+        activeProgram.currentDay = nextDay
+        console.log("[v0] Advanced to next incomplete day:", nextDay)
       }
 
-      const completedWorkout = WorkoutLogger.getInProgressWorkout(workoutWeek, workoutDay, resolvedUserId)
-      if (completedWorkout && this.isWorkoutFullySkipped(completedWorkout)) {
-        historyEntry.skippedWorkouts = (historyEntry.skippedWorkouts ?? 0) + 1
+      await this.saveActiveProgram(activeProgram)
+
+      window.dispatchEvent(new Event("programChanged"))
+
+      const history = this.getProgramHistory()
+      const historyEntry = history.find((p) => p.isActive)
+      if (historyEntry) {
+        historyEntry.completedWorkouts = activeProgram.completedWorkouts
+        historyEntry.completionRate = activeProgram.progress
+        historyEntry.instanceId = historyEntry.instanceId ?? historyEntry.id
+
+        // Check if the workout that was just completed was fully skipped
+        // Get the workout that was just completed (need to look back since currentDay has advanced)
+        let workoutWeek = activeProgram.currentWeek
+        let workoutDay = activeProgram.currentDay - 1
+
+        // Handle week rollover
+        if (workoutDay < 1) {
+          workoutWeek = workoutWeek - 1
+          const scheduleKeys = Object.keys(activeProgram.template.schedule)
+          workoutDay = scheduleKeys.length
+        }
+
+        const completedWorkout = WorkoutLogger.getInProgressWorkout(workoutWeek, workoutDay, resolvedUserId)
+        if (completedWorkout && this.isWorkoutFullySkipped(completedWorkout)) {
+          historyEntry.skippedWorkouts = (historyEntry.skippedWorkouts ?? 0) + 1
+        }
+
+        this.saveProgramHistory(history)
       }
 
-      this.saveProgramHistory(history)
-    }
+      console.log("[v0] Completed workout, updated progress:", activeProgram)
 
-    console.log("[v0] Completed workout, updated progress:", activeProgram)
-
-    // Sync to database
-    if (resolvedUserId) {
-      await this.syncToDatabase(resolvedUserId)
-    }
+      // Sync to database
+      if (resolvedUserId) {
+        await this.syncToDatabase(resolvedUserId)
+      }
+    })
   }
 
 
   static async finalizeActiveProgram(userId?: string, options?: { endedEarly?: boolean }): Promise<void> {
-    const activeProgram = await this.getActiveProgram()
-    if (!activeProgram) return
+    return this.withLock(async () => {
+      const activeProgram = await this.getActiveProgram()
+      if (!activeProgram) return
 
-    const resolvedUserId = userId ?? this.getCurrentUserId()
+      const resolvedUserId = userId ?? this.getCurrentUserId()
 
-    activeProgram.completedWorkouts = activeProgram.totalWorkouts
-    activeProgram.progress = 100
+      activeProgram.completedWorkouts = activeProgram.totalWorkouts
+      activeProgram.progress = 100
 
-    WorkoutLogger.tagWorkoutsWithInstance(activeProgram.instanceId, activeProgram.templateId, resolvedUserId)
-    await WorkoutLogger.clearInProgress(resolvedUserId)
+      WorkoutLogger.tagWorkoutsWithInstance(activeProgram.instanceId, activeProgram.templateId, resolvedUserId)
+      await WorkoutLogger.clearInProgress(resolvedUserId)
 
-    const history = this.getProgramHistory()
-    let historyUpdated = false
+      const history = this.getProgramHistory()
+      let historyUpdated = false
 
-    history.forEach((entry) => {
-      if (entry.isActive) {
-        entry.completedWorkouts = activeProgram.totalWorkouts
-        entry.totalWorkouts = activeProgram.totalWorkouts
-        entry.completionRate = 100
-        entry.isActive = false
-        entry.endDate = new Date().toISOString()
-        entry.endedEarly = options?.endedEarly ?? false
-        entry.instanceId = this.normalizeInstanceId(entry.instanceId ?? activeProgram.instanceId ?? entry.id)
-        historyUpdated = true
+      history.forEach((entry) => {
+        if (entry.isActive) {
+          entry.completedWorkouts = activeProgram.totalWorkouts
+          entry.totalWorkouts = activeProgram.totalWorkouts
+          entry.completionRate = 100
+          entry.isActive = false
+          entry.endDate = new Date().toISOString()
+          entry.endedEarly = options?.endedEarly ?? false
+          entry.instanceId = this.normalizeInstanceId(entry.instanceId ?? activeProgram.instanceId ?? entry.id)
+          historyUpdated = true
+        }
+      })
+
+      if (historyUpdated) {
+        this.saveProgramHistory(history)
+      }
+
+      // Clear localStorage
+      localStorage.removeItem(this.ACTIVE_PROGRAM_KEY)
+      localStorage.removeItem(this.PROGRAM_PROGRESS_KEY)
+
+      // Delete from database FIRST before dispatching events
+      if (resolvedUserId && supabase) {
+        try {
+          await supabase.from("active_programs").delete().eq("user_id", resolvedUserId)
+          console.log("[ProgramState] Removed active program from database")
+        } catch (error) {
+          logSupabaseError("[ProgramState] Failed to remove active program from database:", error)
+        }
+      }
+
+      // Sync program history to database
+      if (resolvedUserId && supabase && history.length > 0) {
+        try {
+          await supabase
+            .from("program_history")
+            .upsert(
+              history.map((h) => ({
+                id: h.id,
+                user_id: resolvedUserId,
+                template_id: h.templateId,
+                instance_id: this.normalizeInstanceId(h.instanceId ?? h.id),
+                name: h.name,
+                start_date: h.startDate,
+                end_date: h.endDate || null,
+                completion_rate: h.completionRate,
+                total_workouts: h.totalWorkouts,
+                completed_workouts: h.completedWorkouts,
+                is_active: h.isActive,
+              }))
+            )
+          console.log("[ProgramState] Synced program history to database")
+        } catch (error) {
+          logSupabaseError("[ProgramState] Failed to sync program history:", error)
+        }
+      }
+
+      // Dispatch programEnded event (NOT programChanged) to trigger immediate UI updates
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("programEnded"))
+        console.log("[ProgramState] Dispatched programEnded event")
       }
     })
-
-    if (historyUpdated) {
-      this.saveProgramHistory(history)
-    }
-
-    // Clear localStorage
-    localStorage.removeItem(this.ACTIVE_PROGRAM_KEY)
-    localStorage.removeItem(this.PROGRAM_PROGRESS_KEY)
-
-    // Delete from database FIRST before dispatching events
-    if (resolvedUserId && supabase) {
-      try {
-        await supabase.from("active_programs").delete().eq("user_id", resolvedUserId)
-        console.log("[ProgramState] Removed active program from database")
-      } catch (error) {
-        logSupabaseError("[ProgramState] Failed to remove active program from database:", error)
-      }
-    }
-
-    // Sync program history to database
-    if (resolvedUserId && supabase && history.length > 0) {
-      try {
-        await supabase
-          .from("program_history")
-          .upsert(
-            history.map((h) => ({
-              id: h.id,
-              user_id: resolvedUserId,
-              template_id: h.templateId,
-              instance_id: this.normalizeInstanceId(h.instanceId ?? h.id),
-              name: h.name,
-              start_date: h.startDate,
-              end_date: h.endDate || null,
-              completion_rate: h.completionRate,
-              total_workouts: h.totalWorkouts,
-              completed_workouts: h.completedWorkouts,
-              is_active: h.isActive,
-            }))
-          )
-        console.log("[ProgramState] Synced program history to database")
-      } catch (error) {
-        logSupabaseError("[ProgramState] Failed to sync program history:", error)
-      }
-    }
-
-    // Dispatch programEnded event (NOT programChanged) to trigger immediate UI updates
-    if (typeof window !== "undefined") {
-      window.dispatchEvent(new CustomEvent("programEnded"))
-      console.log("[ProgramState] Dispatched programEnded event")
-    }
   }
   static async recalculateProgress(options?: { silent?: boolean }): Promise<void> {
     const activeProgram = await this.getActiveProgram()
