@@ -179,7 +179,7 @@ export function EnhancedKPIGrid({ workouts }: EnhancedKPIGridProps) {
 
   return (
     <>
-      <div className="grid grid-cols-2 gap-3 px-4">
+      <div className="grid grid-cols-2 gap-3 w-full">
         <KPICard
           icon={<Trophy className="h-5 w-5" />}
           value={totalWorkouts}

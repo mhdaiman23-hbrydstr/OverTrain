@@ -990,7 +990,7 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
       >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Rename program</DialogTitle>
+            <DialogTitle>Rename Program</DialogTitle>
             <DialogDescription>
               Choose a new name for your custom program.
             </DialogDescription>

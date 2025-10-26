@@ -11,7 +11,7 @@ export function StepSourceSelection({ onSelect }: StepSourceSelectionProps) {
     <div className="grid gap-5 lg:grid-cols-2">
       <Card className="border border-border/70 hover:border-primary/60 transition-colors">
         <CardHeader>
-          <CardTitle>Start from a template</CardTitle>
+          <CardTitle>Start from a Template</CardTitle>
           <CardDescription>Pick one of LiftLog&apos;s proven programs and customize it to match your goals.</CardDescription>
         </CardHeader>
         <CardContent>
@@ -24,14 +24,14 @@ export function StepSourceSelection({ onSelect }: StepSourceSelectionProps) {
             </ul>
           </div>
           <Button className="mt-6 w-full" onClick={() => onSelect('template')}>
-            Customize a template
+            Customize a Template
           </Button>
         </CardContent>
       </Card>
 
       <Card className="border border-border/70 hover:border-primary/60 transition-colors">
         <CardHeader>
-          <CardTitle>Build from scratch</CardTitle>
+          <CardTitle>Build from Scratch</CardTitle>
           <CardDescription>Create a completely custom plan by choosing muscle groups and exercises yourself.</CardDescription>
         </CardHeader>
         <CardContent>
@@ -44,7 +44,7 @@ export function StepSourceSelection({ onSelect }: StepSourceSelectionProps) {
             </ul>
           </div>
           <Button className="mt-6 w-full bg-green-600 hover:bg-green-700 text-white" onClick={() => onSelect('scratch')}>
-            Start from scratch
+            Start from Scratch
           </Button>
         </CardContent>
       </Card>

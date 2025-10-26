@@ -44,7 +44,7 @@ export function DayNameEditor({ dayName, onSave, triggerLabel = 'Rename day' }: 
       </DialogTrigger>
       <DialogContent className="sm:max-w-sm" showCloseButton={false}>
         <DialogHeader>
-          <DialogTitle>Rename training day</DialogTitle>
+          <DialogTitle>Rename Training Day</DialogTitle>
           <DialogDescription>Give this day a descriptive name so it is easy to recognize later.</DialogDescription>
         </DialogHeader>
         <Input

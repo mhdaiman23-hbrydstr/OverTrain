@@ -54,10 +54,10 @@ export function ExitConfirmation({ open, onStay, onLeave }: ExitConfirmationProp
   return (
     <ConfirmationDialog
       open={open}
-      title="Discard your custom program?"
+      title="Discard Your Custom Program?"
       description="You have unsaved progress. Leaving now will discard all changes."
-      confirmLabel="Discard changes"
-      cancelLabel="Keep editing"
+      confirmLabel="Discard Changes"
+      cancelLabel="Keep Editing"
       onConfirm={onLeave}
       onCancel={onStay}
     />

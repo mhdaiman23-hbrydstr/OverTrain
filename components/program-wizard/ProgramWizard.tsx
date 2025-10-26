@@ -657,7 +657,7 @@ export function ProgramWizard({ onClose, onComplete, initialStep, onStepChange }
         >
           <div className="mx-auto flex w-full max-w-3xl items-start justify-between gap-4 px-6 py-5 sm:px-10 sm:py-6">
             <div>
-              <h1 className="text-lg font-semibold">Custom program builder</h1>
+              <h1 className="text-lg font-semibold">Custom Program Builder</h1>
               <p className="text-xs text-muted-foreground">
                 Build your ideal custom training plan based of our existing templates.
               </p>
