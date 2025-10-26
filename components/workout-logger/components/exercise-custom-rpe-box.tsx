@@ -9,13 +9,13 @@ interface ExerciseCustomRpeBoxProps {
 
 /**
  * Exercise Custom RPE Box Component
- * Small clickable box next to exercise name for recording custom RPE.
+ * Subtle badge indicator next to exercise name for recording custom RPE.
  *
- * Visual style:
- * - Default (no RPE): Grey background (bg-gray-700)
- * - With RPE: Blue background (bg-blue-600)
- * - Shows RPE value when filled, "RPE" text when empty
- * - Small size: w-12 h-8
+ * Visual design (minimalist):
+ * - Default (no RPE): Subtle grey dot indicator
+ * - With RPE: Shows value in muted blue badge (8px font, minimal padding)
+ * - Highly minimal to reduce visual clutter
+ * - Hover state for discoverability
  */
 export function ExerciseCustomRpeBox({
   exerciseName,
@@ -23,21 +23,25 @@ export function ExerciseCustomRpeBox({
   averageRpe,
   onOpen
 }: ExerciseCustomRpeBoxProps) {
+  if (!hasCustomRpe) {
+    // When empty: show subtle dot indicator only
+    return (
+      <button
+        onClick={onOpen}
+        title={`Record custom RPE for ${exerciseName}`}
+        className="inline-flex items-center justify-center w-2 h-2 rounded-full bg-gray-600 hover:bg-gray-500 transition cursor-pointer"
+      />
+    )
+  }
+
+  // When filled: show minimal badge with value
   return (
     <button
       onClick={onOpen}
-      title={`Record custom RPE for ${exerciseName}`}
-      className={`w-12 h-8 rounded border font-semibold text-sm transition flex items-center justify-center ${
-        hasCustomRpe
-          ? 'bg-blue-600 border-blue-500 text-white hover:bg-blue-700'
-          : 'bg-gray-700 border-gray-600 text-gray-400 hover:bg-gray-600'
-      }`}
+      title={`${averageRpe?.toFixed(1)} - Click to edit`}
+      className="inline-flex items-center justify-center px-1.5 h-5 rounded text-xs font-normal bg-blue-500/20 text-blue-600 dark:bg-blue-500/30 dark:text-blue-400 hover:bg-blue-500/30 dark:hover:bg-blue-500/40 transition border border-blue-500/30 dark:border-blue-500/20"
     >
-      {hasCustomRpe && averageRpe ? (
-        <span>{averageRpe.toFixed(1)}</span>
-      ) : (
-        <span className="text-xs">RPE</span>
-      )}
+      {averageRpe?.toFixed(1)}
     </button>
   )
 }

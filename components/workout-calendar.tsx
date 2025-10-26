@@ -10,6 +10,9 @@ import { WorkoutLogger } from "@/lib/workout-logger"
 import { useAuth } from "@/contexts/auth-context"
 import { ProgramTemplateService } from "@/lib/services/program-template-service"
 import type { GymTemplate } from "@/lib/gym-templates"
+import { ProgressionLabel } from "@/components/workout-logger/components/progression-label"
+import { UserPreferenceService } from "@/lib/services/user-preference-service"
+import type { RpeRirDisplayMode } from "@/lib/types/progression"
 
 interface WorkoutCalendarProps {
   onWorkoutClick?: (week: number, day: number) => void
@@ -33,6 +36,7 @@ export function WorkoutCalendar({ onWorkoutClick, selectedWeek, selectedDay, rea
   const [completionStatus, setCompletionStatus] = useState<Map<string, boolean>>(new Map())
   const [isLoading, setIsLoading] = useState(false)
   const [historicalTemplate, setHistoricalTemplate] = useState<GymTemplate | null>(null)
+  const [displayMode, setDisplayMode] = useState<RpeRirDisplayMode>('rir')
 
   // CRITICAL FIX: Prevent infinite recalculation loops
   const isRecalculatingRef = useRef(false)
@@ -117,6 +121,38 @@ export function WorkoutCalendar({ onWorkoutClick, selectedWeek, selectedDay, rea
     }, 15000) // Refresh every 15 seconds
 
     return () => clearInterval(refreshInterval)
+  }, [user?.id, readOnly])
+
+  // Load user preference for RIR/RPE display mode and listen for changes
+  useEffect(() => {
+    if (!user?.id || readOnly) return
+
+    const loadPreference = async () => {
+      try {
+        const preference = await UserPreferenceService.getRpeRirDisplayMode(user.id)
+        setDisplayMode(preference)
+      } catch (error) {
+        console.warn('[Calendar] Failed to load display preference:', error)
+        // Gracefully continue with default (rir)
+      }
+    }
+
+    loadPreference()
+
+    // Listen for preference changes from UserPreferenceService
+    const handlePreferenceChange = (event: Event) => {
+      const customEvent = event as CustomEvent<{ userId: string; mode: RpeRirDisplayMode }>
+      // Only update if it's the current user's preference change
+      if (customEvent.detail?.userId === user.id) {
+        setDisplayMode(customEvent.detail.mode)
+      }
+    }
+
+    window.addEventListener('userPreferenceChanged', handlePreferenceChange)
+
+    return () => {
+      window.removeEventListener('userPreferenceChanged', handlePreferenceChange)
+    }
   }, [user?.id, readOnly])
 
   // In read-only mode, fetch template to get real day names from DB
@@ -584,7 +620,11 @@ export function WorkoutCalendar({ onWorkoutClick, selectedWeek, selectedDay, rea
                   {/* Week header */}
                   <div className="text-center border-b pb-2">
                     <div className="text-xs font-medium text-muted-foreground mb-1">{isDeloadWeek ? "DL" : week}</div>
-                    <div className="text-xs text-muted-foreground">{isDeloadWeek ? "8 RIR" : getRIRLabel(week)}</div>
+                    <ProgressionLabel
+                      blockLength={totalWeeks}
+                      weekNumber={week}
+                      displayMode={displayMode}
+                    />
                   </div>
 
                   {/* Day buttons for this week */}

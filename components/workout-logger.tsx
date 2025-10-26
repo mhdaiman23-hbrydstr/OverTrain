@@ -88,6 +88,14 @@ function WorkoutLoggerView({ initialWorkout, onComplete, onCancel, onViewAnalyti
     canFinishWorkout,
     groupedExercises,
     hasCompletedPreviousWorkout,
+    // New properties for notes and RPE
+    exerciseNotesData,
+    customRpesData,
+    displayMode,
+    blockLevelRpe,
+    blockLevelRir,
+    handleSaveExerciseNote,
+    handleSaveCustomRpe,
   } = useWorkoutSession({ initialWorkout, onComplete, onCancel })
 
   const connectionStatus = useConnectionStatus()
@@ -193,6 +201,13 @@ function WorkoutLoggerView({ initialWorkout, onComplete, onCancel, onViewAnalyti
         onMoveExerciseDown={handleMoveExerciseDown}
         onSkipAllSets={handleSkipAllSets}
         onDeleteExercise={handleDeleteExercise}
+        exerciseNotes={exerciseNotesData}
+        customRpes={customRpesData}
+        displayMode={displayMode}
+        blockLevelRpe={blockLevelRpe}
+        blockLevelRir={blockLevelRir}
+        onSaveExerciseNote={handleSaveExerciseNote}
+        onSaveCustomRpe={handleSaveCustomRpe}
       />
 
       <CompletionBar

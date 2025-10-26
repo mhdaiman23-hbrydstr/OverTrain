@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { RpeRirDisplayMode } from '@/lib/types/progression'
 import { Button } from '@/components/ui/button'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 interface RpeRirPreferenceToggleProps {
   currentMode: RpeRirDisplayMode
@@ -10,7 +11,7 @@ interface RpeRirPreferenceToggleProps {
 }
 
 /**
- * RIR/RPE Preference Toggle Component
+ * RIR/RPE Preference Toggle Component (Compact Dropdown)
  * Allows user to choose display preference in profile settings.
  *
  * Options:
@@ -24,98 +25,81 @@ export function RpeRirPreferenceToggle({
 }: RpeRirPreferenceToggleProps) {
   const [mode, setMode] = useState<RpeRirDisplayMode>(currentMode)
   const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState(false)
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
 
   const handleSave = async () => {
     if (mode === currentMode) return
 
-    setError(null)
-    setSuccess(false)
+    setMessage(null)
     setIsLoading(true)
     try {
       await onSave(mode)
-      setSuccess(true)
-      // Clear success message after 2 seconds
-      setTimeout(() => setSuccess(false), 2000)
+      setMessage({ type: 'success', text: 'Preference saved!' })
+      setTimeout(() => setMessage(null), 2000)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save preference')
+      setMessage({
+        type: 'error',
+        text: err instanceof Error ? err.message : 'Failed to save preference'
+      })
     } finally {
       setIsLoading(false)
     }
   }
 
-  const options: Array<{
-    value: RpeRirDisplayMode
-    label: string
-    description: string
-  }> = [
-    {
-      value: 'rir',
-      label: 'Show RIR (Reps in Reserve)',
-      description: 'Display how many reps you could have done (0-8)'
-    },
-    {
-      value: 'rpe',
-      label: 'Show RPE (Rate of Perceived Exertion)',
-      description: 'Display perceived effort level (1-10)'
-    },
-    {
-      value: 'off',
-      label: 'Off',
-      description: 'No intensity labels shown'
+  const getModeLabel = (value: RpeRirDisplayMode): string => {
+    switch (value) {
+      case 'rir':
+        return 'RIR (Reps in Reserve) - 0-8 scale'
+      case 'rpe':
+        return 'RPE (Rate of Perceived Exertion) - 1-10 scale'
+      case 'off':
+        return 'Off - No labels'
+      default:
+        return value
     }
-  ]
+  }
 
   return (
-    <div className="p-4 bg-gray-900 rounded-lg border border-gray-800">
-      <h3 className="text-lg font-semibold mb-2 text-white">Intensity Display</h3>
-      <p className="text-sm text-gray-400 mb-4">
-        Choose how you'd like to see exercise intensity in your workouts
-      </p>
-
-      <div className="space-y-3 mb-6">
-        {options.map((option) => (
-          <label
-            key={option.value}
-            className="flex items-start gap-3 p-3 rounded border border-gray-700 hover:border-gray-600 cursor-pointer transition"
-          >
-            <input
-              type="radio"
-              name="intensity-display"
-              value={option.value}
-              checked={mode === option.value}
-              onChange={() => setMode(option.value)}
-              disabled={isLoading}
-              className="w-4 h-4 mt-0.5 accent-blue-500"
-            />
-            <div className="flex-1">
-              <p className="text-sm font-medium text-white">{option.label}</p>
-              <p className="text-xs text-gray-400 mt-1">{option.description}</p>
-            </div>
+    <div className="space-y-3">
+      <div className="flex gap-3 items-end">
+        <div className="flex-1">
+          <label htmlFor="intensity-select" className="text-sm font-medium mb-1.5 block text-foreground">
+            Display Mode
           </label>
-        ))}
+          <Select value={mode} onValueChange={(value) => setMode(value as RpeRirDisplayMode)} disabled={isLoading}>
+            <SelectTrigger id="intensity-select" className="w-full">
+              <SelectValue placeholder="Select display mode" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="rir">RIR (Reps in Reserve) 0-8</SelectItem>
+              <SelectItem value="rpe">RPE (Rate of Perceived Exertion) 1-10</SelectItem>
+              <SelectItem value="off">Off - No labels</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <Button
+          onClick={handleSave}
+          disabled={isLoading || mode === currentMode}
+          size="sm"
+          className="whitespace-nowrap"
+        >
+          {isLoading ? 'Saving...' : 'Save'}
+        </Button>
       </div>
 
-      {error && (
-        <div className="mb-4 p-3 bg-red-900/30 border border-red-500 rounded text-red-200 text-sm">
-          {error}
+      {message && (
+        <div className={`text-sm p-2 rounded ${
+          message.type === 'success'
+            ? 'bg-green-500/10 text-green-600 dark:text-green-400'
+            : 'bg-red-500/10 text-red-600 dark:text-red-400'
+        }`}>
+          {message.text}
         </div>
       )}
 
-      {success && (
-        <div className="mb-4 p-3 bg-green-900/30 border border-green-500 rounded text-green-200 text-sm">
-          Preference saved successfully!
-        </div>
-      )}
-
-      <Button
-        onClick={handleSave}
-        disabled={isLoading || mode === currentMode}
-        className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
-      >
-        {isLoading ? 'Saving...' : 'Save Preference'}
-      </Button>
+      <p className="text-xs text-muted-foreground">
+        {getModeLabel(mode)}
+      </p>
     </div>
   )
 }

@@ -28,6 +28,9 @@ import { ProfileSettingsPanel } from "@/components/profile-settings-panel"
 import { ProfileHelpSection } from "@/components/profile-help-section"
 import { ProfileFeedbackSection } from "@/components/profile-feedback-section"
 import { SubscriptionManagement } from "@/components/subscription-management"
+import { RpeRirPreferenceToggle } from "@/components/profile/rpe-rir-preference-toggle"
+import { UserPreferenceService } from "@/lib/services/user-preference-service"
+import type { RpeRirDisplayMode } from "@/lib/types/progression"
 
 const MALE_GOALS = [
   "Build muscle mass",
@@ -55,6 +58,7 @@ export function ProfileSection() {
   const [activeTab, setActiveTab] = useState("profile")
   const [feedbackType, setFeedbackType] = useState("general")
   const [isEditing1RM, setIsEditing1RM] = useState(false)
+  const [displayMode, setDisplayMode] = useState<RpeRirDisplayMode>('rir')
   const [formData, setFormData] = useState({
     name: user?.name || "",
     gender: user?.gender || "",
@@ -97,6 +101,23 @@ export function ProfileSection() {
       window.removeEventListener('navigateToFeedbackTab', handleNavigateToFeedbackTab)
     }
   }, [])
+
+  // Load user's RIR/RPE display preference
+  useEffect(() => {
+    if (!user?.id) return
+
+    const loadPreference = async () => {
+      try {
+        const preference = await UserPreferenceService.getRpeRirDisplayMode(user.id)
+        setDisplayMode(preference)
+      } catch (error) {
+        console.warn('[Profile] Failed to load display preference:', error)
+        // Gracefully continue with default (rir)
+      }
+    }
+
+    loadPreference()
+  }, [user?.id])
 
   if (!user) return null
 
@@ -499,6 +520,32 @@ export function ProfileSection() {
                 </Button>
               </div>
             )}
+
+            {/* RPE/RIR Display Preference Card */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Target className="h-5 w-5" />
+                  Intensity Display
+                </CardTitle>
+                <CardDescription>Choose how to display workout intensity (RIR or RPE)</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <RpeRirPreferenceToggle
+                  currentMode={displayMode}
+                  onSave={async (mode) => {
+                    if (user?.id) {
+                      try {
+                        await UserPreferenceService.setRpeRirDisplayMode(user.id, mode)
+                        setDisplayMode(mode)
+                      } catch (error) {
+                        console.error('[Profile] Failed to save display preference:', error)
+                      }
+                    }
+                  }}
+                />
+              </CardContent>
+            </Card>
 
             {/* 1RM Card */}
             <Card>

@@ -164,7 +164,7 @@ export function ExerciseGroups({
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" className="z-[100]">
-                            <DropdownMenuItem onClick={() => onExerciseNotes(exercise.id)}>
+                            <DropdownMenuItem onClick={() => setSelectedExerciseForNotes(exercise.id)}>
                               <FileText className="h-4 w-4 mr-2" />
                               Exercise notes
                             </DropdownMenuItem>

@@ -8,10 +8,23 @@ import { ProgressionWeekConfig, RirRpeProgression } from '@/lib/types/progressio
 
 export class ProgressionConfigService {
   /**
-   * Hardcoded default progression patterns for 4-8 week blocks.
-   * These are the standard periodized patterns used across all programs.
+   * Hardcoded default progression patterns for 1-8 week blocks.
+   * - 1-3 weeks: Simple linear progression (no deload)
+   * - 4-8 weeks: Standard periodized patterns
    */
   private static readonly DEFAULT_PATTERNS: Record<number, ProgressionWeekConfig[]> = {
+    1: [
+      { week: 1, rir: 0, rpe: 10 } // Max effort
+    ],
+    2: [
+      { week: 1, rir: 2, rpe: 8 },
+      { week: 2, rir: 0, rpe: 10 } // Max effort
+    ],
+    3: [
+      { week: 1, rir: 3, rpe: 7 },
+      { week: 2, rir: 1, rpe: 9 },
+      { week: 3, rir: 0, rpe: 10 } // Max effort
+    ],
     4: [
       { week: 1, rir: 2, rpe: 8 },
       { week: 2, rir: 1, rpe: 9 },
@@ -182,9 +195,9 @@ export class ProgressionConfigService {
    * Validate block length.
    *
    * @param blockLength - Number to validate
-   * @returns true if valid (4-8)
+   * @returns true if valid (1-8)
    */
-  private static isValidBlockLength(blockLength: any): blockLength is 4 | 5 | 6 | 7 | 8 {
-    return blockLength === 4 || blockLength === 5 || blockLength === 6 || blockLength === 7 || blockLength === 8
+  private static isValidBlockLength(blockLength: any): boolean {
+    return Number.isInteger(blockLength) && blockLength >= 1 && blockLength <= 8
   }
 }

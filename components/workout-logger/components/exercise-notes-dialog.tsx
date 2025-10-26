@@ -76,14 +76,14 @@ export function ExerciseNotesDialog({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-gray-900 p-6 rounded-lg max-w-md w-full shadow-lg border border-gray-800">
-        <h2 className="text-lg font-bold mb-4 text-white">Notes: {exerciseName}</h2>
+      <div className="bg-white dark:bg-gray-900 p-6 rounded-lg max-w-md w-full shadow-lg border border-gray-200 dark:border-gray-800">
+        <h2 className="text-lg font-bold mb-4 text-gray-900 dark:text-white">Notes: {exerciseName}</h2>
 
         <textarea
           value={noteText}
           onChange={(e) => setNoteText(e.target.value)}
           placeholder="Add coaching notes, form cues, or reminders..."
-          className="w-full h-32 p-3 bg-gray-800 border border-gray-700 rounded text-white placeholder-gray-500 mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full h-32 p-3 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
           disabled={isLoading}
         />
 
@@ -95,13 +95,13 @@ export function ExerciseNotesDialog({
             className="w-4 h-4 rounded accent-blue-500"
             disabled={isLoading}
           />
-          <span className="text-sm text-gray-300">
+          <span className="text-sm text-gray-700 dark:text-gray-300">
             📌 Pin this note to repeat each week
           </span>
         </label>
 
         {error && (
-          <div className="mb-4 p-3 bg-red-900/30 border border-red-500 rounded text-red-200 text-sm">
+          <div className="mb-4 p-3 bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-500 rounded text-red-800 dark:text-red-200 text-sm">
             {error}
           </div>
         )}

@@ -19,6 +19,11 @@ import { ConnectionMonitor } from "@/lib/connection-monitor"
 import { WorkoutLogger, type WorkoutSession } from "@/lib/workout-logger"
 import type { Exercise } from "@/lib/services/exercise-library-service"
 import type { WorkoutLoggerProps } from "@/components/workout-logger/types"
+import { ExerciseNotesService } from "@/lib/services/exercise-notes-service"
+import { CustomRpeService } from "@/lib/services/custom-rpe-service"
+import { ProgressionConfigService } from "@/lib/services/progression-config-service"
+import { UserPreferenceService } from "@/lib/services/user-preference-service"
+import type { ExerciseNote, RpeRirDisplayMode } from "@/lib/types/progression"
 
 export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: WorkoutLoggerProps) {
   const { user } = useAuth()
@@ -65,6 +70,104 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
     message?: string
   }>>({})
   const [outOfBoundsExercises, setOutOfBoundsExercises] = useState<Record<string, { min: number; max: number; setNumber: number }>>({})
+
+  // Exercise notes and RPE data
+  const [exerciseNotesData, setExerciseNotesData] = useState<{ [exerciseId: string]: ExerciseNote }>({})
+  const [customRpesData, setCustomRpesData] = useState<{ [exerciseId: string]: { [setNumber: number]: number } }>({})
+  const [displayMode, setDisplayMode] = useState<RpeRirDisplayMode>('rir')
+  const [blockLevelRpe, setBlockLevelRpe] = useState<number | undefined>()
+  const [blockLevelRir, setBlockLevelRir] = useState<number | undefined>()
+
+  // Save exercise note callback
+  const handleSaveExerciseNote = async (exerciseId: string, noteText: string, isPinned: boolean) => {
+    if (!user?.id) return
+
+    try {
+      const activeProgram = ProgramStateManager.getActiveProgram()
+      if (!activeProgram) return
+
+      // Find exercise ID in library
+      const exercise = workout?.exercises.find(ex => ex.id === exerciseId)
+      if (!exercise) return
+
+      const exerciseLibraryId = exercise.exerciseId || exerciseId
+
+      // Save note
+      const savedNote = await ExerciseNotesService.saveNote(
+        user.id,
+        activeProgram.instanceId,
+        exerciseLibraryId,
+        activeProgram.currentWeek,
+        noteText,
+        isPinned
+      )
+
+      // Update local state
+      setExerciseNotesData(prev => ({
+        ...prev,
+        [exerciseId]: savedNote
+      }))
+
+      toast({
+        title: "Note saved",
+        description: isPinned ? "This note will repeat next week" : "Note saved for this week only",
+      })
+    } catch (error) {
+      console.error('[WorkoutLogger] Failed to save exercise note:', error)
+      toast({
+        title: "Error saving note",
+        description: error instanceof Error ? error.message : "Please try again",
+        variant: "destructive",
+      })
+    }
+  }
+
+  // Save custom RPE callback
+  const handleSaveCustomRpe = async (exerciseId: string, rpesBySet: { [setNumber: number]: number }) => {
+    if (!user?.id) return
+
+    try {
+      const activeProgram = ProgramStateManager.getActiveProgram()
+      if (!activeProgram) return
+
+      // Find exercise ID in library
+      const exercise = workout?.exercises.find(ex => ex.id === exerciseId)
+      if (!exercise) return
+
+      const exerciseLibraryId = exercise.exerciseId || exerciseId
+
+      // Save each set's RPE
+      for (const [setNumberStr, rpeValue] of Object.entries(rpesBySet)) {
+        const setNumber = parseInt(setNumberStr)
+        await CustomRpeService.saveCustomRpe(
+          user.id,
+          activeProgram.instanceId,
+          exerciseLibraryId,
+          activeProgram.currentWeek,
+          setNumber,
+          rpeValue
+        )
+      }
+
+      // Update local state
+      setCustomRpesData(prev => ({
+        ...prev,
+        [exerciseId]: rpesBySet
+      }))
+
+      toast({
+        title: "RPE recorded",
+        description: `Saved RPE for ${Object.keys(rpesBySet).length} set(s)`,
+      })
+    } catch (error) {
+      console.error('[WorkoutLogger] Failed to save custom RPE:', error)
+      toast({
+        title: "Error saving RPE",
+        description: error instanceof Error ? error.message : "Please try again",
+        variant: "destructive",
+      })
+    }
+  }
 
   const resolveCategory = (exerciseName: string): "compound" | "isolation" => {
     const name = exerciseName.toLowerCase()
@@ -191,6 +294,182 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
 
     initializeWorkoutData()
   }, [])
+
+  // Load user preference, exercise notes, and custom RPE data
+  useEffect(() => {
+    if (!user?.id || !workout) return
+
+    const loadNotesAndRpeData = async () => {
+      try {
+        // Get active program for context
+        const activeProgram = ProgramStateManager.getActiveProgram()
+        if (!activeProgram) return
+
+        // Load user preference
+        const preference = await UserPreferenceService.getRpeRirDisplayMode(user.id)
+        setDisplayMode(preference)
+
+        // Load exercise notes for current week
+        const notes = await ExerciseNotesService.getNotesForWeek(
+          user.id,
+          activeProgram.instanceId,
+          activeProgram.currentWeek
+        )
+        const notesMap: { [exerciseId: string]: ExerciseNote } = {}
+
+        // Map notes by session exercise ID (not library ID)
+        // Notes are stored with library ID, but we need to display them by session ID
+        if (workout && notes.length > 0) {
+          notes.forEach(note => {
+            // Find the session exercise that corresponds to this library exercise
+            const sessionExercise = workout.exercises.find(ex =>
+              (ex.exerciseId || ex.id) === note.exerciseId
+            )
+            if (sessionExercise) {
+              notesMap[sessionExercise.id] = note
+            }
+          })
+        }
+
+        // Check for pinned notes from previous week and auto-create for current week
+        if (workout && activeProgram.currentWeek > 1) {
+          for (const exercise of workout.exercises) {
+            const libraryId = exercise.exerciseId || exercise.id
+            // Skip if we already have a note for this exercise this week
+            if (notesMap[exercise.id]) continue
+
+            // Check if there's a pinned note from previous week
+            const pinnedNote = await ExerciseNotesService.getPinnedNoteForWeek(
+              user.id,
+              activeProgram.instanceId,
+              libraryId,
+              activeProgram.currentWeek - 1,
+              activeProgram.currentWeek
+            )
+            if (pinnedNote) {
+              notesMap[exercise.id] = pinnedNote
+            }
+          }
+        }
+
+        setExerciseNotesData(notesMap)
+
+        // Load custom RPEs for all exercises in current week
+        const rpesByExercise: { [exerciseId: string]: { [setNumber: number]: number } } = {}
+        for (const exercise of workout.exercises) {
+          const exerciseRpes = await CustomRpeService.getExerciseRpesMapForWeek(
+            user.id,
+            activeProgram.instanceId,
+            exercise.exerciseId || exercise.id,
+            activeProgram.currentWeek
+          )
+          if (Object.keys(exerciseRpes).length > 0) {
+            rpesByExercise[exercise.id] = exerciseRpes
+          }
+        }
+        setCustomRpesData(rpesByExercise)
+
+        // Get block-level progression
+        const progression = ProgressionConfigService.getProgressionForWeek(
+          activeProgram.template.weeks,
+          activeProgram.currentWeek
+        )
+        if (progression) {
+          setBlockLevelRir(progression.rir)
+          setBlockLevelRpe(progression.rpe)
+        }
+      } catch (error) {
+        console.warn('[WorkoutLogger] Failed to load notes/RPE data:', error)
+        // Gracefully continue - data is optional
+      }
+    }
+
+    loadNotesAndRpeData()
+  }, [user?.id, workout?.id])
+
+  // Re-load notes/RPE when program state changes (e.g., week/day navigation)
+  useEffect(() => {
+    if (!user?.id || !workout) return
+
+    const handleProgramChanged = () => {
+      // Reload notes and RPE when week/day changes
+      const loadNotesAndRpeData = async () => {
+        try {
+          const activeProgram = ProgramStateManager.getActiveProgram()
+          if (!activeProgram) return
+
+          // Load exercise notes for current week
+          const notes = await ExerciseNotesService.getNotesForWeek(
+            user.id,
+            activeProgram.instanceId,
+            activeProgram.currentWeek
+          )
+          const notesMap: { [exerciseId: string]: ExerciseNote } = {}
+
+          // Map notes by session exercise ID (not library ID)
+          // Notes are stored with library ID, but we need to display them by session ID
+          if (workout && notes.length > 0) {
+            notes.forEach(note => {
+              // Find the session exercise that corresponds to this library exercise
+              const sessionExercise = workout.exercises.find(ex =>
+                (ex.exerciseId || ex.id) === note.exerciseId
+              )
+              if (sessionExercise) {
+                notesMap[sessionExercise.id] = note
+              }
+            })
+          }
+
+          // Check for pinned notes from previous week and auto-create for current week
+          if (workout && activeProgram.currentWeek > 1) {
+            for (const exercise of workout.exercises) {
+              const libraryId = exercise.exerciseId || exercise.id
+              // Skip if we already have a note for this exercise this week
+              if (notesMap[exercise.id]) continue
+
+              // Check if there's a pinned note from previous week
+              const pinnedNote = await ExerciseNotesService.getPinnedNoteForWeek(
+                user.id,
+                activeProgram.instanceId,
+                libraryId,
+                activeProgram.currentWeek - 1,
+                activeProgram.currentWeek
+              )
+              if (pinnedNote) {
+                notesMap[exercise.id] = pinnedNote
+              }
+            }
+          }
+
+          setExerciseNotesData(notesMap)
+
+          // Load custom RPEs for all exercises in current week
+          const rpesByExercise: { [exerciseId: string]: { [setNumber: number]: number } } = {}
+          for (const exercise of workout.exercises) {
+            const exerciseRpes = await CustomRpeService.getExerciseRpesMapForWeek(
+              user.id,
+              activeProgram.instanceId,
+              exercise.exerciseId || exercise.id,
+              activeProgram.currentWeek
+            )
+            if (Object.keys(exerciseRpes).length > 0) {
+              rpesByExercise[exercise.id] = exerciseRpes
+            }
+          }
+          setCustomRpesData(rpesByExercise)
+        } catch (error) {
+          console.warn('[WorkoutLogger] Failed to reload notes/RPE on week change:', error)
+        }
+      }
+
+      loadNotesAndRpeData()
+    }
+
+    window.addEventListener('programChanged', handleProgramChanged)
+    return () => {
+      window.removeEventListener('programChanged', handleProgramChanged)
+    }
+  }, [user?.id, workout])
 
   useEffect(() => {
     const loadProgramData = async () => {
@@ -1976,5 +2255,14 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
     canFinishWorkout,
     displayExercises,
     groupedExercises,
+    exerciseNotesData,
+    setExerciseNotesData,
+    customRpesData,
+    setCustomRpesData,
+    displayMode,
+    blockLevelRpe,
+    blockLevelRir,
+    handleSaveExerciseNote,
+    handleSaveCustomRpe,
   }
 }

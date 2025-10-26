@@ -86,12 +86,12 @@ export function CustomRpeDialog({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-gray-900 p-6 rounded-lg max-w-md w-full shadow-lg border border-gray-800">
-        <h2 className="text-lg font-bold mb-4 text-white">RPE by Set: {exerciseName}</h2>
+      <div className="bg-white dark:bg-gray-900 p-6 rounded-lg max-w-md w-full shadow-lg border border-gray-200 dark:border-gray-800">
+        <h2 className="text-lg font-bold mb-4 text-gray-900 dark:text-white">RPE by Set: {exerciseName}</h2>
 
         {blockLevelLabel && (
-          <div className="mb-4 p-3 bg-gray-800 rounded text-sm text-gray-300 border border-gray-700">
-            <span className="text-gray-400">Block-level: </span>
+          <div className="mb-4 p-3 bg-gray-100 dark:bg-gray-800 rounded text-sm text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-700">
+            <span className="text-gray-600 dark:text-gray-400">Block-level: </span>
             {blockLevelLabel}
           </div>
         )}
@@ -99,7 +99,7 @@ export function CustomRpeDialog({
         <div className="space-y-3 mb-6">
           {Array.from({ length: targetSets }, (_, i) => i + 1).map((set) => (
             <div key={set} className="flex items-center gap-3">
-              <label className="w-12 text-sm font-semibold text-gray-300">
+              <label className="w-12 text-sm font-semibold text-gray-700 dark:text-gray-300">
                 Set {set}:
               </label>
               <input
@@ -110,7 +110,7 @@ export function CustomRpeDialog({
                 value={rpeValues[set] ?? ''}
                 onChange={(e) => handleSetRpe(set, e.target.value)}
                 placeholder="1-10"
-                className="flex-1 px-3 py-2 bg-gray-800 border border-gray-700 rounded text-white placeholder-gray-500 text-center focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                className="flex-1 px-3 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 text-center focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
                 disabled={isLoading}
               />
             </div>
@@ -118,7 +118,7 @@ export function CustomRpeDialog({
         </div>
 
         {error && (
-          <div className="mb-4 p-3 bg-red-900/30 border border-red-500 rounded text-red-200 text-sm">
+          <div className="mb-4 p-3 bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-500 rounded text-red-800 dark:text-red-200 text-sm">
             {error}
           </div>
         )}
@@ -127,7 +127,7 @@ export function CustomRpeDialog({
           <Button
             onClick={handleSave}
             disabled={isLoading || Object.keys(rpeValues).length === 0}
-            className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
+            className="flex-1 bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50"
           >
             {isLoading ? 'Saving...' : 'Save RPE'}
           </Button>
