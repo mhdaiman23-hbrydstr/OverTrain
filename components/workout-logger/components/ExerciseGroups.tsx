@@ -16,6 +16,12 @@ import {
   getMuscleGroupTextClass,
 } from "@/lib/exercise-muscle-groups"
 import type { WorkoutSession } from "@/lib/workout-logger"
+import { ExerciseNotesBanner } from "@/components/workout-logger/components/exercise-notes-banner"
+import { ExerciseNotesDialog } from "@/components/workout-logger/components/exercise-notes-dialog"
+import { ExerciseCustomRpeBox } from "@/components/workout-logger/components/exercise-custom-rpe-box"
+import { CustomRpeDialog } from "@/components/workout-logger/components/custom-rpe-dialog"
+import type { ExerciseNote } from "@/lib/types/progression"
+import type { RpeRirDisplayMode } from "@/lib/types/progression"
 import {
   MoreVertical,
   FileText,
@@ -28,7 +34,7 @@ import {
   Minus,
   Check,
 } from "lucide-react"
-import React, { ReactNode, Fragment } from "react"
+import React, { ReactNode, Fragment, useState } from "react"
 
 interface ExerciseGroupsProps {
   groupedExercises: Record<string, WorkoutSession["exercises"]>
@@ -51,6 +57,14 @@ interface ExerciseGroupsProps {
   onSkipAllSets: (exerciseId: string) => void
   onDeleteExercise: (exerciseId: string) => void
   notesFooter?: ReactNode
+  // New props for notes and RPE
+  exerciseNotes?: { [exerciseId: string]: ExerciseNote }
+  customRpes?: { [exerciseId: string]: { [setNumber: number]: number } }
+  displayMode?: RpeRirDisplayMode
+  blockLevelRpe?: number
+  blockLevelRir?: number
+  onSaveExerciseNote?: (exerciseId: string, noteText: string, isPinned: boolean) => Promise<void>
+  onSaveCustomRpe?: (exerciseId: string, rpesBySet: { [setNumber: number]: number }) => Promise<void>
 }
 
 export function ExerciseGroups({
@@ -72,7 +86,17 @@ export function ExerciseGroups({
   onMoveExerciseDown,
   onSkipAllSets,
   onDeleteExercise,
+  exerciseNotes = {},
+  customRpes = {},
+  displayMode = 'rir',
+  blockLevelRpe,
+  blockLevelRir,
+  onSaveExerciseNote,
+  onSaveCustomRpe,
 }: ExerciseGroupsProps) {
+  // State for exercise notes and RPE dialogs
+  const [selectedExerciseForNotes, setSelectedExerciseForNotes] = useState<string | null>(null)
+  const [selectedExerciseForRpe, setSelectedExerciseForRpe] = useState<string | null>(null)
   return (
     <div className="w-full max-w-full mx-auto px-3 sm:px-4 overflow-x-hidden">
       {Object.entries(groupedExercises).map(([muscleGroup, exercises]) => (
@@ -104,9 +128,30 @@ export function ExerciseGroups({
 
                 <div className="border-b border-border/30 relative bg-background hover:bg-muted/20 transition-colors">
                   <div className="py-3 px-1 sm:py-4 sm:px-2">
+                    {/* Exercise Notes Banner */}
+                    {exerciseNotes[exercise.id] && (
+                      <ExerciseNotesBanner
+                        note={exerciseNotes[exercise.id]}
+                        onEdit={() => setSelectedExerciseForNotes(exercise.id)}
+                      />
+                    )}
+
                     <div className="flex items-center justify-between pb-3">
                       <div className="flex-1">
-                        <h4 className="text-base font-medium">{exercise.exerciseName}</h4>
+                        <div className="flex items-center gap-2 mb-1">
+                          <h4 className="text-base font-medium">{exercise.exerciseName}</h4>
+                          <ExerciseCustomRpeBox
+                            exerciseName={exercise.exerciseName}
+                            hasCustomRpe={!!customRpes[exercise.id] && Object.keys(customRpes[exercise.id]).length > 0}
+                            averageRpe={
+                              customRpes[exercise.id]
+                                ? Object.values(customRpes[exercise.id]).reduce((a, b) => a + b, 0) /
+                                  Object.keys(customRpes[exercise.id]).length
+                                : undefined
+                            }
+                            onOpen={() => setSelectedExerciseForRpe(exercise.id)}
+                          />
+                        </div>
                         <div className="flex items-center gap-1 text-xs text-muted-foreground">
                           <span>{exercise.equipmentType || "Unknown"}</span>
                         </div>
@@ -284,6 +329,44 @@ export function ExerciseGroups({
           })}
         </div>
       ))}
+
+      {/* Exercise Notes Dialog */}
+      {selectedExerciseForNotes && (
+        <ExerciseNotesDialog
+          exerciseName={workout.exercises.find(ex => ex.id === selectedExerciseForNotes)?.exerciseName || "Exercise"}
+          initialNote={exerciseNotes[selectedExerciseForNotes]}
+          onSave={async (noteText, isPinned) => {
+            if (onSaveExerciseNote) {
+              await onSaveExerciseNote(selectedExerciseForNotes, noteText, isPinned)
+            }
+          }}
+          onDelete={async () => {
+            // Note deletion handled by parent component if needed
+            setSelectedExerciseForNotes(null)
+          }}
+          isOpen={!!selectedExerciseForNotes}
+          onClose={() => setSelectedExerciseForNotes(null)}
+        />
+      )}
+
+      {/* Custom RPE Dialog */}
+      {selectedExerciseForRpe && (
+        <CustomRpeDialog
+          exerciseName={workout.exercises.find(ex => ex.id === selectedExerciseForRpe)?.exerciseName || "Exercise"}
+          targetSets={workout.exercises.find(ex => ex.id === selectedExerciseForRpe)?.sets.length || 0}
+          displayMode={displayMode}
+          blockLevelRpe={blockLevelRpe}
+          blockLevelRir={blockLevelRir}
+          initialRpes={customRpes[selectedExerciseForRpe]}
+          onSave={async (rpesBySet) => {
+            if (onSaveCustomRpe) {
+              await onSaveCustomRpe(selectedExerciseForRpe, rpesBySet)
+            }
+          }}
+          isOpen={!!selectedExerciseForRpe}
+          onClose={() => setSelectedExerciseForRpe(null)}
+        />
+      )}
     </div>
   )
 }
