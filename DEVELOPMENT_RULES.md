@@ -1245,8 +1245,231 @@ export function TemplateDetailView({ templateId, onClose, onStartProgram }) {
 
 ---
 
-*Last Updated: 2025-10-25*
-*Version: 1.9 - Added Patterns 18-20: Mobile Navigation, Keyboard Handling, and Scrollable Content.*
+---
+
+### Pattern 21: Exercise-Linked Data with ID Mapping
+
+**When exercise metadata is stored separately from workout exercises, ensure consistent ID usage across save, load, and display:**
+
+Exercise-linked data (notes, custom RPE, progression notes) must handle **two different IDs**:
+- `exercise.exerciseId` (or `exercise.id` for library reference) - Used for storage/database
+- `exercise.id` (session-specific) - Used for display and state management
+
+**Problem**: Mixing these IDs causes data loss:
+```typescript
+// ❌ WRONG - ID mismatch
+// Save path: uses libraryId
+const libraryId = exercise.exerciseId || exercise.id
+await ExerciseNotesService.saveNote(userId, libraryId, noteText)
+
+// Load path: correctly fetches by libraryId
+const notes = await ExerciseNotesService.getNotesForWeek(userId, libraryId, week)
+
+// Display path: uses session ID (MISMATCH!)
+const displayNote = exerciseNotes[exercise.id]  // Won't find it!
+```
+
+**Solution**: Map notes by session ID during load:
+```typescript
+// ✅ CORRECT - Consistent ID mapping
+const notesMap: Record<string, ExerciseNote> = {}
+
+// Load notes by library ID from database
+const notes = await ExerciseNotesService.getNotesForWeek(userId, libraryId, week)
+
+// Map to session ID for display
+notes.forEach(note => {
+  const sessionExercise = workout.exercises.find(ex =>
+    (ex.exerciseId || ex.id) === note.exerciseId  // Find by library ID
+  )
+  if (sessionExercise) {
+    notesMap[sessionExercise.id] = note  // Store by session ID!
+  }
+})
+
+// Now display works correctly
+const displayNote = exerciseNotes[exercise.id]  // ✅ Found it!
+```
+
+**Key Rules:**
+- ✅ Save exercise-linked data using library ID (`exerciseId` field)
+- ✅ Load data from database using library ID (source of truth)
+- ✅ Map loaded data to session ID for React state/display
+- ✅ Always find the session exercise first, then map the data
+- ❌ Never mix session ID and library ID in the same data structure
+- ❌ Never store session ID in database (use library ID only)
+
+**Data Flow:**
+```
+Save: exercise → libraryId → database
+Load: database ← libraryId ← (find session exercise by libraryId) ← state display
+```
+
+### Pattern 22: Pinned Notes Auto-Creation Across Weeks
+
+**When features support pinning data within a program instance, auto-create copies for subsequent weeks:**
+
+Pinned notes should automatically carry forward to the next week of the same program:
+
+```typescript
+// ✅ CORRECT - Auto-create pinned notes for next week
+async function loadNotesForWeek(week: number) {
+  const notesMap: Record<string, ExerciseNote> = {}
+
+  // 1. Load notes from current week
+  const currentWeekNotes = await ExerciseNotesService.getNotesForWeek(
+    userId,
+    programInstanceId,
+    libraryId,
+    week
+  )
+  // ... map to display ...
+
+  // 2. For weeks after the first, check for pinned notes from previous week
+  if (week > 1) {
+    for (const exercise of workout.exercises) {
+      const libraryId = exercise.exerciseId || exercise.id
+
+      // Already have a note for this exercise
+      if (notesMap[exercise.id]) continue
+
+      // Check if there's a pinned note from previous week
+      const pinnedNote = await ExerciseNotesService.getPinnedNoteForWeek(
+        userId,
+        programInstanceId,
+        libraryId,
+        week - 1,          // Source week
+        week                // Target week (auto-creates copy)
+      )
+
+      if (pinnedNote) {
+        notesMap[exercise.id] = pinnedNote
+      }
+    }
+  }
+
+  return notesMap
+}
+
+// ❌ WRONG - Service method exists but never called
+async function loadNotesForWeek(week: number) {
+  const notes = await ExerciseNotesService.getNotesForWeek(userId, libraryId, week)
+  // Missing: getPinnedNoteForWeek() never invoked!
+  // Result: Pinned notes don't auto-create for next week
+}
+```
+
+**Key Rules:**
+- ✅ Call `getPinnedNoteForWeek()` during note loading for weeks > 1
+- ✅ Only auto-create if note doesn't already exist in current week
+- ✅ Call for each exercise in the workout
+- ✅ Apply same pattern to other pinned data (custom RPE, etc.)
+- ❌ Don't assume service methods are called automatically
+- ❌ Don't skip auto-creation for subsequent weeks
+
+**When to Call:**
+1. During initial workout load (`useWorkoutSession` hook)
+2. When user navigates weeks (in `programChanged` event handler)
+3. Any time you reload notes for a week
+
+### Pattern 23: Exercise-Linked Data Cleanup
+
+**When exercises are replaced or removed, clean up all linked metadata:**
+
+Exercise-linked data includes: notes, custom RPE, progression notes, and other per-exercise metadata.
+
+```typescript
+// ✅ CORRECT - Clean all linked data when replacing exercise
+async function handleReplaceExercise(
+  exerciseId: string,
+  newExerciseId: string,
+  repeat: boolean
+) {
+  // 1. Update exercise in workout
+  const exercise = workout.exercises.find(e => e.id === exerciseId)
+  if (!exercise) return
+
+  // 2. Get OLD library ID before replacing
+  const oldLibraryId = exercise.exerciseId || exercise.id
+
+  // 3. Replace exercise with new one
+  exercise.exerciseId = newExerciseId
+  exercise.exerciseName = newExercise.name
+  exercise.muscleGroup = newExercise.muscle_group
+  // ... other metadata ...
+
+  // 4. Reset current session performance (always)
+  exercise.suggestedWeight = 0
+  exercise.progressionNote = ""
+  exercise.sets.forEach(set => {
+    set.reps = 0
+    set.weight = 0
+    set.completed = false
+    set.skipped = false
+  })
+
+  // 5. DELETE old linked data (uses old library ID)
+  if (userId && programInstanceId) {
+    // Delete notes for old exercise
+    await ExerciseNotesService.deleteNotesForExercise(
+      userId,
+      programInstanceId,
+      oldLibraryId  // OLD library ID!
+    )
+
+    // Delete custom RPE data for old exercise
+    await CustomRpeService.deleteRpeForExercise(
+      userId,
+      programInstanceId,
+      oldLibraryId
+    )
+
+    // Delete progression notes for old exercise
+    await ProgressionNoteService.deleteNotesForExercise(
+      userId,
+      programInstanceId,
+      oldLibraryId
+    )
+  }
+
+  // 6. Save workout with replacements
+  await WorkoutLogger.saveCurrentWorkout(userId, workout)
+
+  // If user selected "Repeat": apply to all matching exercises
+  if (repeat) {
+    // ... apply same replacement to all future workouts ...
+  }
+
+  // 7. Close dialog
+  onClose?.()
+}
+
+// ❌ WRONG - Leaving orphaned data behind
+async function handleReplaceExercise() {
+  exercise.exerciseId = newExerciseId
+  // Missing: No cleanup of old linked data
+  // Result: Old notes/RPE data orphaned in database
+}
+```
+
+**Data to Clean:**
+- Exercise notes (tied to library ID)
+- Custom RPE data (tied to library ID)
+- Progression notes
+- One-rep-max data (if exercise-specific)
+- Any other metadata keyed by library ID
+
+**Key Rules:**
+- ✅ Save old library ID BEFORE replacing
+- ✅ Delete all linked data using OLD library ID
+- ✅ Reset all current-session performance (always)
+- ✅ Apply cleanup to both current and future workouts if "Repeat"
+- ✅ Save updated workout after cleanup
+- ❌ Never leave orphaned data in database
+- ❌ Don't keep old linked data when exercise changes
+
+*Last Updated: 2025-10-27*
+*Version: 2.0 - Added Patterns 21-23: Exercise-Linked Data Persistence, Pinned Notes Auto-Creation, and Data Cleanup.*
 
 ---
 
