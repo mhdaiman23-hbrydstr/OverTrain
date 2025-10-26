@@ -287,7 +287,7 @@ export function AdvancedProgramSettings({ template, userProfile, onOverrideChang
 
                 {/* Save Button */}
                 <div className="flex justify-end">
-                  <Button onClick={handleSaveOverride} className="w-full sm:w-auto h-8 text-sm">
+                  <Button onClick={handleSaveOverride} size="sm" className="w-full sm:w-auto">
                     Apply
                   </Button>
                 </div>

@@ -780,7 +780,7 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
                               CURRENT
                             </Badge>
                           )}
-                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                          <Button variant="ghost" size="icon" className="h-8 w-8">
                             <MoreVertical className="h-4 w-4 text-muted-foreground" />
                           </Button>
                         </div>
