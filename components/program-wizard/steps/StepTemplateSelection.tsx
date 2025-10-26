@@ -88,18 +88,18 @@ export function StepTemplateSelection({
                 const isSelected = selectedTemplateId === template.id
 
                 return (
-                  <button
+                  <Button
                     key={template.id}
                     type="button"
+                    variant={isSelected ? "default" : "ghost"}
                     className={cn(
-                      'w-full px-4 py-4 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60',
-                      'hover:bg-muted/40',
-                      isSelected && 'bg-primary/5 ring-1 ring-primary/40 hover:bg-primary/5',
-                      isLoadingTemplate ? 'cursor-progress opacity-80' : 'cursor-pointer',
+                      'w-full justify-start h-auto px-4 py-4 text-left rounded-none',
+                      isLoadingTemplate && 'cursor-progress opacity-80',
                     )}
                     onClick={() => onSelectTemplate(template.id)}
+                    disabled={isLoadingTemplate}
                   >
-                    <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-start justify-between gap-3 w-full">
                       <div className="flex-1 min-w-0">
                         <p className="font-semibold leading-tight">{template.name}</p>
                         <p className="mt-1 text-xs uppercase text-muted-foreground">
@@ -118,7 +118,7 @@ export function StepTemplateSelection({
                         <span className="text-xs font-medium uppercase tracking-wide">Loading template...</span>
                       </div>
                     )}
-                  </button>
+                  </Button>
                 )
               })}
             </div>

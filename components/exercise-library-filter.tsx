@@ -126,21 +126,19 @@ export function ExerciseLibraryFilter({
             <h3 className="font-semibold mb-3">Muscle groups</h3>
             <div className="grid grid-cols-2 gap-2">
               {muscleGroupOptions.map((group) => (
-                <button
+                <Button
                   key={group.name}
                   onClick={() => toggleMuscleGroup(group.name)}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-md border transition-colors ${
-                    selectedMuscleGroups.includes(group.name)
-                      ? "bg-primary/10 border-primary"
-                      : "border-border hover:bg-muted"
-                  }`}
+                  variant={selectedMuscleGroups.includes(group.name) ? "default" : "outline"}
+                  size="sm"
+                  className="flex items-center gap-2 justify-start"
                 >
                   <div className={`w-3 h-3 rounded-full ${group.accentClass}`} />
                   <span className="text-sm">{group.name}</span>
                   {selectedMuscleGroups.includes(group.name) && (
-                    <div className="ml-auto w-4 h-4 rounded-sm bg-primary flex items-center justify-center" />
+                    <div className="ml-auto w-4 h-4 rounded-sm bg-white flex items-center justify-center" />
                   )}
-                </button>
+                </Button>
               ))}
             </div>
           </div>
@@ -150,21 +148,19 @@ export function ExerciseLibraryFilter({
             <h3 className="font-semibold mb-3">Equipment</h3>
             <div className="grid grid-cols-2 gap-2">
               {equipmentTypeOptions.map((equipment) => (
-                <button
+                <Button
                   key={equipment.name}
                   onClick={() => toggleEquipmentType(equipment.name)}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-md border transition-colors ${
-                    selectedEquipmentTypes.includes(equipment.name)
-                      ? "bg-primary/10 border-primary"
-                      : "border-border hover:bg-muted"
-                  }`}
+                  variant={selectedEquipmentTypes.includes(equipment.name) ? "default" : "outline"}
+                  size="sm"
+                  className="flex items-center gap-2 justify-start"
                 >
                   <div className={`w-3 h-3 rounded-full ${equipment.color}`} />
                   <span className="text-sm">{equipment.name}</span>
                   {selectedEquipmentTypes.includes(equipment.name) && (
-                    <div className="ml-auto w-4 h-4 rounded-sm bg-primary flex items-center justify-center" />
+                    <div className="ml-auto w-4 h-4 rounded-sm bg-white flex items-center justify-center" />
                   )}
-                </button>
+                </Button>
               ))}
             </div>
           </div>

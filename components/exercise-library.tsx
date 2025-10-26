@@ -138,18 +138,17 @@ export function ExerciseLibrary({ open, onOpenChange, onSelectExercise, currentE
           {/* Exercise List */}
           <div className="flex-1 overflow-y-auto border rounded-md">
             {filteredExercises.map((exercise) => (
-              <button
+              <Button
                 key={exercise.id}
                 onClick={() => setSelectedExercise(exercise)}
-                className={`w-full text-left px-4 py-3 border-b last:border-b-0 hover:bg-muted/50 transition-colors ${
-                  selectedExercise?.id === exercise.id ? "bg-primary/10" : ""
-                }`}
+                variant={selectedExercise?.id === exercise.id ? "default" : "ghost"}
+                className="w-full justify-start text-left h-auto py-3 px-4 border-b last:border-b-0 rounded-none"
               >
                 <div className="flex-1">
                   <p className="font-medium">{exercise.name}</p>
                   <p className="text-sm text-muted-foreground">{exercise.muscleGroup} • {exercise.equipmentType}</p>
                 </div>
-              </button>
+              </Button>
             ))}
           </div>
 
