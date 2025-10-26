@@ -1,5 +1,6 @@
 import { supabase } from "./supabase"
 import { ConnectionMonitor, type SetSyncProvider } from "./connection-monitor"
+import { StorageLock } from "./storage-lock"
 
 export interface WorkoutSet {
   id: string
@@ -811,26 +812,29 @@ export class WorkoutLogger implements SetSyncProvider {
     console.log("[WorkoutLogger.saveCurrentWorkout] Using storage key:", storageKeys.inProgress, "for workout ID:", normalizedWorkout.id)
 
     try {
-      const stored = localStorage.getItem(storageKeys.inProgress)
-      let workouts: WorkoutSession[] = stored ? JSON.parse(stored) : []
-      console.log("[WorkoutLogger.saveCurrentWorkout] Found", workouts.length, "existing in-progress workouts")
+      // RACE CONDITION FIX: Atomically read-modify-write localStorage
+      await StorageLock.withLock(storageKeys.inProgress, async () => {
+        const stored = localStorage.getItem(storageKeys.inProgress)
+        let workouts: WorkoutSession[] = stored ? JSON.parse(stored) : []
+        console.log("[WorkoutLogger.saveCurrentWorkout] Found", workouts.length, "existing in-progress workouts")
 
-      // Remove existing workout for this week/day
-      workouts = workouts.filter(
-        (w) =>
-          !(
-            w.week === normalizedWorkout.week &&
-            w.day === normalizedWorkout.day &&
-            this.matchesInstance(w, instanceId, templateId)
-          )
-      )
+        // Remove existing workout for this week/day
+        workouts = workouts.filter(
+          (w) =>
+            !(
+              w.week === normalizedWorkout.week &&
+              w.day === normalizedWorkout.day &&
+              this.matchesInstance(w, instanceId, templateId)
+            )
+        )
 
-      // Add updated workout
-      workouts.push(normalizedWorkout)
-      console.log("[WorkoutLogger.saveCurrentWorkout] After adding workout, total in-progress:", workouts.length)
+        // Add updated workout
+        workouts.push(normalizedWorkout)
+        console.log("[WorkoutLogger.saveCurrentWorkout] After adding workout, total in-progress:", workouts.length)
 
-      localStorage.setItem(storageKeys.inProgress, JSON.stringify(workouts))
-      console.log("[WorkoutLogger.saveCurrentWorkout] Saved to localStorage successfully")
+        localStorage.setItem(storageKeys.inProgress, JSON.stringify(workouts))
+        console.log("[WorkoutLogger.saveCurrentWorkout] Saved to localStorage successfully")
+      })
 
       // Sync to database
       if (userId && supabase) {
@@ -934,24 +938,29 @@ export class WorkoutLogger implements SetSyncProvider {
 
     try {
       if (week && day) {
-        const stored = localStorage.getItem(storageKeys.inProgress)
-        if (!stored) return
+        // RACE CONDITION FIX: Atomically read-modify-write localStorage
+        let workoutToDelete: WorkoutSession | undefined
+        await StorageLock.withLock(storageKeys.inProgress, async () => {
+          const stored = localStorage.getItem(storageKeys.inProgress)
+          if (!stored) return
 
-        const activeProgram = this.getActiveProgram()
-        const instanceId = activeProgram?.instanceId
-        const templateId = activeProgram?.templateId
+          const activeProgram = this.getActiveProgram()
+          const instanceId = activeProgram?.instanceId
+          const templateId = activeProgram?.templateId
 
-        let workouts: WorkoutSession[] = JSON.parse(stored)
-        const matchIndex = workouts.findIndex(
-          (w) => w.week === week && w.day === day && this.matchesInstance(w, instanceId, templateId)
-        )
+          let workouts: WorkoutSession[] = JSON.parse(stored)
+          const matchIndex = workouts.findIndex(
+            (w) => w.week === week && w.day === day && this.matchesInstance(w, instanceId, templateId)
+          )
 
-        if (matchIndex === -1) {
-          return
-        }
+          if (matchIndex === -1) {
+            return
+          }
 
-        const [workoutToDelete] = workouts.splice(matchIndex, 1)
-        localStorage.setItem(storageKeys.inProgress, JSON.stringify(workouts))
+          const [deleted] = workouts.splice(matchIndex, 1)
+          workoutToDelete = deleted
+          localStorage.setItem(storageKeys.inProgress, JSON.stringify(workouts))
+        })
 
         // Delete from database
         if (userId && supabase && workoutToDelete) {
@@ -1239,13 +1248,16 @@ export class WorkoutLogger implements SetSyncProvider {
     const storageKeys = this.getUserStorageKeys(userId)
 
     try {
-      const existing = localStorage.getItem(storageKeys.workouts)
-      const workouts: WorkoutSession[] = existing ? JSON.parse(existing) : []
+      // RACE CONDITION FIX: Atomically read-modify-write localStorage
+      await StorageLock.withLock(storageKeys.workouts, async () => {
+        const existing = localStorage.getItem(storageKeys.workouts)
+        const workouts: WorkoutSession[] = existing ? JSON.parse(existing) : []
 
-      // Remove existing workout with same ID to prevent duplicates
-      const filteredWorkouts = workouts.filter(w => w.id !== normalizedWorkout.id)
-      filteredWorkouts.push(normalizedWorkout)
-      localStorage.setItem(storageKeys.workouts, JSON.stringify(filteredWorkouts))
+        // Remove existing workout with same ID to prevent duplicates
+        const filteredWorkouts = workouts.filter(w => w.id !== normalizedWorkout.id)
+        filteredWorkouts.push(normalizedWorkout)
+        localStorage.setItem(storageKeys.workouts, JSON.stringify(filteredWorkouts))
+      })
 
       // Sync to database using connection monitor
       if (userId && supabase) {
