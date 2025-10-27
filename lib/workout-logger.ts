@@ -1581,22 +1581,43 @@ export class WorkoutLogger implements SetSyncProvider {
     // If online, try to sync immediately
     if (userId && supabase && ConnectionMonitor.isOnline()) {
       try {
+        // Validate data before sending to Supabase
+        if (!setLog.id || !setLog.user_id || !setLog.workout_id) {
+          console.warn("[WorkoutLogger] Incomplete set data, queuing instead:", {
+            id: !!setLog.id,
+            user_id: !!setLog.user_id,
+            workout_id: !!setLog.workout_id
+          })
+          this.addSetToSyncQueue(setLog)
+          return
+        }
+
         // Use upsert to handle log/unlog/relog scenarios
-        const { error } = await supabase
+        const { data, error } = await supabase
           .from("workout_sets")
           .upsert(setLog, {
             onConflict: 'id'
           })
 
         if (error) {
-          console.error("[WorkoutLogger] Failed to log set to database, adding to queue:", error)
+          console.error("[WorkoutLogger] Failed to log set to database:", {
+            setId,
+            errorMessage: error.message || JSON.stringify(error),
+            errorCode: (error as any).code,
+            errorDetails: (error as any).details,
+            setLog
+          })
           this.addSetToSyncQueue(setLog)
         } else {
           console.log("[WorkoutLogger] Set logged successfully:", setId)
           this.removeSetFromSyncQueue(setId)
         }
       } catch (error) {
-        console.error("[WorkoutLogger] Error logging set, adding to queue:", error)
+        console.error("[WorkoutLogger] Exception while logging set:", {
+          setId,
+          error: error instanceof Error ? error.message : String(error),
+          setLog
+        })
         this.addSetToSyncQueue(setLog)
       }
     } else {
@@ -1694,18 +1715,29 @@ export class WorkoutLogger implements SetSyncProvider {
 
       for (const setLog of queue) {
         try {
-          const { error } = await supabase
+          const { error, data } = await supabase
             .from("workout_sets")
             .upsert(setLog, { onConflict: "id" })
 
           if (error) {
-            console.error("[WorkoutLogger] Failed to sync set:", setLog.id, error)
+            console.error("[WorkoutLogger] Failed to sync set:", {
+              setId: setLog.id,
+              errorMessage: error.message || JSON.stringify(error),
+              errorCode: (error as any).code,
+              errorDetails: (error as any).details,
+              setLog
+            })
             errors.push({ id: setLog.id, error })
           } else {
             syncedSetIds.push(setLog.id)
+            console.log(`[WorkoutLogger] Successfully synced set: ${setLog.id}`)
           }
         } catch (error) {
-          console.error("[WorkoutLogger] Error syncing set:", setLog.id, error)
+          console.error("[WorkoutLogger] Exception syncing set:", {
+            setId: setLog.id,
+            error: error instanceof Error ? error.message : String(error),
+            setLog
+          })
           errors.push({ id: setLog.id, error })
         }
       }
