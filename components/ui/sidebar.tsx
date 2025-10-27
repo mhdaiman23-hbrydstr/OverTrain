@@ -24,6 +24,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
+import { MobileTooltip } from '@/components/ui/mobile-tooltip'
 
 const SIDEBAR_COOKIE_NAME = 'sidebar_state'
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
@@ -532,17 +533,21 @@ function SidebarMenuButton({
     }
   }
 
-  return (
-    <Tooltip>
-      <TooltipTrigger asChild>{button}</TooltipTrigger>
-      <TooltipContent
+  // MOBILE FIX: Use MobileTooltip for touch-aware behavior
+  // This ensures tooltips work on mobile/tablet devices (not just hover on desktop)
+  // Only show when sidebar is collapsed (text visible when expanded)
+  if (state === 'collapsed' && !isMobile) {
+    return (
+      <MobileTooltip
         side="right"
-        align="center"
-        hidden={state !== 'collapsed' || isMobile}
-        {...tooltip}
-      />
-    </Tooltip>
-  )
+        content={tooltip.children || tooltip}
+      >
+        {button}
+      </MobileTooltip>
+    )
+  }
+
+  return button
 }
 
 function SidebarMenuAction({
