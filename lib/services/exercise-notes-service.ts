@@ -864,6 +864,14 @@ export class ExerciseNotesService {
               return
             }
 
+            // If UUID validation error (22P02) or null constraint violation (23502), data is corrupted - skip it
+            if (error.code === '22P02' || error.code === '23502') {
+              console.error('[ExerciseNotes] Data integrity error (corrupted item in queue)', item.note?.id, '- Error:', errorMsg)
+              console.warn('[ExerciseNotes] Skipping corrupted item, it will not be retried. This may happen if queue was created with old buggy code.')
+              processed.push(i) // Don't retry - data is corrupted and can't be fixed by retrying
+              return
+            }
+
             // For other errors, log and throw to trigger retry logic
             console.error('[ExerciseNotes] Supabase upsert error for note', item.note?.id, '- Error:', errorMsg)
             throw error
@@ -897,6 +905,14 @@ export class ExerciseNotesService {
             if (error.code === '42501' || error.message?.includes('permission')) {
               console.error('[ExerciseNotes] RLS Policy violation (42501) for delete - user may not have permission to delete notes. Error:', errorMsg)
               console.warn('[ExerciseNotes] Skipping delete sync due to permission error')
+              processed.push(i)
+              return
+            }
+
+            // If data integrity error, skip (nothing to delete or corrupted data)
+            if (error.code === '22P02' || error.code === '23502') {
+              console.error('[ExerciseNotes] Data integrity error during delete', item.noteId, '- Error:', errorMsg)
+              console.warn('[ExerciseNotes] Skipping corrupted delete item')
               processed.push(i)
               return
             }

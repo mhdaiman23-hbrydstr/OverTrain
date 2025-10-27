@@ -102,6 +102,17 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
         return
       }
 
+      // Validate program instance ID
+      if (!activeProgram.instanceId) {
+        console.error('[WorkoutLogger] Cannot save note: missing program instance ID')
+        toast({
+          title: "Error saving note",
+          description: "Unable to save note: program instance not found",
+          variant: "destructive",
+        })
+        return
+      }
+
       // Save note
       const savedNote = await ExerciseNotesService.saveNote(
         user.id,
@@ -151,6 +162,17 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
         toast({
           title: "Error saving RPE",
           description: "Unable to save RPE: exercise library ID not found",
+          variant: "destructive",
+        })
+        return
+      }
+
+      // Validate program instance ID
+      if (!activeProgram.instanceId) {
+        console.error('[WorkoutLogger] Cannot save RPE: missing program instance ID')
+        toast({
+          title: "Error saving RPE",
+          description: "Unable to save RPE: program instance not found",
           variant: "destructive",
         })
         return
