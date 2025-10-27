@@ -372,7 +372,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
           notes.forEach(note => {
             // Find the session exercise that corresponds to this library exercise
             const sessionExercise = workout.exercises.find(ex =>
-              (ex.exerciseId || ex.id) === note.exerciseId
+              ex.exerciseLibraryId === note.exerciseId
             )
             if (sessionExercise) {
               notesMap[sessionExercise.id] = note
@@ -383,7 +383,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
         // Check for pinned notes from previous week and auto-create for current week
         if (workout && activeProgram.currentWeek > 1) {
           for (const exercise of workout.exercises) {
-            const libraryId = exercise.exerciseId || exercise.id
+            const libraryId = exercise.exerciseLibraryId || exercise.id
             // Skip if we already have a note for this exercise this week
             if (notesMap[exercise.id]) continue
 
@@ -409,7 +409,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
           const exerciseRpes = await CustomRpeService.getExerciseRpesMapForWeek(
             user.id,
             activeProgram.instanceId,
-            exercise.exerciseId || exercise.id,
+            exercise.exerciseLibraryId,
             activeProgram.currentWeek
           )
           if (Object.keys(exerciseRpes).length > 0) {
@@ -468,7 +468,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
             notes.forEach(note => {
               // Find the session exercise that corresponds to this library exercise
               const sessionExercise = workout.exercises.find(ex =>
-                (ex.exerciseId || ex.id) === note.exerciseId
+                ex.exerciseLibraryId === note.exerciseId
               )
               if (sessionExercise) {
                 notesMap[sessionExercise.id] = note
@@ -479,7 +479,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
           // Check for pinned notes from previous week and auto-create for current week
           if (workout && activeProgram.currentWeek > 1) {
             for (const exercise of workout.exercises) {
-              const libraryId = exercise.exerciseId || exercise.id
+              const libraryId = exercise.exerciseLibraryId || exercise.id
               // Skip if we already have a note for this exercise this week
               if (notesMap[exercise.id]) continue
 
@@ -505,7 +505,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
             const exerciseRpes = await CustomRpeService.getExerciseRpesMapForWeek(
               user.id,
               activeProgram.instanceId,
-              exercise.exerciseId || exercise.id,
+              exercise.exerciseLibraryId,
               activeProgram.currentWeek
             )
             if (Object.keys(exerciseRpes).length > 0) {

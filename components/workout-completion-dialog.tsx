@@ -10,7 +10,6 @@ import {
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
 import { Trophy, Target, TrendingUp, Calendar, Zap } from "lucide-react"
@@ -216,21 +215,6 @@ export function WorkoutCompletionDialog({
               </CardContent>
             </Card>
 
-            {/* Achievement Badges */}
-            <div className="flex flex-wrap gap-1 sm:gap-1.5 md:gap-2 justify-center">
-              {stats.completionRate === 100 && (
-                <Badge className="achievement-badge bg-yellow-100 text-yellow-800 border-yellow-200 text-[10px] sm:text-xs md:text-sm px-1.5 sm:px-2 md:px-3 py-0.5 sm:py-1">Perfect Workout</Badge>
-              )}
-              {stats.totalVolume >= 5000 && (
-                <Badge className="achievement-badge bg-purple-100 text-purple-800 border-purple-200 text-[10px] sm:text-xs md:text-sm px-1.5 sm:px-2 md:px-3 py-0.5 sm:py-1">Volume King</Badge>
-              )}
-              {stats.exercises >= 7 && (
-                <Badge className="achievement-badge bg-green-100 text-green-800 border-green-200 text-[10px] sm:text-xs md:text-sm px-1.5 sm:px-2 md:px-3 py-0.5 sm:py-1">Exercise Variety</Badge>
-              )}
-              {stats.completedSets >= 20 && (
-                <Badge className="achievement-badge bg-orange-100 text-orange-800 border-orange-200 text-[10px] sm:text-xs md:text-sm px-1.5 sm:px-2 md:px-3 py-0.5 sm:py-1">Set Master</Badge>
-              )}
-            </div>
           </div>
         </ScrollArea>
 
