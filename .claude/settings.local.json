@@ -23,7 +23,8 @@
       "Bash(npm run test:*)",
       "Bash(git pull:*)",
       "Bash(git rm:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(git restore:*)"
     ],
     "deny": [],
     "ask": []

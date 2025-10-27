@@ -6,18 +6,19 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Dumbbell, TrendingUp, Zap, LogOut } from "lucide-react"
-import { useAuth } from "@/contexts/auth-context"
-import { IntakeForm } from "@/components/intake-form"
-import { ProgramsSection } from "@/components/programs-section"
-import { WorkoutLoggerComponent } from "@/components/workout-logger"
-import { TrainSection } from "@/components/train-section"
-import { SidebarNavigation } from "@/components/sidebar-navigation"
-import { BottomNavigation } from "@/components/bottom-navigation"
-import { MobileAnalyticsTab } from "@/components/mobile-analytics-tab"
-import { ProfileSection } from "@/components/profile-section"
-import { ProgramStateManager } from "@/lib/program-state"
-import { debugLogCapture } from "@/lib/debug-logs"
+  import { Dumbbell, TrendingUp, Zap, LogOut, Trophy, Target, Flame, ArrowRight, Play, Users, BarChart3, Award, Moon, Sun } from "lucide-react"
+  import { useAuth } from "@/contexts/auth-context"
+  import { IntakeForm } from "@/components/intake-form"
+  import { ProgramsSection } from "@/components/programs-section"
+  import { WorkoutLoggerComponent } from "@/components/workout-logger"
+  import { TrainSection } from "@/components/train-section"
+  import { SidebarNavigation } from "@/components/sidebar-navigation"
+  import { BottomNavigation } from "@/components/bottom-navigation"
+  import { MobileAnalyticsTab } from "@/components/mobile-analytics-tab"
+  import { ProfileSection } from "@/components/profile-section"
+  import { ProgramStateManager } from "@/lib/program-state"
+  import { debugLogCapture } from "@/lib/debug-logs"
+  import { ThemeToggle } from "@/components/theme-toggle"
 
 // Start log capture automatically in development
 if (typeof window !== "undefined" && process.env.NODE_ENV === "development") {
@@ -250,7 +251,7 @@ export default function HomePage() {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center space-y-6">
-          <div className="text-3xl font-bold text-gradient">LiftLog</div>
+          <div className="text-3xl font-bold text-gradient">OverTrain</div>
           <div className="space-y-2">
             <div className="text-muted-foreground">Authenticating...</div>
             {dataLoadingStatus && (
@@ -274,7 +275,7 @@ export default function HomePage() {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center space-y-6">
-          <div className="text-3xl font-bold text-gradient">LiftLog</div>
+          <div className="text-3xl font-bold text-gradient">OverTrain</div>
           <div className="text-muted-foreground">Loading your workout data...</div>
           <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
         </div>
@@ -287,7 +288,7 @@ export default function HomePage() {
   if (user && (currentView === "programs" || currentView === "train" || currentView === "workout" || currentView === "analytics" || currentView === "profile")) {
     return (
       <div className="flex h-screen bg-background overflow-hidden touch-action-none" style={{ touchAction: 'pan-y' }}>
-        <SidebarNavigation currentView={currentView} onViewChange={setCurrentView} />
+        <SidebarNavigation currentView={currentView} onViewChange={(view) => setCurrentView(view as any)} />
 
         {/* Programs Section - Hidden but mounted */}
         <div
@@ -366,42 +367,102 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="relative overflow-hidden">
-        <div className="absolute inset-0 gradient-primary opacity-10" />
-        <div className="relative container mx-auto px-4 py-16">
-          <div className="text-center space-y-8">
-            <div className="space-y-4">
-              <h1 className="text-6xl font-bold text-gradient text-balance">LiftLog</h1>
-              <p className="text-xl text-muted-foreground max-w-2xl mx-auto text-pretty">
-                Your personal fitness companion. Track workouts, build custom programs, and achieve your goals with
-                intelligent progress analytics.
+      {/* Hero Section - Desktop Only */}
+      <div className="hidden lg:block">
+        <div className="relative overflow-hidden">
+          <div className="absolute inset-0 gradient-primary opacity-10" />
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5" />
+          
+          {/* Animated background elements */}
+          <div className="absolute top-20 left-10 w-72 h-72 bg-primary/10 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute bottom-20 right-10 w-96 h-96 bg-accent/10 rounded-full blur-3xl animate-pulse delay-1000" />
+          
+          <div className="relative container mx-auto px-4 py-24 lg:py-32">
+            <div className="text-center space-y-8 max-w-4xl mx-auto">
+              <div className="space-y-6">
+                {/* Main brand with animated underline */}
+                <div className="relative inline-block">
+                  <h1 className="text-7xl lg:text-8xl font-black text-gradient text-balance tracking-tight">
+                    OverTrain
+                  </h1>
+                  <div className="absolute -bottom-2 left-0 right-0 h-1 bg-gradient-to-r from-primary via-accent to-primary rounded-full animate-pulse" />
+                </div>
+                
+                {/* Slogan with emphasis */}
+                <div className="space-y-2">
+                  <p className="text-3xl lg:text-4xl font-bold text-primary">
+                    Go One More
+                  </p>
+                  <p className="text-xl lg:text-2xl text-muted-foreground max-w-3xl mx-auto text-pretty font-medium">
+                    Track Every Rep. Break Every Limit. Become Unstoppable.
+                  </p>
+                </div>
+              </div>
+
+              {/* CTA Button */}
+              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-8">
+                <Button size="lg" className="gradient-primary text-primary-foreground px-8 py-4 text-lg font-semibold hover:scale-105 transition-transform">
+                  Start Your Journey
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Features Section - Desktop Only */}
+        <div className="hidden lg:block">
+          <div className="container mx-auto px-4 py-20">
+            <div className="text-center mb-16">
+              <h2 className="text-4xl lg:text-5xl font-bold mb-4">Break Through Every Plateau</h2>
+              <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+                Advanced tools designed for serious athletes who refuse to settle
               </p>
             </div>
 
-            <div className="grid md:grid-cols-3 gap-6 mt-12">
-              <Card className="gradient-card border-border/50">
+            <div className="grid md:grid-cols-3 gap-8">
+              <Card className="gradient-card border-border/50 hover:scale-105 transition-transform cursor-pointer group">
                 <CardHeader className="text-center">
-                  <Dumbbell className="h-12 w-12 text-primary mx-auto mb-2" />
-                  <CardTitle>Smart Workouts</CardTitle>
-                  <CardDescription>
-                    Gender-specific programs tailored to your goals and experience level
+                  <div className="relative inline-block mb-4">
+                    <Trophy className="h-16 w-16 text-primary mx-auto group-hover:animate-pulse" />
+                    <div className="absolute -top-2 -right-2 w-6 h-6 bg-accent rounded-full flex items-center justify-center">
+                      <Flame className="h-4 w-4 text-white" />
+                    </div>
+                  </div>
+                  <CardTitle className="text-2xl font-bold">Breakthrough Performance</CardTitle>
+                  <CardDescription className="text-lg">
+                    AI-powered progression that pushes you past limits while preventing burnout
                   </CardDescription>
                 </CardHeader>
               </Card>
 
-              <Card className="gradient-card border-border/50">
+              <Card className="gradient-card border-border/50 hover:scale-105 transition-transform cursor-pointer group">
                 <CardHeader className="text-center">
-                  <TrendingUp className="h-12 w-12 text-accent mx-auto mb-2" />
-                  <CardTitle>Progress Tracking</CardTitle>
-                  <CardDescription>Real-time analytics and progression tracking with visual charts</CardDescription>
+                  <div className="relative inline-block mb-4">
+                    <BarChart3 className="h-16 w-16 text-accent mx-auto group-hover:animate-pulse" />
+                    <div className="absolute -top-2 -right-2 w-6 h-6 bg-primary rounded-full flex items-center justify-center">
+                      <Target className="h-4 w-4 text-white" />
+                    </div>
+                  </div>
+                  <CardTitle className="text-2xl font-bold">Intelligent Analytics</CardTitle>
+                  <CardDescription className="text-lg">
+                    Real-time insights that optimize every training session for maximum results
+                  </CardDescription>
                 </CardHeader>
               </Card>
 
-              <Card className="gradient-card border-border/50">
+              <Card className="gradient-card border-border/50 hover:scale-105 transition-transform cursor-pointer group">
                 <CardHeader className="text-center">
-                  <Zap className="h-12 w-12 text-primary mx-auto mb-2" />
-                  <CardTitle>Mobile Ready</CardTitle>
-                  <CardDescription>Optimized for mobile with offline support and PWA capabilities</CardDescription>
+                  <div className="relative inline-block mb-4">
+                    <Zap className="h-16 w-16 text-primary mx-auto group-hover:animate-pulse" />
+                    <div className="absolute -top-2 -right-2 w-6 h-6 bg-accent rounded-full flex items-center justify-center">
+                      <Award className="h-4 w-4 text-white" />
+                    </div>
+                  </div>
+                  <CardTitle className="text-2xl font-bold">Elite Training Power</CardTitle>
+                  <CardDescription className="text-lg">
+                    Mobile-optimized with offline capabilities for training anywhere, anytime
+                  </CardDescription>
                 </CardHeader>
               </Card>
             </div>
@@ -409,208 +470,90 @@ export default function HomePage() {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-16">
-        <div className="max-w-md mx-auto">
-          <Card className="gradient-card border-border/50">
-            <CardHeader className="text-center">
-              <CardTitle className="text-2xl">Get Started</CardTitle>
-              <CardDescription>Create your account or sign in to continue</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {error && (
-                <div className="mb-4 p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md">{error}</div>
-              )}
+      {/* FAQ Section - Desktop Only */}
+      <div className="hidden lg:block">
+        <div className="container mx-auto px-4 py-20">
+          <div className="max-w-4xl mx-auto">
+            <div className="text-center mb-16">
+              <h2 className="text-4xl lg:text-5xl font-bold mb-4">Frequently Asked Questions</h2>
+              <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+                Everything you need to know about breaking your limits
+              </p>
+            </div>
 
-              <Tabs defaultValue="login" className="w-full">
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="login">Sign In</TabsTrigger>
-                  <TabsTrigger value="signup">Sign Up</TabsTrigger>
-                </TabsList>
+            <div className="grid md:grid-cols-2 gap-8">
+              <Card className="gradient-card border-border/50">
+                <CardHeader>
+                  <CardTitle className="text-xl font-bold">What makes OverTrain different?</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground">
+                    OverTrain uses AI-powered progression algorithms that adapt to your performance, preventing plateaus and burnout while pushing you to achieve breakthrough results. Our intelligent analytics provide real-time insights to optimize every training session.
+                  </p>
+                </CardContent>
+              </Card>
 
-                <TabsContent value="login" className="space-y-4">
-                  <Button
-                    variant="outline"
-                    className="w-full"
-                    onClick={handleGoogleSignIn}
-                    disabled={isLoading}
-                  >
-                    <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
-                      <path
-                        fill="currentColor"
-                        d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                      />
-                      <path
-                        fill="currentColor"
-                        d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                      />
-                      <path
-                        fill="currentColor"
-                        d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                      />
-                      <path
-                        fill="currentColor"
-                        d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                      />
-                    </svg>
-                    Continue with Google
-                  </Button>
+              <Card className="gradient-card border-border/50">
+                <CardHeader>
+                  <CardTitle className="text-xl font-bold">Is OverTrain suitable for beginners?</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground">
+                    Absolutely! OverTrain is designed for all fitness levels. Our AI progression system adapts to your experience and automatically adjusts intensity and volume. Whether you're just starting or are an experienced athlete, OverTrain will help you progress safely and effectively.
+                  </p>
+                </CardContent>
+              </Card>
 
-                  <div className="relative">
-                    <div className="absolute inset-0 flex items-center">
-                      <span className="w-full border-t" />
-                    </div>
-                    <div className="relative flex justify-center text-xs uppercase">
-                      <span className="bg-background px-2 text-muted-foreground">Or continue with email</span>
-                    </div>
-                  </div>
+              <Card className="gradient-card border-border/50">
+                <CardHeader>
+                  <CardTitle className="text-xl font-bold">Can I use OverTrain offline?</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground">
+                    Yes! OverTrain is built with offline capabilities. You can log workouts, access your programs, and view your progress without an internet connection. Your data syncs automatically when you're back online.
+                  </p>
+                </CardContent>
+              </Card>
 
-                  <form onSubmit={(e) => { e.preventDefault(); handleAuth("login") }} className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="login-email">Email</Label>
-                      <Input
-                        id="login-email"
-                        type="email"
-                        placeholder="Enter your email"
-                        className="bg-input border-border"
-                        autoComplete="email"
-                        value={formData.email}
-                        onChange={(e) => handleInputChange("email", e.target.value)}
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="login-password">Password</Label>
-                      <Input
-                        id="login-password"
-                        type="password"
-                        placeholder="Enter your password"
-                        className="bg-input border-border"
-                        autoComplete="current-password"
-                        value={formData.password}
-                        onChange={(e) => handleInputChange("password", e.target.value)}
-                        required
-                      />
-                    </div>
-                    <Button
-                      type="submit"
-                      className="w-full gradient-primary text-primary-foreground"
-                      disabled={isLoading}
-                    >
-                      {isLoading ? "Signing In..." : "Sign In"}
-                    </Button>
-                  </form>
-                </TabsContent>
-
-                <TabsContent value="signup" className="space-y-4">
-                  <Button
-                    variant="outline"
-                    className="w-full"
-                    onClick={handleGoogleSignIn}
-                    disabled={isLoading}
-                  >
-                    <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
-                      <path
-                        fill="currentColor"
-                        d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                      />
-                      <path
-                        fill="currentColor"
-                        d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                      />
-                      <path
-                        fill="currentColor"
-                        d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                      />
-                      <path
-                        fill="currentColor"
-                        d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                      />
-                    </svg>
-                    Continue with Google
-                  </Button>
-
-                  <div className="relative">
-                    <div className="absolute inset-0 flex items-center">
-                      <span className="w-full border-t" />
-                    </div>
-                    <div className="relative flex justify-center text-xs uppercase">
-                      <span className="bg-background px-2 text-muted-foreground">Or continue with email</span>
-                    </div>
-                  </div>
-
-                  <form onSubmit={(e) => { e.preventDefault(); handleAuth("signup") }} className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="signup-email">Email</Label>
-                      <Input
-                        id="signup-email"
-                        type="email"
-                        placeholder="Enter your email"
-                        className="bg-input border-border"
-                        autoComplete="email"
-                        value={formData.email}
-                        onChange={(e) => handleInputChange("email", e.target.value)}
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="signup-password">Password</Label>
-                      <Input
-                        id="signup-password"
-                        type="password"
-                        placeholder="Create a password"
-                        className="bg-input border-border"
-                        autoComplete="new-password"
-                        value={formData.password}
-                        onChange={(e) => handleInputChange("password", e.target.value)}
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="signup-confirm">Confirm Password</Label>
-                      <Input
-                        id="signup-confirm"
-                        type="password"
-                        placeholder="Confirm your password"
-                        className="bg-input border-border"
-                        autoComplete="new-password"
-                        value={formData.confirmPassword}
-                        onChange={(e) => handleInputChange("confirmPassword", e.target.value)}
-                        required
-                      />
-                    </div>
-                    <Button
-                      type="submit"
-                      className="w-full gradient-primary text-primary-foreground"
-                      disabled={isLoading}
-                    >
-                      {isLoading ? "Creating Account..." : "Create Account"}
-                    </Button>
-                  </form>
-                </TabsContent>
-              </Tabs>
-            </CardContent>
-          </Card>
+              <Card className="gradient-card border-border/50">
+                <CardHeader>
+                  <CardTitle className="text-xl font-bold">How does the "Go One More" philosophy work?</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground">
+                    "Go One More" is our core philosophy. It's about pushing past your perceived limits safely and intelligently. Our system knows when to challenge you for growth and when to allow recovery, ensuring consistent progress without overtraining.
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div className="border-t border-border/50">
+      {/* Footer - All Devices */}
+      <div className="border-t border-border/50 mt-auto">
         <div className="container mx-auto px-4 py-12">
-          <div className="grid md:grid-cols-3 gap-8 text-center">
+          <div className="grid md:grid-cols-4 gap-8 text-center">
             <div className="space-y-2">
-              <div className="text-3xl font-bold text-primary">10K+</div>
-              <div className="text-muted-foreground">Workouts Logged</div>
+              <div className="text-2xl font-bold text-primary">OverTrain</div>
+              <div className="text-sm text-muted-foreground">Break Your Limits</div>
             </div>
             <div className="space-y-2">
-              <div className="text-3xl font-bold text-accent">500+</div>
-              <div className="text-muted-foreground">Active Users</div>
+              <div className="text-sm text-muted-foreground">© 2024 OverTrain</div>
+              <div className="text-xs text-muted-foreground">All rights reserved</div>
             </div>
             <div className="space-y-2">
-              <div className="text-3xl font-bold text-primary">95%</div>
-              <div className="text-muted-foreground">Goal Achievement</div>
+              <div className="text-sm text-muted-foreground">Privacy</div>
+              <div className="text-xs text-muted-foreground">Terms</div>
+            </div>
+            <div className="space-y-2">
+              <div className="text-sm text-muted-foreground">Support</div>
+              <div className="text-xs text-muted-foreground">Help Center</div>
             </div>
           </div>
         </div>
       </div>
+
     </div>
   )
 }

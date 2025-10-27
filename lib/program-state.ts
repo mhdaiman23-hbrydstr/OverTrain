@@ -946,8 +946,9 @@ export class ProgramStateManager {
     const exercises = await Promise.all(workout.exercises.map(async (exercise) => {
       let muscleGroup: string = exercise.category  // Fallback to category ("compound"/"isolation")
       let equipmentType: string | undefined = exercise.equipmentType  // Use template equipment if available
+      let exerciseLibraryId: string | undefined = exercise.exerciseLibraryId  // UUID from library
 
-            // Try to fetch from exercise library for accurate data
+      // Try to fetch from exercise library for accurate data
       try {
         let dbExercise = null as Awaited<ReturnType<typeof exerciseService.getExerciseById>> | null
         // Prefer UUID lookup when provided by template
@@ -966,11 +967,13 @@ export class ProgramStateManager {
         if (dbExercise) {
           muscleGroup = dbExercise.muscleGroup  // Use database muscle group
           equipmentType = dbExercise.equipmentType
+          exerciseLibraryId = dbExercise.id  // CRITICAL FIX: Use the actual library UUID for notes/RPE storage
         }
       } catch (error) {
         console.warn(`[ProgramState] Could not fetch exercise metadata for "${exercise.exerciseName}":`, error)
         // Continue with fallback values
-      }// Get target sets for the CURRENT week (not hardcoded to week1)
+      }
+      // Get target sets for the CURRENT week (not hardcoded to week1)
       const weekKey = `week${activeProgram.currentWeek}` as keyof typeof exercise.progressionTemplate
       const weekData = exercise.progressionTemplate[weekKey]
       const targetSets = typeof weekData === 'object' && weekData && 'sets' in weekData
@@ -1024,7 +1027,7 @@ export class ProgramStateManager {
 
       return {
         exerciseId: exercise.exerciseName.toLowerCase().replace(/\s+/g, "-"),
-        exerciseLibraryId: exercise.exerciseLibraryId,
+        exerciseLibraryId,  // CRITICAL FIX: Now contains the actual UUID from database (not template)
         exerciseName: exercise.exerciseName,
         targetSets,
         templateRecommendedReps: performedReps,  // RENAMED: Display only, not used for calculations

@@ -86,17 +86,27 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
       const activeProgram = ProgramStateManager.getActiveProgram()
       if (!activeProgram) return
 
-      // Find exercise ID in library
+      // Find exercise in workout
       const exercise = workout?.exercises.find(ex => ex.id === exerciseId)
       if (!exercise) return
 
-      const exerciseLibraryId = exercise.exerciseId || exerciseId
+      // CRITICAL FIX: Use exerciseLibraryId which now contains the actual UUID from database
+      const libraryId = exercise.exerciseLibraryId
+      if (!libraryId) {
+        console.error('[WorkoutLogger] Cannot save note: missing exercise library ID for', exercise.exerciseName)
+        toast({
+          title: "Error saving note",
+          description: "Unable to save note: exercise library ID not found",
+          variant: "destructive",
+        })
+        return
+      }
 
       // Save note
       const savedNote = await ExerciseNotesService.saveNote(
         user.id,
         activeProgram.instanceId,
-        exerciseLibraryId,
+        libraryId,
         activeProgram.currentWeek,
         noteText,
         isPinned
@@ -130,11 +140,21 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
       const activeProgram = ProgramStateManager.getActiveProgram()
       if (!activeProgram) return
 
-      // Find exercise ID in library
+      // Find exercise in workout
       const exercise = workout?.exercises.find(ex => ex.id === exerciseId)
       if (!exercise) return
 
-      const exerciseLibraryId = exercise.exerciseId || exerciseId
+      // CRITICAL FIX: Use exerciseLibraryId which now contains the actual UUID from database
+      const libraryId = exercise.exerciseLibraryId
+      if (!libraryId) {
+        console.error('[WorkoutLogger] Cannot save RPE: missing exercise library ID for', exercise.exerciseName)
+        toast({
+          title: "Error saving RPE",
+          description: "Unable to save RPE: exercise library ID not found",
+          variant: "destructive",
+        })
+        return
+      }
 
       // Save each set's RPE
       for (const [setNumberStr, rpeValue] of Object.entries(rpesBySet)) {
@@ -142,7 +162,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
         await CustomRpeService.saveCustomRpe(
           user.id,
           activeProgram.instanceId,
-          exerciseLibraryId,
+          libraryId,
           activeProgram.currentWeek,
           setNumber,
           rpeValue
@@ -303,7 +323,14 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
       try {
         // Get active program for context
         const activeProgram = ProgramStateManager.getActiveProgram()
-        if (!activeProgram) return
+        if (!activeProgram || !activeProgram.instanceId) {
+          console.log('[WorkoutLogger] Active program or instanceId not available yet, skipping notes hydration')
+          return
+        }
+
+        // Hydrate cache from Supabase on initial load
+        // This loads all notes for the current program instance into localStorage
+        await ExerciseNotesService.hydrateCache(user.id, activeProgram.instanceId)
 
         // Load user preference
         const preference = await UserPreferenceService.getRpeRirDisplayMode(user.id)
@@ -396,7 +423,14 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
       const loadNotesAndRpeData = async () => {
         try {
           const activeProgram = ProgramStateManager.getActiveProgram()
-          if (!activeProgram) return
+          if (!activeProgram || !activeProgram.instanceId) {
+            console.log('[WorkoutLogger] Active program or instanceId not available yet, skipping notes invalidation')
+            return
+          }
+
+          // Invalidate cache when week changes - triggers fresh load from Supabase
+          // This ensures we get pinned notes from previous week and auto-create them
+          await ExerciseNotesService.invalidateCache(user.id, activeProgram.instanceId, activeProgram.currentWeek)
 
           // Load exercise notes for current week
           const notes = await ExerciseNotesService.getNotesForWeek(
