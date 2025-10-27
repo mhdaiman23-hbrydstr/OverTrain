@@ -34,14 +34,28 @@ export function MobileTooltip({
 
   /**
    * Device detection: Run once on component mount
-   * Using (hover: hover) media query which is more reliable than checking for touch
-   * - Returns true: Device has hover capability (mouse, trackpad)
-   * - Returns false: Device doesn't have hover (pure touch devices)
-   * This handles hybrid devices (tablet with keyboard) correctly
+   * Uses multiple heuristics because single checks can fail:
+   * 1. window.matchMedia('(hover: hover)') - Primary: Does device support hover?
+   * 2. window.matchMedia('(pointer: coarse)') - Secondary: Is pointer coarse (touch)?
+   * 3. Touch events in navigator - Fallback: Has touch support in API?
+   *
+   * This combination handles:
+   * - Real mobile/tablet devices: coarse pointer
+   * - DevTools mobile simulation: may need touch API check
+   * - Hybrid devices: will respect actual hover capability
    */
   React.useEffect(() => {
-    const canHover = window.matchMedia('(hover: hover)').matches
-    setDeviceType(canHover ? 'hover' : 'touch')
+    const supportsHover = window.matchMedia('(hover: hover)').matches
+    const hasCoarsePointer = window.matchMedia('(pointer: coarse)').matches
+    const hasTouchSupport = typeof navigator !== 'undefined' && 'ontouchstart' in window
+
+    // Device is touch if:
+    // - It has no hover support, OR
+    // - It has a coarse pointer (typical for touch), OR
+    // - It has touch event support (real or simulated)
+    const isTouch = !supportsHover || hasCoarsePointer || hasTouchSupport
+
+    setDeviceType(isTouch ? 'touch' : 'hover')
   }, [])
 
   /**

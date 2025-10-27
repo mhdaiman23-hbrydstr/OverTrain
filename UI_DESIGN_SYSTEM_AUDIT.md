@@ -612,3 +612,53 @@ This is a **mobile-specific issue** that won't show in desktop browser testing b
 
 **Key Lesson**: CSS transitions and pointer-events have complex interactions on touch devices. Always test interaction-heavy UI changes on actual mobile devices, not just desktop browsers.
 
+### The Device Detection Pattern for Touch-Aware Components (Oct 27, 2025)
+
+**Issue**: Single-check device detection using only `window.matchMedia('(hover: hover)')` fails in DevTools mobile simulation mode, causing touch-capable components to stay in "hover" mode.
+
+**Root Cause**: Desktop browsers running DevTools mobile simulator still report `(hover: hover): true` even when simulating mobile viewport. This causes MobileTooltip and similar components to use hover-only behavior instead of click-to-toggle.
+
+**Symptoms**:
+- Mobile tooltips (and similar touch interactions) work on real phones
+- Same tooltips don't work in DevTools mobile simulation
+- Desktop testing misses the interaction bug
+- Users on real mobile devices can't interact with tooltips
+
+**Solution**: Use a **multi-heuristic device detection pattern**:
+
+```typescript
+/**
+ * Detect device type using multiple heuristics:
+ * 1. (hover: hover) - Primary: Does device support hover?
+ * 2. (pointer: coarse) - Secondary: Is pointer coarse (touch)?
+ * 3. ontouchstart in window - Fallback: Has touch API support?
+ *
+ * This handles:
+ * - Real mobile/tablet: coarse pointer
+ * - DevTools simulation: detects ontouchstart event support
+ * - Hybrid devices: respects actual hover capability
+ */
+const supportsHover = window.matchMedia('(hover: hover)').matches
+const hasCoarsePointer = window.matchMedia('(pointer: coarse)').matches
+const hasTouchSupport = typeof navigator !== 'undefined' && 'ontouchstart' in window
+
+// Device is touch if ANY of these are true:
+const isTouch = !supportsHover || hasCoarsePointer || hasTouchSupport
+
+setDeviceType(isTouch ? 'touch' : 'hover')
+```
+
+**Applied To**:
+- `components/ui/mobile-tooltip.tsx` - Device detection logic
+
+**Testing**:
+- ✅ Real mobile: Detects as touch (ontouchstart support)
+- ✅ Tablet: Detects as touch (coarse pointer)
+- ✅ DevTools mobile sim: Detects as touch (ontouchstart support)
+- ✅ Desktop browser: Detects as hover (supports hover, fine pointer)
+- ✅ Desktop with touch input: Detects as touch (hasTouchSupport)
+
+**Key Lesson**: Device detection for interaction patterns must use multiple heuristics. Single checks fail in emulation/simulation environments. This pattern handles real devices, emulators, and hybrid input scenarios.
+
+**Pattern to Follow**: Any component that changes behavior based on device input type (touch vs hover, click vs keyboard) should use this multi-heuristic detection pattern.
+
