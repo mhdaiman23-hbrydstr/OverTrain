@@ -29,7 +29,7 @@ export function TrainSection({ onStartWorkout, onAddProgram, shouldAutoStart = f
     shouldAutoStartRef.current = shouldAutoStart
   }, [shouldAutoStart])
 
-  const loadProgramData = async () => {
+  const loadProgramData = async (options?: { refreshTemplate?: boolean }) => {
     try {
       console.log("[TrainSection] Loading active program...")
 
@@ -53,8 +53,10 @@ export function TrainSection({ onStartWorkout, onAddProgram, shouldAutoStart = f
         }
       }
 
-      // Refresh template from database on load
-      const program = await ProgramStateManager.getActiveProgram({ refreshTemplate: true })
+      // Refresh template only on initial mount or when explicitly requested
+      // This prevents unnecessary database calls on tab switches
+      const shouldRefresh = options?.refreshTemplate ?? false
+      const program = await ProgramStateManager.getActiveProgram({ refreshTemplate: shouldRefresh })
       console.log("[TrainSection] Loaded active program:", program ? {
         templateId: program.templateId,
         templateName: program.template?.name,
@@ -92,8 +94,10 @@ export function TrainSection({ onStartWorkout, onAddProgram, shouldAutoStart = f
   }
 
   useEffect(() => {
-    console.log("[TrainSection] Component mounted or updated, loading program data...")
-    loadProgramData()
+    console.log("[TrainSection] Component mounted, loading program data...")
+    // INSTANT: Load once on mount, not on every shouldAutoStart change
+    // This prevents unnecessary database calls when user switches tabs
+    loadProgramData({ refreshTemplate: false })
 
     // BACKGROUND: Preload next workout data while viewing current
     // This makes the next workout load instantly when user completes current
@@ -174,7 +178,7 @@ export function TrainSection({ onStartWorkout, onAddProgram, shouldAutoStart = f
       window.removeEventListener("programEnded", handleProgramEnded)
       document.removeEventListener("visibilitychange", handleVisibilityChange)
     }
-  }, [shouldAutoStart])
+  }, []) // INSTANT: Empty deps = load only once on mount, not on tab switches
 
   useEffect(() => {
     // FIX: Check ref instead of prop to avoid race conditions with event listeners

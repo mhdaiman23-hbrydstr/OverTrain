@@ -291,8 +291,11 @@ export default function HomePage() {
 
         {/* Programs Section - Hidden but mounted */}
         <div
-          className="flex-1 lg:ml-64 overflow-y-auto overflow-x-hidden h-screen"
-          style={{ display: currentView === "programs" ? "block" : "none" }}
+          className="flex-1 lg:ml-64 overflow-y-auto overflow-x-hidden h-screen transition-opacity duration-200"
+          style={{
+            display: currentView === "programs" ? "block" : "none",
+            opacity: currentView === "programs" ? 1 : 0
+          }}
         >
           <ProgramsSection
             onAddProgram={() => setCurrentView("programs")}
@@ -303,8 +306,11 @@ export default function HomePage() {
 
         {/* Train Section - Hidden but mounted */}
         <div
-          className="flex-1 lg:ml-64 overflow-y-auto overflow-x-hidden h-screen"
-          style={{ display: currentView === "train" ? "block" : "none" }}
+          className="flex-1 lg:ml-64 overflow-y-auto overflow-x-hidden h-screen transition-opacity duration-200"
+          style={{
+            display: currentView === "train" ? "block" : "none",
+            opacity: currentView === "train" ? 1 : 0
+          }}
         >
           <TrainSection
             onStartWorkout={handleStartWorkout}
@@ -315,8 +321,11 @@ export default function HomePage() {
 
         {/* Workout Section - Hidden but mounted */}
         <div
-          className="flex-1 lg:ml-64 overflow-y-auto overflow-x-hidden h-screen"
-          style={{ display: currentView === "workout" ? "block" : "none" }}
+          className="flex-1 lg:ml-64 overflow-y-auto overflow-x-hidden h-screen transition-opacity duration-200"
+          style={{
+            display: currentView === "workout" ? "block" : "none",
+            opacity: currentView === "workout" ? 1 : 0
+          }}
         >
           <WorkoutLoggerComponent
             key={programKey}
@@ -328,8 +337,11 @@ export default function HomePage() {
 
         {/* Analytics Section - Hidden but mounted */}
         <div
-          className="flex-1 lg:ml-64 overflow-y-auto overflow-x-hidden h-screen"
-          style={{ display: currentView === "analytics" ? "block" : "none" }}
+          className="flex-1 lg:ml-64 overflow-y-auto overflow-x-hidden h-screen transition-opacity duration-200"
+          style={{
+            display: currentView === "analytics" ? "block" : "none",
+            opacity: currentView === "analytics" ? 1 : 0
+          }}
         >
           <MobileAnalyticsTab
             onLogWorkout={() => setCurrentView("train")}
@@ -338,8 +350,11 @@ export default function HomePage() {
 
         {/* Profile Section - Hidden but mounted */}
         <div
-          className="flex-1 lg:ml-64 overflow-y-auto overflow-x-hidden h-screen"
-          style={{ display: currentView === "profile" ? "block" : "none" }}
+          className="flex-1 lg:ml-64 overflow-y-auto overflow-x-hidden h-screen transition-opacity duration-200"
+          style={{
+            display: currentView === "profile" ? "block" : "none",
+            opacity: currentView === "profile" ? 1 : 0
+          }}
         >
           <ProfileSection />
         </div>

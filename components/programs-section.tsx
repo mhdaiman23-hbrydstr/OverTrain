@@ -174,7 +174,7 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
     }, 500)
   }, [onAddProgram, router])
 
-  const loadData = useCallback(async () => {
+  const loadData = useCallback(async (options?: { refreshTemplate?: boolean }) => {
     // CACHE HIT: Check if we have fresh template cache
     const now = Date.now()
     const cacheIsValid = templateCache && (now - templateCacheTimestamp) < TEMPLATE_CACHE_TTL
@@ -198,7 +198,10 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
     const history = TemplateStorageManager.getProgramHistory()
     setProgramHistory(history)
 
-    const active = await ProgramStateManager.getActiveProgram({ refreshTemplate: true })
+    // INSTANT: Only refresh template on init or when explicitly requested
+    // This prevents unnecessary database calls on tab switches
+    const shouldRefresh = options?.refreshTemplate ?? false
+    const active = await ProgramStateManager.getActiveProgram({ refreshTemplate: shouldRefresh })
     setActiveProgram(active)
 
     const saved = TemplateStorageManager.getSavedTemplates()
@@ -342,11 +345,14 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
   }, [deleteTarget, loadData, toast])
 
   useEffect(() => {
-    loadData()
+    // INSTANT: Load once on mount only
+    console.log('[ProgramsSection] Component mounted, loading initial data...')
+    loadData({ refreshTemplate: false })
 
     const handleProgramEnded = () => {
       console.log("[ProgramsSection] Program ended event received, refreshing program list...")
-      loadData()
+      // Refresh template when program actually changes
+      loadData({ refreshTemplate: true })
     }
 
     const handleProgramChanged = () => {
@@ -354,7 +360,7 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
       console.log("[ProgramsSection] Program changed, invalidating template cache...")
       templateCache = null
       templateCacheTimestamp = 0
-      loadData()
+      loadData({ refreshTemplate: true })
     }
 
     if (typeof window !== "undefined") {
@@ -368,7 +374,7 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
         window.removeEventListener("programEnded", handleProgramEnded)
       }
     }
-  }, [loadData])
+  }, [loadData]) // Keep loadData in deps since it has stable deps from useCallback
 
   const getFilteredTemplates = () => {
     // Use loaded templates (includes both database and hardcoded)
