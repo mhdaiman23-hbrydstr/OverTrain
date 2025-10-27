@@ -1715,6 +1715,20 @@ export class WorkoutLogger implements SetSyncProvider {
 
       for (const setLog of queue) {
         try {
+          // Validate setLog has required fields
+          if (!setLog.id || !setLog.user_id || !setLog.workout_id || !setLog.exercise_name) {
+            console.warn("[WorkoutLogger] Skipping malformed set in queue (missing required fields):", {
+              id: !!setLog.id,
+              user_id: !!setLog.user_id,
+              workout_id: !!setLog.workout_id,
+              exercise_name: !!setLog.exercise_name,
+              setId: setLog.id
+            })
+            // Remove malformed entry from queue
+            syncedSetIds.push(setLog.id)
+            continue
+          }
+
           const { error, data } = await supabase
             .from("workout_sets")
             .upsert(setLog, { onConflict: "id" })
