@@ -294,7 +294,8 @@ export default function HomePage() {
           className="flex-1 lg:ml-64 overflow-y-auto overflow-x-hidden h-screen transition-opacity duration-200"
           style={{
             display: currentView === "programs" ? "block" : "none",
-            opacity: currentView === "programs" ? 1 : 0
+            opacity: currentView === "programs" ? 1 : 0,
+            pointerEvents: currentView === "programs" ? "auto" : "none"
           }}
         >
           <ProgramsSection
@@ -309,7 +310,8 @@ export default function HomePage() {
           className="flex-1 lg:ml-64 overflow-y-auto overflow-x-hidden h-screen transition-opacity duration-200"
           style={{
             display: currentView === "train" ? "block" : "none",
-            opacity: currentView === "train" ? 1 : 0
+            opacity: currentView === "train" ? 1 : 0,
+            pointerEvents: currentView === "train" ? "auto" : "none"
           }}
         >
           <TrainSection
@@ -324,7 +326,8 @@ export default function HomePage() {
           className="flex-1 lg:ml-64 overflow-y-auto overflow-x-hidden h-screen transition-opacity duration-200"
           style={{
             display: currentView === "workout" ? "block" : "none",
-            opacity: currentView === "workout" ? 1 : 0
+            opacity: currentView === "workout" ? 1 : 0,
+            pointerEvents: currentView === "workout" ? "auto" : "none"
           }}
         >
           <WorkoutLoggerComponent
@@ -340,7 +343,8 @@ export default function HomePage() {
           className="flex-1 lg:ml-64 overflow-y-auto overflow-x-hidden h-screen transition-opacity duration-200"
           style={{
             display: currentView === "analytics" ? "block" : "none",
-            opacity: currentView === "analytics" ? 1 : 0
+            opacity: currentView === "analytics" ? 1 : 0,
+            pointerEvents: currentView === "analytics" ? "auto" : "none"
           }}
         >
           <MobileAnalyticsTab
@@ -353,7 +357,8 @@ export default function HomePage() {
           className="flex-1 lg:ml-64 overflow-y-auto overflow-x-hidden h-screen transition-opacity duration-200"
           style={{
             display: currentView === "profile" ? "block" : "none",
-            opacity: currentView === "profile" ? 1 : 0
+            opacity: currentView === "profile" ? 1 : 0,
+            pointerEvents: currentView === "profile" ? "auto" : "none"
           }}
         >
           <ProfileSection />

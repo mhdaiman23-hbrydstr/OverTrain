@@ -508,3 +508,64 @@ The effort is **manageable** (~10-15 hours of focused work), the impact is **sig
 
 Ready to start? I'd recommend beginning with **Part 1 Phase 1** - replacing native buttons and adding the touch size variant.
 
+---
+
+## Part 7: Mobile Interaction Gotchas (Oct 27, 2025 Update)
+
+### The Opacity + Hidden Element Pointer Events Bug
+
+**Issue**: When implementing smooth fade transitions for tab switching using `opacity`, we discovered that hidden tabs with `opacity: 0` prevent pointer events on child elements (like tooltips) from working, even when `display: none` is set.
+
+**Root Cause**: CSS `opacity: 0` doesn't prevent pointer events from being considered. When combined with hidden elements, browsers may still block touch/click events based on opacity state.
+
+**Symptoms**:
+- Mobile tooltip icons in hidden tabs become unclickable
+- Same issue occurred with MobileTooltip.tsx wrapper fix earlier
+- Works in desktop browser (hover vs touch), fails on mobile/tablet
+
+**Solution**: Always pair `opacity` changes with `pointerEvents` control:
+```typescript
+// WRONG: Hidden tab can still receive pointer events
+<div style={{ display: "none", opacity: 0 }}>
+  <MobileTooltip /> {/* Unclickable! */}
+</div>
+
+// RIGHT: Explicitly disable pointer events when hidden
+<div style={{
+  display: "none",
+  opacity: 0,
+  pointerEvents: "none"  // ← Critical for mobile!
+}}>
+  <MobileTooltip /> {/* Now unclickable as intended */}
+</div>
+```
+
+**Implementation Pattern**:
+```typescript
+<div style={{
+  display: currentView === "analytics" ? "block" : "none",
+  opacity: currentView === "analytics" ? 1 : 0,
+  pointerEvents: currentView === "analytics" ? "auto" : "none"
+}}>
+  {/* Content */}
+</div>
+```
+
+**Applied To**:
+- All 5 main tab containers (programs, train, workout, analytics, profile)
+- Any component with opacity-based visibility transitions
+- MobileTooltip child elements (especially in analytics page)
+
+**Testing**:
+- ✅ Desktop: Smooth transitions still work
+- ✅ Mobile: Tooltips clickable when tab active
+- ✅ Mobile: Tooltips not interactive when tab hidden
+- ✅ Build: No compilation errors
+
+**Key Lesson**: When using opacity for visual transitions on mobile:
+1. Always explicitly set `pointerEvents: "none"` for hidden states
+2. Set `pointerEvents: "auto"` for visible states
+3. Don't rely on `display: none` alone to prevent pointer events with opacity
+
+This is a **mobile-specific issue** that won't show in desktop browser testing because mouse hover is ignored on hidden opacity elements, but touch events may still register.
+
