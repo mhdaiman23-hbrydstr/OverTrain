@@ -535,8 +535,13 @@ function SidebarMenuButton({
 
   // MOBILE FIX: Use MobileTooltip for touch-aware behavior
   // This ensures tooltips work on mobile/tablet devices (not just hover on desktop)
-  // Only show when sidebar is collapsed (text visible when expanded)
-  if (state === 'collapsed' && !isMobile) {
+  // Only show when sidebar is collapsed (full text is visible when expanded, so no tooltip needed)
+  //
+  // Note: We don't check !isMobile here. The useIsMobile hook checks VIEWPORT WIDTH,
+  // but we need tooltips for TOUCH DEVICES regardless of screen width.
+  // MobileTooltip uses multi-heuristic device detection to determine if it should be
+  // click-to-toggle (touch) or hover-based (desktop).
+  if (state === 'collapsed') {
     return (
       <MobileTooltip
         side="right"
