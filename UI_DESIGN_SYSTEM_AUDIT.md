@@ -569,3 +569,46 @@ Ready to start? I'd recommend beginning with **Part 1 Phase 1** - replacing nati
 
 This is a **mobile-specific issue** that won't show in desktop browser testing because mouse hover is ignored on hidden opacity elements, but touch events may still register.
 
+### The CSS Opacity Transition Pointer Events Bug (Advanced)
+
+**Issue**: Even after adding `pointerEvents: auto` to visible tabs and `pointerEvents: none` to hidden tabs, tooltips in analytics tab still weren't clickable.
+
+**Root Cause**: CSS transitions on opacity values (using `transition-opacity duration-200`) interfere with pointer-events routing on touch devices. The browser's computation of pointer events during opacity transitions doesn't respect the explicit `pointerEvents: auto` setting.
+
+**Symptoms**:
+- Tooltips clickable with instant display switching (no transitions)
+- Tooltips NOT clickable when opacity transitions enabled
+- Only affects touch devices (desktop hover mode works fine)
+- Issue persists even with correct `pointerEvents: auto/none` values
+
+**Failed Solution** (what didn't work):
+```typescript
+// This looks correct but STILL breaks tooltips on mobile:
+<div style={{
+  display: currentView === "analytics" ? "block" : "none",
+  opacity: currentView === "analytics" ? 1 : 0,
+  pointerEvents: currentView === "analytics" ? "auto" : "none"
+}} className="transition-opacity duration-200">
+  <MobileTooltip /> {/* Still unclickable! */}
+</div>
+```
+
+**Working Solution**:
+```typescript
+// Remove opacity transitions entirely, use instant display switching:
+<div style={{
+  display: currentView === "analytics" ? "block" : "none",
+  pointerEvents: currentView === "analytics" ? "auto" : "none"
+}}>
+  <MobileTooltip /> {/* Works! */}
+</div>
+```
+
+**Future Approach**: To add smooth transitions without breaking mobile interactions:
+1. Use `transform` instead of `opacity` (transform doesn't affect pointer-events)
+2. Use separate animation libraries that handle this
+3. Use `will-change` hints to help browser optimize
+4. Apply transitions only when switching between two VISIBLE states
+
+**Key Lesson**: CSS transitions and pointer-events have complex interactions on touch devices. Always test interaction-heavy UI changes on actual mobile devices, not just desktop browsers.
+
