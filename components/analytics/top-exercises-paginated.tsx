@@ -44,8 +44,8 @@ export function TopExercisesPaginated({ topExercises }: TopExercisesPaginatedPro
                 </p>
               </div>
             }
-            side="right"
-            className="max-w-xs"
+            side="bottom"
+            className="max-w-sm"
           >
             <HelpCircle className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors cursor-help" />
           </MobileTooltip>
