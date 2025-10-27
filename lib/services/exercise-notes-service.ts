@@ -383,7 +383,6 @@ export class ExerciseNotesService {
           .eq('exercise_id', exerciseId)
           .eq('week', previousWeek)
           .eq('is_pinned', true)
-          .not('program_instance_id', 'is', null)
           .single()
 
         if (!error && data) {
