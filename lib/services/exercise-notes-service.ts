@@ -294,7 +294,6 @@ export class ExerciseNotesService {
         .eq('program_instance_id', programInstanceId)
         .eq('exercise_id', exerciseId)
         .eq('week', week)
-        .not('program_instance_id', 'is', null)
         .single()
 
       if (error) {
@@ -361,8 +360,22 @@ export class ExerciseNotesService {
 
     const previousWeek = currentWeek - 1
 
+    console.log('[ExerciseNotes] getPinnedNoteForWeek called:', {
+      exerciseId,
+      currentWeek,
+      previousWeek
+    })
+
     // Check cache first for pinned note from previous week
     const cachedNotes = this.getFromLocalStorage()
+    console.log('[ExerciseNotes] Cached notes count:', cachedNotes.length)
+    console.log('[ExerciseNotes] Looking for pinned note with exerciseId:', exerciseId, 'week:', previousWeek)
+    console.log('[ExerciseNotes] Available cached notes:', cachedNotes.map(n => ({
+      exerciseId: n.exerciseId,
+      week: n.week,
+      isPinned: n.isPinned
+    })))
+
     let pinnedNote = cachedNotes.find(
       n =>
         n.userId === userId &&
@@ -371,6 +384,12 @@ export class ExerciseNotesService {
         n.week === previousWeek &&
         n.isPinned === true
     )
+
+    if (pinnedNote) {
+      console.log('[ExerciseNotes] Found pinned note in cache!')
+    } else {
+      console.log('[ExerciseNotes] No pinned note in cache, checking Supabase...')
+    }
 
     // If not in cache, query Supabase
     if (!pinnedNote && supabase) {
@@ -616,7 +635,6 @@ export class ExerciseNotesService {
         .eq('user_id', userId)
         .eq('program_instance_id', programInstanceId)
         .eq('exercise_id', exerciseId)
-        .not('program_instance_id', 'is', null)
 
       if (error) {
         console.error('[ExerciseNotes] Failed to fetch exercise notes:', error)
