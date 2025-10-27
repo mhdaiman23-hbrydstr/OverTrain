@@ -16,6 +16,7 @@ export interface WorkoutSet {
 export interface WorkoutExercise {
   id: string
   exerciseId: string
+  exerciseLibraryId?: string  // UUID from exercise library (for notes/RPE storage)
   exerciseName: string
   targetSets: number
   // NOTE: performedReps removed - it was only used for template display

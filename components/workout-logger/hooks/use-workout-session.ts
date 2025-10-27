@@ -388,11 +388,12 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
             if (notesMap[exercise.id]) continue
 
             // Check if there's a pinned note from previous week
+            // NOTE: getPinnedNoteForWeek takes currentWeek (not currentWeek-1)
+            // It internally calculates previousWeek = currentWeek - 1
             const pinnedNote = await ExerciseNotesService.getPinnedNoteForWeek(
               user.id,
               activeProgram.instanceId,
               libraryId,
-              activeProgram.currentWeek - 1,
               activeProgram.currentWeek
             )
             if (pinnedNote) {
@@ -488,7 +489,6 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
                 user.id,
                 activeProgram.instanceId,
                 libraryId,
-                activeProgram.currentWeek - 1,
                 activeProgram.currentWeek
               )
               if (pinnedNote) {

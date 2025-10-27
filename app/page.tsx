@@ -1,5 +1,6 @@
-"use client"
+﻿"use client"
 
+import Link from "next/link"
 import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -799,27 +800,51 @@ export default function HomePage() {
       {/* Footer - All Devices */}
       <div className="border-t border-border/50 mt-auto">
         <div className="container mx-auto px-4 py-12">
-          <div className="grid md:grid-cols-4 gap-8 text-center">
+          <div className="grid gap-8 text-center md:grid-cols-4 md:text-left">
             <div className="space-y-2">
               <div className="text-2xl font-bold text-primary">OverTrain</div>
               <div className="text-sm text-muted-foreground">Break Your Limits</div>
             </div>
             <div className="space-y-2">
-              <div className="text-sm text-muted-foreground">© 2024 OverTrain</div>
+              <div className="text-sm text-muted-foreground">&copy; 2024 OverTrain</div>
               <div className="text-xs text-muted-foreground">All rights reserved</div>
             </div>
             <div className="space-y-2">
-              <div className="text-sm text-muted-foreground">Privacy</div>
-              <div className="text-xs text-muted-foreground">Terms</div>
+              <Link
+                className="block text-sm text-muted-foreground transition-colors hover:text-foreground"
+                href="/privacy-policy"
+              >
+                Privacy Policy
+              </Link>
+              <Link
+                className="block text-xs text-muted-foreground transition-colors hover:text-foreground"
+                href="/terms"
+              >
+                Terms & Conditions
+              </Link>
             </div>
             <div className="space-y-2">
-              <div className="text-sm text-muted-foreground">Support</div>
-              <div className="text-xs text-muted-foreground">Help Center</div>
+              <Link
+                className="block text-sm text-muted-foreground transition-colors hover:text-foreground"
+                href="/support"
+              >
+                Support
+              </Link>
+              <a
+                className="block text-xs text-muted-foreground transition-colors hover:text-foreground"
+                href="mailto:support@overtrain.app"
+              >
+                support@overtrain.app
+              </a>
             </div>
           </div>
+
         </div>
       </div>
 
     </div>
   )
 }
+
+
+

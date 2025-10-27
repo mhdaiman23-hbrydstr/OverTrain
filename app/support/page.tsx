@@ -1,6 +1,4 @@
 import type { Metadata } from "next"
-import Link from "next/link"
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 
@@ -103,12 +101,10 @@ export default function SupportPage() {
         <div className="mt-12 flex flex-col items-center gap-4 rounded-lg border border-border/50 bg-muted/30 px-6 py-8 text-center">
           <h2 className="text-2xl font-semibold">Need the basics?</h2>
           <p className="max-w-2xl text-muted-foreground">
-            Start with our quick-start guide that explains how to set goals, choose a program, and log your first
-            workout. It&apos;s the fastest way to feel confident inside OverTrain.
+            Start with the quick-start guide inside the app to learn how to set goals, choose a program, and log your
+            first workout. Visit <strong>Profile &gt; Help Center &gt; Getting Started</strong> for a step-by-step
+            walkthrough.
           </p>
-          <Button asChild variant="outline">
-            <Link href="/docs/getting-started">Read the Quick-Start Guide</Link>
-          </Button>
         </div>
       </div>
     </main>
