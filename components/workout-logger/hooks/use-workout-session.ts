@@ -1113,16 +1113,44 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
 
       if (persistedWorkout && willMarkComplete) {
         // Log set completion to database, but queue if offline
-        if (ConnectionMonitor.isOnline()) {
-          WorkoutLogger.logSetCompletion(persistedWorkout.id, exerciseId, setId, user?.id).catch((error) => {
-            console.error('[WorkoutLogger] Failed to log set completion:', error)
-            // Silently queue for retry - user sees success in UI already
-          })
-        } else {
-          // Queue for sync when online
-          ConnectionMonitor.addToQueue(async () => {
-            await WorkoutLogger.logSetCompletion(persistedWorkout.id, exerciseId, setId, user?.id)
-          })
+        // Get the updated set data to log
+        const exercise = persistedWorkout.exercises.find((ex) => ex.id === exerciseId)
+        const updatedSet = exercise?.sets.find((s) => s.id === setId)
+
+        if (exercise && updatedSet) {
+          if (ConnectionMonitor.isOnline()) {
+            WorkoutLogger.logSetCompletion(
+              persistedWorkout.id,
+              exerciseId,
+              exercise.name,
+              updatedSet.number,
+              updatedSet.reps,
+              updatedSet.weight,
+              true,
+              user?.id,
+              persistedWorkout.week,
+              persistedWorkout.day
+            ).catch((error) => {
+              console.error('[WorkoutLogger] Failed to log set completion:', error)
+              // Silently queue for retry - user sees success in UI already
+            })
+          } else {
+            // Queue for sync when online
+            ConnectionMonitor.addToQueue(async () => {
+              await WorkoutLogger.logSetCompletion(
+                persistedWorkout.id,
+                exerciseId,
+                exercise.name,
+                updatedSet.number,
+                updatedSet.reps,
+                updatedSet.weight,
+                true,
+                user?.id,
+                persistedWorkout.week,
+                persistedWorkout.day
+              )
+            })
+          }
         }
       }
     } catch (error) {
