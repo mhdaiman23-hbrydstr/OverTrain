@@ -83,7 +83,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
     if (!user?.id) return
 
     try {
-      const activeProgram = ProgramStateManager.getActiveProgram()
+      const activeProgram = await ProgramStateManager.getActiveProgram()
       if (!activeProgram) return
 
       // Find exercise in workout
@@ -148,7 +148,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
     if (!user?.id) return
 
     try {
-      const activeProgram = ProgramStateManager.getActiveProgram()
+      const activeProgram = await ProgramStateManager.getActiveProgram()
       if (!activeProgram) return
 
       // Find exercise in workout
@@ -344,7 +344,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
     const loadNotesAndRpeData = async () => {
       try {
         // Get active program for context
-        const activeProgram = ProgramStateManager.getActiveProgram()
+        const activeProgram = await ProgramStateManager.getActiveProgram()
         if (!activeProgram || !activeProgram.instanceId) {
           console.log('[WorkoutLogger] Active program or instanceId not available yet, skipping notes hydration')
           return
@@ -444,7 +444,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
       // Reload notes and RPE when week/day changes
       const loadNotesAndRpeData = async () => {
         try {
-          const activeProgram = ProgramStateManager.getActiveProgram()
+          const activeProgram = await ProgramStateManager.getActiveProgram()
           if (!activeProgram || !activeProgram.instanceId) {
             console.log('[WorkoutLogger] Active program or instanceId not available yet, skipping notes invalidation')
             return
