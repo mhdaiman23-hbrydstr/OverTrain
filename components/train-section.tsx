@@ -15,9 +15,49 @@ interface TrainSectionProps {
   shouldAutoStart?: boolean
 }
 
+// Helper: Synchronously load initial program state from localStorage
+// This prevents "flash of empty state" when transitioning back to Train tab
+// (Pattern 9: Conditional Loading Spinners - DEVELOPMENT_RULES.md)
+function getInitialActiveProgram(): ActiveProgram | null {
+  try {
+    const stored = localStorage.getItem('liftlog_active_program')
+    if (stored) {
+      const parsed = JSON.parse(stored)
+      return parsed as ActiveProgram
+    }
+  } catch (e) {
+    console.error("[TrainSection] Failed to parse initial program state:", e)
+  }
+  return null
+}
+
+// Helper: Synchronously load initial workout from cache
+// Extracts the currentWorkout from the cached active program
+function getInitialCurrentWorkout(): { name: string; exercises: any[] } | null {
+  const program = getInitialActiveProgram()
+  if (program) {
+    try {
+      // Reconstruct the current workout name from the template
+      // This is a best-effort approach using cached template data
+      const workoutDay = program.template?.schedule?.[program.currentDay]
+      if (workoutDay) {
+        return {
+          name: workoutDay.name || `Day ${program.currentDay}`,
+          exercises: workoutDay.exercises || []
+        }
+      }
+    } catch (e) {
+      console.error("[TrainSection] Failed to load initial workout:", e)
+    }
+  }
+  return null
+}
+
 export function TrainSection({ onStartWorkout, onAddProgram, shouldAutoStart = false }: TrainSectionProps) {
-  const [activeProgram, setActiveProgram] = useState<ActiveProgram | null>(null)
-  const [currentWorkout, setCurrentWorkout] = useState<{ name: string; exercises: any[] } | null>(null)
+  // FIXED: Use lazy initializer to load from localStorage synchronously
+  // This prevents rendering "Ready to Train?" when data exists in cache
+  const [activeProgram, setActiveProgram] = useState<ActiveProgram | null>(getInitialActiveProgram)
+  const [currentWorkout, setCurrentWorkout] = useState<{ name: string; exercises: any[] } | null>(getInitialCurrentWorkout)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 

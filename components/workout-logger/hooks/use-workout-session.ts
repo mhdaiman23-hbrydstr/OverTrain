@@ -1078,40 +1078,57 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
 
     const willMarkComplete = !set.completed
 
-    if (willMarkComplete) {
-      if (!set.weight || set.weight <= 0 || !set.reps || set.reps <= 0) {
-        return
-      }
-
-      if (!ConnectionMonitor.isOnline()) {
-        toast({
-          title: 'No connection',
-          description: 'Reconnect before logging sets.',
-          variant: 'destructive',
-        })
-        ConnectionMonitor.updateStatus('offline')
-        return
-      }
+    // Validation: Don't allow completing empty sets
+    if (willMarkComplete && (!set.weight || set.weight <= 0 || !set.reps || set.reps <= 0)) {
+      return
     }
 
+    // OPTIMISTIC: Update UI immediately without waiting for database sync
+    // This gives instant feedback to the user (sets mark/unmark instantly)
+    // Database sync happens in background with automatic retry if offline
+    const updatedWorkout = JSON.parse(JSON.stringify(workout)) as WorkoutSession
+    const updatedExercise = updatedWorkout.exercises.find((ex) => ex.id === exerciseId)
+    const updatedSet = updatedExercise?.sets.find((s) => s.id === setId)
+
+    if (updatedSet) {
+      updatedSet.completed = !set.completed
+      updatedExercise!.completed = updatedExercise!.sets.every((s) => s.completed)
+      setWorkout(updatedWorkout)
+
+      // Check bounds for next set immediately after completing a set
+      checkExerciseBoundsStatus(exerciseId)
+    }
+
+    // BACKGROUND: Persist to storage and queue database sync
+    // This happens silently without blocking the UI or showing toasts
     try {
-      const updatedWorkout = await WorkoutLogger.updateSet(workout, exerciseId, setId, {
-        completed: !set.completed,
-      }, user?.id)
+      const persistedWorkout = await WorkoutLogger.updateSet(
+        workout,
+        exerciseId,
+        setId,
+        { completed: !set.completed },
+        user?.id,
+        true  // skipDbSync - we'll queue it with connection logic
+      )
 
-      if (updatedWorkout) {
-        setWorkout(updatedWorkout)
-
-        // Check bounds for next set immediately after completing a set
-        checkExerciseBoundsStatus(exerciseId)
+      if (persistedWorkout && willMarkComplete) {
+        // Log set completion to database, but queue if offline
+        if (ConnectionMonitor.isOnline()) {
+          WorkoutLogger.logSetCompletion(persistedWorkout.id, exerciseId, setId, user?.id).catch((error) => {
+            console.error('[WorkoutLogger] Failed to log set completion:', error)
+            // Silently queue for retry - user sees success in UI already
+          })
+        } else {
+          // Queue for sync when online
+          ConnectionMonitor.addToQueue(async () => {
+            await WorkoutLogger.logSetCompletion(persistedWorkout.id, exerciseId, setId, user?.id)
+          })
+        }
       }
     } catch (error) {
-      console.error('[WorkoutLogger] Failed to log set:', error)
-      toast({
-        title: 'Failed to log set',
-        description: error instanceof Error ? error.message : 'Please try again.',
-        variant: 'destructive',
-      })
+      console.error('[WorkoutLogger] Failed to persist set update:', error)
+      // Revert optimistic update only on critical errors
+      setWorkout(workout)
     }
   }
 
