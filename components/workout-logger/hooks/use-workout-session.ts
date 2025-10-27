@@ -1118,12 +1118,15 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
         const updatedSet = exercise?.sets.find((s) => s.id === setId)
 
         if (exercise && updatedSet) {
+          // Calculate set number from array index (1-indexed)
+          const setNumber = exercise.sets.findIndex((s) => s.id === setId) + 1
+
           if (ConnectionMonitor.isOnline()) {
             WorkoutLogger.logSetCompletion(
               persistedWorkout.id,
               exerciseId,
-              exercise.name,
-              updatedSet.number,
+              exercise.exerciseName,  // FIX: was exercise.name
+              setNumber,              // FIX: calculate from index, not updatedSet.number
               updatedSet.reps,
               updatedSet.weight,
               true,
@@ -1140,8 +1143,8 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
               await WorkoutLogger.logSetCompletion(
                 persistedWorkout.id,
                 exerciseId,
-                exercise.name,
-                updatedSet.number,
+                exercise.exerciseName,  // FIX: was exercise.name
+                setNumber,              // FIX: calculate from index, not updatedSet.number
                 updatedSet.reps,
                 updatedSet.weight,
                 true,
