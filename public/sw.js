@@ -61,6 +61,7 @@ self.addEventListener('fetch', (event) => {
           // Cache successful API responses in runtime cache
           if (response.ok) {
             const cache = caches.open(RUNTIME_CACHE)
+            // Clone before consuming the response
             cache.then((c) => c.put(request, response.clone()))
           }
           return response
@@ -87,9 +88,10 @@ self.addEventListener('fetch', (event) => {
         }
 
         return fetch(request).then((response) => {
-          // Cache successful responses
+          // Cache successful responses (clone before consuming)
           if (response.ok) {
             const cache = caches.open(CACHE_NAME)
+            // Need to clone the response before storing to avoid "body already used" error
             cache.then((c) => c.put(request, response.clone()))
           }
           return response
@@ -106,9 +108,10 @@ self.addEventListener('fetch', (event) => {
   event.respondWith(
     fetch(request)
       .then((response) => {
-        // Cache successful HTML responses
+        // Cache successful HTML responses (clone before consuming)
         if (response.ok && (response.type === 'basic' || response.type === 'cors')) {
           const cache = caches.open(RUNTIME_CACHE)
+          // Clone before storing to avoid "body already used" error
           cache.then((c) => c.put(request, response.clone()))
         }
         return response

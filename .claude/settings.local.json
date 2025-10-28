@@ -35,7 +35,8 @@
       "Bash(xargs:*)",
       "Bash(awk:*)",
       "Bash(git log:*)",
-      "Bash(git stash:*)"
+      "Bash(git stash:*)",
+      "Bash(nslookup:*)"
     ],
     "deny": [],
     "ask": []

@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
@@ -652,7 +652,7 @@ export function ProfileSection() {
 
         {/* App Info */}
         <div className="text-center text-xs text-muted-foreground pb-4 pt-6">
-          <p>LiftLog v1.0.0</p>
+          <p>OverTrain v1.0.0</p>
           <p className="mt-1">Made with 💪 for fitness enthusiasts</p>
         </div>
       </div>

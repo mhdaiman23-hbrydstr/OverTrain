@@ -1,0 +1,180 @@
+================================================================================
+                    PWA INSTALL BANNER - HOW IT WORKS
+================================================================================
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  USER SCENARIO 1: Mobile Browser (Android Chrome / iOS Safari)              │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  User visits: https://overtrain.app on Android phone                        │
+│                                                                              │
+│  ┌──────────────────────────────────────┐                                  │
+│  │  🟦 OverTrain                         │                                  │
+│  │  ─────────────────────────────────────│                                  │
+│  │  Dashboard                            │                                  │
+│  │  - Start Workout                      │                                  │
+│  │  - View Programs                      │                                  │
+│  │  - Analytics                          │                                  │
+│  │  ─────────────────────────────────────│                                  │
+│  │  ┌─────────────────────────────────────│ ← INSTALL BANNER APPEARS       │
+│  │  │ ⬇️ Install OverTrain App              │                               │
+│  │  │ Get app-like experience with offline │                               │
+│  │  │              [✕] [Install]           │                               │
+│  │  └─────────────────────────────────────┘                                │
+│  │                                         │                               │
+│  └──────────────────────────────────────┘                                  │
+│                                                                              │
+│  User clicks [Install] →                                                    │
+│  ├─ Native Android install prompt appears                                   │
+│  ├─ User clicks "Install" in prompt                                         │
+│  ├─ App installs to home screen                                             │
+│  └─ Icon appears in app drawer with OverTrain logo                          │
+│                                                                              │
+│  User opens from home screen →                                              │
+│  ├─ Opens in STANDALONE MODE (fullscreen, no browser UI)                    │
+│  ├─ No address bar, tabs, or menu                                           │
+│  ├─ Looks and feels like native app                                         │
+│  └─ All functionality works: workouts, programs, offline                    │
+│                                                                              │
+│  Console shows: [PWA] Environment: browser (Mobile Browser) ✅              │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  USER SCENARIO 2: Webview (Facebook, Twitter, Instagram in-app browser)    │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  User clicks OverTrain link inside Facebook Messenger                       │
+│  → Opens in Facebook's embedded webview                                      │
+│                                                                              │
+│  ┌──────────────────────────────────────┐                                  │
+│  │  facebook.com                         │ ← App's webview header          │
+│  │  ─────────────────────────────────────│                                  │
+│  │  🟦 OverTrain                         │                                  │
+│  │  ─────────────────────────────────────│                                  │
+│  │  Dashboard                            │                                  │
+│  │  - Start Workout                      │                                  │
+│  │  - View Programs                      │                                  │
+│  │  - Analytics                          │                                  │
+│  │  │                                    │  ← NO INSTALL BANNER!            │
+│  │  │ (functions normally, can't install)│                                  │
+│  │  │                                    │                                  │
+│  │  └──────────────────────────────────┘│                                  │
+│  └──────────────────────────────────────┘                                  │
+│                                                                              │
+│  Why no banner?                                                              │
+│  ├─ Webviews don't fire beforeinstallprompt event                           │
+│  ├─ PWADetection.isWebView() returns true                                   │
+│  ├─ PWADetection.shouldShowInstallPrompt() returns false                    │
+│  └─ Banner automatically hidden                                             │
+│                                                                              │
+│  Console shows: [PWA] Should show install prompt: false ✅                  │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  USER SCENARIO 3: Capacitor Packaged App (Native Android APK / iOS App)     │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  User opens OverTrain app from app drawer                                   │
+│  (Already packaged as native app via Capacitor)                             │
+│                                                                              │
+│  ┌──────────────────────────────────────┐                                  │
+│  │  OverTrain                            │ ← Native app (no browser UI)     │
+│  │  ─────────────────────────────────────│                                  │
+│  │  Dashboard                            │                                  │
+│  │  - Start Workout                      │                                  │
+│  │  - View Programs                      │                                  │
+│  │  - Analytics                          │                                  │
+│  │  │                                    │                                  │
+│  │  │ (functions normally)               │  ← NO INSTALL BANNER!            │
+│  │  │                                    │                                  │
+│  │  │                                    │                                  │
+│  │  └──────────────────────────────────┘│                                  │
+│  └──────────────────────────────────────┘                                  │
+│                                                                              │
+│  Why no banner?                                                              │
+│  ├─ App is already installed as native                                      │
+│  ├─ beforeinstallprompt doesn't fire (only in browsers)                     │
+│  ├─ PWADetection.isCapacitor() returns true                                 │
+│  ├─ PWADetection.shouldShowInstallPrompt() returns false                    │
+│  └─ Banner automatically hidden                                             │
+│                                                                              │
+│  Console shows: [PWA] Environment: native (App Mobile) ✅                   │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+================================================================================
+                          DETECTION LOGIC FLOW
+================================================================================
+
+  App Loads
+    │
+    ├─→ PWADetection.getEnvironment()
+    │   ├─ Check: Is Capacitor wrapper? → environment = "native"
+    │   ├─ Check: Is display-mode: standalone? → environment = "standalone"
+    │   ├─ Check: Is WebView? → environment = "webview"
+    │   └─ Otherwise → environment = "browser"
+    │
+    └─→ PWADetection.shouldShowInstallPrompt()
+        └─ Only returns TRUE if environment === "browser"
+            │
+            ├─ YES (browser) → Set up beforeinstallprompt listener
+            │                  Show banner if event fires
+            │
+            └─ NO (native/webview/standalone) → Skip setup
+                                                  Don't show banner
+
+================================================================================
+                          STANDALONE MODE BEHAVIOR
+================================================================================
+
+When user installs the app, the manifest.json setting:
+  "display": "standalone"
+
+Makes it:
+- Open fullscreen (no browser chrome)
+- No address bar, tabs, menus
+- Appears in app switcher with app icon
+- Can be themed with theme_color from manifest
+- Can use service worker for offline
+- Can access device sensors/hardware
+
+================================================================================
+                            KEY BENEFITS
+================================================================================
+
+✅ Smart Detection: Banner appears only where it makes sense
+✅ No User Confusion: Won't show on webviews where install isn't possible
+✅ No Double-Install: Won't show in already-installed native apps
+✅ Console Logging: Debug messages help diagnose issues
+✅ Zero Configuration: Works out of the box
+✅ Standalone Mode: Installed app looks and behaves like native app
+✅ Offline Support: Service worker caches for offline use
+
+================================================================================
+                        TECHNICAL IMPLEMENTATION
+================================================================================
+
+Components involved:
+1. PWADetection (lib/pwa-detection.ts)
+   - Environment detection utilities
+   - Smart banner visibility logic
+
+2. PWAInstallPrompt (components/pwa-install-prompt.tsx)
+   - UI banner component
+   - Event listeners for beforeinstallprompt
+   - iOS manual instruction handling
+
+3. ServiceWorkerRegister (components/sw-register.tsx)
+   - Service worker registration
+   - Update detection and notification
+
+4. Manifest (public/manifest.json)
+   - App metadata
+   - Standalone display mode
+   - Icon configuration
+
+5. Service Worker (public/sw.js)
+   - Offline caching
+   - Asset caching strategies
+   - Update notification
+
+================================================================================

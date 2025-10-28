@@ -31,3 +31,4 @@ next-env.d.ts
 
 # Claude Code settings (exclude local config with API keys)
 .claude/settings.local.json
+.vercel
