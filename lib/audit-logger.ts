@@ -45,6 +45,9 @@ interface AuditLogEvent {
  *
  * Only logs if action is in CRITICAL_ACTIONS list
  * Prevents database bloat and unnecessary costs
+ *
+ * NOTE: Requires audit_logs table to be created in Supabase
+ * See docs/AUDIT_LOGS_SETUP.sql for table creation script
  */
 export async function logAuditEvent(event: AuditLogEvent) {
   try {
@@ -56,6 +59,12 @@ export async function logAuditEvent(event: AuditLogEvent) {
     // Don't log if user_id is missing
     if (!event.userId) {
       console.warn("[AuditLogger] No userId provided");
+      return;
+    }
+
+    // Check if Supabase is configured
+    if (!supabase) {
+      console.warn("[AuditLogger] Supabase not configured, skipping audit log");
       return;
     }
 
@@ -73,11 +82,34 @@ export async function logAuditEvent(event: AuditLogEvent) {
     ]);
 
     if (error) {
-      console.error("[AuditLogger] Failed to log event:", error);
+      // Enhanced error logging with more context
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorCode = (error as any)?.code || 'UNKNOWN';
+      const errorHint = (error as any)?.hint || '';
+
+      console.error(
+        `[AuditLogger] Failed to log event ${event.action} for user ${event.userId}: ` +
+        `Code=${errorCode}, Message="${errorMessage}"${errorHint ? `, Hint="${errorHint}"` : ''}`
+      );
+
+      // Provide helpful guidance for common errors
+      if (errorCode === 'PGRST116' || errorMessage.includes('relation') || errorMessage.includes('audit_logs')) {
+        console.error(
+          '[AuditLogger] HINT: The audit_logs table may not exist. ' +
+          'Run docs/AUDIT_LOGS_SETUP.sql in your Supabase SQL editor to create it.'
+        );
+      }
+      if (errorCode === '42501' || errorMessage.includes('policy')) {
+        console.error(
+          '[AuditLogger] HINT: RLS policy issue. Verify INSERT policy is enabled on audit_logs table.'
+        );
+      }
+
       // Don't throw - don't let audit logging break the main operation
     }
   } catch (error) {
-    console.error("[AuditLogger] Unexpected error:", error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error("[AuditLogger] Unexpected error during audit logging:", errorMessage);
     // Silently fail - audit logging should never crash the app
   }
 }
