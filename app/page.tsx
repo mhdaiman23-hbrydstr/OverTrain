@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
   import { Dumbbell, TrendingUp, Zap, LogOut, Trophy, Target, Flame, ArrowRight, Play, Users, BarChart3, Award, Moon, Sun } from "lucide-react"
   import { useAuth } from "@/contexts/auth-context"
   import { IntakeForm } from "@/components/intake-form"
@@ -27,11 +28,14 @@ if (typeof window !== "undefined" && process.env.NODE_ENV === "development") {
 }
 
 export default function HomePage() {
-  const { user, signIn, signUp, signInWithGoogle, signOut, isLoading: authLoading } = useAuth()
+  const { user, signIn, signUp, signInWithGoogle, signOut, isLoading: authLoading, requestPasswordReset } = useAuth()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
   const [programKey, setProgramKey] = useState(0)
   const [dataLoadingStatus, setDataLoadingStatus] = useState<string>("")
+  const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false)
+  const [forgotPasswordEmail, setForgotPasswordEmail] = useState("")
+  const [forgotPasswordMessage, setForgotPasswordMessage] = useState("")
 
   const [currentView, setCurrentView] = useState<
     "dashboard" | "programs" | "workout" | "analytics" | "train" | "profile" | null
@@ -200,6 +204,26 @@ export default function HomePage() {
     setFormData((prev) => ({ ...prev, [field]: value }))
   }
 
+  const handleForgotPassword = async () => {
+    if (!forgotPasswordEmail) {
+      setForgotPasswordMessage("Please enter your email address")
+      return
+    }
+
+    try {
+      const result = await requestPasswordReset(forgotPasswordEmail)
+      setForgotPasswordMessage(result.message)
+      // Clear the email field after a short delay
+      setTimeout(() => {
+        setForgotPasswordEmail("")
+        setForgotPasswordMessage("")
+        setShowForgotPasswordModal(false)
+      }, 3000)
+    } catch (err) {
+      setForgotPasswordMessage(err instanceof Error ? err.message : "An error occurred")
+    }
+  }
+
   const AuthTabs = () => (
     <Tabs defaultValue="login" className="w-full">
       <TabsList className="grid w-full grid-cols-2">
@@ -263,7 +287,16 @@ export default function HomePage() {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="login-password">Password</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="login-password">Password</Label>
+              <button
+                type="button"
+                onClick={() => setShowForgotPasswordModal(true)}
+                className="text-xs text-primary hover:underline"
+              >
+                Forgot password?
+              </button>
+            </div>
             <Input
               id="login-password"
               type="password"
@@ -376,6 +409,65 @@ export default function HomePage() {
         </form>
       </TabsContent>
     </Tabs>
+  )
+
+  const ForgotPasswordModal = () => (
+    <Dialog open={showForgotPasswordModal} onOpenChange={setShowForgotPasswordModal}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Reset Your Password</DialogTitle>
+          <DialogDescription>
+            Enter your email address and we'll send you a link to reset your password.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="reset-email">Email Address</Label>
+            <Input
+              id="reset-email"
+              type="email"
+              placeholder="Enter your email"
+              className="bg-input border-border"
+              value={forgotPasswordEmail}
+              onChange={(e) => setForgotPasswordEmail(e.target.value)}
+              onKeyPress={(e) => {
+                if (e.key === "Enter") {
+                  handleForgotPassword()
+                }
+              }}
+            />
+          </div>
+          {forgotPasswordMessage && (
+            <div className={`text-sm p-3 rounded ${
+              forgotPasswordMessage.includes("sent") || forgotPasswordMessage.includes("receive")
+                ? "bg-green-500/10 text-green-700 dark:text-green-400"
+                : "bg-red-500/10 text-red-700 dark:text-red-400"
+            }`}>
+              {forgotPasswordMessage}
+            </div>
+          )}
+          <div className="flex gap-3 justify-end">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowForgotPasswordModal(false)
+                setForgotPasswordEmail("")
+                setForgotPasswordMessage("")
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              className="gradient-primary text-primary-foreground"
+              onClick={handleForgotPassword}
+              disabled={!forgotPasswordEmail || forgotPasswordMessage.includes("sent") || forgotPasswordMessage.includes("receive")}
+            >
+              Send Reset Link
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   )
 
   const handleStartWorkout = () => {
@@ -842,6 +934,7 @@ export default function HomePage() {
         </div>
       </div>
 
+      <ForgotPasswordModal />
     </div>
   )
 }
