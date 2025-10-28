@@ -28,7 +28,7 @@ export default function SupportPage() {
             <CardContent className="space-y-4">
               <div>
                 <div className="text-sm font-medium text-muted-foreground">Email</div>
-                <a className="text-lg font-semibold" href="mailto:support@overtrain.app">
+                <a className="text-lg font-semibold" href="mailto:info@overtrain.app">
                   support@overtrain.app
                 </a>
               </div>
@@ -37,7 +37,7 @@ export default function SupportPage() {
                 <p className="text-lg font-semibold">Within 1 business day</p>
               </div>
               <Button asChild className="w-full md:w-auto">
-                <a href="mailto:support@overtrain.app">Email Support</a>
+                <a href="mailto:info@overtrain.app">Email Support</a>
               </Button>
             </CardContent>
           </Card>
@@ -89,7 +89,7 @@ export default function SupportPage() {
               </p>
               <p>
                 You can also email us at{" "}
-                <a className="font-medium text-primary underline" href="mailto:product@overtrain.app">
+                <a className="font-medium text-primary underline" href="mailto:info@overtrain.app">
                   product@overtrain.app
                 </a>{" "}
                 if you prefer to send longer-form product suggestions.

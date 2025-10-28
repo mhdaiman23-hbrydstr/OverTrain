@@ -15,8 +15,8 @@ export default function TermsPage() {
           <p className="text-sm font-semibold uppercase tracking-wide text-primary">Last updated: {lastUpdated}</p>
           <h1 className="text-4xl font-bold tracking-tight md:text-5xl">Terms &amp; Conditions</h1>
           <p className="text-lg text-muted-foreground">
-            These Terms &amp; Conditions (&quot;Terms&quot;) form a legally binding agreement between you and LiftLog
-            Technologies LLC (&quot;OverTrain,&quot; &quot;we,&quot; &quot;us,&quot; or &quot;our&quot;) that governs
+            These Terms &amp; Conditions (&quot;Terms&quot;) form a legally binding agreement between you and Overtrain
+             (&quot;OverTrain,&quot; &quot;we,&quot; &quot;us,&quot; or &quot;our&quot;) that governs
             your access to and use of the OverTrain mobile and web applications, website, and related services (the
             &quot;Services&quot;). By accessing or using the Services, you agree to be bound by these Terms.
           </p>
@@ -85,7 +85,7 @@ export default function TermsPage() {
             <h2 className="text-2xl font-semibold text-foreground">6. Intellectual Property</h2>
             <p>
               The Services, including all software, design elements, trademarks, and content produced by OverTrain, are
-              owned by LiftLog Technologies LLC or our licensors. You receive a limited, non-transferable license to use
+              owned by OverTrain or our licensors. You receive a limited, non-transferable license to use
               the Services for personal, non-commercial purposes. All rights not explicitly granted are reserved.
             </p>
           </section>
@@ -136,8 +136,7 @@ export default function TermsPage() {
           <section className="space-y-3">
             <h2 className="text-2xl font-semibold text-foreground">11. Contact</h2>
             <p>
-              If you have questions about these Terms, contact us at support@overtrain.app or by mail at LiftLog
-              Technologies LLC, Attn: Legal, 100 Market Street, Suite 200, San Francisco, CA 94105.
+              If you have questions about these Terms, contact us at info@overtrain.app or by mail at OverTrain, Attn: M.Aiman Dubailand, Dubai, United. Arab. Emirates.
             </p>
           </section>
         </div>

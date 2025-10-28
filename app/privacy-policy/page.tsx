@@ -15,7 +15,7 @@ export default function PrivacyPolicyPage() {
           <p className="text-sm font-semibold uppercase tracking-wide text-primary">Last updated: {lastUpdated}</p>
           <h1 className="text-4xl font-bold tracking-tight md:text-5xl">Privacy Policy</h1>
           <p className="text-lg text-muted-foreground">
-            OverTrain by LiftLog Technologies LLC (&quot;OverTrain,&quot; &quot;we,&quot; &quot;us,&quot; or
+            OverTrain by SocialSquare (&quot;OverTrain,&quot; &quot;we,&quot; &quot;us,&quot; or
             &quot;our&quot;) powers adaptive strength training experiences. This Privacy Policy explains how we
             collect, use, disclose, and safeguard your information when you use the OverTrain mobile or web
             applications, our website, and related services (collectively, the &quot;Services&quot;).
@@ -159,9 +159,9 @@ export default function PrivacyPolicyPage() {
             <p>
               If you have questions or concerns about this Privacy Policy or our data practices, contact us at:
               <br />
-              <strong>Email:</strong> support@overtrain.app
+              <strong>Email:</strong> info@overtrain.app
               <br />
-              <strong>Mail:</strong> LiftLog Technologies LLC, 100 Market Street, Suite 200, San Francisco, CA 94105
+              <strong>Mail:</strong> Attn: M.Aiman @SocialSquare, Dubailand, Dubai, United. Arab. Emirates
             </p>
           </section>
         </div>
