@@ -114,33 +114,31 @@ export function MobileTooltip({
    * - Escape key → tooltip closes (our handler above)
    *
    * Event handling:
-   * - onClick: Handles click events (secondary fallback)
-   * - onTouchEnd: Primary handler for touch devices (fires when finger lifted)
+   * - onClick: Handles click events (primary for mouse/touch simulation)
+   * - onTouchEnd: Secondary handler for real touch devices (fires when finger lifted)
    * - touchAction: 'manipulation' tells browser not to delay for double-tap
    *
    * aria-expanded: Accessibility - tells screen readers the expanded state
-   * onOpenChange: Radix UI calls this when user clicks outside or internally closes
+   * onOpenChange: Called when tooltip needs to close (outside click, escape key)
    * controlled open prop: We fully control the tooltip state
    *
-   * NOTE: We wrap children in a div to ensure the click/touch handlers attach properly.
-   * Raw SVG icons or elements don't reliably receive event handlers via asChild in Radix UI.
+   * NOTE: We use a div wrapper (NOT asChild) to ensure click/touch handlers work correctly.
+   * Using asChild causes conflicts with Radix UI's trigger mechanism and controlled state.
    */
   if (deviceType === 'touch') {
     return (
       <Tooltip open={open} onOpenChange={setOpen}>
-        <TooltipTrigger asChild>
-          <div
-            onClick={handleTriggerClick}
-            onTouchEnd={handleTriggerClick}
-            aria-expanded={open}
-            role="button"
-            tabIndex={0}
-            className="inline-flex cursor-pointer"
-            style={{ touchAction: 'manipulation' }}
-          >
-            {children}
-          </div>
-        </TooltipTrigger>
+        <div
+          onClick={handleTriggerClick}
+          onTouchEnd={handleTriggerClick}
+          aria-expanded={open}
+          role="button"
+          tabIndex={0}
+          className="inline-flex cursor-pointer"
+          style={{ touchAction: 'manipulation' }}
+        >
+          {children}
+        </div>
         <TooltipContent side={side} className={className}>
           {content}
         </TooltipContent>
