@@ -48,9 +48,9 @@ export class AuthService {
   }
 
   static async signUp(email: string, password: string): Promise<User> {
-    // If Supabase is not configured, use localStorage fallback
+    // Supabase is required for authentication
     if (!supabase) {
-      return this.signUpLocalStorage(email, password)
+      throw new Error("Authentication service is not configured. Please contact support.")
     }
 
     const { data, error } = await supabase.auth.signUp({
@@ -96,9 +96,9 @@ export class AuthService {
   }
 
   static async signIn(email: string, password: string): Promise<User> {
-    // If Supabase is not configured, use localStorage fallback
+    // Supabase is required for authentication
     if (!supabase) {
-      return this.signInLocalStorage(email, password)
+      throw new Error("Authentication service is not configured. Please contact support.")
     }
 
     const { data, error } = await supabase.auth.signInWithPassword({
@@ -369,61 +369,4 @@ export class AuthService {
     }
   }
 
-  // LocalStorage fallback methods
-  private static async signUpLocalStorage(email: string, password: string): Promise<User> {
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-
-    // Check if user already exists
-    const existingUsers = this.getStoredUsers()
-    if (existingUsers.some((u) => u.email === email)) {
-      throw new Error("User already exists")
-    }
-
-    const user: User = {
-      id: Math.random().toString(36).substr(2, 9),
-      email,
-      createdAt: new Date().toISOString(),
-    }
-
-    // Store user in mock database
-    existingUsers.push(user)
-    localStorage.setItem("liftlog_users", JSON.stringify(existingUsers))
-
-    this.setUser(user)
-    return user
-  }
-
-  private static async signInLocalStorage(email: string, password: string): Promise<User> {
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-
-    // Validate credentials
-    const existingUsers = this.getStoredUsers()
-    const user = existingUsers.find((u) => u.email === email)
-
-    if (!user) {
-      throw new Error("User not found. Please sign up first.")
-    }
-
-    // In a real app, you'd validate the password hash here
-    // For now, we just check if a password was provided
-    if (!password) {
-      throw new Error("Password is required")
-    }
-
-    this.setUser(user)
-    return user
-  }
-
-  private static getStoredUsers(): User[] {
-    if (typeof window === "undefined") return []
-
-    try {
-      const stored = localStorage.getItem("liftlog_users")
-      return stored ? JSON.parse(stored) : []
-    } catch {
-      return []
-    }
-  }
 }
