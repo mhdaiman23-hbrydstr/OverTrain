@@ -1,6 +1,6 @@
-# LiftLog PWA Setup Guide
+# OverTrain PWA Setup Guide
 
-This guide explains the Progressive Web App (PWA) setup for LiftLog, including web installation, offline support, and preparation for app store deployment.
+This guide explains the Progressive Web App (PWA) setup for OverTrain: Go One More, including web installation, offline support, and preparation for app store deployment.
 
 ## What's Included
 

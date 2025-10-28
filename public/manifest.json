@@ -1,7 +1,7 @@
 {
-  "name": "LiftLog - Your Personal Fitness Tracker",
-  "short_name": "LiftLog",
-  "description": "Track workouts, build programs, and achieve your fitness goals with LiftLog",
+  "name": "OverTrain: Go One More",
+  "short_name": "OverTrain",
+  "description": "Track workouts, build programs, and achieve your fitness goals with OverTrain",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

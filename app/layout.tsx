@@ -19,14 +19,14 @@ const montserrat = Montserrat({
 })
 
 export const metadata: Metadata = {
-  title: "LiftLog - Your Personal Fitness Tracker",
-  description: "Track workouts, build programs, and achieve your fitness goals with LiftLog",
+  title: "OverTrain: Go One More - Your Personal Fitness Tracker",
+  description: "Track workouts, build programs, and achieve your fitness goals with OverTrain",
   generator: "v0.app",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "LiftLog",
+    title: "OverTrain",
   },
   formatDetection: {
     telephone: false,
@@ -57,14 +57,14 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://liftlog.app",
-    title: "LiftLog - Your Personal Fitness Tracker",
+    url: "https://overtrain.app",
+    title: "OverTrain: Go One More - Your Personal Fitness Tracker",
     description: "Track workouts, build programs, and achieve your fitness goals",
-    siteName: "LiftLog",
+    siteName: "OverTrain",
   },
   twitter: {
     card: "summary_large_image",
-    title: "LiftLog - Your Personal Fitness Tracker",
+    title: "OverTrain: Go One More - Your Personal Fitness Tracker",
     description: "Track workouts, build programs, and achieve your fitness goals",
   },
 }

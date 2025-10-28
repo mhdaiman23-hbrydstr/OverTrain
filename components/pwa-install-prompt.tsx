@@ -62,13 +62,13 @@ export function PWAInstallPrompt() {
   const handleIOSInstall = () => {
     // For iOS, show instructions since there's no native prompt
     const message = `
-To add LiftLog to your home screen:
+To add OverTrain to your home screen:
 
 1. Tap the Share button at the bottom of your screen
 2. Scroll and tap "Add to Home Screen"
 3. Tap "Add" in the top right
 
-LiftLog will now appear as an app on your home screen!
+OverTrain will now appear as an app on your home screen!
     `.trim()
 
     alert(message)
@@ -84,7 +84,7 @@ LiftLog will now appear as an app on your home screen!
         <div className="flex items-center gap-3 flex-1">
           <Download className="h-5 w-5 text-primary flex-shrink-0" />
           <div className="flex-1">
-            <p className="text-sm font-medium">Install LiftLog App</p>
+            <p className="text-sm font-medium">Install OverTrain App</p>
             <p className="text-xs text-muted-foreground">Get app-like experience with offline support</p>
           </div>
         </div>
@@ -115,7 +115,7 @@ LiftLog will now appear as an app on your home screen!
       <div className="flex items-center gap-3 flex-1">
         <Download className="h-5 w-5 text-primary flex-shrink-0" />
         <div className="flex-1">
-          <p className="text-sm font-medium">Install LiftLog App</p>
+          <p className="text-sm font-medium">Install OverTrain App</p>
           <p className="text-xs text-muted-foreground">Get app-like experience with offline support</p>
         </div>
       </div>

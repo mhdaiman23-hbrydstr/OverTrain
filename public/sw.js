@@ -1,8 +1,8 @@
-// Service Worker for LiftLog PWA
+// Service Worker for OverTrain PWA
 // Handles offline functionality and caching
 
-const CACHE_NAME = 'liftlog-v1'
-const RUNTIME_CACHE = 'liftlog-runtime-v1'
+const CACHE_NAME = 'overtrain-v1'
+const RUNTIME_CACHE = 'overtrain-runtime-v1'
 const ASSETS_TO_CACHE = [
   '/',
   '/manifest.json',

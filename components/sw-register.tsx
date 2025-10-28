@@ -47,7 +47,7 @@ export function ServiceWorkerRegister() {
               message.className =
                 "fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:max-w-md bg-primary text-primary-foreground rounded-lg p-4 shadow-lg z-50"
               message.innerHTML = `
-                <p class="text-sm font-medium mb-3">LiftLog app updated</p>
+                <p class="text-sm font-medium mb-3">OverTrain app updated</p>
                 <button id="update-btn" class="text-xs bg-white text-primary px-3 py-1 rounded font-medium">Refresh</button>
               `
 
