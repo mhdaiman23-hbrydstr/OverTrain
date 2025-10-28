@@ -78,7 +78,7 @@ export class AuthService {
 
     // Log audit event for user signup
     try {
-      const { logAuditEvent, getClientIP } = await import('./audit-logger')
+      const { logAuditEvent } = await import('./audit-logger').catch(() => ({ logAuditEvent: async () => {} }))
       await logAuditEvent({
         action: 'USER_SIGNUP',
         userId: user.id,
@@ -135,7 +135,7 @@ export class AuthService {
 
     // Log audit event for user login
     try {
-      const { logAuditEvent } = await import('./audit-logger')
+      const { logAuditEvent } = await import('./audit-logger').catch(() => ({ logAuditEvent: async () => {} }))
       await logAuditEvent({
         action: 'USER_LOGIN',
         userId: user.id,

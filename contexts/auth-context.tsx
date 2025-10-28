@@ -270,7 +270,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Log audit event for user logout
     if (state.user?.id) {
       try {
-        const { logAuditEvent } = await import('@/lib/audit-logger')
+        const { logAuditEvent } = await import('@/lib/audit-logger').catch(() => ({ logAuditEvent: async () => {} }))
         await logAuditEvent({
           action: 'USER_LOGOUT',
           userId: state.user.id,
@@ -298,7 +298,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       // Log audit event for profile update
       try {
-        const { logAuditEvent } = await import('@/lib/audit-logger')
+        const { logAuditEvent } = await import('@/lib/audit-logger').catch(() => ({ logAuditEvent: async () => {} }))
         await logAuditEvent({
           action: 'PROFILE_UPDATED',
           userId: state.user.id,
