@@ -19,8 +19,18 @@ export function PWAInstallPrompt() {
     // Log environment for debugging
     const environment = PWADetection.getEnvironment()
     const environmentDesc = PWADetection.getEnvironmentDescription()
+    const userAgent = navigator.userAgent
+
+    console.log(`[PWA] ===== PWA Initialization =====`)
     console.log(`[PWA] Environment: ${environment} (${environmentDesc})`)
+    console.log(`[PWA] User Agent: ${userAgent}`)
     console.log(`[PWA] Should show install prompt: ${PWADetection.shouldShowInstallPrompt()}`)
+    console.log(`[PWA] Is iOS: ${PWADetection.isIOS()}`)
+    console.log(`[PWA] Is Android: ${PWADetection.isAndroid()}`)
+    console.log(`[PWA] Is WebView: ${PWADetection.isWebView()}`)
+    console.log(`[PWA] Is Capacitor: ${PWADetection.isCapacitor()}`)
+    console.log(`[PWA] Is Standalone: ${PWADetection.isStandalone()}`)
+    console.log(`[PWA] Location Origin: ${typeof window !== 'undefined' ? window.location.origin : 'N/A'}`)
 
     // If not in browser environment, don't set up install prompt listeners
     if (!PWADetection.shouldShowInstallPrompt()) {
@@ -32,11 +42,19 @@ export function PWAInstallPrompt() {
     const isApple = PWADetection.isIOS()
     setIsIOS(isApple)
 
+    if (isApple) {
+      console.log("[PWA] iOS detected - will show manual install instructions")
+      setShowPrompt(true)
+    } else {
+      console.log("[PWA] Android/Desktop detected - setting up beforeinstallprompt listener")
+    }
+
     // Handle beforeinstallprompt for Android and other PWA-capable browsers
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault()
       const event = e as BeforeInstallPromptEvent
-      console.log("[PWA] beforeinstallprompt event received")
+      console.log("[PWA] ✅ beforeinstallprompt event received!")
+      console.log("[PWA] Install prompt will now be shown")
       setDeferredPrompt(event)
       setShowPrompt(true)
     }
@@ -45,13 +63,26 @@ export function PWAInstallPrompt() {
 
     // Handle app already installed
     const handleAppInstalled = () => {
-      console.log("[PWA] App installed successfully")
+      console.log("[PWA] ✅ App installed successfully")
       setDeferredPrompt(null)
       setShowPrompt(false)
     }
     window.addEventListener("appinstalled", handleAppInstalled)
 
+    // Log if beforeinstallprompt doesn't fire after 5 seconds
+    const timeoutId = setTimeout(() => {
+      if (!deferredPrompt) {
+        console.warn("[PWA] ⚠️ beforeinstallprompt event not received after 5 seconds")
+        console.warn("[PWA] Possible reasons:")
+        console.warn("  - Service worker not registered")
+        console.warn("  - Manifest.json not found or invalid")
+        console.warn("  - App criteria not met (check Lighthouse)")
+        console.warn("  - Browser doesn't support install prompt")
+      }
+    }, 5000)
+
     return () => {
+      clearTimeout(timeoutId)
       window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt)
       window.removeEventListener("appinstalled", handleAppInstalled)
     }

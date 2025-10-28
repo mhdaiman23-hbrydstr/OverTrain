@@ -173,7 +173,7 @@ export class AuthService {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: typeof window !== 'undefined' ? window.location.origin : undefined,
+        redirectTo: typeof window !== 'undefined' ? `${window.location.origin}/auth/callback` : undefined,
         queryParams: {
           access_type: 'offline',
           prompt: 'consent',
@@ -183,8 +183,8 @@ export class AuthService {
 
     if (error) throw error
 
-    // User will be redirected to Google, then back to your app
-    // The actual user data will be available after redirect
+    // User will be redirected to Google, then back to /auth/callback
+    // The callback route handles the session and redirects to dashboard
   }
 
   static async handleOAuthCallback(): Promise<User | null> {
