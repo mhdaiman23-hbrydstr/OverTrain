@@ -294,7 +294,7 @@ export class ExerciseNotesService {
         .eq('program_instance_id', programInstanceId)
         .eq('exercise_id', exerciseId)
         .eq('week', week)
-        .single()
+        .maybeSingle()
 
       if (error) {
         if (error.code === 'PGRST116') {
@@ -402,7 +402,7 @@ export class ExerciseNotesService {
           .eq('exercise_id', exerciseId)
           .eq('week', previousWeek)
           .eq('is_pinned', true)
-          .single()
+          .maybeSingle()
 
         if (!error && data) {
           pinnedNote = {

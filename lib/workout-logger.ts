@@ -1215,6 +1215,29 @@ export class WorkoutLogger implements SetSyncProvider {
         await this.clearCurrentWorkout(workout.week, workout.day, userId)
       }
 
+      // Log audit event for workout completion
+      if (userId) {
+        try {
+          const { logAuditEvent } = await import('./audit-logger')
+          await logAuditEvent({
+            action: 'WORKOUT_COMPLETED',
+            userId: userId,
+            resourceType: 'WORKOUT',
+            resourceId: workoutId,
+            details: {
+              week: workout.week,
+              day: workout.day,
+              exercisesCompleted: workout.exercises.length,
+            },
+            ipAddress: null,
+            userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : undefined,
+          })
+        } catch (auditError) {
+          console.error('[WorkoutLogger] Failed to log workout completion audit event:', auditError)
+          // Don't throw - audit logging shouldn't break workout completion
+        }
+      }
+
       return workout
     } catch (error) {
       console.error("[WorkoutLogger.completeWorkout] Failed to complete workout:", error)

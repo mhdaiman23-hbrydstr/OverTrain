@@ -26,7 +26,13 @@
       "Bash(curl:*)",
       "Bash(git restore:*)",
       "Bash(sed:*)",
-      "Bash(perl:*)"
+      "Bash(perl:*)",
+      "Bash(npm install:*)",
+      "Bash(cat:*)",
+      "Bash(timeout 10 npm run start:*)",
+      "Bash(while read:*)",
+      "Bash(done)",
+      "Bash(xargs:*)"
     ],
     "deny": [],
     "ask": []

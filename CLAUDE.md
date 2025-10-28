@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-LiftLog is a Next.js 14 fitness tracking application with Supabase authentication. It provides gender-specific workout programs, progress tracking, and analytics for gym workouts.
+OverTrain: Go One More is a Next.js 14 fitness tracking application with Supabase authentication. It provides gender-specific workout programs, progress tracking, and analytics for gym workouts.
 
 ## Development Commands
 

@@ -76,6 +76,21 @@ export class AuthService {
       console.error('Failed to create profile:', profileError)
     }
 
+    // Log audit event for user signup
+    try {
+      const { logAuditEvent, getClientIP } = await import('./audit-logger')
+      await logAuditEvent({
+        action: 'USER_SIGNUP',
+        userId: user.id,
+        details: { email: user.email },
+        ipAddress: null, // IP not available in client-side auth
+        userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : undefined,
+      })
+    } catch (auditError) {
+      console.error('Failed to log signup audit event:', auditError)
+      // Don't throw - audit logging shouldn't break signup
+    }
+
     this.setUser(user)
     return user
   }
@@ -116,6 +131,21 @@ export class AuthService {
       },
       preferredUnit: profile?.preferred_unit || "metric",
       createdAt: data.user.created_at,
+    }
+
+    // Log audit event for user login
+    try {
+      const { logAuditEvent } = await import('./audit-logger')
+      await logAuditEvent({
+        action: 'USER_LOGIN',
+        userId: user.id,
+        details: { method: 'email' },
+        ipAddress: null, // IP not available in client-side auth
+        userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : undefined,
+      })
+    } catch (auditError) {
+      console.error('Failed to log login audit event:', auditError)
+      // Don't throw - audit logging shouldn't break login
     }
 
     this.setUser(user)

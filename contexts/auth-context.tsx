@@ -262,8 +262,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  const signOut = () => {
+  const signOut = async () => {
     SessionManager.stopMonitoring() // Stop session monitoring
+
+    // Log audit event for user logout
+    if (state.user?.id) {
+      try {
+        const { logAuditEvent } = await import('@/lib/audit-logger')
+        await logAuditEvent({
+          action: 'USER_LOGOUT',
+          userId: state.user.id,
+          ipAddress: null, // IP not available in client-side
+          userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : undefined,
+        })
+      } catch (auditError) {
+        console.error('Failed to log logout audit event:', auditError)
+        // Don't throw - audit logging shouldn't break logout
+      }
+    }
+
     AuthService.signOut()
     setState({ user: null, isLoading: false })
     setDataLoaded(false) // Reset data loaded flag for next login
@@ -276,6 +293,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await AuthService.updateProfile(state.user.id, updates)
       const updatedUser = { ...state.user, ...updates }
       setState((prev) => ({ ...prev, user: updatedUser }))
+
+      // Log audit event for profile update
+      try {
+        const { logAuditEvent } = await import('@/lib/audit-logger')
+        await logAuditEvent({
+          action: 'PROFILE_UPDATED',
+          userId: state.user.id,
+          resourceType: 'PROFILE',
+          details: { changedFields: Object.keys(updates) },
+          ipAddress: null, // IP not available in client-side
+          userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : undefined,
+        })
+      } catch (auditError) {
+        console.error('Failed to log profile update audit event:', auditError)
+        // Don't throw - audit logging shouldn't break profile update
+      }
     } catch (error) {
       console.error('Failed to update user:', error)
       throw error

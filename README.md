@@ -1,4 +1,4 @@
-# LiftLog
+# OverTrain: Go One More
 
 **Modern workout tracking application for hypertrophy, strength, and athletic training**
 
@@ -71,7 +71,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 ## 📁 Project Structure
 
 ```
-LiftLog/
+OverTrain/
 ├── app/                          # Next.js app directory
 │   ├── page.tsx                 # Main app shell with view routing
 │   └── layout.tsx               # Root layout with providers
@@ -212,7 +212,7 @@ localStorage.clear()
 location.reload()
 
 // Development tools
-window.LL.clearLocal()                 // Clear all LiftLog cache
+window.LL.clearLocal()                 // Clear all OverTrain cache
 window.LL.getLocalStorageInfo()        // View storage keys
 window.LL.getCacheInfo()                // View cache sizes (KB)
 ```

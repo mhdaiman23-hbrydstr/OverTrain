@@ -569,6 +569,29 @@ export class ProgramStateManager {
         await this.syncToDatabase(resolvedUserId)
       }
 
+      // Log audit event for program creation
+      if (resolvedUserId) {
+        try {
+          const { logAuditEvent } = await import('./audit-logger')
+          await logAuditEvent({
+            action: 'PROGRAM_CREATED',
+            userId: resolvedUserId,
+            resourceType: 'PROGRAM',
+            resourceId: templateId,
+            details: {
+              programName: template.name,
+              daysPerWeek: Object.keys(template.schedule).length,
+              totalWeeks: template.weeks,
+            },
+            ipAddress: null,
+            userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : undefined,
+          })
+        } catch (auditError) {
+          console.error('[ProgramState] Failed to log program creation audit event:', auditError)
+          // Don't throw - audit logging shouldn't break program creation
+        }
+      }
+
       // Dispatch programChanged event AFTER all state is set up
       window.dispatchEvent(new Event("programChanged"))
 
@@ -865,9 +888,26 @@ export class ProgramStateManager {
       this.saveProgramHistory(filteredHistory)
     }
 
+    // Log audit event for program deletion
+    try {
+      const { logAuditEvent } = await import('./audit-logger')
+      await logAuditEvent({
+        action: 'PROGRAM_DELETED',
+        userId: userId,
+        resourceType: 'PROGRAM',
+        resourceId: templateId,
+        details: { programName: targetTemplate.name },
+        ipAddress: null,
+        userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : undefined,
+      })
+    } catch (auditError) {
+      console.error('[ProgramState] Failed to log program deletion audit event:', auditError)
+      // Don't throw - audit logging shouldn't break program deletion
+    }
+
     // Dispatch events to update UI
     window.dispatchEvent(new Event('programChanged'))
-    
+
     console.log(`[ProgramState] Successfully deleted program ${templateId} from user ${userId}'s profile`)
   }
 
