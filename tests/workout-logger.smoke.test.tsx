@@ -178,7 +178,10 @@ vi.mock("@/lib/gym-templates", () => ({
 }))
 
 vi.mock("@/lib/exercise-muscle-groups", () => ({
-  getExerciseMuscleGroup: () => "Legs",
+  getExerciseMuscleGroup: () => "LEGS",
+  getMuscleGroupLabel: (value?: string | null) => value?.toLowerCase() ?? "legs",
+  getMuscleGroupAccentClass: () => "bg-blue-500",
+  getMuscleGroupTextClass: () => "text-blue-700",
 }))
 
 vi.mock("@/lib/progression-router", () => ({
