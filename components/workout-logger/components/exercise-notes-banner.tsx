@@ -1,6 +1,7 @@
 ﻿'use client'
 
 import { ExerciseNote } from '@/lib/types/progression'
+import { Pin } from 'lucide-react'
 
 interface ExerciseNotesBannerProps {
   note: ExerciseNote
@@ -27,9 +28,10 @@ export function ExerciseNotesBanner({ note, onEdit }: ExerciseNotesBannerProps) 
       <div className="flex items-center gap-2">
         <span className="text-xs font-semibold flex-shrink-0">NOTE</span>
         <span className="flex-1 truncate">{note.noteText}</span>
-        {note.isPinned && <span className="text-xs flex-shrink-0">ðŸ“Œ</span>}
+        {note.isPinned && <Pin className="h-4 w-4 flex-shrink-0 text-yellow-600 dark:text-yellow-200" aria-label="Pinned" /> }
       </div>
     </button>
   )
 }
+
 
