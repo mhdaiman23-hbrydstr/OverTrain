@@ -6,6 +6,7 @@ import { AuthProvider } from "@/contexts/auth-context"
 import { Toaster } from "@/components/ui/toaster"
 import { TemplateCacheWarmer } from "@/components/template-cache-warmer"
 import { ThemeProvider } from "@/components/theme-provider"
+import { TooltipProvider } from "@/components/ui/tooltip"
 import "./globals.css"
 
 const montserrat = Montserrat({
@@ -43,9 +44,11 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            <TemplateCacheWarmer />
-            <Suspense fallback={null}>{children}</Suspense>
-            <Toaster />
+            <TooltipProvider>
+              <TemplateCacheWarmer />
+              <Suspense fallback={null}>{children}</Suspense>
+              <Toaster />
+            </TooltipProvider>
           </ThemeProvider>
         </AuthProvider>
       </body>
