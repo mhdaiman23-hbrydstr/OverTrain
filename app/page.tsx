@@ -673,7 +673,7 @@ export default function HomePage() {
               <div className="text-sm text-muted-foreground">Break Your Limits</div>
             </div>
             <div className="space-y-2">
-              <div className="text-sm text-muted-foreground">&copy; 2024 OverTrain</div>
+              <div className="text-sm text-muted-foreground">&copy; 2025 OverTrain</div>
               <div className="text-xs text-muted-foreground">All rights reserved</div>
             </div>
             <div className="space-y-2">

@@ -33,3 +33,5 @@ export function register() {
     replaysOnErrorSampleRate: 1.0,
   })
 }
+
+export const onRouterTransitionStart = Sentry.captureRouterTransitionStart

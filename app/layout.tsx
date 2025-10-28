@@ -9,6 +9,7 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { PWAInstallPrompt } from "@/components/pwa-install-prompt"
 import { ServiceWorkerRegister } from "@/components/sw-register"
+import { Analytics } from "@vercel/analytics/next"
 import "./globals.css"
 
 const montserrat = Montserrat({
