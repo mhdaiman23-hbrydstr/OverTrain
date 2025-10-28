@@ -253,11 +253,18 @@ export function ExerciseGroups({
                                 <Input
                                   type="number"
                                   value={set.weight || ""}
-                                  onChange={(e) => onSetUpdate(exercise.id, set.id, "weight", Number.parseFloat(e.target.value) || 0)}
+                                  onChange={(e) => {
+                                    let value = Number.parseFloat(e.target.value) || 0
+                                    // Clamp value: no negatives, max 1000
+                                    value = Math.max(0, Math.min(1000, value))
+                                    onSetUpdate(exercise.id, set.id, "weight", value)
+                                  }}
                                   onBlur={() => onWeightBlur(exercise.id, set.id)}
                                   className="text-center h-10 bg-muted/30 border-border/50"
                                   placeholder={(exercise as any).suggestedWeight && (exercise as any).suggestedWeight > 0 ? `${(exercise as any).suggestedWeight}` : ""}
                                   step="2.5"
+                                  min="0"
+                                  max="1000"
                                   disabled={isWorkoutBlocked}
                                   title={(exercise as any).progressionNote ||
                                     ((exercise as any).suggestedWeight && (exercise as any).suggestedWeight > 0
@@ -269,9 +276,16 @@ export function ExerciseGroups({
                                 <Input
                                   type="number"
                                   value={set.reps || ""}
-                                  onChange={(e) => onSetUpdate(exercise.id, set.id, "reps", Number.parseInt(e.target.value) || 0)}
+                                  onChange={(e) => {
+                                    let value = Number.parseInt(e.target.value) || 0
+                                    // Clamp value: no negatives, max 1000
+                                    value = Math.max(0, Math.min(1000, value))
+                                    onSetUpdate(exercise.id, set.id, "reps", value)
+                                  }}
                                   className="text-center h-10 bg-muted/30 border-border/50"
                                   placeholder=""
+                                  min="0"
+                                  max="1000"
                                   disabled={isWorkoutBlocked}
                                 />
                               </div>

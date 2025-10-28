@@ -890,7 +890,15 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
   const handleSetUpdate = (exerciseId: string, setId: string, field: "reps" | "weight", value: number) => {
     if (!workout || !workout.exercises) return
 
-    console.log("handleSetUpdate called:", { exerciseId, setId, field, value, isWorkoutBlocked })
+    // Validate input: ensure non-negative and within bounds (0-1000)
+    let validatedValue = value
+    if (validatedValue < 0 || !Number.isFinite(validatedValue)) {
+      validatedValue = 0
+    } else if (validatedValue > 1000) {
+      validatedValue = 1000
+    }
+
+    console.log("handleSetUpdate called:", { exerciseId, setId, field, value: validatedValue, isWorkoutBlocked })
 
     const exercise = workout.exercises.find((ex) => ex.id === exerciseId)
     if (!exercise) return
@@ -905,7 +913,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
       if (exercise.suggestedWeight) {
         const tierRules = resolveTierRules(exercise)
         const withinBounds = isWeightWithinBounds(
-          value,
+          validatedValue,
           exercise.suggestedWeight,
           tierRules.adjustmentBounds
         )
@@ -937,7 +945,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
 
           const compensation = calculateVolumeCompensation(
             targetVolume,
-            value,
+            validatedValue,
             baseReps,
             tierRules.maxRepAdjustment
           )
@@ -974,7 +982,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
     // Handle manual reps changes (detect override)
     if (field === "reps") {
       const compensation = volumeCompensation[exerciseId] || volumeCompensation[volumeKey]
-      if (compensation && value !== compensation.adjustedReps) {
+      if (compensation && validatedValue !== compensation.adjustedReps) {
         // User manually overrode the volume-compensated reps
         console.log("Manual reps override detected")
         setUserOverrides(prev => ({ ...prev, [exerciseId]: true }))
@@ -988,7 +996,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
 
     // Update with skipDbSync=true to only save to localStorage
     const updateSetAsync = async () => {
-      const updates: any = { [field]: value }
+      const updates: any = { [field]: validatedValue }
       
       // Handle rep updates based on weight changes
       if (field === "weight") {
