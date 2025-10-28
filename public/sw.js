@@ -2,7 +2,6 @@
 // Handles offline functionality and caching
 
 const CACHE_NAME = 'overtrain-v1'
-const RUNTIME_CACHE = 'overtrain-runtime-v1'
 const ASSETS_TO_CACHE = [
   '/',
   '/manifest.json',
@@ -31,7 +30,7 @@ self.addEventListener('activate', (event) => {
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME && cacheName !== RUNTIME_CACHE) {
+          if (cacheName !== CACHE_NAME) {
             console.log('[SW] Deleting old cache:', cacheName)
             return caches.delete(cacheName)
           }
@@ -43,7 +42,7 @@ self.addEventListener('activate', (event) => {
   )
 })
 
-// Fetch event - serve from cache, fallback to network
+// Fetch event - network-first strategy, fallback to cache
 self.addEventListener('fetch', (event) => {
   const { request } = event
   const url = new URL(request.url)
@@ -53,66 +52,21 @@ self.addEventListener('fetch', (event) => {
     return
   }
 
-  // Skip API calls for now (they should use custom handlers)
+  // Skip API calls - let them go through normally
   if (url.pathname.startsWith('/api/')) {
-    event.respondWith(
-      fetch(request)
-        .then((response) => {
-          // Cache successful API responses in runtime cache
-          if (response.ok) {
-            const cache = caches.open(RUNTIME_CACHE)
-            // Clone before consuming the response
-            cache.then((c) => c.put(request, response.clone()))
-          }
-          return response
-        })
-        .catch(() => {
-          // Fallback to cached response if offline
-          return caches.match(request).then((response) => {
-            return response || new Response('Offline - data not available', { status: 503 })
-          })
-        })
-    )
+    event.respondWith(fetch(request).catch(() => {
+      return new Response('Offline - data not available', { status: 503 })
+    }))
     return
   }
 
-  // Cache-first strategy for static assets
-  if (
-    url.pathname.match(/\.(js|css|png|jpg|jpeg|svg|gif|webp|ico|woff|woff2)$/i) ||
-    url.pathname.includes('_next/')
-  ) {
-    event.respondWith(
-      caches.match(request).then((response) => {
-        if (response) {
-          return response
-        }
-
-        return fetch(request).then((response) => {
-          // Cache successful responses (clone before consuming)
-          if (response.ok) {
-            const cache = caches.open(CACHE_NAME)
-            // Need to clone the response before storing to avoid "body already used" error
-            cache.then((c) => c.put(request, response.clone()))
-          }
-          return response
-        }).catch(() => {
-          // Return a placeholder for failed assets
-          return new Response('Asset not available offline', { status: 503 })
-        })
-      })
-    )
-    return
-  }
-
-  // Network-first strategy for HTML pages
+  // Network-first strategy for all requests
   event.respondWith(
     fetch(request)
       .then((response) => {
-        // Cache successful HTML responses (clone before consuming)
-        if (response.ok && (response.type === 'basic' || response.type === 'cors')) {
-          const cache = caches.open(RUNTIME_CACHE)
-          // Clone before storing to avoid "body already used" error
-          cache.then((c) => c.put(request, response.clone()))
+        // Don't cache responses with errors
+        if (!response || response.status !== 200 || response.type === 'error') {
+          return response
         }
         return response
       })
