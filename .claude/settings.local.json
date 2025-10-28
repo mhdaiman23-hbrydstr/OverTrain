@@ -32,7 +32,10 @@
       "Bash(timeout 10 npm run start:*)",
       "Bash(while read:*)",
       "Bash(done)",
-      "Bash(xargs:*)"
+      "Bash(xargs:*)",
+      "Bash(awk:*)",
+      "Bash(git log:*)",
+      "Bash(git stash:*)"
     ],
     "deny": [],
     "ask": []
