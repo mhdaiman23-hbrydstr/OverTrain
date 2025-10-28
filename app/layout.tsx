@@ -7,6 +7,8 @@ import { Toaster } from "@/components/ui/toaster"
 import { TemplateCacheWarmer } from "@/components/template-cache-warmer"
 import { ThemeProvider } from "@/components/theme-provider"
 import { TooltipProvider } from "@/components/ui/tooltip"
+import { PWAInstallPrompt } from "@/components/pwa-install-prompt"
+import { ServiceWorkerRegister } from "@/components/sw-register"
 import "./globals.css"
 
 const montserrat = Montserrat({
@@ -20,6 +22,51 @@ export const metadata: Metadata = {
   title: "LiftLog - Your Personal Fitness Tracker",
   description: "Track workouts, build programs, and achieve your fitness goals with LiftLog",
   generator: "v0.app",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "LiftLog",
+  },
+  formatDetection: {
+    telephone: false,
+  },
+  icons: {
+    icon: "/favicon.ico",
+    apple: "/icons/apple-touch-icon.png",
+    other: [
+      {
+        rel: "apple-touch-icon",
+        url: "/icons/apple-touch-icon.png",
+        sizes: "180x180",
+      },
+      {
+        rel: "icon",
+        type: "image/png",
+        sizes: "192x192",
+        url: "/icons/icon-192x192.png",
+      },
+      {
+        rel: "icon",
+        type: "image/png",
+        sizes: "512x512",
+        url: "/icons/icon-512x512.png",
+      },
+    ],
+  },
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: "https://liftlog.app",
+    title: "LiftLog - Your Personal Fitness Tracker",
+    description: "Track workouts, build programs, and achieve your fitness goals",
+    siteName: "LiftLog",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "LiftLog - Your Personal Fitness Tracker",
+    description: "Track workouts, build programs, and achieve your fitness goals",
+  },
 }
 
 // Ensure proper viewport sizing and safe-area handling on iOS
@@ -46,8 +93,10 @@ export default function RootLayout({
           >
             <TooltipProvider>
               <TemplateCacheWarmer />
+              <ServiceWorkerRegister />
               <Suspense fallback={null}>{children}</Suspense>
               <Toaster />
+              <PWAInstallPrompt />
             </TooltipProvider>
           </ThemeProvider>
         </AuthProvider>
