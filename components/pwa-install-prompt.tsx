@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { X, Download } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { PWADetection } from "@/lib/pwa-detection"
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>
@@ -15,14 +16,27 @@ export function PWAInstallPrompt() {
   const [isIOS, setIsIOS] = useState(false)
 
   useEffect(() => {
+    // Log environment for debugging
+    const environment = PWADetection.getEnvironment()
+    const environmentDesc = PWADetection.getEnvironmentDescription()
+    console.log(`[PWA] Environment: ${environment} (${environmentDesc})`)
+    console.log(`[PWA] Should show install prompt: ${PWADetection.shouldShowInstallPrompt()}`)
+
+    // If not in browser environment, don't set up install prompt listeners
+    if (!PWADetection.shouldShowInstallPrompt()) {
+      console.log("[PWA] Skipping install prompt setup (running as app or in webview)")
+      return
+    }
+
     // Check if it's iOS
-    const isApple = /iPad|iPhone|iPod/.test(navigator.userAgent)
+    const isApple = PWADetection.isIOS()
     setIsIOS(isApple)
 
     // Handle beforeinstallprompt for Android and other PWA-capable browsers
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault()
       const event = e as BeforeInstallPromptEvent
+      console.log("[PWA] beforeinstallprompt event received")
       setDeferredPrompt(event)
       setShowPrompt(true)
     }
@@ -30,14 +44,16 @@ export function PWAInstallPrompt() {
     window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt)
 
     // Handle app already installed
-    window.addEventListener("appinstalled", () => {
+    const handleAppInstalled = () => {
+      console.log("[PWA] App installed successfully")
       setDeferredPrompt(null)
       setShowPrompt(false)
-    })
+    }
+    window.addEventListener("appinstalled", handleAppInstalled)
 
     return () => {
       window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt)
-      window.removeEventListener("appinstalled", () => {})
+      window.removeEventListener("appinstalled", handleAppInstalled)
     }
   }, [])
 
