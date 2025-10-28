@@ -25,7 +25,9 @@
 **What To Do**:
 1. Get an Android phone with Chrome browser
 2. Open `https://overtrainapp.vercel.app`
-3. Press F12 to open DevTools
+3. **Open DevTools** - See [ANDROID_DEVTOOLS_QUICK_GUIDE.md](./docs/ANDROID_DEVTOOLS_QUICK_GUIDE.md) for how
+   - **Quick**: Tap three dots (⋮) in Chrome → "Developer tools"
+   - **If that doesn't work**: Settings → About phone → Tap Build number 7 times → Enable developer options
 4. Go to Console tab
 5. Look for `[PWA]` messages after 5 seconds
 6. They'll tell you exactly what's wrong
@@ -58,8 +60,9 @@
 - **Diagnostic**: [GOOGLE_OAUTH_DIAGNOSTIC.md](./docs/GOOGLE_OAUTH_DIAGNOSTIC.md) (20 min)
 
 ### For PWA Issues
-- **Quick**: [ANDROID_PWA_DEBUGGING.md](./docs/ANDROID_PWA_DEBUGGING.md) → Quick Check (5 min)
-- **Detailed**: Full [ANDROID_PWA_DEBUGGING.md](./docs/ANDROID_PWA_DEBUGGING.md) (40 min)
+- **How to open DevTools on Android**: [ANDROID_DEVTOOLS_QUICK_GUIDE.md](./docs/ANDROID_DEVTOOLS_QUICK_GUIDE.md) (3 methods, 5 min)
+- **Quick PWA test**: [ANDROID_PWA_DEBUGGING.md](./docs/ANDROID_PWA_DEBUGGING.md) → Quick Check (5 min)
+- **Detailed PWA diagnosis**: Full [ANDROID_PWA_DEBUGGING.md](./docs/ANDROID_PWA_DEBUGGING.md) (40 min)
 
 ### Overview Documents
 - [TROUBLESHOOTING_QUICK_START.md](./docs/TROUBLESHOOTING_QUICK_START.md)
