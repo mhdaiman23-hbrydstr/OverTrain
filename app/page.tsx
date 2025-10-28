@@ -36,7 +36,6 @@ export default function HomePage() {
   const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false)
   const [forgotPasswordEmail, setForgotPasswordEmail] = useState("")
   const [forgotPasswordMessage, setForgotPasswordMessage] = useState("")
-  const [authTab, setAuthTab] = useState("login")
 
   const [currentView, setCurrentView] = useState<
     "dashboard" | "programs" | "workout" | "analytics" | "train" | "profile" | null
@@ -226,7 +225,7 @@ export default function HomePage() {
   }
 
   const AuthTabs = () => (
-    <Tabs value={authTab} onValueChange={setAuthTab} className="w-full">
+    <Tabs defaultValue="login" className="w-full">
       <TabsList className="grid w-full grid-cols-2">
         <TabsTrigger value="login">Sign In</TabsTrigger>
         <TabsTrigger value="signup">Sign Up</TabsTrigger>
