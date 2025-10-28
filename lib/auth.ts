@@ -369,4 +369,96 @@ export class AuthService {
     }
   }
 
+  // Password Reset Functions
+  static async requestPasswordReset(email: string): Promise<{ success: boolean; message: string }> {
+    if (!supabase) {
+      throw new Error("Authentication service is not configured")
+    }
+
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${typeof window !== 'undefined' ? window.location.origin : ''}/auth/reset-password`,
+      })
+
+      if (error) {
+        // Don't reveal if email exists (security best practice)
+        console.error('[Auth] Password reset error:', error)
+        return {
+          success: true,
+          message: 'If an account exists with that email, you will receive a password reset link',
+        }
+      }
+
+      return {
+        success: true,
+        message: 'Password reset link sent to your email. Check your inbox (or spam folder)',
+      }
+    } catch (error) {
+      console.error('[Auth] Failed to request password reset:', error)
+      return {
+        success: true,
+        message: 'If an account exists with that email, you will receive a password reset link',
+      }
+    }
+  }
+
+  static async updatePassword(newPassword: string): Promise<{ success: boolean; message: string }> {
+    if (!supabase) {
+      throw new Error("Authentication service is not configured")
+    }
+
+    if (!newPassword || newPassword.length < 6) {
+      throw new Error("Password must be at least 6 characters")
+    }
+
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword,
+      })
+
+      if (error) {
+        console.error('[Auth] Failed to update password:', error)
+        throw error
+      }
+
+      // Log password reset audit event
+      try {
+        const session = await supabase.auth.getSession()
+        if (session.data.session?.user.id) {
+          const { logAuditEvent } = await import('./audit-logger')
+          await logAuditEvent({
+            action: 'PASSWORD_RESET',
+            userId: session.data.session.user.id,
+            ipAddress: null,
+            userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : undefined,
+          })
+        }
+      } catch (auditError) {
+        console.error('[Auth] Failed to log password reset:', auditError)
+        // Don't throw - audit logging shouldn't block password update
+      }
+
+      return {
+        success: true,
+        message: 'Password updated successfully. You can now log in with your new password.',
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to update password'
+      console.error('[Auth] Password update error:', error)
+      throw new Error(errorMessage)
+    }
+  }
+
+  static async getCurrentUserSession() {
+    if (!supabase) return null
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      return session
+    } catch (error) {
+      console.error('[Auth] Failed to get current session:', error)
+      return null
+    }
+  }
+
 }

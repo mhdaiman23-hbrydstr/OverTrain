@@ -10,6 +10,8 @@ interface AuthContextType extends AuthState {
   signInWithGoogle: () => Promise<void>
   signOut: () => void
   updateUser: (updates: Partial<User>) => Promise<void>
+  requestPasswordReset: (email: string) => Promise<{ success: boolean; message: string }>
+  updatePassword: (newPassword: string) => Promise<{ success: boolean; message: string }>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -315,6 +317,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  const requestPasswordReset = async (email: string) => {
+    try {
+      const result = await AuthService.requestPasswordReset(email)
+      return result
+    } catch (error) {
+      console.error('Failed to request password reset:', error)
+      throw error
+    }
+  }
+
+  const updatePassword = async (newPassword: string) => {
+    try {
+      const result = await AuthService.updatePassword(newPassword)
+      return result
+    } catch (error) {
+      console.error('Failed to update password:', error)
+      throw error
+    }
+  }
+
   return (
     <AuthContext.Provider
       value={{
@@ -324,6 +346,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         signInWithGoogle,
         signOut,
         updateUser,
+        requestPasswordReset,
+        updatePassword,
       }}
     >
       {children}
