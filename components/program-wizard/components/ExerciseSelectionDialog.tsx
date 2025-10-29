@@ -28,6 +28,7 @@ interface ExerciseSelectionDialogProps {
   error: string | null
   currentExerciseName?: string
   presetMuscleGroup?: string | null
+  presetMuscleGroups?: string[]
   onSelectExercise: (exercise: Exercise) => void
 }
 
@@ -45,6 +46,7 @@ export function ExerciseSelectionDialog({
   error,
   currentExerciseName,
   presetMuscleGroup,
+  presetMuscleGroups,
   onSelectExercise,
 }: ExerciseSelectionDialogProps) {
   const [searchQuery, setSearchQuery] = useState('')
@@ -99,6 +101,21 @@ export function ExerciseSelectionDialog({
     if (!isOpen) return
     setSearchQuery('')
 
+    // Handle presetMuscleGroups (for 'add' mode with multiple groups)
+    if (presetMuscleGroups && presetMuscleGroups.length > 0) {
+      const validGroups = presetMuscleGroups.filter(group =>
+        availableMuscleGroups.includes(group),
+      )
+      if (validGroups.length > 0) {
+        setSelectedFilters({
+          muscleGroups: validGroups,
+          equipmentTypes: [],
+        })
+        return
+      }
+    }
+
+    // Handle presetMuscleGroup (for 'replace' mode with single group)
     if (presetMuscleGroup && availableMuscleGroups.includes(presetMuscleGroup)) {
       setSelectedFilters({
         muscleGroups: [presetMuscleGroup],
@@ -108,7 +125,7 @@ export function ExerciseSelectionDialog({
     }
 
     setSelectedFilters(DEFAULT_FILTERS)
-  }, [isOpen, presetMuscleGroup, availableMuscleGroups])
+  }, [isOpen, presetMuscleGroup, presetMuscleGroups, availableMuscleGroups])
 
   const filteredExercises = useMemo(() => {
     const query = searchQuery.trim().toLowerCase()

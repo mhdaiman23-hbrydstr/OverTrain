@@ -64,6 +64,7 @@ export function StepExerciseAssignment({
     | {
         mode: 'add'
         dayIndex: number
+        presetMuscleGroups: string[]
       }
     | null
   >(null)
@@ -322,9 +323,11 @@ export function StepExerciseAssignment({
                           size="sm"
                           className="flex-1 sm:flex-none"
                           onClick={() => {
+                            const presetGroups = day.muscleGroups?.map(group => group.group) ?? []
                             setDialogContext({
                               mode: 'add',
                               dayIndex: dayIndex,
+                              presetMuscleGroups: presetGroups,
                             })
                           }}
                         >
@@ -367,6 +370,7 @@ export function StepExerciseAssignment({
         error={error}
         currentExerciseName={dialogContext?.mode === 'replace' ? dialogContext.exercise.exerciseName : undefined}
         presetMuscleGroup={dialogContext?.mode === 'replace' ? dialogContext.exercise.muscleGroup : undefined}
+        presetMuscleGroups={dialogContext?.mode === 'add' ? (dialogContext as any).presetMuscleGroups : undefined}
         onSelectExercise={handleExerciseSelection}
       />
 
