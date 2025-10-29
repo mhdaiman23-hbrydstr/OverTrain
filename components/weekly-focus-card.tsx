@@ -88,9 +88,10 @@ export function WeeklyFocusCard({ workouts, weeklyGoal, onLogWorkout }: WeeklyFo
     })
   }
 
-  const workoutDays = getWorkoutDays()
+  const rawWorkoutDays = getWorkoutDays()
+  const workoutDays = rawWorkoutDays
     .filter((day) => day.nativeDayIndex !== 0) // Remove previous Sunday (belongs to last week)
-    .concat(getWorkoutDays().filter((day) => day.nativeDayIndex === 0)) // Append Sunday to the end
+    .concat(rawWorkoutDays.filter((day) => day.nativeDayIndex === 0)) // Append Sunday to the end
 
   return (
     <Card className="gradient-card border-primary/20 shadow-lg">

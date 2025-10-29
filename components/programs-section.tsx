@@ -777,7 +777,7 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
                 ) : (
                   filteredTemplates.map((template) => {
                     const isActive = activeProgram?.templateId === template.id
-                    const isFemaleTemplate = template.gender?.includes('female')
+                    const isFemaleOnlyTemplate = template.gender?.includes('female') && !template.gender?.includes('male')
 
                     return (
                       <div
@@ -788,8 +788,8 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1">
                             <h3 className="font-semibold text-base leading-tight">{template.name}</h3>
-                            {isFemaleTemplate && (
-                              <div className="w-2 h-2 rounded-full bg-pink-400 dark:bg-pink-500 flex-shrink-0" title="Female-specific" />
+                            {isFemaleOnlyTemplate && (
+                              <div className="w-2 h-2 rounded-full bg-pink-400 dark:bg-pink-500 flex-shrink-0" title="Female-only" />
                             )}
                           </div>
                           <p className="text-xs text-muted-foreground uppercase">
