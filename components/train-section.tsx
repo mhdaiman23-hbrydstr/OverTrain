@@ -93,9 +93,17 @@ export function TrainSection({ onStartWorkout, onAddProgram, shouldAutoStart = f
         }
       }
 
-      // Refresh template only on initial mount or when explicitly requested
-      // This prevents unnecessary database calls on tab switches
+      // OPTIMIZATION: Skip database call if we have cached data and not explicitly refreshing
+      // This makes switching to Train tab INSTANT when coming from Programs tab (Pattern 8)
+      // When user clicks "CURRENT" program from Programs tab and switches to Train tab,
+      // the data is already in state from getInitialActiveProgram() + localStorage
       const shouldRefresh = options?.refreshTemplate ?? false
+      if (activeProgram && !shouldRefresh) {
+        console.log("[TrainSection] INSTANT: Using cached program data, skipping database call")
+        setIsLoading(false)
+        return
+      }
+
       const program = await ProgramStateManager.getActiveProgram({ refreshTemplate: shouldRefresh })
       console.log("[TrainSection] Loaded active program:", program ? {
         templateId: program.templateId,

@@ -9,6 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { MobileTooltip } from "@/components/ui/mobile-tooltip"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ChevronDown, ChevronUp, Settings, AlertTriangle, Info } from "lucide-react"
@@ -159,11 +160,28 @@ export function AdvancedProgramSettings({ template, userProfile, onOverrideChang
               <Checkbox
                 id="override-enabled"
                 checked={overrideEnabled}
-                onCheckedChange={handleOverrideToggle}
+                onCheckedChange={(v) => handleOverrideToggle(v === true)}
               />
-              <Label htmlFor="override-enabled" className="text-sm">
-                Enable custom progression
-              </Label>
+              <div className="flex items-center gap-1">
+                <Label htmlFor="override-enabled" className="text-sm">
+                  Enable custom progression
+                </Label>
+                <MobileTooltip
+                  content={
+                    <span className="max-w-xs block text-left">
+                      Override the template's default progression rules so you can set custom weekly increases and loading patterns.
+                    </span>
+                  }
+                >
+                  <button
+                    type="button"
+                    className="p-0.5 rounded-full text-muted-foreground hover:text-foreground transition-colors"
+                    aria-label="What is custom progression?"
+                  >
+                    <Info className="h-3.5 w-3.5" />
+                  </button>
+                </MobileTooltip>
+              </div>
             </div>
 
             {overrideEnabled && (

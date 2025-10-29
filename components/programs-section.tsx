@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Spinner } from "@/components/ui/spinner"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Plus, MoreVertical, AlertTriangle, Filter, Check, X, GitBranch } from "lucide-react"
+import { Plus, MoreVertical, AlertTriangle, Filter, Check, X, GitBranch, ChevronRight } from "lucide-react"
 import { GYM_TEMPLATES, getTemplatesByFilter } from "@/lib/gym-templates"
 import { ProgramStateManager, type MyProgramInfo } from "@/lib/program-state"
 import { getHistoricalWorkouts } from "@/lib/history"
@@ -717,12 +717,23 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
 
               <Button
                 size="sm"
-                className="bg-orange-500 hover:bg-orange-600 text-white h-9 sm:h-10 px-4 sm:px-6 relative z-[61] flex-shrink-0"
+                className="bg-orange-500 hover:bg-orange-600 text-white h-9 sm:h-10 px-4 sm:px-6 relative z-[61] flex-shrink-0 disabled:bg-orange-500 disabled:text-white disabled:opacity-80"
                 onClick={handleOpenWizard}
                 style={{ minWidth: 'fit-content' }}
+                disabled={isStartingProgram}
+                aria-busy={isStartingProgram}
               >
-                <Plus className="h-4 w-4 mr-1 sm:mr-2 flex-shrink-0" />
-                <span className="truncate">NEW</span>
+                {isStartingProgram ? (
+                  <span className="flex items-center gap-2">
+                    <Spinner size="sm" />
+                    <span className="truncate">Opening…</span>
+                  </span>
+                ) : (
+                  <>
+                    <Plus className="h-4 w-4 mr-1 sm:mr-2 flex-shrink-0" />
+                    <span className="truncate">NEW</span>
+                  </>
+                )}
               </Button>
               </div>
             </div>
@@ -766,6 +777,7 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
                 ) : (
                   filteredTemplates.map((template) => {
                     const isActive = activeProgram?.templateId === template.id
+                    const isFemaleOnlyTemplate = template.gender?.includes('female') && !template.gender?.includes('male')
 
                     return (
                       <div
@@ -774,7 +786,12 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
                         onClick={() => handleTemplateClick(template.id, isActive)}
                       >
                         <div className="flex-1 min-w-0">
-                          <h3 className="font-semibold text-base leading-tight mb-1">{template.name}</h3>
+                          <div className="flex items-center gap-2 mb-1">
+                            <h3 className="font-semibold text-base leading-tight">{template.name}</h3>
+                            {isFemaleOnlyTemplate && (
+                              <div className="w-2 h-2 rounded-full bg-pink-400 dark:bg-pink-500 flex-shrink-0" title="Female-only" />
+                            )}
+                          </div>
                           <p className="text-xs text-muted-foreground uppercase">
                             {template.weeks} WEEKS - {template.days} DAYS/WEEK
                           </p>
@@ -787,7 +804,7 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
                             </Badge>
                           )}
                           <Button variant="ghost" size="icon" className="h-8 w-8">
-                            <MoreVertical className="h-4 w-4 text-muted-foreground" />
+                            <ChevronRight className="h-4 w-4 text-muted-foreground" />
                           </Button>
                         </div>
                       </div>
@@ -915,28 +932,10 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
                   </div>
                 ) : (
                   <>
-                    <div className="px-4 py-3 bg-muted/30 flex items-center justify-between">
+                    <div className="px-4 py-3 bg-muted/30 flex items-center">
                       <p className="text-sm text-muted-foreground">
                         {programHistory.filter(entry => !entry.isActive).length} completed program{programHistory.filter(entry => !entry.isActive).length !== 1 ? 's' : ''}
                       </p>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          if (confirm('Clear all program history? This cannot be undone.')) {
-                            // Keep only active programs
-                            const activeOnly = programHistory.filter(entry => entry.isActive)
-                            localStorage.setItem('liftlog_program_history', JSON.stringify(activeOnly))
-                            setProgramHistory(activeOnly)
-                            if (typeof window !== "undefined") {
-                              window.dispatchEvent(new Event("programChanged"))
-                            }
-                          }
-                        }}
-                        className="text-destructive hover:text-destructive"
-                      >
-                        Clear History
-                      </Button>
                     </div>
                     {programHistory.filter(entry => !entry.isActive).map((entry, index) => {
                     const endedEarly = (entry.endedEarly ?? false) || (entry.completionRate < 100 && entry.endDate)

@@ -1,7 +1,5 @@
 import { useMemo, useState } from 'react'
 import { ArrowLeftRight, ChevronDown, Edit3, Trash2 } from 'lucide-react'
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Button } from '@/components/ui/button'
 import { BottomActionBar } from '@/components/ui/bottom-action-bar'
 import { Badge } from '@/components/ui/badge'
@@ -54,9 +52,6 @@ export function StepExerciseAssignment({
   onNext,
 }: StepExerciseAssignmentProps) {
   const { toast } = useToast()
-  const [pickerDayIndex, setPickerDayIndex] = useState<number | null>(null)
-  const [searchTerm, setSearchTerm] = useState('')
-  const [selectedMuscleGroup, setSelectedMuscleGroup] = useState<string | null>(null)
   const [expandedDays, setExpandedDays] = useState<Set<number>>(new Set(days.map((_, index) => index)))
   const [editingDayIndex, setEditingDayIndex] = useState<number | null>(null)
   const [editingDayName, setEditingDayName] = useState('')
@@ -69,6 +64,7 @@ export function StepExerciseAssignment({
     | {
         mode: 'add'
         dayIndex: number
+        presetMuscleGroups: string[]
       }
     | null
   >(null)
@@ -122,32 +118,6 @@ export function StepExerciseAssignment({
     }
   }
 
-  const filteredExercises = useMemo(() => {
-    if (pickerDayIndex === null) return []
-    const day = days[pickerDayIndex]
-    let baseList = filterExercisesForDay(day, exercises)
-    
-    // Apply muscle group filter
-    if (selectedMuscleGroup) {
-      baseList = baseList.filter(exercise => exercise.muscleGroup === selectedMuscleGroup)
-    }
-    
-    // Apply search term filter
-    if (searchTerm) {
-      const normalized = searchTerm.trim().toLowerCase()
-      baseList = baseList.filter(exercise => exercise.name.toLowerCase().includes(normalized))
-    }
-    
-    return baseList
-  }, [pickerDayIndex, days, exercises, searchTerm, selectedMuscleGroup])
-
-  const handleSelectExercise = (exercise: Exercise) => {
-    if (pickerDayIndex === null) return
-    onAddExercise(pickerDayIndex, exercise)
-    setSearchTerm('')
-    setSelectedMuscleGroup(null)
-    setPickerDayIndex(null)
-  }
 
   const openReplaceDialog = (payload: {
     dayIndex: number
@@ -348,77 +318,21 @@ export function StepExerciseAssignment({
                         >
                           Randomize day
                         </Button>
-                        <Popover
-                          open={pickerDayIndex === dayIndex}
-                          onOpenChange={open => {
-                            setPickerDayIndex(open ? dayIndex : null)
-                            if (!open) {
-                              setSearchTerm('')
-                              setSelectedMuscleGroup(null)
-                            }
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex-1 sm:flex-none"
+                          onClick={() => {
+                            const presetGroups = day.muscleGroups?.map(group => group.group) ?? []
+                            setDialogContext({
+                              mode: 'add',
+                              dayIndex: dayIndex,
+                              presetMuscleGroups: presetGroups,
+                            })
                           }}
                         >
-                          <PopoverTrigger asChild>
-                            <Button variant="outline" size="sm" className="flex-1 sm:flex-none">
-                              Add exercise
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-[min(18rem,calc(100vw-2rem))] p-0">
-                            <Command shouldFilter={false}>
-                              <CommandInput
-                                value={searchTerm}
-                                onValueChange={setSearchTerm}
-                                placeholder="Search exercises..."
-                              />
-
-                              {/* Muscle Group Filter */}
-                              <div className="border-t px-3 py-2">
-                                <div className="text-xs font-medium text-muted-foreground mb-2">Filter by muscle group:</div>
-                                <div className="flex flex-wrap gap-1">
-                                  <Button
-                                    variant={selectedMuscleGroup === null ? "default" : "outline"}
-                                    size="sm"
-                                    className="h-7 px-2 text-xs"
-                                    onClick={() => setSelectedMuscleGroup(null)}
-                                  >
-                                    All
-                                  </Button>
-                                  {Array.from(new Set(exercises.map(e => e.muscleGroup))).map(group => (
-                                    <Button
-                                      key={group}
-                                      variant={selectedMuscleGroup === group ? "default" : "outline"}
-                                      size="sm"
-                                      className="h-7 px-2 text-xs"
-                                      onClick={() => setSelectedMuscleGroup(group)}
-                                    >
-                                      {group}
-                                    </Button>
-                                  ))}
-                                </div>
-                              </div>
-
-                              <CommandList>
-                                <CommandEmpty>No exercises found.</CommandEmpty>
-                                <CommandGroup>
-                                  {filteredExercises.map(exercise => (
-                                    <CommandItem
-                                      key={exercise.id}
-                                      value={exercise.name}
-                                      onSelect={() => handleSelectExercise(exercise)}
-                                    >
-                                      <div className="flex flex-col">
-                                        <span className="text-sm font-medium">{exercise.name}</span>
-                                        <span className="text-xs text-muted-foreground">
-                                          {exercise.muscleGroup} - {exercise.equipmentType}
-                                        </span>
-                                      </div>
-                                    </CommandItem>
-                                  ))}
-                                </CommandGroup>
-                              </CommandList>
-                            </Command>
-                          </PopoverContent>
-                        </Popover>
+                          Add exercise
+                        </Button>
                       </div>
                     </div>
 
@@ -456,6 +370,7 @@ export function StepExerciseAssignment({
         error={error}
         currentExerciseName={dialogContext?.mode === 'replace' ? dialogContext.exercise.exerciseName : undefined}
         presetMuscleGroup={dialogContext?.mode === 'replace' ? dialogContext.exercise.muscleGroup : undefined}
+        presetMuscleGroups={dialogContext?.mode === 'add' ? (dialogContext as any).presetMuscleGroups : undefined}
         onSelectExercise={handleExerciseSelection}
       />
 

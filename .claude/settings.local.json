@@ -36,7 +36,8 @@
       "Bash(awk:*)",
       "Bash(git log:*)",
       "Bash(git stash:*)",
-      "Bash(nslookup:*)"
+      "Bash(nslookup:*)",
+      "Read(//s//**)"
     ],
     "deny": [],
     "ask": []

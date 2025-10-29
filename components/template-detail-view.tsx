@@ -125,7 +125,7 @@ export function TemplateDetailView({ templateId, onClose, onStartProgram, isStar
         </div>
 
         {/* Workout days list */}
-        <div className="flex-1 overflow-y-auto overscroll-y-contain">
+        <div className="flex-1 overflow-y-auto overscroll-y-contain pb-24">
           <div className="divide-y divide-border">
             {workoutDays.map((day, dayIndex) => (
               <div key={dayIndex} className="px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
