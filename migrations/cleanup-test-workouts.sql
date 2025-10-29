@@ -51,18 +51,18 @@ LEFT JOIN profiles p ON p.id = w.user_id
 GROUP BY w.user_id, p.email, p.name
 ORDER BY workout_count DESC;
 
--- Check for incomplete/test programs
+-- Check for active programs
 SELECT
   ap.user_id,
   p.email,
-  pt.name as program_name,
+  ap.program_name,
   ap.current_week,
   ap.current_day,
-  ap.completed_workouts,
-  ap.total_workouts,
+  ap.days_per_week,
+  ap.total_weeks,
+  ap.start_date,
   ap.created_at
 FROM active_programs ap
-JOIN program_templates pt ON pt.id = ap.program_template_id
 LEFT JOIN profiles p ON p.id = ap.user_id
 ORDER BY ap.created_at DESC;
 
@@ -89,12 +89,11 @@ WHERE completed = false
   AND created_at < NOW() - INTERVAL '7 days'
   AND notes ILIKE '%test%';
 
--- Delete test programs from active_programs
-DELETE FROM active_programs
-WHERE created_at < NOW() - INTERVAL '7 days'
-  AND (
-    SELECT is_public FROM program_templates WHERE id = program_template_id
-  ) = false;
+-- Note: active_programs are typically kept for user reference
+-- Only delete if you're sure you want to remove program history
+-- Example: delete very old active programs (90+ days)
+-- DELETE FROM active_programs
+-- WHERE created_at < NOW() - INTERVAL '90 days';
 
 -- ============================================================================
 -- SECTION 3: OPTIONAL - Delete all test data by user ID
