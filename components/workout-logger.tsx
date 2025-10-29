@@ -96,6 +96,7 @@ function WorkoutLoggerView({ initialWorkout, onComplete, onCancel, onViewAnalyti
     blockLevelRir,
     handleSaveExerciseNote,
     handleSaveCustomRpe,
+showBodyweightDialog,    setShowBodyweightDialog,    bodyweightInput,    setBodyweightInput,    handleSaveBodyweight,
   } = useWorkoutSession({ initialWorkout, onComplete, onCancel })
 
   const connectionStatus = useConnectionStatus()
@@ -181,6 +182,7 @@ function WorkoutLoggerView({ initialWorkout, onComplete, onCancel, onViewAnalyti
         setEndProgramConfirmation={setEndProgramConfirmation}
         onEndProgram={handleEndProgram}
         isCompletingWorkout={isCompletingWorkout}
+showBodyweightDialog={showBodyweightDialog}        setShowBodyweightDialog={setShowBodyweightDialog}        bodyweightInput={bodyweightInput}        setBodyweightInput={setBodyweightInput}        onSaveBodyweight={handleSaveBodyweight}        
       />
 
       <ExerciseGroups

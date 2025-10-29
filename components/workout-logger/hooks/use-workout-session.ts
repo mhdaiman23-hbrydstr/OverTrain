@@ -78,6 +78,11 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
   const [blockLevelRpe, setBlockLevelRpe] = useState<number | undefined>()
   const [blockLevelRir, setBlockLevelRir] = useState<number | undefined>()
 
+  // Bodyweight dialog state
+  const [showBodyweightDialog, setShowBodyweightDialog] = useState(false)
+  const [bodyweightExerciseId, setBodyweightExerciseId] = useState<string | null>(null)
+  const [bodyweightInput, setBodyweightInput] = useState("")
+
   // Save exercise note callback
   const handleSaveExerciseNote = async (exerciseId: string, noteText: string, isPinned: boolean) => {
     if (!user?.id) return
@@ -1161,6 +1166,11 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
 
       // Check bounds for next set immediately after completing a set
       checkExerciseBoundsStatus(exerciseId)
+
+      // Check if exercise is done and next exercise is bodyweight-only
+      if (updatedExercise!.completed) {
+        checkForBodyweightExercise(exerciseId)
+      }
     }
 
     // BACKGROUND: Persist to storage and queue database sync
@@ -1227,7 +1237,72 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
     }
   }
 
-  
+  // Handle bodyweight input and fill all sets for bodyweight exercise
+  const handleSaveBodyweight = async (bodyweight: number) => {
+    if (!workout || !bodyweightExerciseId) return
+
+    try {
+      const updatedWorkout = JSON.parse(JSON.stringify(workout)) as WorkoutSession
+      const exercise = updatedWorkout.exercises.find((ex) => ex.id === bodyweightExerciseId)
+
+      if (!exercise) return
+
+      // Fill all incomplete sets with the bodyweight value
+      for (const set of exercise.sets) {
+        if (!set.completed) {
+          set.weight = bodyweight
+        }
+      }
+
+      setWorkout(updatedWorkout)
+
+      // Persist to storage
+      try {
+        await WorkoutLogger.updateWorkout(updatedWorkout, user?.id)
+      } catch (error) {
+        console.error('[WorkoutLogger] Failed to persist bodyweight update:', error)
+      }
+
+      // Save bodyweight to user profile if it's new
+      if (user && (!user.bodyweight || user.bodyweight !== bodyweight)) {
+        try {
+          const { AuthService } = await import('@/lib/auth')
+          await AuthService.updateProfile(user.id, { bodyweight })
+        } catch (error) {
+          console.error('[WorkoutLogger] Failed to save bodyweight to profile:', error)
+        }
+      }
+
+      // Close dialog and reset
+      setShowBodyweightDialog(false)
+      setBodyweightExerciseId(null)
+      setBodyweightInput("")
+    } catch (error) {
+      console.error('[WorkoutLogger] Error saving bodyweight:', error)
+    }
+  }
+
+  // Check if next exercise is bodyweight-only and show dialog if needed
+  const checkForBodyweightExercise = (currentExerciseId: string) => {
+    if (!workout) return
+
+    const currentIndex = workout.exercises.findIndex((ex) => ex.id === currentExerciseId)
+    if (currentIndex === -1 || currentIndex === workout.exercises.length - 1) return
+
+    const nextExercise = workout.exercises[currentIndex + 1]
+
+    // Check if next exercise is bodyweight only
+    if (nextExercise && nextExercise.equipmentType === "Bodyweight Only") {
+      setBodyweightExerciseId(nextExercise.id)
+      // Prefill with user's saved bodyweight if available
+      if (user?.bodyweight) {
+        setBodyweightInput(user.bodyweight.toString())
+      }
+      setShowBodyweightDialog(true)
+    }
+  }
+
+
   const canFinishWorkout = (): boolean => {
     if (!workout || !workout.exercises) return false
 
@@ -2376,5 +2451,10 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
     blockLevelRir,
     handleSaveExerciseNote,
     handleSaveCustomRpe,
+    showBodyweightDialog,
+    setShowBodyweightDialog,
+    bodyweightInput,
+    setBodyweightInput,
+    handleSaveBodyweight,
   }
 }
