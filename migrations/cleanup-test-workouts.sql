@@ -23,10 +23,10 @@ FROM workouts
 WHERE completed = true
 UNION ALL
 SELECT
-  'Incomplete/skipped workouts',
+  'Incomplete/abandoned workouts',
   COUNT(*)
 FROM workouts
-WHERE completed = false OR skipped = true
+WHERE completed = false
 UNION ALL
 SELECT
   'In-progress workouts',
@@ -83,9 +83,9 @@ DELETE FROM in_progress_workouts
 WHERE created_at < NOW() - INTERVAL '30 days'
   OR (created_at < NOW() - INTERVAL '7 days' AND notes ILIKE '%test%');
 
--- Delete incomplete/skipped workouts from test periods
+-- Delete incomplete/abandoned workouts from test periods
 DELETE FROM workouts
-WHERE (completed = false OR skipped = true)
+WHERE completed = false
   AND created_at < NOW() - INTERVAL '7 days'
   AND notes ILIKE '%test%';
 
