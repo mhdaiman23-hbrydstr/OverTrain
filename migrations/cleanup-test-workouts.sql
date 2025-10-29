@@ -96,31 +96,91 @@ WHERE completed = false
 -- WHERE created_at < NOW() - INTERVAL '90 days';
 
 -- ============================================================================
--- SECTION 3: OPTIONAL - Delete all test data by user ID
+-- SECTION 3: DELETE ALL DATA EXCEPT SPECIFIED USERS
 -- ============================================================================
--- Replace 'test-user-id-here' with actual UUID from analysis query above
--- Uncomment only if you want to remove all data for a specific test user
+-- WARNING: This will delete ALL data for users NOT in the whitelist!
+-- Only run if you are completely sure you want to remove all other user data.
+
+-- First, verify which users will be KEPT
+SELECT
+  'USERS TO KEEP (NOT DELETED)' as action,
+  id,
+  email,
+  name
+FROM profiles
+WHERE id IN (
+  '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c'::UUID,
+  'ca1fb2f8-60ab-46ce-9743-31260ebbcacc'::UUID
+);
+
+-- Verify which users will be DELETED
+SELECT
+  'USERS TO DELETE' as action,
+  id,
+  email,
+  name,
+  (SELECT COUNT(*) FROM workouts WHERE user_id = profiles.id) as workout_count
+FROM profiles
+WHERE id NOT IN (
+  '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c'::UUID,
+  'ca1fb2f8-60ab-46ce-9743-31260ebbcacc'::UUID
+);
+
+-- ============================================================================
+-- DESTRUCTIVE: Delete all data for users NOT in whitelist
+-- ============================================================================
+-- UNCOMMENT BELOW ONLY IF YOU ARE 100% SURE!
 
 /*
--- WARNING: This will delete ALL data for a user!
--- DO NOT run this for production users
-
--- Get the test user ID from analysis query first
 DO $$
-DECLARE
-  test_user_id UUID := 'test-user-id-here'::UUID;
 BEGIN
-  -- Delete in chronological order to avoid foreign key issues
-  DELETE FROM exercise_custom_rpe WHERE user_id = test_user_id;
-  DELETE FROM exercise_notes WHERE user_id = test_user_id;
-  DELETE FROM workout_sets
-    WHERE workout_id IN (SELECT id FROM workouts WHERE user_id = test_user_id);
-  DELETE FROM workouts WHERE user_id = test_user_id;
-  DELETE FROM in_progress_workouts WHERE user_id = test_user_id;
-  DELETE FROM active_programs WHERE user_id = test_user_id;
-  DELETE FROM program_history WHERE user_id = test_user_id;
+  -- Delete in dependency order (child tables first)
+  DELETE FROM exercise_custom_rpe
+  WHERE user_id NOT IN (
+    '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c'::UUID,
+    'ca1fb2f8-60ab-46ce-9743-31260ebbcacc'::UUID
+  );
 
-  RAISE NOTICE 'Deleted all data for user %', test_user_id;
+  DELETE FROM exercise_notes
+  WHERE user_id NOT IN (
+    '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c'::UUID,
+    'ca1fb2f8-60ab-46ce-9743-31260ebbcacc'::UUID
+  );
+
+  DELETE FROM workout_sets
+  WHERE workout_id IN (
+    SELECT id FROM workouts
+    WHERE user_id NOT IN (
+      '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c'::UUID,
+      'ca1fb2f8-60ab-46ce-9743-31260ebbcacc'::UUID
+    )
+  );
+
+  DELETE FROM workouts
+  WHERE user_id NOT IN (
+    '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c'::UUID,
+    'ca1fb2f8-60ab-46ce-9743-31260ebbcacc'::UUID
+  );
+
+  DELETE FROM in_progress_workouts
+  WHERE user_id NOT IN (
+    '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c'::UUID,
+    'ca1fb2f8-60ab-46ce-9743-31260ebbcacc'::UUID
+  );
+
+  DELETE FROM active_programs
+  WHERE user_id NOT IN (
+    '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c'::UUID,
+    'ca1fb2f8-60ab-46ce-9743-31260ebbcacc'::UUID
+  );
+
+  DELETE FROM program_history
+  WHERE user_id NOT IN (
+    '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c'::UUID,
+    'ca1fb2f8-60ab-46ce-9743-31260ebbcacc'::UUID
+  );
+
+  RAISE NOTICE 'Deleted all data for users NOT in whitelist';
 END $$;
 */
 
@@ -128,7 +188,20 @@ END $$;
 -- SECTION 4: VERIFY CLEANUP
 -- ============================================================================
 
--- Re-run analysis queries to verify deletions
+-- Verify which users remain
+SELECT
+  'REMAINING USERS' as section,
+  id,
+  email,
+  name,
+  (SELECT COUNT(*) FROM workouts WHERE user_id = profiles.id) as workout_count
+FROM profiles
+WHERE id IN (
+  '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c'::UUID,
+  'ca1fb2f8-60ab-46ce-9743-31260ebbcacc'::UUID
+);
+
+-- Verify data counts after cleanup
 SELECT
   'Total workouts after cleanup' as metric,
   COUNT(*) as count
@@ -142,7 +215,16 @@ UNION ALL
 SELECT
   'Total workout sets after cleanup',
   COUNT(*)
-FROM workout_sets;
+FROM workout_sets
+UNION ALL
+SELECT
+  'Total users remaining',
+  COUNT(*)
+FROM profiles
+WHERE id IN (
+  '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c'::UUID,
+  'ca1fb2f8-60ab-46ce-9743-31260ebbcacc'::UUID
+);
 
 -- ============================================================================
 -- SECTION 5: POST-CLEANUP MAINTENANCE
