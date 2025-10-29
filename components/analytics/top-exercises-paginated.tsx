@@ -45,9 +45,15 @@ export function TopExercisesPaginated({ topExercises }: TopExercisesPaginatedPro
               </div>
             }
             side="bottom"
-            className="max-w-sm"
+            className="z-[120] max-w-sm"
           >
-            <HelpCircle className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors cursor-help" />
+            <button
+              type="button"
+              className="p-0.5 rounded-full text-muted-foreground hover:text-foreground transition-colors"
+              aria-label="Top exercises information"
+            >
+              <HelpCircle className="h-4 w-4" />
+            </button>
           </MobileTooltip>
         </div>
         <div className="text-xs text-muted-foreground">

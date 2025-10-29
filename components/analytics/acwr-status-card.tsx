@@ -90,9 +90,15 @@ export function ACWRStatusCard({ acwr }: ACWRStatusCardProps) {
               </div>
             }
             side="left"
-            className="max-w-xs"
+            className="z-[120] max-w-xs"
           >
-            <HelpCircle className="h-5 w-5 text-muted-foreground hover:text-foreground transition-colors cursor-help" />
+            <button
+              type="button"
+              className="p-0.5 rounded-full text-muted-foreground hover:text-foreground transition-colors"
+              aria-label="ACWR calculation information"
+            >
+              <HelpCircle className="h-5 w-5" />
+            </button>
           </MobileTooltip>
         </div>
       </CardHeader>
@@ -117,20 +123,30 @@ export function ACWRStatusCard({ acwr }: ACWRStatusCardProps) {
           <MobileTooltip
             content="Total training load from the last 7 days"
             side="bottom"
+            className="z-[120]"
           >
-            <div className="p-3 bg-muted/30 rounded-lg cursor-help">
+            <button
+              type="button"
+              className="w-full p-3 bg-muted/30 rounded-lg cursor-help hover:bg-muted/50 transition-colors text-left"
+              aria-label="Acute load information"
+            >
               <div className="text-xs text-muted-foreground">Acute Load (7d)</div>
               <div className="text-xl font-semibold mt-1">{acwr.acuteLoad}</div>
-            </div>
+            </button>
           </MobileTooltip>
           <MobileTooltip
             content="Average daily training load over the last 28 days"
             side="bottom"
+            className="z-[120]"
           >
-            <div className="p-3 bg-muted/30 rounded-lg cursor-help">
+            <button
+              type="button"
+              className="w-full p-3 bg-muted/30 rounded-lg cursor-help hover:bg-muted/50 transition-colors text-left"
+              aria-label="Chronic load information"
+            >
               <div className="text-xs text-muted-foreground">Chronic Load (28d)</div>
               <div className="text-xl font-semibold mt-1">{acwr.chronicLoad}</div>
-            </div>
+            </button>
           </MobileTooltip>
         </div>
 

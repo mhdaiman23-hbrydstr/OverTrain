@@ -61,8 +61,15 @@ export function VolumeTrendChart({ trainingLoad }: VolumeTrendChartProps) {
                 <p className="text-xs mt-1">Shows your training volume over time to track progression.</p>
               </>
             }
+            className="z-[120]"
           >
-            <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help hover:text-foreground transition-colors" />
+            <button
+              type="button"
+              className="p-0.5 rounded-full text-muted-foreground hover:text-foreground transition-colors"
+              aria-label="Volume trend information"
+            >
+              <HelpCircle className="h-4 w-4" />
+            </button>
           </MobileTooltip>
         </div>
       </CardHeader>

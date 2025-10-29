@@ -79,9 +79,15 @@ export function ConsistencyHeatmap({ heatmap }: ConsistencyHeatmapProps) {
               </div>
             }
             side="left"
-            className="max-w-xs"
+            className="z-[120] max-w-xs"
           >
-            <HelpCircle className="h-5 w-5 text-muted-foreground hover:text-foreground transition-colors cursor-help" />
+            <button
+              type="button"
+              className="p-0.5 rounded-full text-muted-foreground hover:text-foreground transition-colors"
+              aria-label="Consistency chart information"
+            >
+              <HelpCircle className="h-5 w-5" />
+            </button>
           </MobileTooltip>
         </div>
       </CardHeader>
