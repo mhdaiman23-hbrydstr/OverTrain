@@ -1258,7 +1258,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
 
       // Persist to storage
       try {
-        await WorkoutLogger.updateWorkout(updatedWorkout, user?.id)
+        await WorkoutLogger.saveCurrentWorkout(updatedWorkout, user?.id)
       } catch (error) {
         console.error('[WorkoutLogger] Failed to persist bodyweight update:', error)
       }
