@@ -246,13 +246,13 @@ DROP POLICY IF EXISTS "Users can delete program template days" ON program_templa
 ALTER TABLE program_template_days ENABLE ROW LEVEL SECURITY;
 
 -- Create function to check if user owns the template
--- Handles both TEXT and UUID column types by trying both comparisons
-CREATE OR REPLACE FUNCTION user_owns_template(template_id TEXT)
+-- program_templates.id is UUID, so accept UUID parameter
+CREATE OR REPLACE FUNCTION user_owns_template(template_id UUID)
 RETURNS BOOLEAN AS $$
   SELECT
     (auth.uid() = owner_user_id) OR is_public
   FROM program_templates
-  WHERE id = template_id::UUID
+  WHERE id = template_id
   LIMIT 1
 $$ LANGUAGE SQL SECURITY DEFINER;
 
@@ -308,11 +308,11 @@ DROP POLICY IF EXISTS "Users can delete program template exercises" ON program_t
 ALTER TABLE program_template_exercises ENABLE ROW LEVEL SECURITY;
 
 -- Create function to get template_id from template_day_id
--- program_template_days.id is UUID, so cast parameter to UUID for comparison
-CREATE OR REPLACE FUNCTION get_template_id_from_day(day_id TEXT)
+-- program_template_days.id is UUID, so accept UUID parameter
+CREATE OR REPLACE FUNCTION get_template_id_from_day(day_id UUID)
 RETURNS UUID AS $$
   SELECT program_template_id FROM program_template_days
-  WHERE id = day_id::UUID
+  WHERE id = day_id
 $$ LANGUAGE SQL SECURITY DEFINER;
 
 CREATE POLICY "Users can view program template exercises" ON program_template_exercises
