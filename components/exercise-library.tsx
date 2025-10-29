@@ -5,9 +5,10 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Search, SlidersHorizontal } from "lucide-react"
+import { Search, SlidersHorizontal, Info } from "lucide-react"
 import { ExerciseLibraryFilter, type ExerciseLibraryFilterValues } from "@/components/exercise-library-filter"
 import { exerciseService, type Exercise } from "@/lib/services/exercise-library-service"
+import { MobileTooltip } from "@/components/ui/mobile-tooltip"
 
 interface ExerciseLibraryProps {
   open: boolean
@@ -158,9 +159,27 @@ export function ExerciseLibrary({ open, onOpenChange, onSelectExercise, currentE
           {/* Repeat Checkbox */}
           <div className="flex items-center space-x-2 py-2">
             <Checkbox id="repeat" checked={repeat} onCheckedChange={(checked) => setRepeat(checked === true)} />
-            <label htmlFor="repeat" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer">
-              Repeat <span className="text-muted-foreground">(i)</span>
-            </label>
+            <div className="flex items-center gap-1">
+              <label htmlFor="repeat" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer">
+                Repeat
+              </label>
+              <MobileTooltip
+                content={
+                  <span className="max-w-xs block text-left">
+                    Adds the selected exercise again immediately so you can program back-to-back rounds of the same movement.
+                  </span>
+                }
+                className="z-[120]"
+              >
+                <button
+                  type="button"
+                  className="p-0.5 rounded-full text-muted-foreground hover:text-foreground transition-colors"
+                  aria-label="What does repeat do?"
+                >
+                  <Info className="h-3.5 w-3.5" />
+                </button>
+              </MobileTooltip>
+            </div>
           </div>
 
           {/* Footer Buttons */}

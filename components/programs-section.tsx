@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Spinner } from "@/components/ui/spinner"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Plus, MoreVertical, AlertTriangle, Filter, Check, X, GitBranch } from "lucide-react"
+import { Plus, MoreVertical, AlertTriangle, Filter, Check, X, GitBranch, ChevronRight } from "lucide-react"
 import { GYM_TEMPLATES, getTemplatesByFilter } from "@/lib/gym-templates"
 import { ProgramStateManager, type MyProgramInfo } from "@/lib/program-state"
 import { getHistoricalWorkouts } from "@/lib/history"
@@ -798,7 +798,7 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
                             </Badge>
                           )}
                           <Button variant="ghost" size="icon" className="h-8 w-8">
-                            <MoreVertical className="h-4 w-4 text-muted-foreground" />
+                            <ChevronRight className="h-4 w-4 text-muted-foreground" />
                           </Button>
                         </div>
                       </div>
