@@ -2,9 +2,10 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { BottomActionBar } from '@/components/ui/bottom-action-bar'
 import { DetailCard } from '@/components/ui/detail-card'
-import { Badge } from '@/components/ui/badge'
 import type { DayInWizard, MuscleGroupSelection } from '../types'
 import { MuscleGroupPicker } from '../components/MuscleGroupPicker'
+import { getMuscleGroupBadgeClass, getMuscleGroupLabel } from '@/lib/exercise-muscle-groups'
+import { cn } from '@/lib/utils'
 
 interface StepMuscleGroupSelectionProps {
   days: DayInWizard[]
@@ -70,9 +71,15 @@ export function StepMuscleGroupSelection({ days, onUpdateDay, onNext, onBack }: 
             {day.muscleGroups && day.muscleGroups.length > 0 && (
               <div className="flex flex-wrap gap-2">
                 {day.muscleGroups.map(group => (
-                  <Badge key={`${group.category}:${group.group}`} variant="secondary">
-                    {group.group} × {group.count}
-                  </Badge>
+                  <span
+                    key={`${group.category}:${group.group}`}
+                    className={cn(
+                      'rounded border px-2 py-1 text-sm font-medium',
+                      getMuscleGroupBadgeClass(group.group),
+                    )}
+                  >
+                    {getMuscleGroupLabel(group.group)} × {group.count}
+                  </span>
                 ))}
               </div>
             )}
