@@ -73,20 +73,24 @@ export function WeeklyFocusCard({ workouts, weeklyGoal, onLogWorkout }: WeeklyFo
         const workoutDay = new Date(workout.startTime).getDay()
         return ((workoutDay + 6) % 7) === index
       })
-      
+
       const isPastDay = index < currentDayIndex
       const isToday = index === currentDayIndex
-      
+
       return {
         day,
         hasWorkout,
         isPastDay,
-        isToday
+        isToday,
+        // Map back to native JS day index (0 = Sunday) for later filtering
+        nativeDayIndex: (index + 1) % 7,
       }
     })
   }
 
   const workoutDays = getWorkoutDays()
+    .filter((day) => day.nativeDayIndex !== 0) // Remove previous Sunday (belongs to last week)
+    .concat(getWorkoutDays().filter((day) => day.nativeDayIndex === 0)) // Append Sunday to the end
 
   return (
     <Card className="gradient-card border-primary/20 shadow-lg">

@@ -166,7 +166,7 @@ export function ExerciseLibrary({ open, onOpenChange, onSelectExercise, currentE
               <MobileTooltip
                 content={
                   <span className="max-w-xs block text-left">
-                    Adds the selected exercise again immediately so you can program back-to-back rounds of the same movement.
+                    When checked, this exercise replaces every upcoming instance in the program. Leave it off to change only today's workout.
                   </span>
                 }
                 className="z-[120]"

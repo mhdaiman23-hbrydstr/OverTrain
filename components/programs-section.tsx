@@ -777,6 +777,7 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
                 ) : (
                   filteredTemplates.map((template) => {
                     const isActive = activeProgram?.templateId === template.id
+                    const isFemaleTemplate = template.gender?.includes('female')
 
                     return (
                       <div
@@ -785,7 +786,12 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
                         onClick={() => handleTemplateClick(template.id, isActive)}
                       >
                         <div className="flex-1 min-w-0">
-                          <h3 className="font-semibold text-base leading-tight mb-1">{template.name}</h3>
+                          <div className="flex items-center gap-2 mb-1">
+                            <h3 className="font-semibold text-base leading-tight">{template.name}</h3>
+                            {isFemaleTemplate && (
+                              <div className="w-2 h-2 rounded-full bg-pink-400 dark:bg-pink-500 flex-shrink-0" title="Female-specific" />
+                            )}
+                          </div>
                           <p className="text-xs text-muted-foreground uppercase">
                             {template.weeks} WEEKS - {template.days} DAYS/WEEK
                           </p>
