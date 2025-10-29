@@ -9,6 +9,8 @@ import { Search, SlidersHorizontal, Info } from "lucide-react"
 import { ExerciseLibraryFilter, type ExerciseLibraryFilterValues } from "@/components/exercise-library-filter"
 import { exerciseService, type Exercise } from "@/lib/services/exercise-library-service"
 import { MobileTooltip } from "@/components/ui/mobile-tooltip"
+import { getMuscleGroupBadgeClass, getMuscleGroupLabel } from "@/lib/exercise-muscle-groups"
+import { cn } from "@/lib/utils"
 
 interface ExerciseLibraryProps {
   open: boolean
@@ -76,6 +78,12 @@ export function ExerciseLibrary({ open, onOpenChange, onSelectExercise, currentE
     setShowFilters(false)
   }
 
+  const handleClearFilters = () => {
+    setSelectedFilters({ muscleGroups: [], equipmentTypes: [] })
+  }
+
+  const hasActiveFilters = selectedFilters.muscleGroups.length > 0 || selectedFilters.equipmentTypes.length > 0
+
   const filteredExercises = exercises.filter((exercise: Exercise) => {
     // Search filter
     if (searchQuery && !exercise.name.toLowerCase().includes(searchQuery.toLowerCase())) {
@@ -136,6 +144,41 @@ export function ExerciseLibrary({ open, onOpenChange, onSelectExercise, currentE
             </Button>
           </div>
 
+          {/* Active Filters */}
+          {hasActiveFilters && (
+            <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+              <span>Active filters:</span>
+              {selectedFilters.muscleGroups.map(group => (
+                <span
+                  key={`filter-muscle-${group}`}
+                  className={cn(
+                    'rounded border px-2 py-0.5 text-[11px] font-medium',
+                    getMuscleGroupBadgeClass(group),
+                  )}
+                >
+                  {getMuscleGroupLabel(group)}
+                </span>
+              ))}
+              {selectedFilters.equipmentTypes.map(type => (
+                <span
+                  key={`filter-equipment-${type}`}
+                  className="rounded border border-border/60 bg-muted/40 px-2 py-0.5 text-[11px] font-medium text-foreground/80"
+                >
+                  {type}
+                </span>
+              ))}
+              <Button
+                type="button"
+                variant="ghost"
+                size="xs"
+                className="h-6 px-2"
+                onClick={handleClearFilters}
+              >
+                Clear
+              </Button>
+            </div>
+          )}
+
           {/* Exercise List */}
           <div className="flex-1 overflow-y-auto border rounded-md">
             {filteredExercises.map((exercise) => {
@@ -148,8 +191,19 @@ export function ExerciseLibrary({ open, onOpenChange, onSelectExercise, currentE
                   className={`w-full justify-start text-left h-auto py-3 px-4 border-b last:border-b-0 rounded-none ${selected ? "bg-primary/10 text-foreground" : ""}`}
                 >
                   <div className="flex-1">
-                    <p className="font-medium">{exercise.name}</p>
-                    <p className="text-sm text-muted-foreground">{exercise.muscleGroup} • {exercise.equipmentType}</p>
+                    <p className="font-medium text-sm">{exercise.name}</p>
+                    <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
+                      <span
+                        className={cn(
+                          'rounded border px-2 py-0.5 text-[11px] font-medium',
+                          getMuscleGroupBadgeClass(exercise.muscleGroup),
+                        )}
+                      >
+                        {getMuscleGroupLabel(exercise.muscleGroup)}
+                      </span>
+                      <span>/</span>
+                      <span>{exercise.equipmentType}</span>
+                    </div>
                   </div>
                 </Button>
               )
