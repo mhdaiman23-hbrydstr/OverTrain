@@ -137,19 +137,22 @@ export function ExerciseLibrary({ open, onOpenChange, onSelectExercise, currentE
 
           {/* Exercise List */}
           <div className="flex-1 overflow-y-auto border rounded-md">
-            {filteredExercises.map((exercise) => (
-              <Button
-                key={exercise.id}
-                onClick={() => setSelectedExercise(exercise)}
-                variant={selectedExercise?.id === exercise.id ? "default" : "ghost"}
-                className="w-full justify-start text-left h-auto py-3 px-4 border-b last:border-b-0 rounded-none"
-              >
-                <div className="flex-1">
-                  <p className="font-medium">{exercise.name}</p>
-                  <p className="text-sm text-muted-foreground">{exercise.muscleGroup} • {exercise.equipmentType}</p>
-                </div>
-              </Button>
-            ))}
+            {filteredExercises.map((exercise) => {
+              const selected = selectedExercise?.id === exercise.id
+              return (
+                <Button
+                  key={exercise.id}
+                  onClick={() => setSelectedExercise(exercise)}
+                  variant={selected ? "outline" : "ghost"}
+                  className={`w-full justify-start text-left h-auto py-3 px-4 border-b last:border-b-0 rounded-none ${selected ? "bg-primary/10 text-foreground" : ""}`}
+                >
+                  <div className="flex-1">
+                    <p className="font-medium">{exercise.name}</p>
+                    <p className="text-sm text-muted-foreground">{exercise.muscleGroup} • {exercise.equipmentType}</p>
+                  </div>
+                </Button>
+              )
+            })}
           </div>
 
           {/* Repeat Checkbox */}

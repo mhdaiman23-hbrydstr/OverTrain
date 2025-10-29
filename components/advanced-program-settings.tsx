@@ -159,7 +159,7 @@ export function AdvancedProgramSettings({ template, userProfile, onOverrideChang
               <Checkbox
                 id="override-enabled"
                 checked={overrideEnabled}
-                onCheckedChange={handleOverrideToggle}
+                onCheckedChange={(v) => handleOverrideToggle(v === true)}
               />
               <Label htmlFor="override-enabled" className="text-sm">
                 Enable custom progression

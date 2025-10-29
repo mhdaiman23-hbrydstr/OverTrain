@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useMemo } from "react"
+import { Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { getMuscleGroupAccentClass } from "@/lib/exercise-muscle-groups"
@@ -125,21 +126,22 @@ export function ExerciseLibraryFilter({
           <div>
             <h3 className="font-semibold mb-3">Muscle groups</h3>
             <div className="grid grid-cols-2 gap-2">
-              {muscleGroupOptions.map((group) => (
-                <Button
-                  key={group.name}
-                  onClick={() => toggleMuscleGroup(group.name)}
-                  variant={selectedMuscleGroups.includes(group.name) ? "default" : "outline"}
-                  size="sm"
-                  className="flex items-center gap-2 justify-start"
-                >
-                  <div className={`w-3 h-3 rounded-full ${group.accentClass}`} />
-                  <span className="text-sm">{group.name}</span>
-                  {selectedMuscleGroups.includes(group.name) && (
-                    <div className="ml-auto w-4 h-4 rounded-sm bg-white flex items-center justify-center" />
-                  )}
-                </Button>
-              ))}
+              {muscleGroupOptions.map((group) => {
+                const isSelected = selectedMuscleGroups.includes(group.name)
+                return (
+                  <Button
+                    key={group.name}
+                    onClick={() => toggleMuscleGroup(group.name)}
+                    variant={isSelected ? "default" : "outline"}
+                    size="sm"
+                    className={`flex items-center gap-2 justify-start ${isSelected ? "hover:bg-primary" : ""}`}
+                  >
+                    <div className={`w-3 h-3 rounded-full ${group.accentClass}`} />
+                    <span className="text-sm">{group.name}</span>
+                    {isSelected && <Check className="ml-auto w-4 h-4" />}
+                  </Button>
+                )
+              })}
             </div>
           </div>
 
@@ -147,21 +149,22 @@ export function ExerciseLibraryFilter({
           <div>
             <h3 className="font-semibold mb-3">Equipment</h3>
             <div className="grid grid-cols-2 gap-2">
-              {equipmentTypeOptions.map((equipment) => (
-                <Button
-                  key={equipment.name}
-                  onClick={() => toggleEquipmentType(equipment.name)}
-                  variant={selectedEquipmentTypes.includes(equipment.name) ? "default" : "outline"}
-                  size="sm"
-                  className="flex items-center gap-2 justify-start"
-                >
-                  <div className={`w-3 h-3 rounded-full ${equipment.color}`} />
-                  <span className="text-sm">{equipment.name}</span>
-                  {selectedEquipmentTypes.includes(equipment.name) && (
-                    <div className="ml-auto w-4 h-4 rounded-sm bg-white flex items-center justify-center" />
-                  )}
-                </Button>
-              ))}
+              {equipmentTypeOptions.map((equipment) => {
+                const isSelected = selectedEquipmentTypes.includes(equipment.name)
+                return (
+                  <Button
+                    key={equipment.name}
+                    onClick={() => toggleEquipmentType(equipment.name)}
+                    variant={isSelected ? "default" : "outline"}
+                    size="sm"
+                    className={`flex items-center gap-2 justify-start ${isSelected ? "hover:bg-primary" : ""}`}
+                  >
+                    <div className={`w-3 h-3 rounded-full ${equipment.color}`} />
+                    <span className="text-sm">{equipment.name}</span>
+                    {isSelected && <Check className="ml-auto w-4 h-4" />}
+                  </Button>
+                )
+              })}
             </div>
           </div>
         </div>

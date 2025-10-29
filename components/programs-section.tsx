@@ -717,12 +717,23 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
 
               <Button
                 size="sm"
-                className="bg-orange-500 hover:bg-orange-600 text-white h-9 sm:h-10 px-4 sm:px-6 relative z-[61] flex-shrink-0"
+                className="bg-orange-500 hover:bg-orange-600 text-white h-9 sm:h-10 px-4 sm:px-6 relative z-[61] flex-shrink-0 disabled:bg-orange-500 disabled:text-white disabled:opacity-80"
                 onClick={handleOpenWizard}
                 style={{ minWidth: 'fit-content' }}
+                disabled={isStartingProgram}
+                aria-busy={isStartingProgram}
               >
-                <Plus className="h-4 w-4 mr-1 sm:mr-2 flex-shrink-0" />
-                <span className="truncate">NEW</span>
+                {isStartingProgram ? (
+                  <span className="flex items-center gap-2">
+                    <Spinner size="sm" />
+                    <span className="truncate">Opening…</span>
+                  </span>
+                ) : (
+                  <>
+                    <Plus className="h-4 w-4 mr-1 sm:mr-2 flex-shrink-0" />
+                    <span className="truncate">NEW</span>
+                  </>
+                )}
               </Button>
               </div>
             </div>
@@ -915,28 +926,10 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
                   </div>
                 ) : (
                   <>
-                    <div className="px-4 py-3 bg-muted/30 flex items-center justify-between">
+                    <div className="px-4 py-3 bg-muted/30 flex items-center">
                       <p className="text-sm text-muted-foreground">
                         {programHistory.filter(entry => !entry.isActive).length} completed program{programHistory.filter(entry => !entry.isActive).length !== 1 ? 's' : ''}
                       </p>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          if (confirm('Clear all program history? This cannot be undone.')) {
-                            // Keep only active programs
-                            const activeOnly = programHistory.filter(entry => entry.isActive)
-                            localStorage.setItem('liftlog_program_history', JSON.stringify(activeOnly))
-                            setProgramHistory(activeOnly)
-                            if (typeof window !== "undefined") {
-                              window.dispatchEvent(new Event("programChanged"))
-                            }
-                          }
-                        }}
-                        className="text-destructive hover:text-destructive"
-                      >
-                        Clear History
-                      </Button>
                     </div>
                     {programHistory.filter(entry => !entry.isActive).map((entry, index) => {
                     const endedEarly = (entry.endedEarly ?? false) || (entry.completionRate < 100 && entry.endDate)

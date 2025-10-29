@@ -75,9 +75,11 @@ export async function logAuditEvent(event: AuditLogEvent) {
         resource_type: event.resourceType || null,
         resource_id: event.resourceId || null,
         details: event.details || null,
-        ip_address: event.ipAddress || null,
+        // Note: ip_address is INET type in database - Supabase RLS should handle this via edge function
+        // If passing from client, set to null; server-side functions should set it
+        ip_address: null,
         user_agent: event.userAgent?.substring(0, 500) || null,
-        created_at: new Date().toISOString(),
+        // Let database handle created_at default (DEFAULT NOW())
       },
     ]);
 
