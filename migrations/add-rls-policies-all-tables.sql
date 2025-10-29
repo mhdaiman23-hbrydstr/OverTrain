@@ -142,10 +142,13 @@ DROP POLICY IF EXISTS "Users can delete own workout sets" ON workout_sets;
 ALTER TABLE workout_sets ENABLE ROW LEVEL SECURITY;
 
 -- Create temporary function to get user_id from workout_id
--- Note: Both id (workouts.id) and workout_id parameter are TEXT, no casting needed
+-- Handles both TEXT and UUID column types by casting parameter
 CREATE OR REPLACE FUNCTION get_workout_user_id(workout_id TEXT)
 RETURNS UUID AS $$
-  SELECT user_id FROM workouts WHERE id = workout_id
+  SELECT user_id FROM workouts
+  WHERE id = workout_id
+     OR id = workout_id::UUID
+  LIMIT 1
 $$ LANGUAGE SQL SECURITY DEFINER;
 
 CREATE POLICY "Users can view own workout sets" ON workout_sets
@@ -245,13 +248,14 @@ DROP POLICY IF EXISTS "Users can delete program template days" ON program_templa
 ALTER TABLE program_template_days ENABLE ROW LEVEL SECURITY;
 
 -- Create function to check if user owns the template
--- Note: Both id (program_templates.id) and template_id parameter are TEXT
+-- Handles both TEXT and UUID column types by trying both comparisons
 CREATE OR REPLACE FUNCTION user_owns_template(template_id TEXT)
 RETURNS BOOLEAN AS $$
   SELECT
     (auth.uid() = owner_user_id) OR is_public
   FROM program_templates
-  WHERE id = template_id
+  WHERE id = template_id::UUID
+  LIMIT 1
 $$ LANGUAGE SQL SECURITY DEFINER;
 
 CREATE POLICY "Users can view program template days" ON program_template_days
@@ -306,10 +310,13 @@ DROP POLICY IF EXISTS "Users can delete program template exercises" ON program_t
 ALTER TABLE program_template_exercises ENABLE ROW LEVEL SECURITY;
 
 -- Create function to get template_id from template_day_id
--- Note: Both id (program_template_days.id) and day_id parameter are TEXT
+-- Handles both TEXT and UUID column types by trying both comparisons
 CREATE OR REPLACE FUNCTION get_template_id_from_day(day_id TEXT)
 RETURNS UUID AS $$
-  SELECT program_template_id FROM program_template_days WHERE id = day_id
+  SELECT program_template_id FROM program_template_days
+  WHERE id = day_id::UUID
+     OR id = day_id
+  LIMIT 1
 $$ LANGUAGE SQL SECURITY DEFINER;
 
 CREATE POLICY "Users can view program template exercises" ON program_template_exercises
