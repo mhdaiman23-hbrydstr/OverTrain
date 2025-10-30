@@ -56,17 +56,16 @@ export function VolumeTrendChart({ trainingLoad }: VolumeTrendChartProps) {
           <CardTitle className="text-lg">Volume Trend</CardTitle>
           <MobileTooltip
             content={
-              <>
+              <div className="space-y-1">
                 <p>Total weight lifted per workout day.</p>
-                <p className="text-xs mt-1">Shows your training volume over time to track progression.</p>
-              </>
+                <p className="text-xs">Shows your training volume over time to track progression.</p>
+              </div>
             }
-            className="z-[120]"
           >
             <button
               type="button"
-              className="p-0.5 rounded-full text-muted-foreground hover:text-foreground transition-colors"
-              aria-label="Volume trend information"
+              className="rounded-full p-1 text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
+              aria-label="Volume trend explanation"
             >
               <HelpCircle className="h-4 w-4" />
             </button>

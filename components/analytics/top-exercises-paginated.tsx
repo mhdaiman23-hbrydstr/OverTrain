@@ -33,24 +33,23 @@ export function TopExercisesPaginated({ topExercises }: TopExercisesPaginatedPro
             Top Exercises
           </h3>
           <MobileTooltip
+            side="bottom"
+            className="max-w-sm"
             content={
               <div className="space-y-1">
-                <p className="font-semibold">How This List is Determined:</p>
+                <p className="font-semibold">How this list is determined</p>
                 <p className="text-xs">
-                  Exercises are ranked by total sets completed across all your workouts. The more frequently you train an exercise, the higher it appears in this list.
+                  Exercises are ranked by total sets completed across all your workouts. The more frequently you train an
+                  exercise, the higher it appears in this list.
                 </p>
-                <p className="text-xs mt-2">
-                  Use the search bar to find your best performance for any specific exercise.
-                </p>
+                <p className="mt-2 text-xs">Use the search bar to find your best performance for any specific exercise.</p>
               </div>
             }
-            side="bottom"
-            className="z-[120] max-w-sm"
           >
             <button
               type="button"
-              className="p-0.5 rounded-full text-muted-foreground hover:text-foreground transition-colors"
-              aria-label="Top exercises information"
+              className="rounded-full p-1 text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
+              aria-label="How top exercises are calculated"
             >
               <HelpCircle className="h-4 w-4" />
             </button>

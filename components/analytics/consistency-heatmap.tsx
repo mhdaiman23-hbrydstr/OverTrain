@@ -65,26 +65,25 @@ export function ConsistencyHeatmap({ heatmap }: ConsistencyHeatmapProps) {
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg">Consistency</CardTitle>
           <MobileTooltip
+            side="left"
+            className="max-w-xs"
             content={
               <div className="space-y-1">
-                <p className="font-semibold">How to Read This Chart:</p>
+                <p className="font-semibold">How to read this chart</p>
                 <p className="text-xs">Each square represents one day of the past 12 weeks.</p>
-                <p className="text-xs mt-2">
-                  <strong>Color Intensity:</strong><br/>
+                <p className="mt-2 text-xs">
+                  <strong>Color intensity:</strong>
+                  <br />
                   Lighter = fewer workouts | Darker = more workouts
                 </p>
-                <p className="text-xs mt-2">
-                  Hover over a day to see the exact number of workouts completed.
-                </p>
+                <p className="mt-2 text-xs">Tap a day to see the exact number of completed workouts.</p>
               </div>
             }
-            side="left"
-            className="z-[120] max-w-xs"
           >
             <button
               type="button"
-              className="p-0.5 rounded-full text-muted-foreground hover:text-foreground transition-colors"
-              aria-label="Consistency chart information"
+              className="rounded-full p-1 text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
+              aria-label="How to read the consistency chart"
             >
               <HelpCircle className="h-5 w-5" />
             </button>

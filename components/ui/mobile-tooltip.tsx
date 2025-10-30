@@ -20,6 +20,8 @@ interface MobileTooltipProps {
   content: React.ReactNode
   side?: 'top' | 'right' | 'bottom' | 'left'
   className?: string
+  align?: 'center' | 'start' | 'end'
+  sideOffset?: number
 }
 
 export function MobileTooltip({
@@ -27,6 +29,8 @@ export function MobileTooltip({
   content,
   side = 'bottom',
   className,
+  align = 'center',
+  sideOffset = 6,
 }: MobileTooltipProps) {
   // Track device capabilities
   const [deviceType, setDeviceType] = React.useState<'hover' | 'touch' | null>(null)
@@ -40,8 +44,17 @@ export function MobileTooltip({
    * This handles hybrid devices (tablet with keyboard) correctly
    */
   React.useEffect(() => {
-    const canHover = window.matchMedia('(hover: hover)').matches
-    setDeviceType(canHover ? 'hover' : 'touch')
+    const mediaQuery = window.matchMedia('(hover: hover)')
+    const update = () => setDeviceType(mediaQuery.matches ? 'hover' : 'touch')
+
+    update()
+    if (mediaQuery.addEventListener) {
+      mediaQuery.addEventListener('change', update)
+      return () => mediaQuery.removeEventListener('change', update)
+    }
+
+    mediaQuery.addListener(update)
+    return () => mediaQuery.removeListener(update)
   }, [])
 
   /**
@@ -81,7 +94,7 @@ export function MobileTooltip({
     return (
       <Tooltip>
         <TooltipTrigger asChild>{children}</TooltipTrigger>
-        <TooltipContent side={side} className={className}>
+        <TooltipContent side={side} align={align} sideOffset={sideOffset} className={className}>
           {content}
         </TooltipContent>
       </Tooltip>
@@ -96,12 +109,15 @@ export function MobileTooltip({
    * - Click outside → tooltip closes (Radix UI handles this)
    * - Escape key → tooltip closes (our handler above)
    *
-   * aria-expanded: Accessibility - tells screen readers the expanded state
-   * onOpenChange: Radix UI calls this when user clicks outside or internally closes
-   * controlled open prop: We fully control the tooltip state
+   * CRITICAL: Do NOT use <TooltipTrigger asChild> on touch devices
+   * Using asChild + span wrapper causes Radix UI event conflicts
+   * Instead, the div wrapper IS the trigger (no TooltipTrigger)
+   * This gives us direct control over click/touch events
    *
-   * NOTE: We wrap children in a span to ensure the click handler attaches properly.
-   * Raw SVG icons or divs don't reliably receive onClick via asChild in Radix UI.
+   * Event handling:
+   * - onClick: Handles click events (primary for mouse/touch simulation)
+   * - onTouchEnd: Secondary handler for real touch devices
+   * - touchAction: 'manipulation' prevents double-tap zoom delay
    */
   if (deviceType === 'touch') {
     return (
@@ -109,15 +125,17 @@ export function MobileTooltip({
         <TooltipTrigger asChild>
           <span
             onClick={handleTriggerClick}
+            onTouchEnd={handleTriggerClick}
             aria-expanded={open}
             role="button"
             tabIndex={0}
             className="inline-flex cursor-pointer"
+            style={{ touchAction: 'manipulation' }}
           >
             {children}
           </span>
         </TooltipTrigger>
-        <TooltipContent side={side} className={className}>
+        <TooltipContent side={side} align={align} sideOffset={sideOffset} className={className}>
           {content}
         </TooltipContent>
       </Tooltip>
@@ -132,7 +150,7 @@ export function MobileTooltip({
   return (
     <Tooltip>
       <TooltipTrigger asChild>{children}</TooltipTrigger>
-      <TooltipContent side={side} className={className}>
+      <TooltipContent side={side} align={align} sideOffset={sideOffset} className={className}>
         {content}
       </TooltipContent>
     </Tooltip>

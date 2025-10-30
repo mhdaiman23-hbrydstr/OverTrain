@@ -167,6 +167,9 @@ export function AdvancedProgramSettings({ template, userProfile, onOverrideChang
                   Enable custom progression
                 </Label>
                 <MobileTooltip
+                  side="top"
+                  align="start"
+                  sideOffset={8}
                   content={
                     <span className="max-w-xs block text-left">
                       Override the template's default progression rules so you can set custom weekly increases and loading patterns.

@@ -104,13 +104,19 @@ export function WeeklyFocusCard({ workouts, weeklyGoal, onLogWorkout }: WeeklyFo
               <h3 className="text-lg font-semibold text-foreground">This Week</h3>
               <MobileTooltip
                 content={
-                  <>
+                  <div className="space-y-1">
                     <p>The circular chart shows your progress toward your weekly goal.</p>
-                    <p className="text-xs mt-1">Blue = In progress | Green = Goal achieved</p>
-                  </>
+                    <p className="text-xs">Blue = In progress | Green = Goal achieved</p>
+                  </div>
                 }
               >
-                <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help hover:text-foreground transition-colors" />
+                <button
+                  type="button"
+                  className="rounded-full p-1 text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
+                  aria-label="Explain weekly progress chart"
+                >
+                  <HelpCircle className="h-4 w-4" />
+                </button>
               </MobileTooltip>
             </div>
             <p className="text-sm text-muted-foreground">Your weekly workout goal progress</p>
@@ -214,14 +220,22 @@ export function WeeklyFocusCard({ workouts, weeklyGoal, onLogWorkout }: WeeklyFo
               <div className="flex items-center gap-1">
                 <span className="text-xs text-muted-foreground">Workout Days</span>
                 <MobileTooltip
+                  side="top"
+                  align="start"
                   content={
-                    <>
+                    <div className="space-y-1">
                       <p>Your workouts for this week:</p>
-                      <p className="text-xs mt-1">Blue = Had workout | Red = Missed | Gray = Future</p>
-                    </>
+                      <p className="text-xs">Blue = Completed | Red = Missed | Gray = Upcoming</p>
+                    </div>
                   }
                 >
-                  <HelpCircle className="h-3 w-3 text-muted-foreground cursor-help hover:text-foreground transition-colors" />
+                  <button
+                    type="button"
+                    className="rounded-full p-0.5 text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
+                    aria-label="Explain workout days chart"
+                  >
+                    <HelpCircle className="h-3 w-3" />
+                  </button>
                 </MobileTooltip>
               </div>
               <div className="flex gap-1">

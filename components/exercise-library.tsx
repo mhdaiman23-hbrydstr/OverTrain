@@ -218,6 +218,9 @@ export function ExerciseLibrary({ open, onOpenChange, onSelectExercise, currentE
                 Repeat
               </label>
               <MobileTooltip
+                side="top"
+                align="start"
+                sideOffset={8}
                 content={
                   <span className="max-w-xs block text-left">
                     When checked, this exercise replaces every upcoming instance in the program. Leave it off to change only today's workout.
