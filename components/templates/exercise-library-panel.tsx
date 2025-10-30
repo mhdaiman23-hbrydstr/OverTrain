@@ -44,30 +44,33 @@ export function ExerciseLibraryPanel({
         <CardTitle>Exercise Library</CardTitle>
       </CardHeader>
       <CardContent className="flex h-full flex-col gap-3">
-        <div className="grid gap-2 md:grid-cols-2">
-          <div className="space-y-2">
-            <Label htmlFor="exercise-search">Search exercises</Label>
+        <div className="space-y-2">
+          <div>
+            <Label htmlFor="exercise-search">Search</Label>
             <Input
               id="exercise-search"
               value={filters.search}
-              placeholder="Search by name"
+              placeholder="Exercise name"
               onChange={(event) => updateFilter("search", event.target.value)}
+              className="mt-1"
             />
           </div>
-          <div className="space-y-2">
+          <div>
             <Label>Equipment</Label>
             <Input
               value={filters.equipment}
               placeholder="e.g. Barbell"
               onChange={(event) => updateFilter("equipment", event.target.value)}
+              className="mt-1"
             />
           </div>
-          <div className="space-y-2">
+          <div>
             <Label>Muscle group</Label>
             <Input
               value={filters.muscleGroup}
               placeholder="e.g. Back"
               onChange={(event) => updateFilter("muscleGroup", event.target.value)}
+              className="mt-1"
             />
           </div>
         </div>
