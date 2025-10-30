@@ -5,8 +5,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
-import { Switch } from "@/components/ui/switch"
 import { cn } from "@/lib/utils"
+import { CompactSwitch } from "./compact-switch"
 import type { ExperienceOption, GenderOption, ProgramMeta, ProgressionType } from "./types"
 
 interface MetaPanelProps {
@@ -24,7 +24,7 @@ export function MetaPanel({ meta, onMetaChange, onToggleOption, fieldErrors }: M
       <CardHeader>
         <CardTitle>Program Settings</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-3">
         <div className="grid gap-4 md:grid-cols-3">
           <div className="space-y-2">
             <Label htmlFor="program-days">Days per week</Label>
@@ -106,15 +106,12 @@ export function MetaPanel({ meta, onMetaChange, onToggleOption, fieldErrors }: M
           </div>
         </div>
 
-        <div className="flex items-center justify-between rounded-lg border border-border/50 px-3 py-2">
-          <div>
-            <div className="text-sm font-medium">Program visibility</div>
-            <div className="text-xs text-muted-foreground">
-              Active templates appear immediately in the programs list.
-            </div>
-          </div>
-          <Switch checked={meta.isActive} onCheckedChange={(checked) => onMetaChange("isActive", checked)} />
-        </div>
+        <CompactSwitch
+          label="Program visibility"
+          description="Active templates appear immediately in the programs list."
+          checked={meta.isActive}
+          onCheckedChange={(checked) => onMetaChange("isActive", checked)}
+        />
       </CardContent>
     </Card>
   )
