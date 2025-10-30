@@ -5,11 +5,11 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Switch } from "@/components/ui/switch"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { ArrowDown, ArrowUp, Plus, RefreshCw, Trash2 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { CompactSwitch } from "./compact-switch"
 import type { BuilderDay, ExerciseLibraryItem } from "./types"
 
 interface SchedulePanelProps {
@@ -49,7 +49,7 @@ export function SchedulePanel({
   const getError = (path: string) => fieldErrors[path]
 
   return (
-    <Card className="h-[700px]">
+    <Card className="h-[500px]">
       <CardHeader className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <CardTitle>Program Schedule</CardTitle>
         <div className="flex flex-wrap items-center gap-2">
@@ -80,7 +80,7 @@ export function SchedulePanel({
       <CardContent className="h-full pt-0">
         <div className="h-full overflow-hidden">
           <div className="h-full overflow-x-auto">
-            <div className="flex h-full gap-4 pb-4">
+            <div className="flex h-full gap-3 pb-3">
               {days.map((day) => {
                 const isActive = day.id === activeDayId
                 const hasErrors = Object.keys(fieldErrors).some((key) => key.startsWith(`day.${day.id}`))
@@ -95,7 +95,7 @@ export function SchedulePanel({
                   <div
                     key={day.id}
                     className={cn(
-                      "flex h-full w-[340px] flex-none flex-col gap-4 rounded-xl border bg-background p-4 shadow-sm transition",
+                      "flex h-full w-[280px] flex-none flex-col gap-3 rounded-xl border bg-background p-3 shadow-sm transition",
                       isActive && "border-primary ring-2 ring-primary/20",
                       hasErrors && "border-destructive/60",
                     )}
@@ -215,23 +215,17 @@ export function SchedulePanel({
 
                                 <Separator />
 
-                                <div className="flex items-center justify-between rounded border border-border/40 px-3 py-2">
-                                  <div>
-                                    <div className="text-xs font-medium uppercase text-muted-foreground">Use global progression</div>
-                                    <div className="text-xs text-muted-foreground">
-                                      Override below if this exercise requires unique progression.
-                                    </div>
-                                  </div>
-                                  <Switch
-                                    checked={exercise.useGlobalProgression}
-                                    onCheckedChange={(checked) =>
-                                      onUpdateExercise(day.id, exercise.id, (prev) => ({
-                                        ...prev,
-                                        useGlobalProgression: checked,
-                                      }))
-                                    }
-                                  />
-                                </div>
+                                <CompactSwitch
+                                  label="Use global progression"
+                                  description="Override below if this exercise requires unique progression."
+                                  checked={exercise.useGlobalProgression}
+                                  onCheckedChange={(checked) =>
+                                    onUpdateExercise(day.id, exercise.id, (prev) => ({
+                                      ...prev,
+                                      useGlobalProgression: checked,
+                                    }))
+                                  }
+                                />
 
                                 {!exercise.useGlobalProgression && (
                                   <div className="max-h-60 overflow-y-auto">
