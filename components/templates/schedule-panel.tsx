@@ -10,6 +10,17 @@ import { Separator } from "@/components/ui/separator"
 import { ArrowDown, ArrowUp, Plus, RefreshCw, Trash2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { CompactSwitch } from "./compact-switch"
+import { SortableExerciseCard } from "./sortable-exercise-card"
+import {
+  DndContext,
+  DragEndEvent,
+  closestCenter,
+} from "@dnd-kit/core"
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+  arrayMove,
+} from "@dnd-kit/sortable"
 import type { BuilderDay, ExerciseLibraryItem } from "./types"
 
 interface SchedulePanelProps {
@@ -47,6 +58,31 @@ export function SchedulePanel({
 }: SchedulePanelProps) {
   const activeDay = days.find((day) => day.id === activeDayId) ?? days[0]
   const getError = (path: string) => fieldErrors[path]
+
+  // Handle drag end for exercise reordering within a day
+  const handleExerciseDragEnd = (event: DragEndEvent, dayId: string) => {
+    const { active, over } = event
+
+    if (!over || active.id === over.id) return
+
+    const day = days.find(d => d.id === dayId)
+    if (!day) return
+
+    const oldIndex = day.exercises.findIndex(e => e.id === active.id)
+    const newIndex = day.exercises.findIndex(e => e.id === over.id)
+
+    if (oldIndex === -1 || newIndex === -1) return
+
+    const reorderedExercises = arrayMove(day.exercises, oldIndex, newIndex)
+
+    // Update each exercise with new order
+    reorderedExercises.forEach((exercise, index) => {
+      onUpdateExercise(dayId, exercise.id, (prev) => ({
+        ...prev,
+        exercise_order: index + 1,
+      }))
+    })
+  }
 
   return (
     <Card className="h-[500px]">
@@ -167,202 +203,212 @@ export function SchedulePanel({
                           Drag exercises here to start building this day.
                         </div>
                       ) : (
-                        <div className="space-y-3">
-                          {day.exercises.map((exercise, index) => (
-                            <div key={exercise.id} className="rounded-md border border-border/40 bg-background p-3">
-                              <div className="flex flex-col gap-3">
-                                <div className="flex items-start justify-between gap-3">
-                                  <div className="flex items-center gap-2">
-                                    <Badge variant="outline" className="text-xs">#{index + 1}</Badge>
-                                    <div className="text-sm font-semibold leading-tight">{exercise.exerciseName}</div>
-                                  </div>
-                                  <div className="flex items-center gap-1">
-                                    <Button
-                                      variant="outline"
-                                      size="icon"
-                                      className="h-6 w-6"
-                                      onClick={(event) => {
-                                        event.stopPropagation()
-                                        onReorderExercise(day.id, exercise.id, "up")
-                                      }}
-                                    >
-                                      <ArrowUp className="h-3 w-3" />
-                                    </Button>
-                                    <Button
-                                      variant="outline"
-                                      size="icon"
-                                      className="h-6 w-6"
-                                      onClick={(event) => {
-                                        event.stopPropagation()
-                                        onReorderExercise(day.id, exercise.id, "down")
-                                      }}
-                                    >
-                                      <ArrowDown className="h-3 w-3" />
-                                    </Button>
-                                    <Button
-                                      variant="destructive"
-                                      size="icon"
-                                      className="h-6 w-6"
-                                      onClick={(event) => {
-                                        event.stopPropagation()
-                                        onRemoveExercise(day.id, exercise.id)
-                                      }}
-                                    >
-                                      <Trash2 className="h-3 w-3" />
-                                    </Button>
-                                  </div>
-                                </div>
-
-                                <Separator />
-
-                                <CompactSwitch
-                                  label="Use global progression"
-                                  description="Override below if this exercise requires unique progression."
-                                  checked={exercise.useGlobalProgression}
-                                  onCheckedChange={(checked) =>
-                                    onUpdateExercise(day.id, exercise.id, (prev) => ({
-                                      ...prev,
-                                      useGlobalProgression: checked,
-                                    }))
-                                  }
-                                />
-
-                                {!exercise.useGlobalProgression && (
-                                  <div className="max-h-60 overflow-y-auto">
-                                    <div className="grid gap-3 md:grid-cols-2">
-                                    <div className="space-y-2">
-                                      <Label>Working sets</Label>
-                                      <Input
-                                        type="number"
-                                        min={1}
-                                        value={exercise.workingSets}
-                                        onChange={(event) =>
-                                          onUpdateExercise(day.id, exercise.id, (prev) => ({
-                                            ...prev,
-                                            workingSets: Number(event.target.value) || prev.workingSets,
-                                          }))
-                                        }
-                                        className={cn(
-                                          getError(`day.${day.id}.exercise.${exercise.id}.workingSets`) &&
-                                            "border-destructive focus-visible:ring-destructive",
-                                        )}
-                                      />
-                                      {getError(`day.${day.id}.exercise.${exercise.id}.workingSets`) && (
-                                        <p className="text-xs text-destructive">
-                                          {getError(`day.${day.id}.exercise.${exercise.id}.workingSets`)}
-                                        </p>
-                                      )}
-                                    </div>
-                                    <div className="space-y-2">
-                                      <Label>Working rep range</Label>
-                                      <Input
-                                        value={exercise.workingRepRange}
-                                        onChange={(event) =>
-                                          onUpdateExercise(day.id, exercise.id, (prev) => ({
-                                            ...prev,
-                                            workingRepRange: event.target.value,
-                                          }))
-                                        }
-                                        className={cn(
-                                          getError(`day.${day.id}.exercise.${exercise.id}.workingRepRange`) &&
-                                            "border-destructive focus-visible:ring-destructive",
-                                        )}
-                                      />
-                                      {getError(`day.${day.id}.exercise.${exercise.id}.workingRepRange`) && (
-                                        <p className="text-xs text-destructive">
-                                          {getError(`day.${day.id}.exercise.${exercise.id}.workingRepRange`)}
-                                        </p>
-                                      )}
-                                    </div>
-                                    <div className="space-y-2">
-                                      <Label>Deload sets</Label>
-                                      <Input
-                                        type="number"
-                                        min={0}
-                                        value={exercise.deloadSets}
-                                        onChange={(event) =>
-                                          onUpdateExercise(day.id, exercise.id, (prev) => ({
-                                            ...prev,
-                                            deloadSets: Number(event.target.value) || prev.deloadSets,
-                                          }))
-                                        }
-                                        className={cn(
-                                          getError(`day.${day.id}.exercise.${exercise.id}.deloadSets`) &&
-                                            "border-destructive focus-visible:ring-destructive",
-                                        )}
-                                      />
-                                      {getError(`day.${day.id}.exercise.${exercise.id}.deloadSets`) && (
-                                        <p className="text-xs text-destructive">
-                                          {getError(`day.${day.id}.exercise.${exercise.id}.deloadSets`)}
-                                        </p>
-                                      )}
-                                    </div>
-                                    <div className="space-y-2">
-                                      <Label>Deload rep range</Label>
-                                      <Input
-                                        value={exercise.deloadRepRange}
-                                        onChange={(event) =>
-                                          onUpdateExercise(day.id, exercise.id, (prev) => ({
-                                            ...prev,
-                                            deloadRepRange: event.target.value,
-                                          }))
-                                        }
-                                        className={cn(
-                                          getError(`day.${day.id}.exercise.${exercise.id}.deloadRepRange`) &&
-                                            "border-destructive focus-visible:ring-destructive",
-                                        )}
-                                      />
-                                      {getError(`day.${day.id}.exercise.${exercise.id}.deloadRepRange`) && (
-                                        <p className="text-xs text-destructive">
-                                          {getError(`day.${day.id}.exercise.${exercise.id}.deloadRepRange`)}
-                                        </p>
-                                      )}
-                                    </div>
-                                    <div className="space-y-2">
-                                      <Label>Progression mode</Label>
-                                      <Select
-                                        value={exercise.progressionMode}
-                                        onValueChange={(value: "weight_based" | "rep_based") =>
-                                          onUpdateExercise(day.id, exercise.id, (prev) => ({ ...prev, progressionMode: value }))
-                                        }
-                                      >
-                                        <SelectTrigger
-                                          className={cn(
-                                            getError(`day.${day.id}.exercise.${exercise.id}.progressionMode`) &&
-                                              "border-destructive focus-visible:ring-destructive",
-                                          )}
+                        <DndContext
+                          collisionDetection={closestCenter}
+                          onDragEnd={(event) => handleExerciseDragEnd(event, day.id)}
+                        >
+                          <SortableContext
+                            items={day.exercises.map(e => e.id)}
+                            strategy={verticalListSortingStrategy}
+                          >
+                            <div className="space-y-3">
+                              {day.exercises.map((exercise, index) => (
+                                <SortableExerciseCard key={exercise.id} id={exercise.id}>
+                                  <div className="flex flex-col gap-3">
+                                    <div className="flex items-start justify-between gap-3">
+                                      <div className="flex items-center gap-2">
+                                        <Badge variant="outline" className="text-xs">#{index + 1}</Badge>
+                                        <div className="text-sm font-semibold leading-tight">{exercise.exerciseName}</div>
+                                      </div>
+                                      <div className="flex items-center gap-1">
+                                        <Button
+                                          variant="outline"
+                                          size="icon"
+                                          className="h-6 w-6"
+                                          onClick={(event) => {
+                                            event.stopPropagation()
+                                            onReorderExercise(day.id, exercise.id, "up")
+                                          }}
                                         >
-                                          <SelectValue placeholder="Select mode" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                          <SelectItem value="weight_based">Weight based</SelectItem>
-                                          <SelectItem value="rep_based">Rep based</SelectItem>
-                                        </SelectContent>
-                                      </Select>
-                                      {getError(`day.${day.id}.exercise.${exercise.id}.progressionMode`) && (
-                                        <p className="text-xs text-destructive">
-                                          {getError(`day.${day.id}.exercise.${exercise.id}.progressionMode`)}
-                                        </p>
-                                      )}
+                                          <ArrowUp className="h-3 w-3" />
+                                        </Button>
+                                        <Button
+                                          variant="outline"
+                                          size="icon"
+                                          className="h-6 w-6"
+                                          onClick={(event) => {
+                                            event.stopPropagation()
+                                            onReorderExercise(day.id, exercise.id, "down")
+                                          }}
+                                        >
+                                          <ArrowDown className="h-3 w-3" />
+                                        </Button>
+                                        <Button
+                                          variant="destructive"
+                                          size="icon"
+                                          className="h-6 w-6"
+                                          onClick={(event) => {
+                                            event.stopPropagation()
+                                            onRemoveExercise(day.id, exercise.id)
+                                          }}
+                                        >
+                                          <Trash2 className="h-3 w-3" />
+                                        </Button>
+                                      </div>
                                     </div>
+
+                                    <Separator />
+
                                     <CompactSwitch
-                                      label="Auto progression"
-                                      description="Enable automatic adjustments for this exercise only."
-                                      checked={exercise.autoProgressionEnabled}
+                                      label="Use global progression"
+                                      description="Override below if this exercise requires unique progression."
+                                      checked={exercise.useGlobalProgression}
                                       onCheckedChange={(checked) =>
                                         onUpdateExercise(day.id, exercise.id, (prev) => ({
                                           ...prev,
-                                          autoProgressionEnabled: checked,
+                                          useGlobalProgression: checked,
                                         }))
                                       }
                                     />
+
+                                    {!exercise.useGlobalProgression && (
+                                      <div className="max-h-60 overflow-y-auto">
+                                        <div className="grid gap-3 md:grid-cols-2">
+                                          <div className="space-y-2">
+                                            <Label>Working sets</Label>
+                                            <Input
+                                              type="number"
+                                              min={1}
+                                              value={exercise.workingSets}
+                                              onChange={(event) =>
+                                                onUpdateExercise(day.id, exercise.id, (prev) => ({
+                                                  ...prev,
+                                                  workingSets: Number(event.target.value) || prev.workingSets,
+                                                }))
+                                              }
+                                              className={cn(
+                                                getError(`day.${day.id}.exercise.${exercise.id}.workingSets`) &&
+                                                  "border-destructive focus-visible:ring-destructive",
+                                              )}
+                                            />
+                                            {getError(`day.${day.id}.exercise.${exercise.id}.workingSets`) && (
+                                              <p className="text-xs text-destructive">
+                                                {getError(`day.${day.id}.exercise.${exercise.id}.workingSets`)}
+                                              </p>
+                                            )}
+                                          </div>
+                                          <div className="space-y-2">
+                                            <Label>Working rep range</Label>
+                                            <Input
+                                              value={exercise.workingRepRange}
+                                              onChange={(event) =>
+                                                onUpdateExercise(day.id, exercise.id, (prev) => ({
+                                                  ...prev,
+                                                  workingRepRange: event.target.value,
+                                                }))
+                                              }
+                                              className={cn(
+                                                getError(`day.${day.id}.exercise.${exercise.id}.workingRepRange`) &&
+                                                  "border-destructive focus-visible:ring-destructive",
+                                              )}
+                                            />
+                                            {getError(`day.${day.id}.exercise.${exercise.id}.workingRepRange`) && (
+                                              <p className="text-xs text-destructive">
+                                                {getError(`day.${day.id}.exercise.${exercise.id}.workingRepRange`)}
+                                              </p>
+                                            )}
+                                          </div>
+                                          <div className="space-y-2">
+                                            <Label>Deload sets</Label>
+                                            <Input
+                                              type="number"
+                                              min={0}
+                                              value={exercise.deloadSets}
+                                              onChange={(event) =>
+                                                onUpdateExercise(day.id, exercise.id, (prev) => ({
+                                                  ...prev,
+                                                  deloadSets: Number(event.target.value) || prev.deloadSets,
+                                                }))
+                                              }
+                                              className={cn(
+                                                getError(`day.${day.id}.exercise.${exercise.id}.deloadSets`) &&
+                                                  "border-destructive focus-visible:ring-destructive",
+                                              )}
+                                            />
+                                            {getError(`day.${day.id}.exercise.${exercise.id}.deloadSets`) && (
+                                              <p className="text-xs text-destructive">
+                                                {getError(`day.${day.id}.exercise.${exercise.id}.deloadSets`)}
+                                              </p>
+                                            )}
+                                          </div>
+                                          <div className="space-y-2">
+                                            <Label>Deload rep range</Label>
+                                            <Input
+                                              value={exercise.deloadRepRange}
+                                              onChange={(event) =>
+                                                onUpdateExercise(day.id, exercise.id, (prev) => ({
+                                                  ...prev,
+                                                  deloadRepRange: event.target.value,
+                                                }))
+                                              }
+                                              className={cn(
+                                                getError(`day.${day.id}.exercise.${exercise.id}.deloadRepRange`) &&
+                                                  "border-destructive focus-visible:ring-destructive",
+                                              )}
+                                            />
+                                            {getError(`day.${day.id}.exercise.${exercise.id}.deloadRepRange`) && (
+                                              <p className="text-xs text-destructive">
+                                                {getError(`day.${day.id}.exercise.${exercise.id}.deloadRepRange`)}
+                                              </p>
+                                            )}
+                                          </div>
+                                          <div className="space-y-2">
+                                            <Label>Progression mode</Label>
+                                            <Select
+                                              value={exercise.progressionMode}
+                                              onValueChange={(value: "weight_based" | "rep_based") =>
+                                                onUpdateExercise(day.id, exercise.id, (prev) => ({ ...prev, progressionMode: value }))
+                                              }
+                                            >
+                                              <SelectTrigger
+                                                className={cn(
+                                                  getError(`day.${day.id}.exercise.${exercise.id}.progressionMode`) &&
+                                                    "border-destructive focus-visible:ring-destructive",
+                                                )}
+                                              >
+                                                <SelectValue placeholder="Select mode" />
+                                              </SelectTrigger>
+                                              <SelectContent>
+                                                <SelectItem value="weight_based">Weight based</SelectItem>
+                                                <SelectItem value="rep_based">Rep based</SelectItem>
+                                              </SelectContent>
+                                            </Select>
+                                            {getError(`day.${day.id}.exercise.${exercise.id}.progressionMode`) && (
+                                              <p className="text-xs text-destructive">
+                                                {getError(`day.${day.id}.exercise.${exercise.id}.progressionMode`)}
+                                              </p>
+                                            )}
+                                          </div>
+                                          <CompactSwitch
+                                            label="Auto progression"
+                                            description="Enable automatic adjustments for this exercise only."
+                                            checked={exercise.autoProgressionEnabled}
+                                            onCheckedChange={(checked) =>
+                                              onUpdateExercise(day.id, exercise.id, (prev) => ({
+                                                ...prev,
+                                                autoProgressionEnabled: checked,
+                                              }))
+                                            }
+                                          />
+                                        </div>
+                                      </div>
+                                    )}
                                   </div>
-                                  </div>
-                                )}
-                              </div>
+                                </SortableExerciseCard>
+                              ))}
                             </div>
-                          ))}
-                        </div>
+                          </SortableContext>
+                        </DndContext>
                       )}
                     </div>
                   </div>
