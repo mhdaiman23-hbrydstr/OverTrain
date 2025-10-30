@@ -345,23 +345,17 @@ export function SchedulePanel({
                                         </p>
                                       )}
                                     </div>
-                                    <div className="space-y-2">
-                                      <Label>Auto progression</Label>
-                                      <div className="flex items-center justify-between rounded border border-border/40 px-3 py-2">
-                                        <div className="text-xs text-muted-foreground">
-                                          Enable automatic adjustments for this exercise only.
-                                        </div>
-                                        <Switch
-                                          checked={exercise.autoProgressionEnabled}
-                                          onCheckedChange={(checked) =>
-                                            onUpdateExercise(day.id, exercise.id, (prev) => ({
-                                              ...prev,
-                                              autoProgressionEnabled: checked,
-                                            }))
-                                          }
-                                        />
-                                      </div>
-                                    </div>
+                                    <CompactSwitch
+                                      label="Auto progression"
+                                      description="Enable automatic adjustments for this exercise only."
+                                      checked={exercise.autoProgressionEnabled}
+                                      onCheckedChange={(checked) =>
+                                        onUpdateExercise(day.id, exercise.id, (prev) => ({
+                                          ...prev,
+                                          autoProgressionEnabled: checked,
+                                        }))
+                                      }
+                                    />
                                   </div>
                                   </div>
                                 )}
