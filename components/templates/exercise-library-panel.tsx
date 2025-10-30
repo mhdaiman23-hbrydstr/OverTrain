@@ -4,9 +4,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Badge } from "@/components/ui/badge"
 import { Loader2, ArrowLeftRight } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { getMuscleGroupBadgeClass, getMuscleGroupLabel } from "@/lib/exercise-muscle-groups"
 import type { ExerciseLibraryItem } from "./types"
 
 export interface LibraryFilters {
@@ -104,16 +104,20 @@ export function ExerciseLibraryPanel({
                     JSON.stringify({ exercise }),
                   )
                 }
-                className="group cursor-grab rounded-md border-b border-border/40 p-3 transition hover:bg-muted/40 active:cursor-grabbing"
+                className="group cursor-grab border-b border-border/40 p-3 transition hover:bg-muted/50 active:cursor-grabbing"
               >
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <div className="text-sm font-medium leading-tight">{exercise.name}</div>
-                    <div className="mt-1 flex flex-wrap gap-2 text-[11px] text-muted-foreground">
-                      <Badge variant="outline">{exercise.muscle_group}</Badge>
-                      <Badge variant="outline">{exercise.equipment_type}</Badge>
-                    </div>
-                  </div>
+                <div className="text-sm font-medium leading-tight">{exercise.name}</div>
+                <div className="mt-2 flex items-center gap-2 text-xs">
+                  <span
+                    className={cn(
+                      "rounded border px-2 py-0.5 text-[11px] font-medium",
+                      getMuscleGroupBadgeClass(exercise.muscle_group),
+                    )}
+                  >
+                    {getMuscleGroupLabel(exercise.muscle_group)}
+                  </span>
+                  <span className="text-muted-foreground">/</span>
+                  <span className="text-muted-foreground">{exercise.equipment_type}</span>
                 </div>
               </div>
             ))}
