@@ -1230,7 +1230,7 @@ export class WorkoutLogger implements SetSyncProvider {
               exercisesCompleted: workout.exercises.length,
             },
             ipAddress: null,
-            userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : undefined,
+            userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : null,
           })
         } catch (auditError) {
           console.error('[WorkoutLogger] Failed to log workout completion audit event:', auditError)

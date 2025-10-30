@@ -275,7 +275,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           action: 'USER_LOGOUT',
           userId: state.user.id,
           ipAddress: null, // IP not available in client-side
-          userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : undefined,
+          userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : null,
         })
       } catch (auditError) {
         console.error('Failed to log logout audit event:', auditError)
@@ -305,7 +305,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           resourceType: 'PROFILE',
           details: { changedFields: Object.keys(updates) },
           ipAddress: null, // IP not available in client-side
-          userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : undefined,
+          userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : null,
         })
       } catch (auditError) {
         console.error('Failed to log profile update audit event:', auditError)

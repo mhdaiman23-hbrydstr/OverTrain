@@ -584,7 +584,7 @@ export class ProgramStateManager {
               totalWeeks: template.weeks,
             },
             ipAddress: null,
-            userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : undefined,
+            userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : null,
           })
         } catch (auditError) {
           console.error('[ProgramState] Failed to log program creation audit event:', auditError)
@@ -898,7 +898,7 @@ export class ProgramStateManager {
         resourceId: templateId,
         details: { programName: targetTemplate.name },
         ipAddress: null,
-        userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : undefined,
+        userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : null,
       })
     } catch (auditError) {
       console.error('[ProgramState] Failed to log program deletion audit event:', auditError)
