@@ -493,10 +493,10 @@ export function AdminTemplateBuilder() {
   }
 
   return (
-    <div className="flex h-full flex-col gap-4">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+    <div className="flex h-full flex-col gap-3">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Template Builder</h1>
+          <h1 className="text-xl font-semibold tracking-tight">Template Builder</h1>
           <p className="text-sm text-muted-foreground">
             Create admin-only program templates by dragging exercises into your schedule.
           </p>
@@ -527,8 +527,8 @@ export function AdminTemplateBuilder() {
         </Alert>
       )}
 
-      <div className="flex-1 gap-4 lg:grid lg:grid-cols-[minmax(0,1fr)_20rem] lg:gap-6">
-        <div className="space-y-4 pr-1 lg:pr-4">
+      <div className="flex-1 gap-3 lg:grid lg:grid-cols-[minmax(0,1fr)_20rem] lg:gap-4">
+        <div className="space-y-3 pr-1 lg:pr-4">
           <ProgramSummaryPanel meta={meta} onMetaChange={handleMetaChange} fieldErrors={validation.fieldErrors} />
           <SchedulePanel
             activeDayId={activeDay?.id ?? ""}
@@ -545,7 +545,7 @@ export function AdminTemplateBuilder() {
             fieldErrors={validation.fieldErrors}
           />
           <ScrollArea className={`${LAYOUT_HEIGHT} mb-6 lg:mb-0`}>
-            <div className="space-y-4 pb-4">
+            <div className="space-y-3 pb-3">
               <MetaPanel meta={meta} onMetaChange={handleMetaChange} onToggleOption={handleToggleOption} fieldErrors={validation.fieldErrors} />
               <ProgressionPanel
                 meta={meta}
