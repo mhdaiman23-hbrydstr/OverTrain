@@ -27,7 +27,7 @@ export function SidebarNavigation({ currentView, onViewChange }: SidebarNavigati
   const [showSignOutDialog, setShowSignOutDialog] = useState(false)
   const [syncStatus, setSyncStatus] = useState<'synced' | 'syncing' | 'failed' | 'offline'>('synced')
   const [isOnline, setIsOnline] = useState(true)
-  const isAdmin = !!user?.email?.includes('admin') // Simple admin check based on email
+  const isAdmin = !!user?.isAdmin
 
   // Listen for sync status updates
   useEffect(() => {

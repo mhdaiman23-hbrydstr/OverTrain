@@ -15,6 +15,7 @@ export interface User {
   }
   preferredUnit?: "metric" | "imperial"
   subscriptionTier?: string
+  isAdmin?: boolean
   createdAt: string
 }
 
@@ -84,7 +85,7 @@ export class AuthService {
         userId: user.id,
         details: { email: user.email },
         ipAddress: null, // IP not available in client-side auth
-        userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : undefined,
+        userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : null,
       })
     } catch (auditError) {
       console.error('Failed to log signup audit event:', auditError)
@@ -130,6 +131,7 @@ export class AuthService {
         deadlift: profile?.one_rep_max_deadlift,
       },
       preferredUnit: profile?.preferred_unit || "metric",
+      isAdmin: profile?.is_admin || false,
       createdAt: data.user.created_at,
     }
 
@@ -141,7 +143,7 @@ export class AuthService {
         userId: user.id,
         details: { method: 'email' },
         ipAddress: null, // IP not available in client-side auth
-        userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : undefined,
+        userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : null,
       })
     } catch (auditError) {
       console.error('Failed to log login audit event:', auditError)
@@ -235,6 +237,7 @@ export class AuthService {
           deadlift: profile?.one_rep_max_deadlift,
         },
         preferredUnit: profile?.preferred_unit || "metric",
+        isAdmin: profile?.is_admin || false,
         createdAt: session.user.created_at,
       }
 
@@ -430,7 +433,7 @@ export class AuthService {
             action: 'PASSWORD_RESET',
             userId: session.data.session.user.id,
             ipAddress: null,
-            userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : undefined,
+            userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : null,
           })
         }
       } catch (auditError) {
