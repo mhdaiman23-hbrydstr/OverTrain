@@ -1,12 +1,13 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
-import { Filter, FolderPlus, Loader2 } from "lucide-react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { CheckCircle2, FolderPlus, Loader2 } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { useToast } from "@/components/ui/use-toast"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { programTemplateService } from "@/lib/services/program-template-service"
 import { useDebounce } from "@/hooks/use-debounce"
 import {
@@ -52,24 +53,58 @@ const DEFAULT_PROGRESS: GlobalProgressionDefaults = {
   progressionMode: "weight_based",
 }
 
-const LAYOUT_HEIGHT = "h-[calc(100vh-200px)]"
+const LIBRARY_SCROLL_HEIGHT = "max-h-[640px]"
+
+const createEmptyDay = (position: number): BuilderDay => ({
+  id: uniqueId(),
+  dayNumber: position,
+  dayName: `Day ${position}`,
+  exercises: [],
+})
 
 export function AdminTemplateBuilder() {
   const [meta, setMeta] = useState<ProgramMeta>(DEFAULT_META)
   const [progressDefaults, setProgressDefaults] = useState<GlobalProgressionDefaults>(DEFAULT_PROGRESS)
-  const [days, setDays] = useState<BuilderDay[]>([
-    { id: uniqueId(), dayNumber: 1, dayName: "Day 1", exercises: [] },
-  ])
-  const [activeDayId, setActiveDayId] = useState<string>(days[0]?.id ?? "")
-  const [showLibrary, setShowLibrary] = useState(true)
+  const initialDays = useMemo(
+    () => Array.from({ length: DEFAULT_META.daysPerWeek }, (_, index) => createEmptyDay(index + 1)),
+    [],
+  )
+  const [days, setDays] = useState<BuilderDay[]>(initialDays)
+  const [activeDayId, setActiveDayId] = useState<string>(initialDays[0]?.id ?? "")
+  const [sidebarTab, setSidebarTab] = useState<"settings" | "progression">("settings")
   const [filters, setFilters] = useState<LibraryFilters>({ search: "", muscleGroup: "", equipment: "" })
   const [library, setLibrary] = useState<ExerciseLibraryItem[]>([])
   const [exerciseError, setExerciseError] = useState<string | null>(null)
   const [isLoadingExercises, setIsLoadingExercises] = useState(false)
   const [accessToken, setAccessToken] = useState<string | null>(null)
   const [isPublishing, setIsPublishing] = useState(false)
+  const [publishSuccess, setPublishSuccess] = useState<{ id?: string | number; name: string; timestamp: number } | null>(
+    null,
+  )
+  const librarySearchRef = useRef<HTMLInputElement | null>(null)
   const debouncedFilters = useDebounce(filters, 300)
   const { toast } = useToast()
+
+  const syncDaysToCount = useCallback((desiredCount: number) => {
+    const target = Math.max(1, Math.floor(Number.isFinite(desiredCount) ? desiredCount : 1))
+    setDays((prev) => {
+      if (prev.length === target) {
+        return prev
+      }
+
+      if (prev.length < target) {
+        const additions = Array.from({ length: target - prev.length }, (_, index) =>
+          createEmptyDay(prev.length + index + 1),
+        )
+        return [...prev, ...additions]
+      }
+
+      return prev.slice(0, target).map((day, index) => ({
+        ...day,
+        dayNumber: index + 1,
+      }))
+    })
+  }, [])
 
   useEffect(() => {
     if (!supabase) return
@@ -120,12 +155,15 @@ export function AdminTemplateBuilder() {
   }, [accessToken, debouncedFilters])
 
   useEffect(() => {
-    if (!days.length) {
-      const fallback = { id: uniqueId(), dayNumber: 1, dayName: "Day 1", exercises: [] }
-      setDays([fallback])
-      setActiveDayId(fallback.id)
+    syncDaysToCount(meta.daysPerWeek)
+  }, [meta.daysPerWeek, syncDaysToCount])
+
+  useEffect(() => {
+    if (!days.length) return
+    if (!days.some((day) => day.id === activeDayId)) {
+      setActiveDayId(days[days.length - 1]?.id ?? "")
     }
-  }, [days])
+  }, [days, activeDayId])
 
   const activeDay = days.find((day) => day.id === activeDayId) ?? days[0]
   const totalWeeks = meta.totalWeeks
@@ -244,6 +282,14 @@ export function AdminTemplateBuilder() {
   }, [validation])
 
   const handleMetaChange = <K extends keyof ProgramMeta>(key: K, value: ProgramMeta[K]) => {
+    if (key === "daysPerWeek") {
+      const numericValue = typeof value === "number" ? value : Number(value)
+      const sanitized = Math.max(1, Math.floor(Number.isFinite(numericValue) ? numericValue : 1))
+      setMeta((prev) => ({ ...prev, daysPerWeek: sanitized }))
+      syncDaysToCount(sanitized)
+      return
+    }
+
     setMeta((prev) => ({ ...prev, [key]: value }))
   }
 
@@ -260,30 +306,38 @@ export function AdminTemplateBuilder() {
   }
 
   const addDay = () => {
-    const nextNumber = days.length + 1
-    const newDay: BuilderDay = { id: uniqueId(), dayNumber: nextNumber, dayName: `Day ${nextNumber}`, exercises: [] }
-    setDays((prev) => [...prev, newDay])
-    setActiveDayId(newDay.id)
+    setDays((prev) => {
+      const nextNumber = prev.length + 1
+      const newDay = createEmptyDay(nextNumber)
+      setMeta((prevMeta) => ({ ...prevMeta, daysPerWeek: nextNumber }))
+      setActiveDayId(newDay.id)
+      return [...prev, newDay]
+    })
   }
 
   const duplicateDay = (id: string) => {
-    const original = days.find((day) => day.id === id)
-    if (!original) return
+    setDays((prev) => {
+      const original = prev.find((day) => day.id === id)
+      if (!original) {
+        return prev
+      }
 
-    const nextNumber = days.length + 1
-    const clone: BuilderDay = {
-      id: uniqueId(),
-      dayNumber: nextNumber,
-      dayName: `${original.dayName} Copy`,
-      exercises: original.exercises.map((exercise, index) => ({
-        ...exercise,
+      const nextNumber = prev.length + 1
+      const clone: BuilderDay = {
         id: uniqueId(),
-        order: index + 1,
-      })),
-    }
+        dayNumber: nextNumber,
+        dayName: `${original.dayName} Copy`,
+        exercises: original.exercises.map((exercise, index) => ({
+          ...exercise,
+          id: uniqueId(),
+          order: index + 1,
+        })),
+      }
 
-    setDays((prev) => [...prev, clone])
-    setActiveDayId(clone.id)
+      setMeta((prevMeta) => ({ ...prevMeta, daysPerWeek: nextNumber }))
+      setActiveDayId(clone.id)
+      return [...prev, clone]
+    })
   }
 
   const removeDay = (id: string) => {
@@ -296,16 +350,21 @@ export function AdminTemplateBuilder() {
       return
     }
 
-    setDays((prev) =>
-      prev
-        .filter((day) => day.id !== id)
-        .map((day, index) => ({ ...day, dayNumber: index + 1 })),
-    )
+    setDays((prev) => {
+      const filtered = prev.filter((day) => day.id !== id)
+      if (filtered.length === prev.length) {
+        return prev
+      }
 
-    if (id === activeDayId) {
-      const fallback = days.find((day) => day.id !== id)
-      if (fallback) setActiveDayId(fallback.id)
-    }
+      const normalized = filtered.map((day, index) => ({ ...day, dayNumber: index + 1 }))
+      setMeta((prevMeta) => ({ ...prevMeta, daysPerWeek: normalized.length }))
+
+      if (!normalized.some((day) => day.id === activeDayId)) {
+        setActiveDayId(normalized[normalized.length - 1]?.id ?? "")
+      }
+
+      return normalized
+    })
   }
 
   const addExerciseToDay = (dayId: string, exercise: ExerciseLibraryItem) => {
@@ -376,7 +435,17 @@ export function AdminTemplateBuilder() {
     addExerciseToDay(dayId, payload.exercise)
   }
 
+  const handleAddExerciseRequest = () => {
+    if (librarySearchRef.current) {
+      librarySearchRef.current.focus()
+      librarySearchRef.current.select()
+      librarySearchRef.current.scrollIntoView({ behavior: "smooth", block: "center" })
+    }
+  }
+
   const weeks = useMemo(() => Array.from({ length: totalWeeks }, (_, index) => index + 1), [totalWeeks])
+  const metaSummary = `${meta.daysPerWeek} days/week | ${totalWeeks} weeks`
+  const progressionSummary = `${progressDefaults.workingSets}x${progressDefaults.workingRepRange} | ${progressDefaults.restTimeSeconds}s rest | ${meta.progressionType}`
 
   const buildPayload = () => ({
     name: meta.name.trim(),
@@ -459,6 +528,7 @@ export function AdminTemplateBuilder() {
       return
     }
 
+    setPublishSuccess(null)
     setIsPublishing(true)
     try {
       const response = await fetch("/api/admin/templates", {
@@ -470,21 +540,38 @@ export function AdminTemplateBuilder() {
         body: JSON.stringify(buildPayload()),
       })
 
+      const responseText = await response.text()
       if (!response.ok) {
-        throw new Error(await response.text())
+        throw new Error(responseText || "Publishing failed with an unknown error.")
       }
 
-      const data = await response.json()
+      let data: { id?: string | number } | null = null
+      if (responseText) {
+        try {
+          data = JSON.parse(responseText) as { id?: string | number }
+        } catch (parseError) {
+          console.warn("[TemplateBuilder] publish response was not JSON", parseError)
+        }
+      }
+
       programTemplateService.clearCache()
+
+      const templateName = meta.name.trim() || "Untitled template"
+      const publishedId = data?.id
+      setPublishSuccess({ id: publishedId, name: templateName, timestamp: Date.now() })
       toast({
         title: "Template published",
-        description: `Template created successfully (ID: ${data.id}).`,
+        description: publishedId
+          ? `Template created successfully (ID: ${publishedId}).`
+          : "Template created successfully.",
       })
     } catch (error) {
       console.error("[TemplateBuilder] publish failed", error)
+      setPublishSuccess(null)
       toast({
         title: "Unable to publish template",
-        description: "Review the validation messages and try again.",
+        description:
+          error instanceof Error ? error.message : "Review the validation messages and try again.",
         variant: "destructive",
       })
     } finally {
@@ -493,7 +580,7 @@ export function AdminTemplateBuilder() {
   }
 
   return (
-    <div className="flex h-full flex-col gap-3">
+    <div className="flex h-full flex-col gap-4">
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <h1 className="text-xl font-semibold tracking-tight">Template Builder</h1>
@@ -502,10 +589,6 @@ export function AdminTemplateBuilder() {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <Button variant="outline" onClick={() => setShowLibrary((prev) => !prev)}>
-            <Filter className="mr-2 h-4 w-4" />
-            {showLibrary ? "Hide Library" : "Show Library"}
-          </Button>
           <TemplatePreviewDialog meta={meta} days={days} globalProgress={progressDefaults} totalWeeks={totalWeeks} />
           <Button onClick={publishTemplate} disabled={formHasErrors || isPublishing}>
             {isPublishing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FolderPlus className="mr-2 h-4 w-4" />}
@@ -513,6 +596,17 @@ export function AdminTemplateBuilder() {
           </Button>
         </div>
       </div>
+
+      {publishSuccess && (
+        <Alert>
+          <CheckCircle2 className="h-4 w-4" />
+          <AlertTitle>Template published</AlertTitle>
+          <AlertDescription>
+            {`"${publishSuccess.name}" is live.`}
+            {publishSuccess.id ? ` ID: ${publishSuccess.id}` : ""}
+          </AlertDescription>
+        </Alert>
+      )}
 
       {formHasErrors && (
         <Alert variant="destructive">
@@ -527,38 +621,89 @@ export function AdminTemplateBuilder() {
         </Alert>
       )}
 
-      <div className="flex-1 gap-3 lg:grid lg:grid-cols-[minmax(0,1fr)_20rem] lg:gap-4">
-        <div className="space-y-3 pr-1 lg:pr-4">
-          <ProgramSummaryPanel meta={meta} onMetaChange={handleMetaChange} fieldErrors={validation.fieldErrors} />
-          <SchedulePanel
-            activeDayId={activeDay?.id ?? ""}
-            onActiveDayChange={setActiveDayId}
-            days={days}
-            onAddDay={addDay}
-            onDuplicateDay={duplicateDay}
-            onRemoveDay={removeDay}
-            onUpdateDay={updateDay}
-            onUpdateExercise={updateExercise}
-            onRemoveExercise={removeExercise}
-            onReorderExercise={reorderExercise}
-            onLibraryDrop={handleLibraryDrop}
-            fieldErrors={validation.fieldErrors}
-          />
-          <ScrollArea className={`${LAYOUT_HEIGHT} mb-6 lg:mb-0`}>
-            <div className="space-y-3 pb-3">
-              <MetaPanel meta={meta} onMetaChange={handleMetaChange} onToggleOption={handleToggleOption} fieldErrors={validation.fieldErrors} />
-              <ProgressionPanel
-                meta={meta}
-                onMetaChange={handleMetaChange}
-                defaults={progressDefaults}
-                onDefaultsChange={setProgressDefaults}
-                fieldErrors={validation.fieldErrors}
-              />
+      <div className="flex flex-1 flex-col gap-4 lg:grid lg:grid-cols-[minmax(16rem,2fr)_minmax(24rem,5fr)_minmax(18rem,3fr)] lg:gap-4">
+        <aside className="order-2 flex h-full flex-col rounded-xl border border-border/60 bg-background/60 lg:order-1">
+          <Tabs
+            value={sidebarTab}
+            onValueChange={(value) => setSidebarTab(value as typeof sidebarTab)}
+            className="flex h-full flex-col"
+          >
+            <div className="border-b border-border/60 px-4 py-3">
+              <h2 className="text-sm font-semibold text-foreground">Program Controls</h2>
+              <p className="text-xs text-muted-foreground">Tune settings, defaults, and overview.</p>
             </div>
-          </ScrollArea>
-        </div>
+            <TabsList className="grid h-auto gap-2 bg-transparent px-4 pt-4 pb-2 sm:grid-cols-2 lg:flex lg:flex-col">
+              <TabsTrigger
+                value="settings"
+                className="flex flex-col items-start gap-1 rounded-lg border border-transparent bg-transparent px-3 py-2 text-left text-xs font-medium transition data-[state=active]:border-primary data-[state=active]:bg-muted/40"
+              >
+                <span className="text-sm font-semibold">Settings</span>
+                <span className="max-w-[14rem] truncate text-xs text-muted-foreground">{metaSummary}</span>
+              </TabsTrigger>
+              <TabsTrigger
+                value="progression"
+                className="flex flex-col items-start gap-1 rounded-lg border border-transparent bg-transparent px-3 py-2 text-left text-xs font-medium transition data-[state=active]:border-primary data-[state=active]:bg-muted/40"
+              >
+                <span className="text-sm font-semibold">Progression</span>
+                <span className="max-w-[14rem] truncate text-xs text-muted-foreground">{progressionSummary}</span>
+              </TabsTrigger>
+            </TabsList>
+            <div className="flex-1 overflow-hidden">
+              <TabsContent value="settings" className="h-full data-[state=inactive]:hidden">
+                <ScrollArea className="h-full px-4 pb-4 pr-6">
+                  <div className="space-y-4 pb-2">
+                    <MetaPanel
+                      meta={meta}
+                      onMetaChange={handleMetaChange}
+                      onToggleOption={handleToggleOption}
+                      fieldErrors={validation.fieldErrors}
+                    />
+                  </div>
+                </ScrollArea>
+              </TabsContent>
+              <TabsContent value="progression" className="h-full data-[state=inactive]:hidden">
+                <ScrollArea className="h-full px-4 pb-4 pr-6">
+                  <div className="space-y-4 pb-2">
+                    <ProgressionPanel
+                      meta={meta}
+                      onMetaChange={handleMetaChange}
+                      defaults={progressDefaults}
+                      onDefaultsChange={setProgressDefaults}
+                      fieldErrors={validation.fieldErrors}
+                    />
+                  </div>
+                </ScrollArea>
+              </TabsContent>
+            </div>
+          </Tabs>
+        </aside>
 
-        {showLibrary && (
+        <section className="order-1 flex min-h-[24rem] flex-col lg:order-2">
+          <div className="space-y-4">
+            <ProgramSummaryPanel
+              meta={meta}
+              onMetaChange={handleMetaChange}
+              fieldErrors={validation.fieldErrors}
+            />
+            <SchedulePanel
+              activeDayId={activeDay?.id ?? ""}
+              onActiveDayChange={setActiveDayId}
+              days={days}
+              onAddDay={addDay}
+              onDuplicateDay={duplicateDay}
+              onRemoveDay={removeDay}
+              onUpdateDay={updateDay}
+              onUpdateExercise={updateExercise}
+              onRemoveExercise={removeExercise}
+              onReorderExercise={reorderExercise}
+              onLibraryDrop={handleLibraryDrop}
+              fieldErrors={validation.fieldErrors}
+              onAddExerciseRequest={handleAddExerciseRequest}
+            />
+          </div>
+        </section>
+
+        <aside className="order-3 flex h-full flex-col lg:order-3">
           <ExerciseLibraryPanel
             filters={filters}
             onFiltersChange={setFilters}
@@ -566,9 +711,10 @@ export function AdminTemplateBuilder() {
             isLoading={isLoadingExercises}
             error={exerciseError}
             activeDayName={activeDay?.dayName ?? "Day"}
-            listHeightClassName={LAYOUT_HEIGHT}
+            searchInputRef={librarySearchRef}
+            listHeightClassName={LIBRARY_SCROLL_HEIGHT}
           />
-        )}
+        </aside>
       </div>
     </div>
   )

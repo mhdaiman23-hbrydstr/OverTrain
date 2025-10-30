@@ -1,5 +1,7 @@
+
 "use client"
 
+import type { RefObject } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
@@ -23,8 +25,8 @@ interface ExerciseLibraryPanelProps {
   error: string | null
   activeDayName?: string
   listHeightClassName?: string
+  searchInputRef?: RefObject<HTMLInputElement>
 }
-
 export function ExerciseLibraryPanel({
   filters,
   onFiltersChange,
@@ -33,59 +35,63 @@ export function ExerciseLibraryPanel({
   error,
   activeDayName,
   listHeightClassName,
+  searchInputRef,
 }: ExerciseLibraryPanelProps) {
   const updateFilter = <K extends keyof LibraryFilters>(key: K, value: LibraryFilters[K]) => {
     onFiltersChange({ ...filters, [key]: value })
   }
 
   return (
-    <Card className="hidden w-80 flex-col lg:flex">
-      <CardHeader>
+    <Card className="flex h-full w-full flex-col">
+      <CardHeader className="space-y-1 border-b border-border/60">
         <CardTitle>Exercise Library</CardTitle>
+        <p className="text-xs text-muted-foreground">
+          Search, filter, and drag exercises into the active training day.
+        </p>
       </CardHeader>
-      <CardContent className="flex h-full flex-col gap-3">
-        <div className="space-y-2">
-          <div>
+      <CardContent className="flex h-full flex-col gap-4 overflow-hidden">
+        <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
+          <div className="space-y-1.5">
             <Label htmlFor="exercise-search">Search</Label>
             <Input
               id="exercise-search"
+              ref={searchInputRef}
               value={filters.search}
               placeholder="Exercise name"
               onChange={(event) => updateFilter("search", event.target.value)}
-              className="mt-1"
             />
           </div>
-          <div>
-            <Label>Equipment</Label>
+          <div className="space-y-1.5">
+            <Label htmlFor="exercise-equipment">Equipment</Label>
             <Input
+              id="exercise-equipment"
               value={filters.equipment}
               placeholder="e.g. Barbell"
               onChange={(event) => updateFilter("equipment", event.target.value)}
-              className="mt-1"
             />
           </div>
-          <div>
-            <Label>Muscle group</Label>
+          <div className="space-y-1.5">
+            <Label htmlFor="exercise-muscle">Muscle group</Label>
             <Input
+              id="exercise-muscle"
               value={filters.muscleGroup}
               placeholder="e.g. Back"
               onChange={(event) => updateFilter("muscleGroup", event.target.value)}
-              className="mt-1"
             />
           </div>
         </div>
 
-        <div className="flex items-center justify-between text-sm text-muted-foreground">
+        <div className="flex items-center justify-between rounded-md border border-border/60 bg-muted/30 px-3 py-2 text-sm text-muted-foreground">
           <div className="flex items-center gap-2">
             <ArrowLeftRight className="h-4 w-4" />
-            Drag exercises into the schedule{activeDayName ? ` — ${activeDayName}` : ""}
+            Drag exercises into the schedule{activeDayName ? ` for ${activeDayName}` : ""}
           </div>
           {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
         </div>
 
         <ScrollArea
           className={cn(
-            "rounded border border-border/40",
+            "flex-1 rounded-lg border border-border/40",
             listHeightClassName ? `${listHeightClassName} flex-shrink-0` : "flex-1",
           )}
         >
@@ -99,10 +105,7 @@ export function ExerciseLibraryPanel({
                 key={exercise.id}
                 draggable
                 onDragStart={(event) =>
-                  event.dataTransfer.setData(
-                    "application/json",
-                    JSON.stringify({ exercise }),
-                  )
+                  event.dataTransfer.setData("application/json", JSON.stringify({ exercise }))
                 }
                 className="group cursor-grab border-b border-border/40 p-3 transition hover:bg-muted/50 active:cursor-grabbing"
               >

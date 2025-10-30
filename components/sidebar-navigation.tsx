@@ -72,9 +72,7 @@ export function SidebarNavigation({ currentView, onViewChange }: SidebarNavigati
     { id: "analytics", label: "Analytics", icon: BarChart3 },
     { id: "profile", label: "Profile", icon: User },
   ]
-  const navigationItems = isAdmin
-    ? [...baseNavigationItems, { id: "templates", label: "Templates", icon: FilePlus2 }]
-    : baseNavigationItems
+  const adminNavigationItems = isAdmin ? [{ id: "templates", label: "Templates", icon: FilePlus2 }] : []
 
   const settingsItems = [
     { id: "help", label: "Help", icon: HelpCircle },
@@ -117,11 +115,11 @@ export function SidebarNavigation({ currentView, onViewChange }: SidebarNavigati
         <div className="flex items-center justify-between h-16 px-4 border-b border-border">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 bg-primary rounded flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-sm">LL</span>
+              <span className="text-primary-foreground font-bold text-sm">OT</span>
             </div>
             <div>
-              <div className="font-semibold text-sm">Lift Log</div>
-              <div className="text-xs text-muted-foreground">Leave the Science to Us</div>
+              <div className="font-semibold text-sm">OverTrain</div>
+              <div className="text-xs text-muted-foreground">Go One More</div>
             </div>
           </div>
           <ThemeToggle />
@@ -129,7 +127,7 @@ export function SidebarNavigation({ currentView, onViewChange }: SidebarNavigati
 
         {/* Navigation */}
         <nav className="flex-1 px-2 py-4 space-y-1">
-          {navigationItems.map((item) => (
+          {baseNavigationItems.map((item) => (
           <Button
             key={item.id}
             variant={currentView === item.id ? "secondary" : "ghost"}
@@ -142,6 +140,26 @@ export function SidebarNavigation({ currentView, onViewChange }: SidebarNavigati
               onViewChange(item.id)
             }}
           >
+              <item.icon className="mr-3 h-4 w-4" />
+              {item.label}
+            </Button>
+          ))}
+          {adminNavigationItems.length > 0 && (
+            <div className="my-3 border-t border-border/70" />
+          )}
+          {adminNavigationItems.map((item) => (
+            <Button
+              key={item.id}
+              variant={currentView === item.id ? "secondary" : "ghost"}
+              className="w-full justify-start text-sm font-normal"
+              onClick={() => {
+                if (item.id === "templates") {
+                  router.push("/admin/templates")
+                  return
+                }
+                onViewChange(item.id)
+              }}
+            >
               <item.icon className="mr-3 h-4 w-4" />
               {item.label}
             </Button>
