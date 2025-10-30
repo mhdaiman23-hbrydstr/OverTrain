@@ -13,6 +13,8 @@ WITH template_insert AS (
     description,
     days_per_week,
     total_weeks,
+    gender,
+    experience,
     progression_type,
     is_public
   ) VALUES (
@@ -20,6 +22,8 @@ WITH template_insert AS (
     'A beginner-friendly 3-day full body program designed for muscle growth and strength development. 8 weeks of linear progression with deload in week 8.',
     3,
     8,
+    ARRAY['male', 'female']::text[],
+    ARRAY['beginner']::text[],
     'linear',
     true
   )
