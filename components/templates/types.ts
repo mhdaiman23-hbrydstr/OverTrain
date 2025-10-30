@@ -33,6 +33,46 @@ export interface BuilderDay {
   exercises: BuilderExercise[]
 }
 
+export interface ProgramTemplateSummary {
+  id: string
+  name: string
+  description: string | null
+  daysPerWeek: number
+  totalWeeks: number
+  gender: GenderOption[]
+  experienceLevel: ExperienceOption[]
+  isActive: boolean
+  updatedAt?: string | null
+}
+
+export interface ApiTemplateExercise {
+  id: string
+  templateDayId: string
+  exerciseId: string
+  exerciseName: string
+  muscleGroup: string | null
+  equipmentType: string | null
+  order: number
+  category: "compound" | "isolation"
+  restTimeSeconds: number
+  progressionConfig: Record<string, unknown>
+}
+
+export interface ApiTemplateDay {
+  id: string
+  dayNumber: number
+  dayName: string
+  exercises: ApiTemplateExercise[]
+}
+
+export interface ProgramTemplateDetail extends ProgramTemplateSummary {
+  deloadWeek: number | null
+  progressionType: ProgressionType
+  isPublic?: boolean
+  createdAt?: string | null
+  days: ApiTemplateDay[]
+}
+
 export interface ProgramMeta {
   name: string
   description: string
