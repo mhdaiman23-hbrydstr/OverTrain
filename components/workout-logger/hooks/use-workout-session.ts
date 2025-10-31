@@ -1146,9 +1146,15 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
     if (!set) return
 
     const willMarkComplete = !set.completed
+    const equipmentType = exercise?.equipmentType?.toLowerCase() || ""
+    const isBodyweightExercise = equipmentType.startsWith("bodyweight") && !equipmentType.includes("loadable")
 
-    // Validation: Don't allow completing empty sets
-    if (willMarkComplete && (!set.weight || set.weight <= 0 || !set.reps || set.reps <= 0)) {
+    // Validation: Don't allow completing empty sets unless bodyweight exercise
+    if (
+      willMarkComplete &&
+      !isBodyweightExercise &&
+      (!set.weight || set.weight <= 0 || !set.reps || set.reps <= 0)
+    ) {
       return
     }
 
@@ -1188,18 +1194,18 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
       if (persistedWorkout && willMarkComplete) {
         // Log set completion to database, but queue if offline
         // Get the updated set data to log
-        const exercise = persistedWorkout.exercises.find((ex) => ex.id === exerciseId)
-        const updatedSet = exercise?.sets.find((s) => s.id === setId)
+        const persistedExercise = persistedWorkout.exercises.find((ex) => ex.id === exerciseId)
+        const updatedSet = persistedExercise?.sets.find((s) => s.id === setId)
 
-        if (exercise && updatedSet) {
+        if (persistedExercise && updatedSet) {
           // Calculate set number from array index (1-indexed)
-          const setNumber = exercise.sets.findIndex((s) => s.id === setId) + 1
+          const setNumber = persistedExercise.sets.findIndex((s) => s.id === setId) + 1
 
           if (ConnectionMonitor.isOnline()) {
             WorkoutLogger.logSetCompletion(
               persistedWorkout.id,
               exerciseId,
-              exercise.exerciseName,  // FIX: was exercise.name
+              persistedExercise.exerciseName,  // FIX: was exercise.name
               setNumber,              // FIX: calculate from index, not updatedSet.number
               updatedSet.reps,
               updatedSet.weight,
@@ -1292,7 +1298,11 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
     const nextExercise = workout.exercises[currentIndex + 1]
 
     // Check if next exercise is bodyweight only
-    if (nextExercise && nextExercise.equipmentType === "Bodyweight Only") {
+    const equipmentType = nextExercise?.equipmentType?.toLowerCase() || ""
+    const isPureBodyweight =
+      equipmentType.startsWith("bodyweight") && !equipmentType.includes("loadable")
+
+    if (nextExercise && isPureBodyweight) {
       setBodyweightExerciseId(nextExercise.id)
       // Prefill with user's saved bodyweight if available
       if (user?.bodyweight) {
