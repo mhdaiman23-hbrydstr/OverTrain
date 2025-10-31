@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { ArrowLeft, CheckCircle2, FolderPlus, Loader2 } from "lucide-react"
@@ -816,5 +816,5 @@ export function AdminTemplateBuilder({
     loadTemplateDetail,
     onSaved,
   ])
-  const formHasErrors = summaryMessages.length > 0
+
 
