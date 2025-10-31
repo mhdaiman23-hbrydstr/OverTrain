@@ -40,8 +40,8 @@ export async function GET(request: NextRequest) {
 
     const searchParams = request.nextUrl.searchParams
     const search = searchParams.get('search')?.trim()
-    const muscleGroup = searchParams.get('muscleGroup')
-    const equipment = searchParams.get('equipment')
+    const muscleGroups = searchParams.getAll('muscleGroup').filter(Boolean)
+    const equipmentTypes = searchParams.getAll('equipment').filter(Boolean)
 
     let query = supabase
       .from('exercise_library')
@@ -52,12 +52,12 @@ export async function GET(request: NextRequest) {
       query = query.ilike('name', `%${search}%`)
     }
 
-    if (muscleGroup) {
-      query = query.eq('muscle_group', muscleGroup)
+    if (muscleGroups.length > 0) {
+      query = query.in('muscle_group', muscleGroups)
     }
 
-    if (equipment) {
-      query = query.eq('equipment_type', equipment)
+    if (equipmentTypes.length > 0) {
+      query = query.in('equipment_type', equipmentTypes)
     }
 
     const { data, error } = await query.limit(200)

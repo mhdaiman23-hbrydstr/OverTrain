@@ -77,7 +77,7 @@ export function AdminTemplateBuilder() {
   const [days, setDays] = useState<BuilderDay[]>(initialDays)
   const [activeDayId, setActiveDayId] = useState<string>(initialDays[0]?.id ?? "")
   const [sidebarTab, setSidebarTab] = useState<"settings" | "progression">("settings")
-  const [filters, setFilters] = useState<LibraryFilters>({ search: "", muscleGroup: "", equipment: "" })
+  const [filters, setFilters] = useState<LibraryFilters>({ search: "", muscleGroups: [], equipmentTypes: [] })
   const [library, setLibrary] = useState<ExerciseLibraryItem[]>([])
   const [exerciseError, setExerciseError] = useState<string | null>(null)
   const [isLoadingExercises, setIsLoadingExercises] = useState(false)
@@ -129,7 +129,6 @@ export function AdminTemplateBuilder() {
     setEditingTemplateId(null)
     setSelectedTemplateId(null)
     setTemplateError(null)
-    setPublishSuccess(null)
   }, [])
 
   const mapExerciseConfigToBuilder = useCallback((exercise: any) => {
@@ -368,8 +367,12 @@ export function AdminTemplateBuilder() {
         setIsLoadingExercises(true)
         const params = new URLSearchParams()
         if (debouncedFilters.search) params.append("search", debouncedFilters.search)
-        if (debouncedFilters.muscleGroup) params.append("muscleGroup", debouncedFilters.muscleGroup)
-        if (debouncedFilters.equipment) params.append("equipment", debouncedFilters.equipment)
+        debouncedFilters.muscleGroups.forEach((group) => {
+          if (group) params.append("muscleGroup", group)
+        })
+        debouncedFilters.equipmentTypes.forEach((equipment) => {
+          if (equipment) params.append("equipment", equipment)
+        })
 
         const response = await fetch(`/api/admin/templates/exercises?${params.toString()}`, {
           headers: { Authorization: `Bearer ${accessToken}` },
@@ -825,13 +828,12 @@ export function AdminTemplateBuilder() {
 
       await loadTemplates(templateSearch ? templateSearch : undefined)
 
-      if (!isEditing && data?.id) {
-        setEditingTemplateId(String(data.id))
-        setSelectedTemplateId(String(data.id))
-      }
-
-      if (publishedId) {
-        void loadTemplateDetail(String(publishedId))
+      if (isEditing) {
+        if (publishedId) {
+          void loadTemplateDetail(String(publishedId))
+        }
+      } else {
+        initializeNewTemplate()
       }
     } catch (error) {
       console.error("[TemplateBuilder] publish failed", error)
