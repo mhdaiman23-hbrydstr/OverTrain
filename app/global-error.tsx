@@ -1,26 +1,16 @@
-'use client';
+﻿"use client";
 
 import * as Sentry from "@sentry/nextjs";
 import { useEffect } from "react";
-
-/**
- * Global Error Handler for React Rendering Errors
- *
- * This component catches errors that occur during React rendering
- * and sends them to Sentry.
- *
- * See: https://docs.sentry.io/platforms/javascript/guides/nextjs/manual-setup/#react-render-errors-in-app-router
- */
 
 export default function GlobalError({
   error,
   reset,
 }: {
-  error: Error & { digest?: string };
-  reset: () => void;
+  error: Error & { digest?: string }
+  reset?: () => void
 }) {
   useEffect(() => {
-    // Capture the error in Sentry
     Sentry.captureException(error, {
       tags: {
         type: "global_error",
@@ -31,8 +21,16 @@ export default function GlobalError({
           component_stack: error.stack,
         },
       },
-    });
-  }, [error]);
+    })
+  }, [error])
+
+  const handleReset = () => {
+    if (typeof reset === "function") {
+      reset()
+    } else if (typeof window !== "undefined") {
+      window.location.reload()
+    }
+  }
 
   return (
     <html>
@@ -77,8 +75,7 @@ export default function GlobalError({
                 lineHeight: "1.5",
               }}
             >
-              We encountered an unexpected error. Our team has been notified and
-              is working to fix it. Please try again in a moment.
+              We encountered an unexpected error. Our team has been notified and is working to fix it. Please try again in a moment.
             </p>
 
             {error.message && (
@@ -129,7 +126,7 @@ export default function GlobalError({
             )}
 
             <button
-              onClick={() => reset()}
+              onClick={handleReset}
               style={{
                 backgroundColor: "#22c55e",
                 color: "white",
@@ -142,12 +139,10 @@ export default function GlobalError({
                 transition: "background-color 0.2s",
               }}
               onMouseEnter={(e) => {
-                (e.target as HTMLButtonElement).style.backgroundColor =
-                  "#16a34a";
+                (e.target as HTMLButtonElement).style.backgroundColor = "#16a34a"
               }}
               onMouseLeave={(e) => {
-                (e.target as HTMLButtonElement).style.backgroundColor =
-                  "#22c55e";
+                (e.target as HTMLButtonElement).style.backgroundColor = "#22c55e"
               }}
             >
               Try Again
@@ -162,7 +157,7 @@ export default function GlobalError({
               textAlign: "center",
             }}
           >
-            If the problem persists, please{" "}
+            If the problem persists, please {" "}
             <a
               href="mailto:support@liftlog.app"
               style={{
@@ -177,5 +172,5 @@ export default function GlobalError({
         </div>
       </body>
     </html>
-  );
+  )
 }

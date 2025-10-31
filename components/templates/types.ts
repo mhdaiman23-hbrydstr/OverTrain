@@ -13,6 +13,8 @@ export interface BuilderExercise {
   id: string
   exerciseId: string
   exerciseName: string
+  muscleGroup: string | null
+  equipmentType: string | null
   category: "compound" | "isolation"
   restTimeSeconds: number
   order: number

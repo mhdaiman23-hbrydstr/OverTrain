@@ -177,11 +177,25 @@ export function AdminTemplateBuilder({
       metadata.progressionMode ?? config?.autoProgression?.progressionType ?? DEFAULT_PROGRESS.progressionMode
     const tier = metadata.tier ?? (config?.tier === "tier2" ? "tier2" : "tier1")
     const useGlobalProgression = metadata.useGlobalProgression ?? false
+    const muscleGroup =
+      typeof exercise.muscleGroup === "string"
+        ? exercise.muscleGroup
+        : typeof metadata.muscleGroup === "string"
+          ? metadata.muscleGroup
+          : null
+    const equipmentType =
+      typeof exercise.equipmentType === "string"
+        ? exercise.equipmentType
+        : typeof metadata.equipmentType === "string"
+          ? metadata.equipmentType
+          : null
 
     return {
       id: exercise.id ?? uniqueId(),
       exerciseId: exercise.exerciseId,
       exerciseName: exercise.exerciseName,
+      muscleGroup,
+      equipmentType,
       category: exercise.category,
       restTimeSeconds: exercise.restTimeSeconds,
       order: exercise.order,
@@ -212,6 +226,8 @@ export function AdminTemplateBuilder({
                 restTimeSeconds: exercise.restTimeSeconds,
                 order: exercise.order,
                 progressionConfig: exercise.progressionConfig,
+                muscleGroup: exercise.muscleGroup,
+                equipmentType: exercise.equipmentType,
               }),
             ),
           }))
@@ -584,6 +600,8 @@ export function AdminTemplateBuilder({
           id: uniqueId(),
           exerciseId: exercise.id,
           exerciseName: exercise.name,
+          muscleGroup: exercise.muscle_group ?? null,
+          equipmentType: exercise.equipment_type ?? null,
           category: "compound",
           restTimeSeconds: progressDefaults.restTimeSeconds,
           order: day.exercises.length + 1,
@@ -655,6 +673,9 @@ export function AdminTemplateBuilder({
   const metaSummary = `${meta.daysPerWeek} days/week | ${totalWeeks} weeks`
   const progressionSummary = `${progressDefaults.workingSets}x${progressDefaults.workingRepRange} | ${progressDefaults.restTimeSeconds}s rest | ${meta.progressionType}`
 
+  const formHasErrors = summaryMessages.length > 0
+  const isEditingTemplate = mode === "edit" && Boolean(editingTemplateId)
+
   const buildPayload = () => ({
     name: meta.name.trim(),
     description: meta.description.trim() || undefined,
@@ -716,7 +737,9 @@ export function AdminTemplateBuilder({
   })
 
   const publishTemplate = useCallback(async () => {
-    if (formHasErrors) {
+    const hasErrors = summaryMessages.length > 0
+
+    if (hasErrors) {
       toast({
         title: "Please fix the highlighted fields",
         description: "Resolve validation errors before publishing the template.",
@@ -806,7 +829,7 @@ export function AdminTemplateBuilder({
       setIsPublishing(false)
     }
   }, [
-    formHasErrors,
+    summaryMessages,
     toast,
     accessToken,
     buildPayload,
@@ -817,8 +840,6 @@ export function AdminTemplateBuilder({
     onSaved,
   ])
 
-  const formHasErrors = summaryMessages.length > 0
-  const isEditingTemplate = mode === "edit" && Boolean(editingTemplateId)
   const heading =
     mode === "edit"
       ? "Edit Template"

@@ -12,6 +12,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge"
 import { ArrowDown, ArrowUp, Info, Plus, RefreshCw, Trash2 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { getMuscleGroupBadgeClass, getMuscleGroupLabel } from "@/lib/exercise-muscle-groups"
+import { getEquipmentBadgeClass, getEquipmentLabel } from "@/lib/exercise-equipment"
 import { CompactSwitch } from "./compact-switch"
 import { SortableExerciseCard } from "./sortable-exercise-card"
 import { DndContext, DragEndEvent, closestCenter } from "@dnd-kit/core"
@@ -268,6 +270,30 @@ export function SchedulePanel({
                                             <span className="text-sm font-semibold leading-tight">
                                               {exercise.exerciseName}
                                             </span>
+                                            {(exercise.muscleGroup || exercise.equipmentType) && (
+                                              <div className="flex flex-wrap items-center gap-1">
+                                                {exercise.muscleGroup && (
+                                                  <Badge
+                                                    className={cn(
+                                                      "px-1.5 py-0 text-[0.65rem] font-semibold",
+                                                      getMuscleGroupBadgeClass(exercise.muscleGroup),
+                                                    )}
+                                                  >
+                                                    {getMuscleGroupLabel(exercise.muscleGroup)}
+                                                  </Badge>
+                                                )}
+                                                {exercise.equipmentType && (
+                                                  <Badge
+                                                    className={cn(
+                                                      "px-1.5 py-0 text-[0.65rem] font-semibold",
+                                                      getEquipmentBadgeClass(exercise.equipmentType),
+                                                    )}
+                                                  >
+                                                    {getEquipmentLabel(exercise.equipmentType)}
+                                                  </Badge>
+                                                )}
+                                              </div>
+                                            )}
                                           </div>
                                           <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
                                             <span className="capitalize">{exercise.category}</span>
