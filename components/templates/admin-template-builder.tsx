@@ -1,7 +1,7 @@
-"use client"
+﻿"use client"
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { CheckCircle2, FolderPlus, Loader2 } from "lucide-react"
+import { ArrowLeft, CheckCircle2, FolderPlus, Loader2 } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
@@ -20,7 +20,6 @@ import {
   ProgramMeta,
   GenderOption,
   ExperienceOption,
-  ProgramTemplateSummary,
   ProgramTemplateDetail,
 } from "./types"
 import { ProgramSummaryPanel } from "./program-summary-panel"
@@ -67,7 +66,21 @@ const createEmptyDay = (position: number): BuilderDay => ({
   exercises: [],
 })
 
-export function AdminTemplateBuilder() {
+interface AdminTemplateBuilderProps {
+  mode: "create" | "edit" | "duplicate"
+  templateId?: string | null
+  accessToken?: string | null
+  onBack: () => void
+  onSaved?: (result: { id?: string | number; action: "created" | "updated" }) => void
+}
+
+export function AdminTemplateBuilder({
+  mode,
+  templateId = null,
+  accessToken: accessTokenProp = null,
+  onBack,
+  onSaved,
+}: AdminTemplateBuilderProps) {
   const [meta, setMeta] = useState<ProgramMeta>(DEFAULT_META)
   const [progressDefaults, setProgressDefaults] = useState<GlobalProgressionDefaults>(DEFAULT_PROGRESS)
   const initialDays = useMemo(
@@ -81,21 +94,20 @@ export function AdminTemplateBuilder() {
   const [library, setLibrary] = useState<ExerciseLibraryItem[]>([])
   const [exerciseError, setExerciseError] = useState<string | null>(null)
   const [isLoadingExercises, setIsLoadingExercises] = useState(false)
-  const [accessToken, setAccessToken] = useState<string | null>(null)
+  const [accessToken, setAccessToken] = useState<string | null>(accessTokenProp)
   const [isPublishing, setIsPublishing] = useState(false)
   const [publishSuccess, setPublishSuccess] = useState<
     { id?: string | number; name: string; timestamp: number; action: "created" | "updated" } | null
   >(null)
-  const [templates, setTemplates] = useState<ProgramTemplateSummary[]>([])
-  const [isLoadingTemplates, setIsLoadingTemplates] = useState(false)
   const [templateError, setTemplateError] = useState<string | null>(null)
-  const [templateSearch, setTemplateSearch] = useState("")
-  const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null)
   const [editingTemplateId, setEditingTemplateId] = useState<string | null>(null)
   const [isLoadingTemplateDetail, setIsLoadingTemplateDetail] = useState(false)
   const librarySearchRef = useRef<HTMLInputElement | null>(null)
+  const loadedTemplateRef = useRef<{ id: string | null; mode: "edit" | "duplicate" | null }>({
+    id: null,
+    mode: null,
+  })
   const debouncedFilters = useDebounce(filters, 300)
-  const debouncedTemplateSearch = useDebounce(templateSearch, 300)
   const { toast } = useToast()
 
   const syncDaysToCount = useCallback((desiredCount: number) => {
@@ -127,8 +139,8 @@ export function AdminTemplateBuilder() {
     setActiveDayId(baseDays[0]?.id ?? "")
     setSidebarTab("settings")
     setEditingTemplateId(null)
-    setSelectedTemplateId(null)
     setTemplateError(null)
+    loadedTemplateRef.current = { id: null, mode: null }
   }, [])
 
   const mapExerciseConfigToBuilder = useCallback((exercise: any) => {
@@ -249,63 +261,20 @@ export function AdminTemplateBuilder() {
   )
 
   const applyTemplateDetail = useCallback(
-    (detail: ProgramTemplateDetail) => {
+    (detail: ProgramTemplateDetail, loadMode: "edit" | "duplicate") => {
       const mapped = mapTemplateDetailToState(detail)
       setMeta(mapped.meta)
       setProgressDefaults(mapped.progressDefaults)
       setDays(mapped.days)
       setActiveDayId(mapped.days[0]?.id ?? "")
       setSidebarTab("settings")
-      setEditingTemplateId(detail.id)
+      setEditingTemplateId(loadMode === "edit" ? detail.id : null)
     },
     [mapTemplateDetailToState],
   )
 
-  const loadTemplates = useCallback(
-    async (searchTerm?: string) => {
-      if (!accessToken) return
-      const params = new URLSearchParams()
-      if (searchTerm) {
-        params.set("search", searchTerm)
-      }
-
-      setIsLoadingTemplates(true)
-      setTemplateError(null)
-      try {
-        const response = await fetch(`/api/admin/templates${params.toString() ? `?${params.toString()}` : ""}`, {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        })
-
-        if (!response.ok) {
-          throw new Error(await response.text())
-        }
-
-        const data = await response.json()
-        const mapped: ProgramTemplateSummary[] = (data.templates ?? []).map((template: any) => ({
-          id: template.id,
-          name: template.name,
-          description: template.description ?? null,
-          daysPerWeek: template.days_per_week,
-          totalWeeks: template.total_weeks,
-          gender: template.gender ?? [],
-          experienceLevel: template.experience_level ?? [],
-          isActive: template.is_active,
-          updatedAt: template.updated_at ?? null,
-        }))
-
-        setTemplates(mapped)
-      } catch (error) {
-        console.error("[TemplateBuilder] template list fetch failed", error)
-        setTemplateError("Unable to load templates. Please try again.")
-      } finally {
-        setIsLoadingTemplates(false)
-      }
-    },
-    [accessToken],
-  )
-
   const loadTemplateDetail = useCallback(
-    async (templateId: string) => {
+    async (templateId: string, loadMode: "edit" | "duplicate") => {
       if (!accessToken) return
 
       setIsLoadingTemplateDetail(true)
@@ -324,8 +293,8 @@ export function AdminTemplateBuilder() {
           throw new Error("Template not found")
         }
 
-        applyTemplateDetail(data.template as ProgramTemplateDetail)
-        setSelectedTemplateId(templateId)
+        applyTemplateDetail(data.template as ProgramTemplateDetail, loadMode)
+        loadedTemplateRef.current = { id: templateId, mode: loadMode }
       } catch (error) {
         console.error("[TemplateBuilder] template detail fetch failed", error)
         setTemplateError("Unable to load template details. Please try again.")
@@ -336,26 +305,19 @@ export function AdminTemplateBuilder() {
     [accessToken, applyTemplateDetail],
   )
 
-  const handleSelectTemplate = useCallback(
-    (templateId: string) => {
-      setSelectedTemplateId(templateId)
-      void loadTemplateDetail(templateId)
-    },
-    [loadTemplateDetail],
-  )
-
-  const handleCreateNewTemplate = useCallback(() => {
-    initializeNewTemplate()
-  }, [initializeNewTemplate])
-
   useEffect(() => {
+    if (accessTokenProp) {
+      setAccessToken(accessTokenProp)
+      return
+    }
+
     if (!supabase) return
     supabase.auth.getSession().then(({ data }) => setAccessToken(data.session?.access_token ?? null))
     const subscription = supabase.auth.onAuthStateChange((_event, session) => {
       setAccessToken(session?.access_token ?? null)
     })
     return () => subscription?.data.subscription.unsubscribe()
-  }, [])
+  }, [accessTokenProp])
 
   useEffect(() => {
     if (!accessToken) return
@@ -399,11 +361,6 @@ export function AdminTemplateBuilder() {
       controller.abort()
     }
   }, [accessToken, debouncedFilters])
-
-  useEffect(() => {
-    if (!accessToken) return
-    void loadTemplates(debouncedTemplateSearch)
-  }, [accessToken, debouncedTemplateSearch, loadTemplates])
 
   useEffect(() => {
     syncDaysToCount(meta.daysPerWeek)
@@ -759,117 +716,89 @@ export function AdminTemplateBuilder() {
   })
 
   const formHasErrors = summaryMessages.length > 0
+  const isEditingTemplate = mode === "edit" && Boolean(editingTemplateId)
+  const heading =
+    mode === "edit"
+      ? "Edit Template"
+      : mode === "duplicate"
+        ? "Duplicate Template"
+        : "Create Template"
+  const subheading =
+    mode === "edit"
+      ? "Update the template and save your changes."
+      : mode === "duplicate"
+        ? "Start with an existing template and publish a new version."
+        : "Create admin-only program templates by dragging exercises into your schedule."
+  const showLoadingTemplate = isLoadingTemplateDetail && mode !== "create"
 
-  async function publishTemplate() {
-    if (formHasErrors) {
-      toast({
-        title: "Please fix the highlighted fields",
-        description: "Resolve validation errors before publishing the template.",
-        variant: "destructive",
-      })
-      return
-    }
-
-    if (!accessToken) {
-      toast({
-        title: "Authentication required",
-        description: "Sign in to manage templates.",
-        variant: "destructive",
-      })
-      return
-    }
-
+  useEffect(() => {
     setPublishSuccess(null)
-    setIsPublishing(true)
-    try {
-      const payload = buildPayload()
-      const isEditing = Boolean(editingTemplateId)
-      const endpoint = isEditing ? `/api/admin/templates/${editingTemplateId}` : "/api/admin/templates"
-      const response = await fetch(endpoint, {
-        method: isEditing ? "PUT" : "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`,
-        },
-        body: JSON.stringify(payload),
-      })
+    setTemplateError(null)
 
-      const responseText = await response.text()
-      if (!response.ok) {
-        throw new Error(responseText || "Publishing failed with an unknown error.")
-      }
-
-      let data: { id?: string | number } | null = null
-      if (responseText) {
-        try {
-          data = JSON.parse(responseText) as { id?: string | number }
-        } catch (parseError) {
-          console.warn("[TemplateBuilder] publish response was not JSON", parseError)
-        }
-      }
-
-      programTemplateService.clearCache()
-
-      const templateName = meta.name.trim() || "Untitled template"
-      const publishedId = data?.id ?? editingTemplateId ?? undefined
-      setPublishSuccess({
-        id: publishedId,
-        name: templateName,
-        timestamp: Date.now(),
-        action: isEditing ? "updated" : "created",
-      })
-
-      toast({
-        title: isEditing ? "Template updated" : "Template published",
-        description: publishedId
-          ? `Template ${isEditing ? "updated" : "created"} successfully (ID: ${publishedId}).`
-          : `Template ${isEditing ? "updated" : "created"} successfully.`,
-      })
-
-      await loadTemplates(templateSearch ? templateSearch : undefined)
-
-      if (isEditing) {
-        if (publishedId) {
-          void loadTemplateDetail(String(publishedId))
-        }
-      } else {
-        initializeNewTemplate()
-      }
-    } catch (error) {
-      console.error("[TemplateBuilder] publish failed", error)
-      setPublishSuccess(null)
-      toast({
-        title: "Unable to publish template",
-        description:
-          error instanceof Error ? error.message : "Review the validation messages and try again.",
-        variant: "destructive",
-      })
-    } finally {
-      setIsPublishing(false)
+    if (mode === "create") {
+      initializeNewTemplate()
+      setEditingTemplateId(null)
+      loadedTemplateRef.current = { id: null, mode: null }
+      return
     }
-  }
+
+    if (!templateId) return
+
+    const loadMode = mode === "edit" ? "edit" : "duplicate"
+    if (loadedTemplateRef.current.id === templateId && loadedTemplateRef.current.mode === loadMode) {
+      return
+    }
+    void loadTemplateDetail(templateId, loadMode)
+  }, [mode, templateId, initializeNewTemplate, loadTemplateDetail])
 
   return (
     <div className="flex h-full flex-col gap-4">
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <div>
-          <h1 className="text-xl font-semibold tracking-tight">Template Builder</h1>
-          <p className="text-sm text-muted-foreground">
-            Create admin-only program templates by dragging exercises into your schedule.
-          </p>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <Button
+          type="button"
+          variant="ghost"
+          className="flex items-center gap-2"
+          onClick={onBack}
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back to templates
+        </Button>
+        <div className="flex min-w-[12rem] flex-1 flex-col gap-1">
+          <h1 className="text-xl font-semibold tracking-tight">{heading}</h1>
+          <p className="text-sm text-muted-foreground">{subheading}</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <TemplatePreviewDialog meta={meta} days={days} globalProgress={progressDefaults} totalWeeks={totalWeeks} />
           <Button onClick={publishTemplate} disabled={formHasErrors || isPublishing}>
-            {isPublishing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FolderPlus className="mr-2 h-4 w-4" />}
-            {editingTemplateId ? "Save Changes" : "Publish Template"}
+            {isPublishing ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <FolderPlus className="mr-2 h-4 w-4" />
+            )}
+            {isEditingTemplate ? "Save Changes" : "Publish Template"}
           </Button>
         </div>
       </div>
 
+      {showLoadingTemplate && (
+        <Alert className="border-border/60 bg-background/60">
+          <AlertDescription className="flex items-center gap-2 text-sm">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            Loading template details...
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {templateError && (
+        <Alert variant="destructive">
+          <AlertTitle>Template error</AlertTitle>
+          <AlertDescription>{templateError}</AlertDescription>
+        </Alert>
+      )}
+
       {publishSuccess && (
-        <Alert>
-          <CheckCircle2 className="h-4 w-4" />
+        <Alert className="border-primary/40 bg-primary/10">
+          <CheckCircle2 className="h-4 w-4 text-primary" />
           <AlertTitle>
             {publishSuccess.action === "updated" ? "Template updated" : "Template published"}
           </AlertTitle>
@@ -895,183 +824,102 @@ export function AdminTemplateBuilder() {
         </Alert>
       )}
 
-      {templateError && (
-        <Alert variant="destructive">
-          <AlertTitle>Template error</AlertTitle>
-          <AlertDescription>{templateError}</AlertDescription>
-        </Alert>
-      )}
-
-      <div className="flex flex-1 flex-col gap-4 lg:grid lg:grid-cols-[minmax(18rem,2.5fr)_minmax(0,7.5fr)] lg:gap-4">
-        <aside className="order-1 flex flex-col lg:order-1">
-          <Card className="h-full">
-            <CardHeader className="space-y-3">
-              <div className="flex items-center justify-between gap-2">
-                <CardTitle>Templates</CardTitle>
-                <Button size="sm" variant="outline" onClick={handleCreateNewTemplate}>
-                  New Template
-                </Button>
-              </div>
-              <Input
-                value={templateSearch}
-                onChange={(event) => setTemplateSearch(event.target.value)}
-                placeholder="Search templates"
-              />
-            </CardHeader>
-            <CardContent className="flex h-full flex-col gap-3">
-              {isLoadingTemplates ? (
-                <div className="flex flex-1 items-center justify-center gap-2 text-sm text-muted-foreground">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Loading templates...
-                </div>
-              ) : templates.length === 0 ? (
-                <div className="flex flex-1 flex-col items-center justify-center gap-3 text-center text-sm text-muted-foreground">
-                  <p>No templates found.</p>
-                  <p>Click “New Template” to start from scratch.</p>
-                </div>
-              ) : (
-                <ScrollArea className="h-[28rem] rounded-md border border-border/40">
-                  <div className="divide-y divide-border/40">
-                    {templates.map((template) => {
-                      const isSelected = selectedTemplateId === template.id
-                      return (
-                        <button
-                          key={template.id}
-                          type="button"
-                          onClick={() => handleSelectTemplate(template.id)}
-                          className={cn(
-                            "flex w-full flex-col gap-1 px-4 py-3 text-left transition",
-                            isSelected ? "bg-muted/60 text-foreground" : "hover:bg-muted/40",
-                          )}
-                        >
-                          <span className="text-sm font-semibold leading-tight">{template.name}</span>
-                          <span className="text-xs text-muted-foreground">
-                            {template.daysPerWeek} days · {template.totalWeeks} weeks
-                          </span>
-                          {!template.isActive && (
-                            <span className="text-xs font-medium text-amber-600">Inactive</span>
-                          )}
-                        </button>
-                      )
-                    })}
+      <div className="flex flex-1 flex-col gap-4 lg:grid lg:grid-cols-[minmax(16rem,2fr)_minmax(24rem,5fr)_minmax(18rem,3fr)] lg:gap-4">
+        <aside className="order-1 flex h-full flex-col rounded-xl border border-border/60 bg-background/60">
+          <Tabs
+            value={sidebarTab}
+            onValueChange={(value) => setSidebarTab(value as typeof sidebarTab)}
+            className="flex h-full flex-col"
+          >
+            <div className="border-b border-border/60 px-4 py-3">
+              <h2 className="text-sm font-semibold text-foreground">Program Controls</h2>
+              <p className="text-xs text-muted-foreground">Tune settings, defaults, and overview.</p>
+            </div>
+            <TabsList className="grid h-auto gap-2 bg-transparent px-4 pt-4 pb-2 sm:grid-cols-2 lg:flex lg:flex-col">
+              <TabsTrigger
+                value="settings"
+                className="flex flex-col items-start gap-1 rounded-lg border border-transparent bg-transparent px-3 py-2 text-left text-xs font-medium transition data-[state=active]:border-primary data-[state=active]:bg-muted/40"
+              >
+                <span className="text-sm font-semibold">Settings</span>
+                <span className="max-w-[14rem] truncate text-xs text-muted-foreground">{metaSummary}</span>
+              </TabsTrigger>
+              <TabsTrigger
+                value="progression"
+                className="flex flex-col items-start gap-1 rounded-lg border border-transparent bg-transparent px-3 py-2 text-left text-xs font-medium transition data-[state=active]:border-primary data-[state=active]:bg-muted/40"
+              >
+                <span className="text-sm font-semibold">Progression</span>
+                <span className="max-w-[14rem] truncate text-xs text-muted-foreground">{progressionSummary}</span>
+              </TabsTrigger>
+            </TabsList>
+            <div className="flex-1 overflow-hidden">
+              <TabsContent value="settings" className="h-full data-[state=inactive]:hidden">
+                <ScrollArea className="h-full px-4 pb-4 pr-6">
+                  <div className="space-y-4 pb-2">
+                    <MetaPanel
+                      meta={meta}
+                      onMetaChange={handleMetaChange}
+                      onToggleOption={handleToggleOption}
+                      fieldErrors={validation.fieldErrors}
+                    />
                   </div>
                 </ScrollArea>
-              )}
-            </CardContent>
-          </Card>
+              </TabsContent>
+              <TabsContent value="progression" className="h-full data-[state=inactive]:hidden">
+                <ScrollArea className="h-full px-4 pb-4 pr-6">
+                  <div className="space-y-4 pb-2">
+                    <ProgressionPanel
+                      meta={meta}
+                      onMetaChange={handleMetaChange}
+                      defaults={progressDefaults}
+                      onDefaultsChange={setProgressDefaults}
+                      fieldErrors={validation.fieldErrors}
+                    />
+                  </div>
+                </ScrollArea>
+              </TabsContent>
+            </div>
+          </Tabs>
         </aside>
 
-        <div className="order-2 flex flex-1 flex-col gap-4">
-          {editingTemplateId && (
-            <div className="rounded-md border border-border/60 bg-muted/30 px-4 py-3 text-xs text-muted-foreground">
-              Editing template: {meta.name.trim() || "Untitled template"}
-            </div>
-          )}
-          {isLoadingTemplateDetail && (
-            <Alert className="border-border/60 bg-background/60">
-              <AlertDescription className="flex items-center gap-2 text-sm">
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Loading template details...
-              </AlertDescription>
-            </Alert>
-          )}
-          <div className="flex flex-1 flex-col gap-4 lg:grid lg:grid-cols-[minmax(16rem,2fr)_minmax(24rem,5fr)_minmax(18rem,3fr)] lg:gap-4">
-            <aside className="order-2 flex h-full flex-col rounded-xl border border-border/60 bg-background/60 lg:order-1">
-              <Tabs
-                value={sidebarTab}
-                onValueChange={(value) => setSidebarTab(value as typeof sidebarTab)}
-                className="flex h-full flex-col"
-              >
-                <div className="border-b border-border/60 px-4 py-3">
-                  <h2 className="text-sm font-semibold text-foreground">Program Controls</h2>
-                  <p className="text-xs text-muted-foreground">Tune settings, defaults, and overview.</p>
-                </div>
-                <TabsList className="grid h-auto gap-2 bg-transparent px-4 pt-4 pb-2 sm:grid-cols-2 lg:flex lg:flex-col">
-                  <TabsTrigger
-                    value="settings"
-                    className="flex flex-col items-start gap-1 rounded-lg border border-transparent bg-transparent px-3 py-2 text-left text-xs font-medium transition data-[state=active]:border-primary data-[state=active]:bg-muted/40"
-                  >
-                    <span className="text-sm font-semibold">Settings</span>
-                    <span className="max-w-[14rem] truncate text-xs text-muted-foreground">{metaSummary}</span>
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="progression"
-                    className="flex flex-col items-start gap-1 rounded-lg border border-transparent bg-transparent px-3 py-2 text-left text-xs font-medium transition data-[state=active]:border-primary data-[state=active]:bg-muted/40"
-                  >
-                    <span className="text-sm font-semibold">Progression</span>
-                    <span className="max-w-[14rem] truncate text-xs text-muted-foreground">{progressionSummary}</span>
-                  </TabsTrigger>
-                </TabsList>
-                <div className="flex-1 overflow-hidden">
-                  <TabsContent value="settings" className="h-full data-[state=inactive]:hidden">
-                    <ScrollArea className="h-full px-4 pb-4 pr-6">
-                      <div className="space-y-4 pb-2">
-                        <MetaPanel
-                          meta={meta}
-                          onMetaChange={handleMetaChange}
-                          onToggleOption={handleToggleOption}
-                          fieldErrors={validation.fieldErrors}
-                        />
-                      </div>
-                    </ScrollArea>
-                  </TabsContent>
-                  <TabsContent value="progression" className="h-full data-[state=inactive]:hidden">
-                    <ScrollArea className="h-full px-4 pb-4 pr-6">
-                      <div className="space-y-4 pb-2">
-                        <ProgressionPanel
-                          meta={meta}
-                          onMetaChange={handleMetaChange}
-                          defaults={progressDefaults}
-                          onDefaultsChange={setProgressDefaults}
-                          fieldErrors={validation.fieldErrors}
-                        />
-                      </div>
-                    </ScrollArea>
-                  </TabsContent>
-                </div>
-              </Tabs>
-            </aside>
-
-            <section className="order-1 flex min-h-[24rem] flex-col lg:order-2">
-              <div className="space-y-4">
-                <ProgramSummaryPanel
-                  meta={meta}
-                  onMetaChange={handleMetaChange}
-                  fieldErrors={validation.fieldErrors}
-                />
-                <SchedulePanel
-                  activeDayId={activeDay?.id ?? ""}
-                  onActiveDayChange={setActiveDayId}
-                  days={days}
-                  onAddDay={addDay}
-                  onDuplicateDay={duplicateDay}
-                  onRemoveDay={removeDay}
-                  onUpdateDay={updateDay}
-                  onUpdateExercise={updateExercise}
-                  onRemoveExercise={removeExercise}
-                  onReorderExercise={reorderExercise}
-                  onLibraryDrop={handleLibraryDrop}
-                  fieldErrors={validation.fieldErrors}
-                  onAddExerciseRequest={handleAddExerciseRequest}
-                />
-              </div>
-            </section>
-
-            <aside className="order-3 flex h-full flex-col lg:order-3">
-              <ExerciseLibraryPanel
-                filters={filters}
-                onFiltersChange={setFilters}
-                exercises={library}
-                isLoading={isLoadingExercises}
-                error={exerciseError}
-                activeDayName={activeDay?.dayName ?? "Day"}
-                searchInputRef={librarySearchRef}
-                listHeightClassName={LIBRARY_SCROLL_HEIGHT}
-              />
-            </aside>
+        <section className="order-2 flex min-h-[24rem] flex-col">
+          <div className="space-y-4">
+            <ProgramSummaryPanel
+              meta={meta}
+              onMetaChange={handleMetaChange}
+              fieldErrors={validation.fieldErrors}
+            />
+            <SchedulePanel
+              activeDayId={activeDay?.id ?? ""}
+              onActiveDayChange={setActiveDayId}
+              days={days}
+              onAddDay={addDay}
+              onDuplicateDay={duplicateDay}
+              onRemoveDay={removeDay}
+              onUpdateDay={updateDay}
+              onUpdateExercise={updateExercise}
+              onRemoveExercise={removeExercise}
+              onReorderExercise={reorderExercise}
+              onLibraryDrop={handleLibraryDrop}
+              fieldErrors={validation.fieldErrors}
+              onAddExerciseRequest={handleAddExerciseRequest}
+            />
           </div>
-        </div>
+        </section>
+
+        <aside className="order-3 flex h-full flex-col">
+          <ExerciseLibraryPanel
+            filters={filters}
+            onFiltersChange={setFilters}
+            exercises={library}
+            isLoading={isLoadingExercises}
+            error={exerciseError}
+            activeDayName={activeDay?.dayName ?? "Day"}
+            searchInputRef={librarySearchRef}
+            listHeightClassName={LIBRARY_SCROLL_HEIGHT}
+          />
+        </aside>
       </div>
     </div>
   )
 }
+

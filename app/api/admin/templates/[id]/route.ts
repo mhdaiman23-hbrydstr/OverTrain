@@ -178,3 +178,25 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     return NextResponse.json({ error: "Failed to update template" }, { status: 500 })
   }
 }
+
+export async function DELETE(request: NextRequest, { params }: RouteParams) {
+  try {
+    const auth = await requireAdmin(request)
+    if (!auth) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    const { supabase } = auth
+    const templateId = params.id
+
+    const { error } = await supabase.from("program_templates").delete().eq("id", templateId)
+    if (error) {
+      throw error
+    }
+
+    return NextResponse.json({ id: templateId })
+  } catch (error) {
+    console.error("[AdminTemplates] DELETE /[id] error", error)
+    return NextResponse.json({ error: "Failed to delete template" }, { status: 500 })
+  }
+}

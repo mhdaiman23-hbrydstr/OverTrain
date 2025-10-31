@@ -1,8 +1,8 @@
-# Template Builder UI Update – System Audit
+﻿# Template Builder UI Update – System Audit
 
 ## Overview
-- Converted the Template Builder into a two-pane admin tool: searchable template list on the left, builder/editor workspace on the right.
-- Added API support for `GET /api/admin/templates/:id` and `PUT /api/admin/templates/:id` plus shared validation helpers so the UI can load, edit, and resave templates.
+- Reimagined the admin Templates route as a two-step flow: a sortable table view for browsing existing templates and a dedicated builder screen for create / edit / duplicate work.
+- Added API support for `GET /api/admin/templates/:id`, `PUT /api/admin/templates/:id`, and `DELETE /api/admin/templates/:id` plus shared validation helpers so the UI can load, update, duplicate, and remove templates safely.
 - Builder now differentiates between creating and updating templates, showing contextual success messaging and reloading template metadata after save.
 - Schedule panel refreshed with tabs, tooltips, and compact cards to improve readability while preserving drag-and-drop behaviour.
 
@@ -10,7 +10,8 @@
 - All admin template endpoints rely on `requireAdmin` in `app/api/admin/templates/helpers.ts`; reuse this helper for new admin routes to keep auth logic consistent.
 - Template payloads are validated through the shared Zod schemas (`templateSchema`, `daySchema`, `exerciseSchema`). Extend these when adding new fields so both POST and PUT remain in sync.
 - When transforming exercises, preserve `progressionConfig.metadata` so round-tripping retains per-exercise overrides without silently resetting defaults.
-- The UI loads summaries first (`GET /api/admin/templates`) and fetches full detail only when a template is selected; follow this pattern to keep the list snappy.
+- The table view fetches summaries via `GET /api/admin/templates`; the builder fetches full detail only when needed. Keep this split to avoid loading large payloads unnecessarily.
+- `TemplateTable` centralises duplicate/edit/remove actions. Use the dropdown + confirmation pattern again when adding more admin lists requiring destructive actions.
 
 ## Patterns to Follow
 - Keep state normalization functions (`mapTemplateDetailToState`, `mapExerciseConfigToBuilder`) isolated; add new progression fields centrally rather than scattering per-component fixes.
@@ -21,5 +22,5 @@
 ## Mistakes to Avoid
 - Do not bypass `insertTemplateStructure` when adding new template mutations; skipping the helper risks leaving orphaned exercises or days.
 - Avoid direct state mutation when loading templates—always map server data into builder-friendly structures to handle missing metadata and prevent crashes.
-- Don’t call POST for updates: the builder now automatically picks POST vs PUT. Future features should reuse `editingTemplateId` to ensure caches clear and list data refreshes.
+- Don't call POST for updates: the builder now automatically picks POST vs PUT. Future features should reuse `editingTemplateId` to ensure caches clear and list data refreshes.
 - Refrain from hardcoding tier descriptions; use the tooltip/info pattern introduced in `schedule-panel.tsx` so context stays consistent as tier logic evolves.

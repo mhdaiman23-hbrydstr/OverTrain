@@ -42,6 +42,7 @@ export interface ProgramTemplateSummary {
   gender: GenderOption[]
   experienceLevel: ExperienceOption[]
   isActive: boolean
+  progressionType: ProgressionType
   updatedAt?: string | null
 }
 
