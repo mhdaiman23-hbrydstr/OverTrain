@@ -1,4 +1,4 @@
-﻿import { GYM_TEMPLATES, type GymTemplate, processTemplateWithDeload } from "./gym-templates"
+﻿import { type GymTemplate, processTemplateWithDeload } from "./gym-templates"
 import { WorkoutLogger } from "./workout-logger"
 import { supabase } from "./supabase"
 import { programTemplateService } from "./services/program-template-service"
@@ -131,6 +131,8 @@ export class ProgramStateManager {
   private static programStateLock = false
   private static lockQueue: Array<() => void> = []
 
+  private static templateCache = new Map<string, GymTemplate>()
+
   // Migration mapping from old hardcoded IDs to new database IDs
   private static readonly TEMPLATE_ID_MIGRATIONS: Record<string, string> = {
     "fullbody-3day-beginner-male": "template2",
@@ -214,6 +216,34 @@ export class ProgramStateManager {
       gender: Array.isArray(template.gender) ? template.gender : undefined,
       experience: Array.isArray(template.experience) ? template.experience : undefined,
     }
+  }
+
+  private static serializeProgramForStorage(program: ActiveProgram): string {
+    const { template: _template, ...rest } = program
+    return JSON.stringify(rest)
+  }
+
+  private static serializeProgramMinimal(program: ActiveProgram): string {
+    const minimalPayload = {
+      templateId: program.templateId,
+      instanceId: program.instanceId,
+      startDate: program.startDate,
+      currentWeek: program.currentWeek,
+      currentDay: program.currentDay,
+      completedWorkouts: program.completedWorkouts,
+      totalWorkouts: program.totalWorkouts,
+      progress: program.progress,
+      progressionOverride: program.progressionOverride,
+      isCustom: program.isCustom,
+      originTemplateId: program.originTemplateId,
+      templateMetadata: program.templateMetadata,
+    }
+
+    return JSON.stringify(minimalPayload)
+  }
+
+  private static isQuotaExceeded(error: unknown): boolean {
+    return error instanceof DOMException && error.name === "QuotaExceededError"
   }
 
   private static getCurrentUserId(): string | undefined {
@@ -330,11 +360,18 @@ export class ProgramStateManager {
     // Auto-migrate old template IDs
     const migratedId = this.migrateTemplateId(templateId)
 
+    const cachedTemplate = this.templateCache.get(migratedId)
+    if (cachedTemplate) {
+      return cachedTemplate
+    }
+
     try {
       const dbTemplate = await programTemplateService.getTemplate(migratedId)
       if (dbTemplate) {
         console.log('[ProgramState] Loaded template from database:', migratedId)
-        return dbTemplate
+        const processedTemplate = processTemplateWithDeload(dbTemplate)
+        this.templateCache.set(migratedId, processedTemplate)
+        return processedTemplate
       }
     } catch (error) {
       console.error('[ProgramState] Failed to load template from database:', error)
@@ -456,6 +493,17 @@ export class ProgramStateManager {
 
       let program = JSON.parse(stored) as ActiveProgram
 
+      if (!program.template || !program.template.schedule) {
+        const loadedTemplate = await this.loadTemplate(program.templateId)
+        if (!loadedTemplate) {
+          console.error("[ProgramState] Unable to load template for active program:", program.templateId)
+          this.clearActiveProgram()
+          return null
+        }
+        program.template = loadedTemplate
+        this.templateCache.set(program.templateId, loadedTemplate)
+      }
+
       // Validate essential program fields
       if (!program.templateId || !program.instanceId) {
         console.error('[ProgramState] Active program missing essential fields, clearing corrupted data')
@@ -532,10 +580,6 @@ export class ProgramStateManager {
 
       const isUserOwnedTemplate = !!template.ownerUserId
       const resolvedOriginTemplateId = template.originTemplateId ?? templateId
-
-      // Process template to add automatic deload weeks
-      template = processTemplateWithDeload(template)
-      console.log("[ProgramState] Processed template with automatic deload weeks")
 
       // Calculate total workouts in the program
       const daysInSchedule = Object.keys(template.schedule).length
@@ -710,10 +754,9 @@ export class ProgramStateManager {
         return
       }
 
-      const processedTemplate = processTemplateWithDeload(freshTemplate)
-
       activeProgram.templateId = newTemplateId
-      activeProgram.template = processedTemplate
+      activeProgram.template = freshTemplate
+      this.templateCache.set(newTemplateId, freshTemplate)
       if (options?.originTemplateId && !activeProgram.originTemplateId) {
         activeProgram.originTemplateId = options.originTemplateId
       }
@@ -729,7 +772,7 @@ export class ProgramStateManager {
       const activeHistory = history.find(entry => entry.isActive)
       if (activeHistory) {
         activeHistory.templateId = newTemplateId
-        activeHistory.name = processedTemplate.name
+        activeHistory.name = freshTemplate.name
         activeHistory.totalWorkouts = activeProgram.totalWorkouts
         activeHistory.completedWorkouts = activeProgram.completedWorkouts
         activeHistory.completionRate = activeProgram.progress
@@ -1377,8 +1420,26 @@ export class ProgramStateManager {
       program.templateMetadata = this.extractTemplateMetadata(program.template)
     }
 
-    // Save to localStorage first (fast, synchronous)
-    localStorage.setItem(this.ACTIVE_PROGRAM_KEY, JSON.stringify(program))
+    if (program.template?.id) {
+      this.templateCache.set(program.templateId, program.template)
+    }
+
+    const serializedProgram = this.serializeProgramForStorage(program)
+
+    try {
+      localStorage.setItem(this.ACTIVE_PROGRAM_KEY, serializedProgram)
+    } catch (error) {
+      if (this.isQuotaExceeded(error)) {
+        console.warn("[ProgramState] Storage quota exceeded while saving active program - storing minimal snapshot")
+        try {
+          localStorage.setItem(this.ACTIVE_PROGRAM_KEY, this.serializeProgramMinimal(program))
+        } catch (secondaryError) {
+          console.error("[ProgramState] Failed to persist minimal active program snapshot:", secondaryError)
+        }
+      } else {
+        throw error
+      }
+    }
 
     // Sync to database (critical for multi-device + page refresh)
     const userId = this.getCurrentUserId()
