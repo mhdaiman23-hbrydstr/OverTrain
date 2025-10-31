@@ -1572,12 +1572,38 @@ export class ProgramStateManager {
         const fullDbTemplate: any = await programTemplateService.getFullTemplate(activeProgramData.program_id)
         const isCustomTemplate = !!(fullDbTemplate && fullDbTemplate.owner_user_id)
         const originTemplateIdFromDb: string | undefined = fullDbTemplate?.origin_template_id || undefined
-        if (!template) {
-          console.error("[ProgramState] Template not found in database:", activeProgramData.program_id)
-          return
-        }
 
         const instanceId = activeProgramData.instance_id ?? activeProgramData.id
+
+        // FALLBACK FIX: If template not found in database, try to recover from localStorage
+        if (!template) {
+          console.error("[ProgramState] Template not found in database:", activeProgramData.program_id)
+          console.log("[ProgramState] Attempting to recover program from localStorage...")
+
+          // Try to load the program from localStorage as a fallback
+          const storedProgram = localStorage.getItem(this.ACTIVE_PROGRAM_KEY)
+          if (storedProgram) {
+            try {
+              const recovered = JSON.parse(storedProgram) as ActiveProgram
+              if (recovered && recovered.templateMetadata) {
+                console.log("[ProgramState] Successfully recovered program from localStorage:", recovered.templateId)
+                // Program is recoverable - save it back to continue operation
+                await this.saveActiveProgram(recovered)
+                WorkoutLogger.tagWorkoutsWithInstance(instanceId, recovered.templateId, userId)
+                console.log("[ProgramState] Program recovered and saved")
+                return
+              }
+            } catch (error) {
+              console.error("[ProgramState] Failed to recover from localStorage:", error)
+            }
+          }
+
+          // If we can't recover, clear the broken state
+          console.warn("[ProgramState] Cannot recover program - clearing broken state")
+          localStorage.removeItem(this.ACTIVE_PROGRAM_KEY)
+          localStorage.removeItem(this.PROGRAM_PROGRESS_KEY)
+          return
+        }
 
         // Recalculate completedWorkouts from actual workout history
         const totalWorkouts = activeProgramData.days_per_week * activeProgramData.total_weeks

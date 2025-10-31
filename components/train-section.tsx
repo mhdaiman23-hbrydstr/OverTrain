@@ -155,7 +155,8 @@ export function TrainSection({ onStartWorkout, onAddProgram, shouldAutoStart = f
           // Calculate next workout coordinates
           let nextDay = activeProgram.currentDay + 1
           let nextWeek = activeProgram.currentWeek
-          const daysPerWeek = Object.keys(activeProgram.template?.schedule || {}).length
+          // LAZY-LOAD FIX: Use cached metadata instead of full template
+          const daysPerWeek = activeProgram.templateMetadata?.days || 4
 
           if (nextDay > daysPerWeek) {
             nextWeek += 1
@@ -163,7 +164,8 @@ export function TrainSection({ onStartWorkout, onAddProgram, shouldAutoStart = f
           }
 
           // Only preload if within program bounds
-          if (nextWeek <= (activeProgram.template?.weeks || 0)) {
+          // LAZY-LOAD FIX: Use cached metadata for weeks
+          if (nextWeek <= (activeProgram.templateMetadata?.weeks || 0)) {
             console.log("[TrainSection] Preloading next workout: Week " + nextWeek + ", Day " + nextDay)
             await ProgramStateManager.getCurrentWorkout({ week: nextWeek, day: nextDay }).catch(() => {})
           }
@@ -319,7 +321,8 @@ export function TrainSection({ onStartWorkout, onAddProgram, shouldAutoStart = f
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <div className="space-y-1">
-                <CardTitle className="text-lg">{activeProgram.template.name}</CardTitle>
+                {/* LAZY-LOAD FIX: Use cached metadata for template name */}
+                <CardTitle className="text-lg">{activeProgram.templateMetadata?.name || 'My Program'}</CardTitle>
                 <CardDescription>
                   Week {activeProgram.currentWeek} • Day {activeProgram.currentDay}
                 </CardDescription>

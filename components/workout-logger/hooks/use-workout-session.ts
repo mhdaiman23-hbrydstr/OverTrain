@@ -426,7 +426,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
 
         // Get block-level progression
         const progression = ProgressionConfigService.getProgressionForWeek(
-          activeProgram.template.weeks,
+          activeProgram.templateMetadata?.weeks ?? 4,
           activeProgram.currentWeek
         )
         if (progression) {
@@ -550,7 +550,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
 
       const activeProgram = await ProgramStateManager.getActiveProgram()
       if (activeProgram) {
-        setProgramName(activeProgram.template.name)
+        setProgramName(activeProgram.templateMetadata?.name || 'My Program')
       }
 
       const existingWorkout = await WorkoutLogger.getCurrentWorkout()
@@ -603,12 +603,12 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
             ? `day${existingWorkout.day}`
             : undefined
         const dayKey =
-          inferredDayKey && activeProgram.template.schedule[inferredDayKey]
+          inferredDayKey && activeProgram?.template?.schedule?.[inferredDayKey]
             ? inferredDayKey
             : scheduleKeys[existingWorkout.day ? existingWorkout.day - 1 : 0]
 
         const workoutDay = dayKey
-          ? activeProgram.template.schedule[dayKey]
+          ? activeProgram?.template?.schedule?.[dayKey]
           : undefined
 
         if (workoutDay?.exercises?.length) {
@@ -832,7 +832,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
       })
 
       if (activeProgram) {
-        setProgramName(activeProgram.template.name)
+        setProgramName(activeProgram.templateMetadata?.name || 'My Program')
 
         const week = activeProgram.currentWeek
         const day = activeProgram.currentDay

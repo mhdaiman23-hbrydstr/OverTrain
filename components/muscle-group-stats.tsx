@@ -43,7 +43,8 @@ export function MuscleGroupStats({ open, onClose }: MuscleGroupStatsProps) {
     const weeklyMuscleData = new Map<number, Map<string, number>>() // week -> muscleGroup -> sets
 
     workouts.forEach((workout) => {
-      if (!workout.completed || workout.programId !== activeProgram.template.id) return
+      // LAZY-LOAD FIX: Use templateId from activeProgram instead of full template
+      if (!workout.completed || workout.programId !== activeProgram.templateId) return
 
       const workoutDate = new Date(workout.startTime)
       const daysSinceStart = Math.floor((workoutDate.getTime() - programStartDate.getTime()) / (1000 * 60 * 60 * 24))

@@ -559,7 +559,8 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
               {activeProgram && (
                 <>
                   You're currently {Math.round(activeProgram.progress)}% complete with{" "}
-                  <span className="font-semibold">{activeProgram.template.name}</span> (
+                  {/* LAZY-LOAD FIX: Use cached metadata for template name */}
+                  <span className="font-semibold">{activeProgram.templateMetadata?.name || 'My Program'}</span> (
                   {activeProgram.completedWorkouts}/{activeProgram.totalWorkouts} workouts completed).
                   <br />
                   <br />

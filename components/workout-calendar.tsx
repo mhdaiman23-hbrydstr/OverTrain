@@ -37,6 +37,8 @@ export function WorkoutCalendar({ onWorkoutClick, selectedWeek, selectedDay, rea
   const [isLoading, setIsLoading] = useState(false)
   const [historicalTemplate, setHistoricalTemplate] = useState<GymTemplate | null>(null)
   const [displayMode, setDisplayMode] = useState<RpeRirDisplayMode>('rir')
+  // LAZY-LOAD FIX: Load template for active program when needed
+  const [activeTemplate, setActiveTemplate] = useState<GymTemplate | null>(null)
 
   // CRITICAL FIX: Prevent infinite recalculation loops
   const isRecalculatingRef = useRef(false)
@@ -174,6 +176,47 @@ export function WorkoutCalendar({ onWorkoutClick, selectedWeek, selectedDay, rea
     }
   }, [readOnly, historicalProgram?.templateId])
 
+  // LAZY-LOAD FIX: Load template for active program to get correct day names
+  useEffect(() => {
+    if (readOnly || !activeProgram) return
+
+    let mounted = true
+    const templateId = activeProgram.templateId
+
+    ProgramTemplateService.getInstance()
+      .getTemplate(templateId)
+      .then((tpl) => {
+        if (mounted) {
+          setActiveTemplate(tpl)
+
+          // CRITICAL FIX: Verify cached metadata matches actual template
+          const actualDays = Object.keys(tpl.schedule).length
+          if (activeProgram.templateMetadata && activeProgram.templateMetadata.days !== actualDays) {
+            console.warn('[Calendar] Template days mismatch! Cached:', activeProgram.templateMetadata.days, 'Actual:', actualDays)
+            // Update the program with correct days count
+            const updated = {
+              ...activeProgram,
+              templateMetadata: {
+                ...activeProgram.templateMetadata,
+                days: actualDays
+              }
+            }
+            setActiveProgram(updated)
+          }
+
+          console.log('[Calendar] Loaded template for active program:', templateId, 'Days:', actualDays)
+        }
+      })
+      .catch((error) => {
+        console.warn('[Calendar] Failed to load template for active program:', error)
+        // Continue without it - will use generic day names
+      })
+
+    return () => {
+      mounted = false
+    }
+  }, [readOnly, activeProgram?.templateId])
+
   // Development tools for debugging calendar state
   useEffect(() => {
     if (typeof window !== "undefined" && process.env.NODE_ENV === "development") {
@@ -288,14 +331,10 @@ export function WorkoutCalendar({ onWorkoutClick, selectedWeek, selectedDay, rea
 
           console.log("Active Program:", {
             templateId: activeProgram.templateId,
-            templateName: activeProgram.template.name,
+            // LAZY-LOAD FIX: Use cached metadata for template name
+            templateName: activeProgram.templateMetadata?.name,
             currentWeek: activeProgram.currentWeek,
             currentDay: activeProgram.currentDay
-          })
-
-          console.log("Template Schedule (raw):")
-          Object.entries(activeProgram.template.schedule).forEach(([key, value]) => {
-            console.log(`  ${key}: ${value.name}`)
           })
 
           console.log("Template Schedule (sorted):")
@@ -359,12 +398,13 @@ export function WorkoutCalendar({ onWorkoutClick, selectedWeek, selectedDay, rea
     const program = await ProgramStateManager.getActiveProgram()
     setActiveProgram(program)
     setIsLoading(false)
-    if (program && program.template) {
-      const baseWeeks = program.template.weeks || 4
+    if (program && program.templateMetadata) {
+      // LAZY-LOAD FIX: Use cached metadata instead of full template
+      const baseWeeks = program.templateMetadata.weeks || 4
       // Use exact week count from template (no +2 extension)
       setTotalWeeks(baseWeeks)
       console.log("[Calendar] Active program loaded:", {
-        name: program.template.name,
+        name: program.templateMetadata.name,
         currentWeek: program.currentWeek,
         currentDay: program.currentDay,
         totalWeeks: baseWeeks
@@ -460,15 +500,17 @@ export function WorkoutCalendar({ onWorkoutClick, selectedWeek, selectedDay, rea
   }
 
   // Use activeProgram data if available, otherwise use historical program data
+  // LAZY-LOAD FIX: Use cached metadata instead of full template
   const daysPerWeek = readOnly && historicalProgram
     ? historicalProgram.daysPerWeek
-    : activeProgram
-      ? Object.keys(activeProgram.template.schedule).length
+    : activeProgram && activeProgram.templateMetadata
+      ? activeProgram.templateMetadata.days
       : 3 // fallback
 
   const currentWeek = activeProgram?.currentWeek || selectedWeek || 1
   const currentDay = activeProgram?.currentDay || selectedDay || 1
-  const template = activeProgram?.template || (readOnly ? historicalTemplate || undefined : undefined)
+  // LAZY-LOAD FIX: Use activeTemplate for active programs, historicalTemplate for read-only
+  const template = readOnly ? historicalTemplate || undefined : activeTemplate || undefined
 
   // For historical mode, create minimal schedule keys
   const scheduleKeys = template
