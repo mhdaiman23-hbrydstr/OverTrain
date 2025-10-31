@@ -89,6 +89,7 @@ export function ExerciseLibraryPanel({
     (filters.muscleGroups?.length ?? 0) > 0 || (filters.equipmentTypes?.length ?? 0) > 0
 
   return (
+    <>
     <Card className="flex h-full w-full flex-col">
       <CardHeader className="space-y-1 border-b border-border/60">
         <CardTitle>Exercise Library</CardTitle>
@@ -234,5 +235,7 @@ export function ExerciseLibraryPanel({
       muscleGroups={availableMuscleGroups}
       equipmentTypes={availableEquipmentTypes}
     />
+    </>
   )
 }
+
