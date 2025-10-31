@@ -49,7 +49,13 @@ export async function GET(request: NextRequest) {
       .order('name')
 
     if (search) {
-      query = query.ilike('name', `%${search}%`)
+      const sanitizedSearch = search.replace(/[%_,()]/g, ' ').trim()
+      if (sanitizedSearch.length > 0) {
+        const likePattern = `%${sanitizedSearch}%`
+        query = query.or(
+          `name.ilike.${likePattern},muscle_group.ilike.${likePattern},equipment_type.ilike.${likePattern}`,
+        )
+      }
     }
 
     if (muscleGroups.length > 0) {

@@ -14,6 +14,7 @@
 - The table view fetches summaries via `GET /api/admin/templates`; the builder fetches full detail only when needed. Keep this split to avoid loading large payloads unnecessarily.
 - `TemplateTable` centralises duplicate/edit/remove actions. Use the dropdown + confirmation pattern again when adding more admin lists requiring destructive actions.
 - `mapExerciseConfigToBuilder` now captures `muscleGroup` and `equipmentType`, and a shared `exercise-equipment` palette handles badge styling. Future metadata should be funneled through the same mapping layer and styled via a dedicated helper.
+- Exercise library search now hits `name`, `muscle_group`, and `equipment_type` columns in a single request; keep any future metadata queries consolidated so the API stays the one source of truth for filtering.
 
 ## Patterns to Follow
 - Keep state normalization functions (`mapTemplateDetailToState`, `mapExerciseConfigToBuilder`) isolated; add new progression fields centrally rather than scattering per-component fixes.
