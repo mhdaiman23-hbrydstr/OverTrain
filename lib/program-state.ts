@@ -44,6 +44,15 @@ export interface ProgressionOverride {
   }
 }
 
+interface TemplateMetadata {
+  id: string
+  name: string
+  days: number
+  weeks: number
+  gender?: ("male" | "female")[]
+  experience?: ("beginner" | "intermediate" | "advanced")[]
+}
+
 export interface ActiveProgram {
   templateId: string
   template: GymTemplate
@@ -57,6 +66,7 @@ export interface ActiveProgram {
   progressionOverride?: ProgressionOverride
   isCustom?: boolean
   originTemplateId?: string
+  templateMetadata?: TemplateMetadata
 }
 
 interface ReplacementExercisePayload {
@@ -193,6 +203,17 @@ export class ProgramStateManager {
     }
 
     return this.generateInstanceId()
+  }
+
+  private static extractTemplateMetadata(template: GymTemplate): TemplateMetadata {
+    return {
+      id: template.id,
+      name: template.name,
+      days: Object.keys(template.schedule ?? {}).length || template.days || 0,
+      weeks: template.weeks || 0,
+      gender: Array.isArray(template.gender) ? template.gender : undefined,
+      experience: Array.isArray(template.experience) ? template.experience : undefined,
+    }
   }
 
   private static getCurrentUserId(): string | undefined {
@@ -385,6 +406,7 @@ export class ProgramStateManager {
     const totalWorkouts = daysPerWeek * totalWeeks
     program.totalWorkouts = totalWorkouts
     program.progress = totalWorkouts > 0 ? (program.completedWorkouts / totalWorkouts) * 100 : 0
+    program.templateMetadata = this.extractTemplateMetadata(program.template)
   }
 
   /**
@@ -472,6 +494,22 @@ export class ProgramStateManager {
         }
       }
 
+      if (!program.templateMetadata) {
+        program.templateMetadata = this.extractTemplateMetadata(program.template)
+        await this.saveActiveProgram(program)
+      } else {
+        const metadata = program.templateMetadata
+        const templateMeta = this.extractTemplateMetadata(program.template)
+        if (
+          metadata.days !== templateMeta.days ||
+          metadata.weeks !== templateMeta.weeks ||
+          metadata.name !== templateMeta.name
+        ) {
+          program.templateMetadata = templateMeta
+          await this.saveActiveProgram(program)
+        }
+      }
+
       return program
     } catch (error) {
       console.error("[v0] Error loading active program:", error)
@@ -528,6 +566,7 @@ export class ProgramStateManager {
         progressionOverride,
         isCustom: isUserOwnedTemplate,
         originTemplateId: resolvedOriginTemplateId,
+        templateMetadata: this.extractTemplateMetadata(template),
       }
 
       await this.saveActiveProgram(activeProgram)
@@ -1334,6 +1373,10 @@ export class ProgramStateManager {
   private static async saveActiveProgram(program: ActiveProgram): Promise<void> {
     if (typeof window === "undefined") return
 
+    if (!program.templateMetadata) {
+      program.templateMetadata = this.extractTemplateMetadata(program.template)
+    }
+
     // Save to localStorage first (fast, synchronous)
     localStorage.setItem(this.ACTIVE_PROGRAM_KEY, JSON.stringify(program))
 
@@ -1629,6 +1672,7 @@ export class ProgramStateManager {
           progress: (completedWorkouts / totalWorkouts) * 100,
           isCustom: isCustomTemplate,
           originTemplateId: originTemplateIdFromDb,
+          templateMetadata: this.extractTemplateMetadata(template),
         }
         await this.saveActiveProgram(activeProgram)
         WorkoutLogger.tagWorkoutsWithInstance(instanceId, activeProgram.templateId, userId)
