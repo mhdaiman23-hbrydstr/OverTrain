@@ -817,4 +817,211 @@ export function AdminTemplateBuilder({
     onSaved,
   ])
 
+  const formHasErrors = summaryMessages.length > 0
+  const isEditingTemplate = mode === "edit" && Boolean(editingTemplateId)
+  const heading =
+    mode === "edit"
+      ? "Edit Template"
+      : mode === "duplicate"
+        ? "Duplicate Template"
+        : "Create Template"
+  const subheading =
+    mode === "edit"
+      ? "Update the template and save your changes."
+      : mode === "duplicate"
+        ? "Start with an existing template and publish a new version."
+        : "Create admin-only program templates by dragging exercises into your schedule."
+  const showLoadingTemplate = isLoadingTemplateDetail && mode !== "create"
+
+  useEffect(() => {
+    setPublishSuccess(null)
+    setTemplateError(null)
+
+    if (mode === "create") {
+      initializeNewTemplate()
+      setEditingTemplateId(null)
+      loadedTemplateRef.current = { id: null, mode: null }
+      return
+    }
+
+    if (!templateId) return
+
+    const loadMode = mode === "edit" ? "edit" : "duplicate"
+    if (loadedTemplateRef.current.id === templateId && loadedTemplateRef.current.mode === loadMode) {
+      return
+    }
+    void loadTemplateDetail(templateId, loadMode)
+  }, [mode, templateId, initializeNewTemplate, loadTemplateDetail])
+
+  return (
+    <div className="flex h-full flex-col gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <Button
+          type="button"
+          variant="ghost"
+          className="flex items-center gap-2"
+          onClick={onBack}
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back to templates
+        </Button>
+        <div className="flex min-w-[12rem] flex-1 flex-col gap-1">
+          <h1 className="text-xl font-semibold tracking-tight">{heading}</h1>
+          <p className="text-sm text-muted-foreground">{subheading}</p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <TemplatePreviewDialog meta={meta} days={days} globalProgress={progressDefaults} totalWeeks={totalWeeks} />
+          <Button onClick={publishTemplate} disabled={formHasErrors || isPublishing}>
+            {isPublishing ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <FolderPlus className="mr-2 h-4 w-4" />
+            )}
+            {isEditingTemplate ? "Save Changes" : "Publish Template"}
+          </Button>
+        </div>
+      </div>
+
+      {showLoadingTemplate && (
+        <Alert className="border-border/60 bg-background/60">
+          <AlertDescription className="flex items-center gap-2 text-sm">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            Loading template details...
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {templateError && (
+        <Alert variant="destructive">
+          <AlertTitle>Template error</AlertTitle>
+          <AlertDescription>{templateError}</AlertDescription>
+        </Alert>
+      )}
+
+      {publishSuccess && (
+        <Alert className="border-primary/40 bg-primary/10">
+          <CheckCircle2 className="h-4 w-4 text-primary" />
+          <AlertTitle>
+            {publishSuccess.action === "updated" ? "Template updated" : "Template published"}
+          </AlertTitle>
+          <AlertDescription>
+            {publishSuccess.action === "updated"
+              ? `Updates to "${publishSuccess.name}" are live.`
+              : `"${publishSuccess.name}" is live.`}
+            {publishSuccess.id ? ` ID: ${publishSuccess.id}` : ""}
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {formHasErrors && (
+        <Alert variant="destructive">
+          <AlertTitle>Validation required</AlertTitle>
+          <AlertDescription>
+            <ul className="list-inside list-disc space-y-1">
+              {summaryMessages.map((message, index) => (
+                <li key={index}>{message}</li>
+              ))}
+            </ul>
+          </AlertDescription>
+        </Alert>
+      )}
+
+      <div className="flex flex-1 flex-col gap-4 lg:grid lg:grid-cols-[minmax(16rem,2fr)_minmax(24rem,5fr)_minmax(18rem,3fr)] lg:gap-4">
+        <aside className="order-1 flex h-full flex-col rounded-xl border border-border/60 bg-background/60">
+          <Tabs
+            value={sidebarTab}
+            onValueChange={(value) => setSidebarTab(value as typeof sidebarTab)}
+            className="flex h-full flex-col"
+          >
+            <div className="border-b border-border/60 px-4 py-3">
+              <h2 className="text-sm font-semibold text-foreground">Program Controls</h2>
+              <p className="text-xs text-muted-foreground">Tune settings, defaults, and overview.</p>
+            </div>
+            <TabsList className="grid h-auto gap-2 bg-transparent px-4 pt-4 pb-2 sm:grid-cols-2 lg:flex lg:flex-col">
+              <TabsTrigger
+                value="settings"
+                className="flex flex-col items-start gap-1 rounded-lg border border-transparent bg-transparent px-3 py-2 text-left text-xs font-medium transition data-[state=active]:border-primary data-[state=active]:bg-muted/40"
+              >
+                <span className="text-sm font-semibold">Settings</span>
+                <span className="max-w-[14rem] truncate text-xs text-muted-foreground">{metaSummary}</span>
+              </TabsTrigger>
+              <TabsTrigger
+                value="progression"
+                className="flex flex-col items-start gap-1 rounded-lg border border-transparent bg-transparent px-3 py-2 text-left text-xs font-medium transition data-[state=active]:border-primary data-[state=active]:bg-muted/40"
+              >
+                <span className="text-sm font-semibold">Progression</span>
+                <span className="max-w-[14rem] truncate text-xs text-muted-foreground">{progressionSummary}</span>
+              </TabsTrigger>
+            </TabsList>
+            <div className="flex-1 overflow-hidden">
+              <TabsContent value="settings" className="h-full data-[state=inactive]:hidden">
+                <ScrollArea className="h-full px-4 pb-4 pr-6">
+                  <div className="space-y-4 pb-2">
+                    <MetaPanel
+                      meta={meta}
+                      onMetaChange={handleMetaChange}
+                      onToggleOption={handleToggleOption}
+                      fieldErrors={validation.fieldErrors}
+                    />
+                  </div>
+                </ScrollArea>
+              </TabsContent>
+              <TabsContent value="progression" className="h-full data-[state=inactive]:hidden">
+                <ScrollArea className="h-full px-4 pb-4 pr-6">
+                  <div className="space-y-4 pb-2">
+                    <ProgressionPanel
+                      meta={meta}
+                      onMetaChange={handleMetaChange}
+                      defaults={progressDefaults}
+                      onDefaultsChange={setProgressDefaults}
+                      fieldErrors={validation.fieldErrors}
+                    />
+                  </div>
+                </ScrollArea>
+              </TabsContent>
+            </div>
+          </Tabs>
+        </aside>
+
+        <section className="order-2 flex min-h-[24rem] flex-col">
+          <div className="space-y-4">
+            <ProgramSummaryPanel
+              meta={meta}
+              onMetaChange={handleMetaChange}
+              fieldErrors={validation.fieldErrors}
+            />
+            <SchedulePanel
+              activeDayId={activeDay?.id ?? ""}
+              onActiveDayChange={setActiveDayId}
+              days={days}
+              onAddDay={addDay}
+              onDuplicateDay={duplicateDay}
+              onRemoveDay={removeDay}
+              onUpdateDay={updateDay}
+              onUpdateExercise={updateExercise}
+              onRemoveExercise={removeExercise}
+              onReorderExercise={reorderExercise}
+              onLibraryDrop={handleLibraryDrop}
+              fieldErrors={validation.fieldErrors}
+              onAddExerciseRequest={handleAddExerciseRequest}
+            />
+          </div>
+        </section>
+
+        <aside className="order-3 flex h-full flex-col">
+          <ExerciseLibraryPanel
+            filters={filters}
+            onFiltersChange={setFilters}
+            exercises={library}
+            isLoading={isLoadingExercises}
+            error={exerciseError}
+            activeDayName={activeDay?.dayName ?? "Day"}
+            searchInputRef={librarySearchRef}
+            listHeightClassName={LIBRARY_SCROLL_HEIGHT}
+          />
+        </aside>
+      </div>
+    </div>
+  )
+}
 
