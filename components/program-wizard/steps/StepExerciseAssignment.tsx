@@ -9,8 +9,10 @@ import { Card, CardContent } from '@/components/ui/card'
 import { useToast } from '@/hooks/use-toast'
 import type { DayInWizard, ExerciseInWizard } from '../types'
 import type { Exercise } from '@/lib/services/exercise-library-service'
-import { ExerciseRow } from '../components/ExerciseRow'
+import { DndContext, type DragEndEvent, type DragStartEvent, PointerSensor, KeyboardSensor, closestCenter, useSensor, useSensors } from '@dnd-kit/core'
+import { SortableContext, verticalListSortingStrategy, sortableKeyboardCoordinates } from '@dnd-kit/sortable'
 import { ExerciseSelectionDialog } from '../components/ExerciseSelectionDialog'
+import { SortableExerciseRow } from '../components/SortableExerciseRow'
 import { cn } from '@/lib/utils'
 
 interface StepExerciseAssignmentProps {
@@ -24,6 +26,7 @@ interface StepExerciseAssignmentProps {
   onReplaceExercise: (dayIndex: number, tempId: string, exercise: Exercise) => void
   onRenameDay: (dayIndex: number, newName: string) => void
   onRemoveDay?: (dayIndex: number) => void
+  onReorderExercise: (dayIndex: number, fromIndex: number, toIndex: number) => void
   onBack: () => void
   onNext: () => void
 }
@@ -48,6 +51,7 @@ export function StepExerciseAssignment({
   onReplaceExercise,
   onRenameDay,
   onRemoveDay,
+  onReorderExercise,
   onBack,
   onNext,
 }: StepExerciseAssignmentProps) {
@@ -68,6 +72,20 @@ export function StepExerciseAssignment({
       }
     | null
   >(null)
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        delay: 150,
+        tolerance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
+  )
+
+  const [activeExerciseId, setActiveExerciseId] = useState<string | null>(null)
 
   const allDaysHaveExercises = days.every(day => day.exercises.length > 0)
 
@@ -108,6 +126,16 @@ export function StepExerciseAssignment({
         description: `${dayName} has been deleted from your program.`,
       })
     }
+  }
+
+  const handleDragStart = (event: DragStartEvent) => {
+    if (typeof event.active.id === 'string') {
+      setActiveExerciseId(event.active.id)
+    }
+  }
+
+  const handleDragCancel = () => {
+    setActiveExerciseId(null)
   }
 
   const handleDayNameKeyDown = (e: React.KeyboardEvent) => {
@@ -343,14 +371,38 @@ export function StepExerciseAssignment({
                           No exercises assigned. Add them manually or randomize the day to get suggestions.
                         </div>
                       ) : (
-                        day.exercises.map((exercise, exerciseIndex) => (
-                          <ExerciseRow
-                            key={exercise.tempId}
-                            exercise={exercise}
-                            onRemove={tempId => onRemoveExercise(dayIndex, tempId)}
-                            actionSlot={renderReplaceActions({ exercise, dayIndex, exerciseIndex })}
-                          />
-                        ))
+                        <DndContext
+                          sensors={sensors}
+                          collisionDetection={closestCenter}
+                          onDragStart={handleDragStart}
+                          onDragCancel={handleDragCancel}
+                          onDragEnd={(event: DragEndEvent) => {
+                            setActiveExerciseId(null)
+                            const { active, over } = event
+                            if (!over || active.id === over.id) return
+
+                            const fromIndex = day.exercises.findIndex(exercise => exercise.tempId === active.id)
+                            const toIndex = day.exercises.findIndex(exercise => exercise.tempId === over.id)
+                            if (fromIndex === -1 || toIndex === -1) return
+
+                            onReorderExercise(dayIndex, fromIndex, toIndex)
+                          }}
+                        >
+                          <SortableContext
+                            items={day.exercises.map(exercise => exercise.tempId)}
+                            strategy={verticalListSortingStrategy}
+                          >
+                            {day.exercises.map((exercise, exerciseIndex) => (
+                              <SortableExerciseRow
+                                key={exercise.tempId}
+                                exercise={exercise}
+                                onRemove={tempId => onRemoveExercise(dayIndex, tempId)}
+                                actionSlot={renderReplaceActions({ exercise, dayIndex, exerciseIndex })}
+                                isActive={activeExerciseId === exercise.tempId}
+                              />
+                            ))}
+                          </SortableContext>
+                        </DndContext>
                       )}
                     </div>
                   </>

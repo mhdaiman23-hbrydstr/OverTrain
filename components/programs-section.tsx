@@ -129,7 +129,12 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
     if (MY_PROGRAMS_ENABLED) {
       try {
         const programs = await ProgramStateManager.getMyPrograms()
-        setMyPrograms(programs)
+        // Mark which program is currently active by comparing with active program's templateId
+        const programsWithActiveFlag = programs.map(p => ({
+          ...p,
+          isActive: activeId === p.id,
+        }))
+        setMyPrograms(programsWithActiveFlag)
         return
       } catch (error) {
         console.error('[ProgramsSection] Failed to load My Programs from server:', error)
