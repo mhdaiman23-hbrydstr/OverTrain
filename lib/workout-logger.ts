@@ -249,6 +249,38 @@ export class WorkoutLogger implements SetSyncProvider {
     }, this.SAVE_DEBOUNCE_MS)
   }
 
+  /**
+   * Flush any pending debounced workout save immediately
+   * Called before completing a workout to ensure all set updates are persisted
+   */
+  static async flushPendingWorkoutSave(): Promise<void> {
+    return new Promise((resolve) => {
+      if (this.saveTimer) {
+        // Cancel the debounce timer
+        clearTimeout(this.saveTimer)
+        this.saveTimer = null
+
+        // Execute the pending save immediately
+        if (this.pendingWorkoutSave) {
+          const { workout, userId } = this.pendingWorkoutSave
+          this.pendingWorkoutSave = null
+
+          // Save synchronously without idle callback delay
+          this.saveCurrentWorkout(workout, userId)
+            .then(() => resolve())
+            .catch((error) => {
+              console.error("[WorkoutLogger] Failed to flush pending save:", error)
+              resolve() // Resolve even on error to not block completion
+            })
+        } else {
+          resolve()
+        }
+      } else {
+        resolve()
+      }
+    })
+  }
+
   static getUserStorageKeys(userId?: string): { workouts: string; inProgress: string } {
     // Always try to get current user ID if not provided
     if (!userId && typeof window !== "undefined") {

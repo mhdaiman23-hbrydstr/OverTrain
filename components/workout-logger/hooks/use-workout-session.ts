@@ -1330,7 +1330,12 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
 
       // Step 1: Save workout with notes
       await WorkoutLogger.saveCurrentWorkout(workoutWithNotes, user?.id)
-      
+
+      // Step 1.5: Flush any pending debounced saves to ensure set completion flags are persisted
+      // This is critical - the UI state has all sets marked as completed, but the pending debounce
+      // might not have written them to localStorage yet
+      await WorkoutLogger.flushPendingWorkoutSave()
+
       // Step 2: Check if already completed BEFORE completing
       const wasAlreadyCompleted = WorkoutLogger.hasCompletedWorkout(workout.week || 1, workout.day || 1, user?.id)
 
