@@ -1311,8 +1311,22 @@ export class WorkoutLogger implements SetSyncProvider {
       })),
     })
 
-    this.saveCurrentWorkout(workout, userId)
-    console.log("[v0] Saved workout to localStorage and database")
+    // Defer storage save to next idle frame to prevent UI freeze on mobile
+    // iOS Safari can block the main thread with large JSON operations
+    if (typeof window !== "undefined" && "requestIdleCallback" in window) {
+      requestIdleCallback(() => {
+        this.saveCurrentWorkout(workout, userId).catch((error) => {
+          console.error("[WorkoutLogger] Failed to save workout:", error)
+        })
+      }, { timeout: 5000 })  // Fallback to immediate save after 5 seconds
+    } else {
+      // Fallback for browsers without requestIdleCallback (do immediately)
+      this.saveCurrentWorkout(workout, userId).catch((error) => {
+        console.error("[WorkoutLogger] Failed to save workout:", error)
+      })
+    }
+
+    console.log("[v0] Scheduled workout save to localStorage and database")
     return workout
   }
 
