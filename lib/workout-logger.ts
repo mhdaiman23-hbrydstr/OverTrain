@@ -1462,7 +1462,11 @@ export class WorkoutLogger implements SetSyncProvider {
   }
 
   
-  static async completeWorkout(workoutId: string, userId?: string): Promise<WorkoutSession | null> {
+  static async completeWorkout(
+    workoutId: string,
+    userId?: string,
+    workoutToComplete?: WorkoutSession
+  ): Promise<WorkoutSession | null> {
     if (typeof window === "undefined") return null
 
     // Get current user ID if not provided
@@ -1489,20 +1493,29 @@ export class WorkoutLogger implements SetSyncProvider {
     const storageKeys = this.getUserStorageKeys(userId)
 
     try {
-      const stored = localStorage.getItem(storageKeys.inProgress)
-      if (!stored) {
-        console.error(`[WorkoutLogger.completeWorkout] No in-progress workouts found in localStorage (key: ${storageKeys.inProgress})`)
-        return null
-      }
+      let workout: WorkoutSession | undefined
 
-      const workouts: WorkoutSession[] = JSON.parse(stored)
-      console.log(`[WorkoutLogger.completeWorkout] Found ${workouts.length} in-progress workouts, looking for ID: ${workoutId}`)
-      console.log(`[WorkoutLogger.completeWorkout] Available workout IDs:`, workouts.map(w => w.id))
+      // If workout data is provided directly, use it (ensures we have latest set flags)
+      // Otherwise, read from localStorage
+      if (workoutToComplete) {
+        workout = workoutToComplete
+        console.log("[WorkoutLogger.completeWorkout] Using provided workout data (has latest set flags)")
+      } else {
+        const stored = localStorage.getItem(storageKeys.inProgress)
+        if (!stored) {
+          console.error(`[WorkoutLogger.completeWorkout] No in-progress workouts found in localStorage (key: ${storageKeys.inProgress})`)
+          return null
+        }
 
-      const workout = workouts.find((w) => w.id === workoutId)
-      if (!workout) {
-        console.error(`[WorkoutLogger.completeWorkout] Workout ID ${workoutId} not found in in-progress workouts`)
-        return null
+        const workouts: WorkoutSession[] = JSON.parse(stored)
+        console.log(`[WorkoutLogger.completeWorkout] Found ${workouts.length} in-progress workouts, looking for ID: ${workoutId}`)
+        console.log(`[WorkoutLogger.completeWorkout] Available workout IDs:`, workouts.map(w => w.id))
+
+        workout = workouts.find((w) => w.id === workoutId)
+        if (!workout) {
+          console.error(`[WorkoutLogger.completeWorkout] Workout ID ${workoutId} not found in in-progress workouts`)
+          return null
+        }
       }
 
       workout.completed = true

@@ -1340,7 +1340,9 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
       const wasAlreadyCompleted = WorkoutLogger.hasCompletedWorkout(workout.week || 1, workout.day || 1, user?.id)
 
       // Step 3: Complete the workout (moves to history)
-      const completedWorkout = await WorkoutLogger.completeWorkout(workoutWithNotes.id)
+      // Pass the workout data directly to ensure we use the latest set completion flags
+      // This is critical for progression calculations in the next week
+      const completedWorkout = await WorkoutLogger.completeWorkout(workoutWithNotes.id, user?.id, workoutWithNotes)
 
       if (completedWorkout) {
         // Validate that the completed workout has proper data
