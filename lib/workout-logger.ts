@@ -1339,6 +1339,16 @@ export class WorkoutLogger implements SetSyncProvider {
       }
     }
 
+    // CRITICAL: Flush any pending set completions BEFORE completing the workout
+    // This ensures all set data is synced to Supabase before the workout is finished
+    console.log("[WorkoutLogger.completeWorkout] Flushing pending set completions before completing workout")
+    try {
+      await this.flushSetCompletions()
+    } catch (flushError) {
+      console.error("[WorkoutLogger.completeWorkout] Warning: Failed to flush set completions:", flushError)
+      // Continue anyway - sets are backed up in localStorage
+    }
+
     const storageKeys = this.getUserStorageKeys(userId)
 
     try {
@@ -1351,7 +1361,7 @@ export class WorkoutLogger implements SetSyncProvider {
       const workouts: WorkoutSession[] = JSON.parse(stored)
       console.log(`[WorkoutLogger.completeWorkout] Found ${workouts.length} in-progress workouts, looking for ID: ${workoutId}`)
       console.log(`[WorkoutLogger.completeWorkout] Available workout IDs:`, workouts.map(w => w.id))
-      
+
       const workout = workouts.find((w) => w.id === workoutId)
       if (!workout) {
         console.error(`[WorkoutLogger.completeWorkout] Workout ID ${workoutId} not found in in-progress workouts`)
