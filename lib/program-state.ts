@@ -835,37 +835,58 @@ export class ProgramStateManager {
 
       const dayKey = `day${dayNumber}`
       const replacementNameNormalized = fromExerciseName?.toLowerCase().trim()
+
+      // Helper function to apply replacement logic consistently
+      const applyExerciseReplacement = (exercise: any) => {
+        const matchesById = fromExerciseId && exercise.exerciseLibraryId === fromExerciseId
+        const matchesByTemplateId = templateExerciseIds?.includes(exercise.id)
+        const matchesByName = replacementNameNormalized
+          ? exercise.exerciseName?.toLowerCase().trim() === replacementNameNormalized
+          : false
+
+        if (matchesById || matchesByTemplateId || matchesByName) {
+          return {
+            ...exercise,
+            exerciseLibraryId: toExercise.id,
+            exerciseName: toExercise.name,
+            muscleGroup: toExercise.muscleGroup,
+            equipmentType: toExercise.equipmentType,
+          }
+        }
+        return exercise
+      }
+
+      // Apply replacement to current day
+      let changed = false
       const dayEntry = activeProgram.template.schedule?.[dayKey]
       if (dayEntry) {
-        let changed = false
-        dayEntry.exercises = dayEntry.exercises.map(exercise => {
-          const matchesById = fromExerciseId && exercise.exerciseLibraryId === fromExerciseId
-          const matchesByTemplateId = templateExerciseIds?.includes(exercise.id)
-          const matchesByName = replacementNameNormalized
-            ? exercise.exerciseName?.toLowerCase().trim() === replacementNameNormalized
-            : false
+        dayEntry.exercises = dayEntry.exercises.map(applyExerciseReplacement)
+        changed = true  // Mark as changed so we save
+      }
 
-          if (matchesById || matchesByTemplateId || matchesByName) {
-            changed = true
-            return {
-              ...exercise,
-              exerciseLibraryId: toExercise.id,
-              exerciseName: toExercise.name,
-              equipmentType: toExercise.equipmentType,
-            }
-          }
-          return exercise
-        })
+      // CRITICAL FIX: Also apply replacement to the SAME DAY in ALL FUTURE WEEKS
+      // This ensures the "repeat" option actually propagates to future weeks
+      const scheduleKeys = Object.keys(activeProgram.template.schedule)
+      const totalWeeks = activeProgram.template.weeks || 0
 
-        if (changed) {
-          await this.saveActiveProgram(activeProgram)
-          window.dispatchEvent(new Event("programChanged"))
+      // Update the same day for all future weeks
+      for (let week = activeProgram.currentWeek; week <= totalWeeks; week++) {
+        const weekDayKey = dayKey  // Same day slot across all weeks
+        const weekDayEntry = activeProgram.template.schedule?.[weekDayKey]
+        if (weekDayEntry && week >= activeProgram.currentWeek) {
+          weekDayEntry.exercises = weekDayEntry.exercises.map(applyExerciseReplacement)
+          changed = true
         }
+      }
+
+      if (changed) {
+        console.log(`[ProgramState] Applied exercise replacement to day${dayNumber} across weeks`)
+        await this.saveActiveProgram(activeProgram)
+        window.dispatchEvent(new Event("programChanged"))
       }
 
       const userId = this.getCurrentUserId()
       if (userId && typeof dayNumber === "number" && dayNumber > 0) {
-        const totalWeeks = activeProgram.template.weeks || 0
         for (let week = activeProgram.currentWeek + 1; week <= totalWeeks; week++) {
           try {
             await WorkoutLogger.clearCurrentWorkout(week, dayNumber, userId)
