@@ -188,3 +188,35 @@ window.dispatchEvent(new Event("programChanged"))
 ```
 
 Components can listen to refresh UI when programs change.
+
+### Mobile Set Sync (Fire-and-Forget Patterns)
+
+**CRITICAL PATTERN** - Documented in [AUDIT_MOBILE_SET_SYNC_BUG.md](./AUDIT_MOBILE_SET_SYNC_BUG.md)
+
+The `WorkoutLogger` uses a **queued batching system** for set logging to prevent UI blocking on mobile. However, this introduces a subtle bug risk:
+
+```typescript
+// ❌ WRONG - Queue flush happens in background, not awaited
+static async logSetCompletion(...) {
+  this.queueSetCompletion(...)  // Returns immediately
+  // Data might not be synced yet!
+}
+
+// ✓ CORRECT - Explicit flush before state transitions
+static async completeWorkout(workoutId: string) {
+  // MUST flush before completing, otherwise sets aren't synced to Supabase
+  await this.flushSetCompletions()
+
+  // Now safe to mark workout as complete
+  await this.saveWorkoutToHistory(workout)
+}
+```
+
+**Key Rules**:
+1. `logSetCompletion()` is fire-and-forget (returns immediately for UI responsiveness)
+2. Queue flushes every 1.5 seconds automatically via `setTimeout`
+3. **Before critical state transitions (like completing a workout), explicitly `await flushSetCompletions()`**
+4. Always wrap flush in try-catch - use graceful degradation if it fails (sets backed up in localStorage)
+5. Document queue-based APIs with ⚠️ warnings in JSDoc
+
+See [AUDIT_MOBILE_SET_SYNC_BUG.md](./AUDIT_MOBILE_SET_SYNC_BUG.md) for detailed analysis and testing recommendations.
