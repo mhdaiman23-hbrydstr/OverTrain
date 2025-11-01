@@ -26,7 +26,6 @@ export function SidebarNavigation({ currentView, onViewChange }: SidebarNavigati
   const router = useRouter()
   const [showSignOutDialog, setShowSignOutDialog] = useState(false)
   const [syncStatus, setSyncStatus] = useState<'synced' | 'syncing' | 'failed' | 'offline'>('synced')
-  const [isOnline, setIsOnline] = useState(true)
   const isAdmin = !!user?.isAdmin
 
   // Listen for sync status updates
@@ -39,12 +38,10 @@ export function SidebarNavigation({ currentView, onViewChange }: SidebarNavigati
 
     // Monitor online/offline status
     const handleOnline = () => {
-      setIsOnline(true)
       setSyncStatus('syncing')
     }
 
     const handleOffline = () => {
-      setIsOnline(false)
       setSyncStatus('offline')
     }
 
@@ -52,9 +49,6 @@ export function SidebarNavigation({ currentView, onViewChange }: SidebarNavigati
       window.addEventListener('syncStatusChanged', handleSyncStatus)
       window.addEventListener('online', handleOnline)
       window.addEventListener('offline', handleOffline)
-
-      // Set initial online status
-      setIsOnline(navigator.onLine)
     }
 
     return () => {
@@ -72,7 +66,12 @@ export function SidebarNavigation({ currentView, onViewChange }: SidebarNavigati
     { id: "analytics", label: "Analytics", icon: BarChart3 },
     { id: "profile", label: "Profile", icon: User },
   ]
-  const adminNavigationItems = isAdmin ? [{ id: "templates", label: "Templates", icon: FilePlus2 }] : []
+  const adminNavigationItems = isAdmin ? [
+    { id: "admin-dashboard", label: "Admin Dashboard", icon: BarChart3 },
+    { id: "admin-support", label: "Support", icon: HelpCircle },
+    { id: "templates", label: "Templates", icon: FilePlus2 },
+    { id: "admin-users", label: "Users", icon: User },
+  ] : []
 
   const settingsItems = [
     { id: "help", label: "Help", icon: HelpCircle },
@@ -155,6 +154,18 @@ export function SidebarNavigation({ currentView, onViewChange }: SidebarNavigati
               onClick={() => {
                 if (item.id === "templates") {
                   router.push("/admin/templates")
+                  return
+                }
+                if (item.id === "admin-dashboard") {
+                  router.push("/admin/dashboard")
+                  return
+                }
+                if (item.id === "admin-support") {
+                  router.push("/admin/support")
+                  return
+                }
+                if (item.id === "admin-users") {
+                  router.push("/admin/users")
                   return
                 }
                 onViewChange(item.id)
