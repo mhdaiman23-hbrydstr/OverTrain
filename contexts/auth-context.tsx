@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react"
 import { type User, type AuthState, AuthService } from "@/lib/auth"
 import { SessionManager } from "@/lib/session-manager"
+import { initializeStoragePolyfill } from "@/lib/indexed-db-storage"
 
 interface AuthContextType extends AuthState {
   signIn: (email: string, password: string) => Promise<void>
@@ -24,6 +25,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [dataLoaded, setDataLoaded] = useState(false) // Prevent multiple data loading attempts
 
   useEffect(() => {
+    // Initialize storage layer on app start (IndexedDB for mobile, localStorage fallback)
+    initializeStoragePolyfill().catch((error) => {
+      console.error('[Auth] Failed to initialize storage:', error)
+    })
+
     // Start session monitoring on mount
     SessionManager.startMonitoring()
 
