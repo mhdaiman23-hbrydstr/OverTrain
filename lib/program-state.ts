@@ -791,11 +791,12 @@ export class ProgramStateManager {
     fromExerciseName?: string
     templateExerciseIds?: string[]
     toExercise: ReplacementExercisePayload
+    applyToFutureWeeks?: boolean  // If false, only applies to current week
   }): Promise<void> {
     if (typeof window === "undefined") return
 
     return this.withLock(async () => {
-      const { dayNumber, fromExerciseId, fromExerciseName, templateExerciseIds, toExercise } = params
+      const { dayNumber, fromExerciseId, fromExerciseName, templateExerciseIds, toExercise, applyToFutureWeeks = true } = params
 
       let activeProgram = await this.getActiveProgram({ skipDatabaseLoad: true })
       if (!activeProgram) {
@@ -864,19 +865,23 @@ export class ProgramStateManager {
         changed = true  // Mark as changed so we save
       }
 
-      // CRITICAL FIX: Also apply replacement to the SAME DAY in ALL FUTURE WEEKS
-      // This ensures the "repeat" option actually propagates to future weeks
-      const scheduleKeys = Object.keys(activeProgram.template.schedule)
-      const totalWeeks = activeProgram.template.weeks || 0
+      // CRITICAL FIX: Apply replacement to future weeks ONLY if applyToFutureWeeks is true
+      // This allows current-week-only replacements while still forking the program
+      if (applyToFutureWeeks) {
+        const scheduleKeys = Object.keys(activeProgram.template.schedule)
+        const totalWeeks = activeProgram.template.weeks || 0
 
-      // Update the same day for all future weeks
-      for (let week = activeProgram.currentWeek; week <= totalWeeks; week++) {
-        const weekDayKey = dayKey  // Same day slot across all weeks
-        const weekDayEntry = activeProgram.template.schedule?.[weekDayKey]
-        if (weekDayEntry && week >= activeProgram.currentWeek) {
-          weekDayEntry.exercises = weekDayEntry.exercises.map(applyExerciseReplacement)
-          changed = true
+        // Update the same day for all future weeks
+        for (let week = activeProgram.currentWeek; week <= totalWeeks; week++) {
+          const weekDayKey = dayKey  // Same day slot across all weeks
+          const weekDayEntry = activeProgram.template.schedule?.[weekDayKey]
+          if (weekDayEntry && week >= activeProgram.currentWeek) {
+            weekDayEntry.exercises = weekDayEntry.exercises.map(applyExerciseReplacement)
+            changed = true
+          }
         }
+      } else {
+        console.log(`[ProgramState] applyToFutureWeeks is false - replacement will only affect current week`)
       }
 
       if (changed) {

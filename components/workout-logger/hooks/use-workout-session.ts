@@ -2029,33 +2029,38 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
       }
     }
 
-    if (options?.repeat) {
-      console.log("[useWorkoutSession] Before repeat replacement", workout.exercises.map(ex => ({ id: ex.id, name: ex.exerciseName, exerciseLibraryId: (ex as any).exerciseLibraryId, exerciseId: ex.exerciseId })))
-      try {
-        console.log("[useWorkoutSession] Applying future replacement", {
-          day: workout.day,
-          previousExerciseId,
-          toExercise: selectedExercise,
-        })
-        await ProgramStateManager.applyFutureExerciseReplacement({
-          dayNumber: workout.day || 1,
-          fromExerciseId: previousExerciseLibraryId,
-          fromExerciseName: targetOldName,
-          toExercise: {
-            id: selectedExercise.id,
-            name: selectedExercise.name,
-            muscleGroup: selectedExercise.muscleGroup,
-            equipmentType: selectedExercise.equipmentType,
-          },
-        })
-      } catch (error) {
-        console.error("[useWorkoutSession] Failed to propagate replacement to future sessions:", error)
-        toast({
-          title: "Could not update future workouts",
-          description: "Your current session was updated, but future weeks may still show the original exercise.",
-          variant: "destructive",
-        })
+    // CRITICAL FIX: ANY exercise replacement (not just repeat) will fork the program to custom
+    // This ensures that when users modify exercises, they get their own custom copy
+    // The "repeat" option controls whether the replacement applies to future weeks
+    try {
+      console.log("[useWorkoutSession] Exercise replacement detected - forking to custom program if needed")
+      await ProgramStateManager.applyFutureExerciseReplacement({
+        dayNumber: workout.day || 1,
+        fromExerciseId: previousExerciseLibraryId,
+        fromExerciseName: targetOldName,
+        toExercise: {
+          id: selectedExercise.id,
+          name: selectedExercise.name,
+          muscleGroup: selectedExercise.muscleGroup,
+          equipmentType: selectedExercise.equipmentType,
+        },
+        applyToFutureWeeks: options?.repeat ?? true,
+      })
+
+      // If repeat is enabled, the replacement will be applied to future weeks
+      // If repeat is disabled, only current week is affected (but program is still forked)
+      if (options?.repeat) {
+        console.log("[useWorkoutSession] Repeat option enabled - replacement will apply to future weeks")
+      } else {
+        console.log("[useWorkoutSession] Repeat option disabled - replacement is current week only, but program has been forked to custom")
       }
+    } catch (error) {
+      console.error("[useWorkoutSession] Failed to fork program or apply replacement:", error)
+      toast({
+        title: "Could not fork program to custom",
+        description: "Your current session was updated, but this may not be saved as a custom program.",
+        variant: "destructive",
+      })
     }
   }
 

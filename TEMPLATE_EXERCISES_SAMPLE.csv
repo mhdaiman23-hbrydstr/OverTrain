@@ -1,0 +1,19 @@
+template_name,day_number,day_name,exercise_name,exercise_order,sets,reps,rest_seconds,category
+Intermediate Upper/Lower,1,Upper A,Barbell Bench Press,1,4,6-8,180,compound
+Intermediate Upper/Lower,1,Upper A,Incline Barbell Press,2,3,8-10,150,compound
+Intermediate Upper/Lower,1,Upper A,Barbell Row,3,4,6-8,180,compound
+Intermediate Upper/Lower,1,Upper A,Lat Pulldowns,4,3,8-10,120,isolation
+Intermediate Upper/Lower,1,Upper A,Dumbbell Flyes,5,3,10-12,90,isolation
+Intermediate Upper/Lower,2,Lower A,Barbell Back Squat,1,4,6-8,180,compound
+Intermediate Upper/Lower,2,Lower A,Leg Press,2,3,8-10,120,compound
+Intermediate Upper/Lower,2,Lower A,Leg Curls,3,3,10-12,90,isolation
+Intermediate Upper/Lower,2,Lower A,Leg Extensions,4,3,12-15,60,isolation
+Intermediate Upper/Lower,3,Upper B,Incline Dumbbell Press,1,4,8-10,150,compound
+Intermediate Upper/Lower,3,Upper B,Chest Flyes,2,3,10-12,90,isolation
+Intermediate Upper/Lower,3,Upper B,Bent Over Row,3,3,8-10,150,compound
+Intermediate Upper/Lower,3,Upper B,Face Pulls,4,3,12-15,60,isolation
+Intermediate Upper/Lower,3,Upper B,Barbell Curls,5,3,8-10,90,isolation
+Intermediate Upper/Lower,4,Lower B,Deadlifts,1,3,5-6,240,compound
+Intermediate Upper/Lower,4,Lower B,Front Squat,2,3,8-10,150,compound
+Intermediate Upper/Lower,4,Lower B,Walking Lunges,3,3,10-12,90,isolation
+Intermediate Upper/Lower,4,Lower B,Calf Raises,4,3,12-15,60,isolation
