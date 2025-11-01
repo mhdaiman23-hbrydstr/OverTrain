@@ -695,11 +695,31 @@ export class ProgramStateManager {
       if (!activeProgram) return
 
       const templateOwnerId = (activeProgram as any)?.template?.ownerUserId
+
+      // CRITICAL FIX: Only fork ONCE per active program instance
+      // Check if already marked as custom OR if template has owner (already forked in database)
       if (activeProgram.isCustom || templateOwnerId) {
+        console.log("[ProgramState] Program already custom, skipping fork:", {
+          isCustom: activeProgram.isCustom,
+          hasOwner: !!templateOwnerId,
+          templateId: activeProgram.templateId,
+        })
         if (!activeProgram.isCustom) {
           activeProgram.isCustom = true
           await this.saveActiveProgram(activeProgram)
         }
+        return
+      }
+
+      // Check if originTemplateId is set - this means we ALREADY forked once
+      // If originTemplateId exists, we should NOT fork again
+      if (activeProgram.originTemplateId && activeProgram.originTemplateId !== activeProgram.templateId) {
+        console.log("[ProgramState] Program has originTemplateId, marking as custom without re-forking:", {
+          originTemplateId: activeProgram.originTemplateId,
+          currentTemplateId: activeProgram.templateId,
+        })
+        activeProgram.isCustom = true
+        await this.saveActiveProgram(activeProgram)
         return
       }
 
@@ -710,6 +730,7 @@ export class ProgramStateManager {
       }
 
       const sourceTemplateId = activeProgram.templateId
+      console.log("[ProgramState] Forking template for active program:", sourceTemplateId)
       try {
         const hasCustomSuffix = activeProgram.template.name.trim().toLowerCase().endsWith('(custom)')
         const customName = hasCustomSuffix
@@ -717,6 +738,11 @@ export class ProgramStateManager {
           : `${activeProgram.template.name} (Custom)`
         const newTemplateId = await programForkService.forkTemplateToMyProgram(sourceTemplateId, userId, {
           nameOverride: customName,
+        })
+
+        console.log("[ProgramState] Fork completed, repointing to new template:", {
+          from: sourceTemplateId,
+          to: newTemplateId,
         })
 
         await this.repointActiveProgramToTemplate(newTemplateId, {
