@@ -661,7 +661,7 @@ export function WorkoutCalendar({ onWorkoutClick, selectedWeek, selectedDay, rea
                 <div key={week} className="flex flex-col gap-1.5 sm:gap-2 min-w-[60px] sm:min-w-[75px] flex-shrink-0">
                   {/* Week header */}
                   <div className="text-center border-b pb-2">
-                    <div className="text-xs font-medium text-muted-foreground mb-1">{isDeloadWeek ? "DL" : week}</div>
+                    <div className="text-xs font-medium text-muted-foreground mb-1">{week}</div>
                     <ProgressionLabel
                       blockLength={totalWeeks}
                       weekNumber={week}

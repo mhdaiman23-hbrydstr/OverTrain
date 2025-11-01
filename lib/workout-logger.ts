@@ -78,6 +78,11 @@ export class WorkoutLogger implements SetSyncProvider {
   private static flushTimer: NodeJS.Timeout | null = null
   private static readonly FLUSH_INTERVAL_MS = 1500  // Flush every 1.5 seconds
 
+  // Debounce timer for updateSet saves to prevent excessive storage operations
+  private static pendingWorkoutSave: { workout: WorkoutSession; userId?: string } | null = null
+  private static saveTimer: NodeJS.Timeout | null = null
+  private static readonly SAVE_DEBOUNCE_MS = 300  // Debounce set updates for 300ms
+
   /**
    * Async storage helpers - use IndexedDB on mobile, localStorage fallback
    * These are non-blocking and high-capacity, solving mobile quota issues
@@ -204,6 +209,44 @@ export class WorkoutLogger implements SetSyncProvider {
       // Requeue items for retry
       this.setCompletionQueue.push(...itemsToFlush)
     }
+  }
+
+  /**
+   * Debounced save for frequent updateSet calls
+   * Batches multiple set updates into a single storage operation
+   * Prevents main thread blocking from excessive JSON operations on mobile
+   */
+  private static scheduleWorkoutSave(workout: WorkoutSession, userId?: string): void {
+    // Store the latest workout to save
+    this.pendingWorkoutSave = { workout, userId }
+
+    // Clear any existing timer
+    if (this.saveTimer) {
+      clearTimeout(this.saveTimer)
+    }
+
+    // Schedule save for 300ms later (batches rapid updates)
+    this.saveTimer = setTimeout(() => {
+      if (this.pendingWorkoutSave) {
+        const { workout: workoutToSave, userId: userIdToSave } = this.pendingWorkoutSave
+        this.pendingWorkoutSave = null
+        this.saveTimer = null
+
+        // Defer to idle callback to prevent main thread blocking
+        if (typeof window !== "undefined" && "requestIdleCallback" in window) {
+          requestIdleCallback(() => {
+            this.saveCurrentWorkout(workoutToSave, userIdToSave).catch((error) => {
+              console.error("[WorkoutLogger] Failed to save updated workout:", error)
+            })
+          }, { timeout: 2000 })  // Fallback after 2 seconds
+        } else {
+          // Fallback for browsers without requestIdleCallback
+          this.saveCurrentWorkout(workoutToSave, userIdToSave).catch((error) => {
+            console.error("[WorkoutLogger] Failed to save updated workout:", error)
+          })
+        }
+      }
+    }, this.SAVE_DEBOUNCE_MS)
   }
 
   static getUserStorageKeys(userId?: string): { workouts: string; inProgress: string } {
@@ -1356,12 +1399,13 @@ export class WorkoutLogger implements SetSyncProvider {
     }
 
     // Save to localStorage (always) and optionally sync to database
+    // Use debounced save to batch rapid updates and prevent main thread blocking
     if (skipDbSync) {
-      // Only save to localStorage without database sync
-      this.saveCurrentWorkout(updatedWorkout)
+      // Only save to localStorage without database sync (immediate)
+      this.scheduleWorkoutSave(updatedWorkout)
     } else {
-      // Save with userId to trigger database sync
-      this.saveCurrentWorkout(updatedWorkout, userId)
+      // Save with userId to trigger database sync (debounced)
+      this.scheduleWorkoutSave(updatedWorkout, userId)
     }
 
     // If set was just marked as completed, log it to database
