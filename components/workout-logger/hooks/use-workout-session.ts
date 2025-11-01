@@ -1924,12 +1924,35 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
     WorkoutLogger.saveCurrentWorkout(workout, user?.id)
   }
 
-  const handleDeleteExercise = (exerciseId: string) => {
+  const handleDeleteExercise = async (exerciseId: string) => {
     if (!workout) return
+
+    // Get the exercise being deleted so we can clean up its notes
+    const deletedExercise = workout.exercises.find((ex) => ex.id === exerciseId)
+    const deletedExerciseLibraryId = deletedExercise ? ((deletedExercise as any).exerciseLibraryId || deletedExercise.exerciseId) : null
 
     const exercises = workout.exercises.filter((ex) => ex.id !== exerciseId)
     setWorkout({ ...workout, exercises })
-    WorkoutLogger.saveCurrentWorkout({ ...workout, exercises }, user?.id)
+    await WorkoutLogger.saveCurrentWorkout({ ...workout, exercises }, user?.id)
+
+    // CRITICAL: Delete notes from the deleted exercise
+    // This prevents orphaned notes from appearing if the exercise is re-added later
+    if (user?.id && deletedExerciseLibraryId) {
+      try {
+        const activeProgram = await ProgramStateManager.getActiveProgram()
+        if (activeProgram?.instanceId) {
+          console.log("[useWorkoutSession] Cleaning up notes for deleted exercise:", deletedExerciseLibraryId)
+          await ExerciseNotesService.deleteExerciseNotes(
+            user.id,
+            activeProgram.instanceId,
+            deletedExerciseLibraryId
+          )
+        }
+      } catch (error) {
+        console.error("[useWorkoutSession] Failed to delete exercise notes on exercise removal:", error)
+        // Continue anyway - notes cleanup is non-critical
+      }
+    }
   }
 
   const handleSelectExerciseFromLibrary = async (selectedExercise: Exercise, options?: { repeat?: boolean }) => {
@@ -1986,6 +2009,25 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
     await WorkoutLogger.saveCurrentWorkout(workout, user?.id)
     setReplaceExerciseId(null)
     setShowExerciseLibrary(false)
+
+    // CRITICAL: Delete notes from the old exercise to prevent carryover to new exercise
+    // This ensures notes don't leak between different exercises in the same workout slot
+    if (user?.id && previousExerciseLibraryId) {
+      try {
+        const activeProgram = await ProgramStateManager.getActiveProgram()
+        if (activeProgram?.instanceId) {
+          console.log("[useWorkoutSession] Cleaning up notes for replaced exercise:", previousExerciseLibraryId)
+          await ExerciseNotesService.deleteExerciseNotes(
+            user.id,
+            activeProgram.instanceId,
+            previousExerciseLibraryId
+          )
+        }
+      } catch (error) {
+        console.error("[useWorkoutSession] Failed to delete exercise notes on replacement:", error)
+        // Continue anyway - notes will persist but UI is already updated
+      }
+    }
 
     if (options?.repeat) {
       console.log("[useWorkoutSession] Before repeat replacement", workout.exercises.map(ex => ({ id: ex.id, name: ex.exerciseName, exerciseLibraryId: (ex as any).exerciseLibraryId, exerciseId: ex.exerciseId })))
