@@ -845,6 +845,53 @@ export class WorkoutLogger implements SetSyncProvider {
     console.log("=== End Force Load ===")
   }
 
+  /**
+   * Synchronous version for immediate lookups (used in startWorkout, getCurrentWorkout)
+   * Reads directly from localStorage, no IndexedDB await
+   */
+  static getInProgressWorkoutSync(week: number, day: number, userId?: string): WorkoutSession | null {
+    if (typeof window === "undefined") return null
+
+    const activeProgram = this.getActiveProgram()
+    const instanceId = activeProgram?.instanceId
+    const templateId = activeProgram?.templateId
+
+    const storageKeys = this.getUserStorageKeys(userId)
+
+    try {
+      // Read synchronously from localStorage
+      const stored = localStorage.getItem(storageKeys.inProgress)
+      if (!stored) return null
+
+      const workouts: WorkoutSession[] = JSON.parse(stored)
+      const matchIndex = workouts.findIndex(
+        (w) => w.week === week && w.day === day && this.matchesInstance(w, instanceId, templateId)
+      )
+
+      if (matchIndex === -1) {
+        return null
+      }
+
+      const match = workouts[matchIndex]
+      if (instanceId && !match.programInstanceId) {
+        const updated = {
+          ...match,
+          programId: match.programId || templateId,
+          programInstanceId: instanceId,
+        }
+        workouts[matchIndex] = updated
+        // Save updated workouts back synchronously
+        localStorage.setItem(storageKeys.inProgress, JSON.stringify(workouts))
+        return updated
+      }
+
+      return match
+    } catch (error) {
+      console.error("[WorkoutLogger] Error in getInProgressWorkoutSync:", error)
+      return null
+    }
+  }
+
   static async getInProgressWorkout(week: number, day: number, userId?: string): Promise<WorkoutSession | null> {
     if (typeof window === "undefined") return null
 
@@ -898,7 +945,7 @@ export class WorkoutLogger implements SetSyncProvider {
       const currentUser = storedUser ? JSON.parse(storedUser) : null
       const userId = currentUser?.id
 
-      return this.getInProgressWorkout(activeProgram.currentWeek, activeProgram.currentDay, userId)
+      return this.getInProgressWorkoutSync(activeProgram.currentWeek, activeProgram.currentDay, userId)
     } catch {
       return null
     }
@@ -1171,14 +1218,14 @@ export class WorkoutLogger implements SetSyncProvider {
     const instanceId = activeProgram?.instanceId
 
     if (week && day) {
-      const existing = this.getInProgressWorkout(week, day)
+      const existing = this.getInProgressWorkoutSync(week, day, userId)
       if (existing) {
         const isCorrupted =
           !existing.week || !existing.day || existing.exercises.some((ex) => !ex.sets || ex.sets.length === 0)
 
         if (isCorrupted) {
           console.log("[v0] Found corrupted workout data, clearing and creating fresh workout")
-          this.clearCurrentWorkout(week, day)
+          this.clearCurrentWorkout(week, day, userId)
           // Fall through to create new workout
         } else {
           console.log(
