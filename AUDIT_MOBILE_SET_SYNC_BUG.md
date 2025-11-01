@@ -237,6 +237,46 @@ async completeWorkout() {
 }
 ```
 
+### 6. **Async Conversions Need Sync Variants for Blocking Callers**
+
+**Mistake**: Converting a sync function to async without checking all callers
+
+**Pattern** (discovered during testing):
+
+```typescript
+// ❌ WRONG - startWorkout is sync but calls async function without await
+static startWorkout(...) {
+  const existing = this.getInProgressWorkout(week, day)  // Returns Promise!
+  if (existing) { ... }  // existing is always truthy (it's a Promise)
+}
+
+// ✓ CORRECT - Provide both sync and async variants
+static getInProgressWorkoutSync(...): WorkoutSession | null {
+  // Read from localStorage synchronously
+  const stored = localStorage.getItem(key)
+  return stored ? JSON.parse(stored) : null
+}
+
+static async getInProgressWorkout(...): Promise<WorkoutSession | null> {
+  // Use IndexedDB for better mobile support
+  const workouts = await this.getInProgressWorkoutsAsync(key)
+  return workouts[0] || null
+}
+
+// Then use appropriate variant in each context:
+static startWorkout(...) {
+  const existing = this.getInProgressWorkoutSync(...)  // ✓ Sync lookup
+}
+
+async handleWorkoutCompletion() {
+  const workout = await this.getInProgressWorkout(...)  // ✓ Async lookup with IndexedDB
+}
+```
+
+**When to use each**:
+- **Sync variant**: Initial state setup, quick lookups during component render, synchronous flow
+- **Async variant**: Data-critical operations, server sync, mobile IndexedDB support, post-user-action operations
+
 ---
 
 ## Testing Recommendations
@@ -308,11 +348,30 @@ Test the real-world scenario:
 
 ---
 
+## Related Bugs Found During Testing
+
+### Bug #2: Async/Sync Mismatch in startWorkout (Fixed in commit `ae8cad1`)
+
+**Issue**: When converting `getInProgressWorkout` to async, `startWorkout` continued calling it without `await`. This caused:
+- Workout lookup to fail (returns Promise instead of WorkoutSession)
+- "Workout ID not found" errors on completion
+- New workouts created instead of resuming existing ones
+
+**Root Cause**: `startWorkout` is synchronous but called `async getInProgressWorkout` without awaiting.
+
+**Solution**: Added `getInProgressWorkoutSync()` for synchronous contexts (startWorkout, getCurrentWorkout).
+
+**Key Lesson**: When converting functions to async, verify ALL callers are updated with `await`. Use a sync variant for contexts that can't await.
+
+---
+
 ## Related Code
 
 **Files involved**:
 - `lib/workout-logger.ts` - Line 1328: `completeWorkout()`
 - `lib/workout-logger.ts` - Line 153: `flushSetCompletions()`
+- `lib/workout-logger.ts` - Line 852: `getInProgressWorkoutSync()` (NEW)
+- `lib/workout-logger.ts` - Line 895: `getInProgressWorkout()` (async version)
 - `components/workout-logger/hooks/use-workout-session.ts` - Line 1205+: `logSetCompletion()` calls
 
 **Similar patterns in codebase**:
@@ -323,7 +382,9 @@ Test the real-world scenario:
 
 ## References
 
-**Commit**: `60714f4` - "fix(mobile): flush set completions before marking workout complete"
+**Commits**:
+- `60714f4` - "fix(mobile): flush set completions before marking workout complete"
+- `ae8cad1` - "fix: add sync version of getInProgressWorkout for immediate lookups" (Bug #2 fix)
 
 **Related commits**:
 - `5528e1f` - "feat(mobile): implement IndexedDB storage and batched set logging" (introduced queue pattern)
