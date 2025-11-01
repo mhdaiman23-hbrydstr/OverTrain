@@ -365,13 +365,44 @@ Test the real-world scenario:
 
 ---
 
+### Bug #3: iOS Safari UI Freeze on Workout Transition (Fixed in commit `02da038`)
+
+**Symptoms**: 10-15 second UI freeze when transitioning from one workout to the next on iOS Safari. User couldn't scroll or interact during this period.
+
+**Root Cause**: `startWorkout()` called `saveCurrentWorkout()` without awaiting (fire-and-forget pattern). This async function:
+1. Reads all in-progress workouts from localStorage (large JSON objects)
+2. Filters and processes them
+3. Writes them back to localStorage/IndexedDB
+4. Makes Supabase sync calls
+
+On iOS Safari, large JSON serialization/deserialization operations are synchronous and blocking. The entire operation happening on the main thread froze the browser.
+
+**Solution**: Use `requestIdleCallback()` to defer the storage save until the browser is idle:
+```typescript
+// Defer storage save to next idle frame
+requestIdleCallback(() => {
+  this.saveCurrentWorkout(workout, userId)
+}, { timeout: 5000 })  // Fallback after 5 seconds
+```
+
+This allows the browser to:
+- Render the new workout UI
+- Process scroll/touch events
+- Complete other critical operations
+- Then save the workout in the background
+
+**Key Lesson**: Fire-and-forget patterns on mobile must account for main thread blocking. Use `requestIdleCallback()` to defer expensive operations, especially those involving large JSON data on iOS Safari.
+
+---
+
 ## Related Code
 
 **Files involved**:
 - `lib/workout-logger.ts` - Line 1328: `completeWorkout()`
 - `lib/workout-logger.ts` - Line 153: `flushSetCompletions()`
-- `lib/workout-logger.ts` - Line 852: `getInProgressWorkoutSync()` (NEW)
+- `lib/workout-logger.ts` - Line 852: `getInProgressWorkoutSync()` (NEW - Bug #2)
 - `lib/workout-logger.ts` - Line 895: `getInProgressWorkout()` (async version)
+- `lib/workout-logger.ts` - Line 1314-1330: `startWorkout()` defer save logic (NEW - Bug #3)
 - `components/workout-logger/hooks/use-workout-session.ts` - Line 1205+: `logSetCompletion()` calls
 
 **Similar patterns in codebase**:
@@ -385,6 +416,7 @@ Test the real-world scenario:
 **Commits**:
 - `60714f4` - "fix(mobile): flush set completions before marking workout complete"
 - `ae8cad1` - "fix: add sync version of getInProgressWorkout for immediate lookups" (Bug #2 fix)
+- `02da038` - "fix(mobile): defer workout save to prevent UI freeze on iOS Safari" (Bug #3 fix)
 
 **Related commits**:
 - `5528e1f` - "feat(mobile): implement IndexedDB storage and batched set logging" (introduced queue pattern)
