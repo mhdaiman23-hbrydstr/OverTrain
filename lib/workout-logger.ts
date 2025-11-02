@@ -2,6 +2,7 @@ import { supabase } from "./supabase"
 import { ConnectionMonitor, type SetSyncProvider } from "./connection-monitor"
 import { StorageLock } from "./storage-lock"
 import StorageManager from "./indexed-db-storage"
+import { StorageTelemetry } from "./storage-telemetry"
 
 export interface WorkoutSet {
   id: string
@@ -290,6 +291,8 @@ export class WorkoutLogger implements SetSyncProvider {
   private static scheduleWorkoutSave(workout: WorkoutSession, userId?: string): void {
     // Store the latest workout to save
     this.pendingWorkoutSave = { workout, userId }
+
+    void StorageTelemetry.logQuotaWarning("WorkoutLogger.scheduleWorkoutSave")
 
     // Clear any existing timer
     if (this.saveTimer) {

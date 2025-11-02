@@ -415,6 +415,7 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
     console.log("[v0] Template clicked:", templateId, "isActive:", isActive)
 
     // If this is the current active program, navigate to train/workout instead of showing details
+    // This works for both template programs and custom programs
     if (isActive && onNavigateToTrain) {
       console.log("[v0] Navigating to train for active program")
       onNavigateToTrain()

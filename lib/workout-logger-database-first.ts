@@ -378,8 +378,8 @@ export function useWorkoutLoggerDatabaseFirst({
     }
   }, [])
 
-  const clearSyncQueue = useCallback(() => {
-    DataSyncService.clearSyncQueue()
+  const clearSyncQueue = useCallback(async () => {
+    await DataSyncService.clearSyncQueue()
     setSyncStatus(DataSyncService.getSyncStatus())
     console.log('[WorkoutLogger] 🗑️ Sync queue cleared')
   }, [])

@@ -1014,7 +1014,14 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
         }
       }
       
-      const updatedWorkout = await WorkoutLogger.updateSet(workout, exerciseId, setId, updates, user?.id, true) // Skip DB sync initially
+      const updatedWorkout = await WorkoutLogger.updateSet(
+        workout,
+        exerciseId,
+        setId,
+        updates,
+        user?.id,
+        true
+      ) // Skip DB sync initially
 
       console.log("updatedWorkout returned:", updatedWorkout ? "exists" : "null")
 
@@ -1183,7 +1190,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
     // This happens silently without blocking the UI or showing toasts
     try {
       const persistedWorkout = await WorkoutLogger.updateSet(
-        workout,
+        updatedWorkout,
         exerciseId,
         setId,
         { completed: !set.completed },

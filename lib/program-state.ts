@@ -898,10 +898,9 @@ export class ProgramStateManager {
 
       // CRITICAL FIX: Apply replacement to future weeks ONLY if applyToFutureWeeks is true
       // This allows current-week-only replacements while still forking the program
-      if (applyToFutureWeeks) {
-        const scheduleKeys = Object.keys(activeProgram.template.schedule)
-        const totalWeeks = activeProgram.template.weeks || 0
+      const totalWeeks = activeProgram.template.weeks || 0
 
+      if (applyToFutureWeeks) {
         // Update the same day for all future weeks
         for (let week = activeProgram.currentWeek; week <= totalWeeks; week++) {
           const weekDayKey = dayKey  // Same day slot across all weeks
@@ -1103,7 +1102,10 @@ export class ProgramStateManager {
     }
 
     // Get current user profile for progression calculation
-    let userProfile = { experience: "beginner" as const, gender: "male" as const }
+    let userProfile: { experience: "beginner" | "intermediate" | "advanced"; gender: "male" | "female" } = {
+      experience: "beginner",
+      gender: "male"
+    }
     try {
       if (typeof window !== "undefined") {
         const storedUser = localStorage.getItem("liftlog_user")

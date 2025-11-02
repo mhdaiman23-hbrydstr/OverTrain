@@ -13,13 +13,14 @@
  */
 
 const DB_NAME = 'LiftLog'
-const DB_VERSION = 1
+const DB_VERSION = 2
 const STORE_NAMES = {
   ACTIVE_PROGRAM: 'activeProgram',
   PROGRAM_HISTORY: 'programHistory',
   PROGRAM_PROGRESS: 'programProgress',
   IN_PROGRESS_WORKOUTS: 'inProgressWorkouts',
   WORKOUT_HISTORY: 'workoutHistory',
+  SYNC_QUEUE: 'syncQueue',
 } as const
 
 export interface StorageBackend {
@@ -232,6 +233,7 @@ class IndexedDBStorage implements StorageBackend {
     if (key === 'liftlog_program_progress') return STORE_NAMES.PROGRAM_PROGRESS
     if (key.startsWith('liftlog_in_progress_workouts')) return STORE_NAMES.IN_PROGRESS_WORKOUTS
     if (key.startsWith('liftlog_workouts')) return STORE_NAMES.WORKOUT_HISTORY
+    if (key === 'liftlog_sync_queue') return STORE_NAMES.SYNC_QUEUE
     return STORE_NAMES.ACTIVE_PROGRAM // default store
   }
 }
@@ -313,6 +315,9 @@ export class StorageManager {
   private static backend: StorageBackend | null = null
   private static cache = new Map<string, any>()
   private static cachePromises = new Map<string, Promise<any>>()
+  private static broadcastChannel: BroadcastChannel | null = null
+  private static storageListener: ((event: StorageEvent) => void) | null = null
+  private static readonly CROSS_TAB_EVENT_KEY = 'liftlog_storage_event'
 
   static async init(): Promise<void> {
     if (this.backend) return
@@ -330,6 +335,88 @@ export class StorageManager {
       this.backend = this.localStorage
       console.log('[StorageManager] Using localStorage as fallback storage')
     }
+
+    this.ensureCrossTabListeners()
+  }
+
+  private static ensureCrossTabListeners(): void {
+    if (typeof window === 'undefined') return
+
+    if (!this.broadcastChannel && 'BroadcastChannel' in window) {
+      try {
+        this.broadcastChannel = new BroadcastChannel('liftlog_storage_channel')
+        this.broadcastChannel.onmessage = (event) => {
+          const data = event.data
+          if (!data) return
+
+          if (data.action === 'clear') {
+            this.clearCache()
+          } else if (typeof data.key === 'string') {
+            this.invalidateCache(data.key)
+          }
+        }
+      } catch (error) {
+        console.warn('[StorageManager] BroadcastChannel unavailable:', error)
+        this.broadcastChannel = null
+      }
+    }
+
+    if (!this.storageListener) {
+      this.storageListener = (event: StorageEvent) => {
+        if (!event.key) return
+
+        if (event.key === this.CROSS_TAB_EVENT_KEY) {
+          try {
+            const payload = event.newValue ? JSON.parse(event.newValue) : null
+            if (!payload) return
+
+            if (payload.action === 'clear') {
+              this.clearCache()
+            } else if (typeof payload.key === 'string') {
+              this.invalidateCache(payload.key)
+            }
+          } catch {
+            // Ignore malformed payloads
+          }
+        } else {
+          this.invalidateCache(event.key)
+        }
+      }
+
+      window.addEventListener('storage', this.storageListener)
+    }
+  }
+
+  private static notifyCrossTabChange(details: { action: 'set' | 'remove' | 'clear'; key?: string }): void {
+    if (typeof window === 'undefined') return
+
+    this.ensureCrossTabListeners()
+
+    if (this.broadcastChannel) {
+      try {
+        this.broadcastChannel.postMessage({ ...details, timestamp: Date.now() })
+        return
+      } catch (error) {
+        console.warn('[StorageManager] Failed to broadcast via channel:', error)
+      }
+    }
+
+    try {
+      const payload = JSON.stringify({
+        ...details,
+        timestamp: Date.now(),
+        id: Math.random().toString(36).slice(2),
+      })
+      localStorage.setItem(this.CROSS_TAB_EVENT_KEY, payload)
+      // Remove to avoid growth; the event already fired for other tabs
+      localStorage.removeItem(this.CROSS_TAB_EVENT_KEY)
+    } catch {
+      // Silently ignore - cross-tab sync best-effort
+    }
+  }
+
+  static getCacheStats(): { entries: number } {
+    return { entries: this.cache.size }
   }
 
   static async get(key: string): Promise<any> {
@@ -369,6 +456,8 @@ export class StorageManager {
     this.backend!.set(key, value).catch((error) => {
       console.error(`[StorageManager] Failed to persist ${key}:`, error)
     })
+
+    this.notifyCrossTabChange({ action: 'set', key })
   }
 
   static async remove(key: string): Promise<void> {
@@ -379,7 +468,13 @@ export class StorageManager {
     this.cachePromises.delete(key)
 
     // Remove from backend asynchronously
-    await this.backend!.remove(key)
+    try {
+      await this.backend!.remove(key)
+    } catch (error) {
+      console.error(`[StorageManager] Failed to remove ${key}:`, error)
+    }
+
+    this.notifyCrossTabChange({ action: 'remove', key })
   }
 
   static async clear(): Promise<void> {
@@ -390,7 +485,13 @@ export class StorageManager {
     this.cachePromises.clear()
 
     // Clear backend
-    await this.backend!.clear()
+    try {
+      await this.backend!.clear()
+    } catch (error) {
+      console.error('[StorageManager] Failed to clear backend storage:', error)
+    }
+
+    this.notifyCrossTabChange({ action: 'clear' })
   }
 
   static invalidateCache(key: string): void {

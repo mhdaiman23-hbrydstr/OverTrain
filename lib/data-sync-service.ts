@@ -1,6 +1,9 @@
 import { supabase } from "./supabase"
 import { ConnectionMonitor } from "./connection-monitor"
 import type { WorkoutSession, WorkoutSet } from "./workout-logger"
+import StorageManager from "./indexed-db-storage"
+import { StorageLock } from "./storage-lock"
+import { StorageTelemetry } from "./storage-telemetry"
 
 export interface SyncStatus {
   isOnline: boolean
@@ -32,6 +35,10 @@ export class DataSyncService {
   private static readonly SYNC_QUEUE_KEY = 'liftlog_sync_queue'
   private static readonly MAX_RETRIES = 3
   private static readonly RETRY_DELAY_BASE = 1000 // 1 second base delay
+  private static queueCache: SyncOperation[] = []
+  private static queueInitialized = false
+  private static queueInitPromise: Promise<void> | null = null
+  private static isProcessing = false
   
   /**
    * Save workout with enhanced dual-write pattern
@@ -76,11 +83,12 @@ export class DataSyncService {
       maxRetries: this.MAX_RETRIES
     }
     
-    this.addToSyncQueue(syncOperation)
-    this.processSyncQueue()
+    await this.addToSyncQueue(syncOperation)
+    void this.processSyncQueue()
     
     console.log(`[DataSync] 🔄 Workout ${workout.id} queued for database sync (ID: ${syncId})`)
     
+
     return { success: true, syncId }
   }
   
@@ -152,7 +160,8 @@ export class DataSyncService {
             retryCount: 0,
             maxRetries: this.MAX_RETRIES
           }
-          this.addToSyncQueue(syncOperation)
+          void this.addToSyncQueue(syncOperation)
+          void this.processSyncQueue()
         })
     }
     
@@ -195,25 +204,24 @@ export class DataSyncService {
   /**
    * Clear sync queue (for rollback scenarios)
    */
-  static clearSyncQueue(): void {
+  static async clearSyncQueue(): Promise<void> {
     if (typeof window === 'undefined') return
-    
-    localStorage.removeItem(this.SYNC_QUEUE_KEY)
-    console.log('[DataSync] 🗑️ Sync queue cleared')
-  }
-  
+
+    await StorageLock.withLock(this.SYNC_QUEUE_KEY, async () => {
+      this.queueCache = []
+      this.queueInitialized = true
+      await this.persistQueueUnlocked([])
+    })
+
+    console.log('[DataSync] ?Y-??? Sync queue cleared')
+  }  
   /**
    * Get sync queue for debugging
    */
   static getSyncQueue(): SyncOperation[] {
     if (typeof window === 'undefined') return []
-    
-    try {
-      const queueData = localStorage.getItem(this.SYNC_QUEUE_KEY)
-      return queueData ? JSON.parse(queueData) : []
-    } catch {
-      return []
-    }
+    void this.ensureQueueLoaded()
+    return [...this.queueCache]
   }
   
   // ============================================================================
@@ -223,89 +231,175 @@ export class DataSyncService {
   /**
    * Add operation to sync queue
    */
-  private static addToSyncQueue(operation: SyncOperation): void {
+  private static async addToSyncQueue(operation: SyncOperation): Promise<void> {
     if (typeof window === 'undefined') return
-    
-    try {
-      const queue = this.getSyncQueue()
-      
-      // Remove existing operation with same ID if exists
-      const filteredQueue = queue.filter(op => op.id !== operation.id)
-      filteredQueue.push(operation)
-      
-      localStorage.setItem(this.SYNC_QUEUE_KEY, JSON.stringify(filteredQueue))
-    } catch (error) {
-      console.error('[DataSync] Failed to add to sync queue:', error)
-    }
+
+    await this.ensureQueueLoaded()
+
+    await StorageLock.withLock(this.SYNC_QUEUE_KEY, async () => {
+      const nextQueue = this.queueCache.filter(op => op.id !== operation.id)
+      nextQueue.push(operation)
+      await this.persistQueueUnlocked(nextQueue)
+    })
+
+    void StorageTelemetry.logQuotaWarning('DataSyncService.addToSyncQueue', {
+      syncQueueSize: this.queueCache.length,
+    })
   }
   
   /**
    * Process sync queue with retry logic
    */
   private static async processSyncQueue(): Promise<void> {
+    if (this.isProcessing) return
+
     if (!ConnectionMonitor.isOnline() || !supabase) {
-      console.log('[DataSync] ⏸️ Sync paused - offline or no database')
+      console.log('[DataSync] ?????? Sync paused - offline or no database')
       return
     }
-    
-    const queue = this.getSyncQueue()
-    if (queue.length === 0) {
-      console.log('[DataSync] ✅ Sync queue empty')
+
+    await this.ensureQueueLoaded()
+
+    if (this.queueCache.length === 0) {
+      console.log('[DataSync] ?o. Sync queue empty')
       return
     }
-    
-    console.log(`[DataSync] 🔄 Processing ${queue.length} queued operations...`)
-    
-    const successfulOps: string[] = []
-    const failedOps: SyncOperation[] = []
-    
-    for (const operation of queue) {
-      try {
-        ConnectionMonitor.updateStatus('syncing')
-        
-        const success = await this.executeSyncOperation(operation)
-        
-        if (success) {
-          successfulOps.push(operation.id)
-          console.log(`[DataSync] ✅ Sync success: ${operation.type} ${operation.id}`)
-        } else {
-          // Retry logic
+
+    this.isProcessing = true
+
+    try {
+      const queueSnapshot = [...this.queueCache]
+      console.log(`[DataSync] ?Y"" Processing ${queueSnapshot.length} queued operations...`)
+
+      const successfulOps: string[] = []
+      const failedOps: SyncOperation[] = []
+
+      for (const operation of queueSnapshot) {
+        try {
+          ConnectionMonitor.updateStatus('syncing')
+
+          const success = await this.executeSyncOperation(operation)
+
+          if (success) {
+            successfulOps.push(operation.id)
+            console.log(`[DataSync] ?o. Sync success: ${operation.type} ${operation.id}`)
+          } else if (operation.retryCount < operation.maxRetries) {
+            operation.retryCount++
+            operation.timestamp = Date.now()
+            failedOps.push(operation)
+            console.log(`[DataSync] ?Y"" Queueing retry ${operation.retryCount}/${operation.maxRetries}: ${operation.id}`)
+
+            const delay = this.RETRY_DELAY_BASE * Math.pow(2, operation.retryCount - 1)
+            await new Promise(resolve => setTimeout(resolve, delay))
+          } else {
+            console.error(`[DataSync] ??O Max retries exceeded: ${operation.id}`)
+          }
+        } catch (error) {
+          console.error(`[DataSync] ??O Sync operation failed: ${operation.id}`, error)
+
           if (operation.retryCount < operation.maxRetries) {
             operation.retryCount++
             operation.timestamp = Date.now()
             failedOps.push(operation)
-            console.log(`[DataSync] 🔄 Queueing retry ${operation.retryCount}/${operation.maxRetries}: ${operation.id}`)
-            
-            // Exponential backoff
-            const delay = this.RETRY_DELAY_BASE * Math.pow(2, operation.retryCount - 1)
-            await new Promise(resolve => setTimeout(resolve, delay))
-          } else {
-            console.error(`[DataSync] ❌ Max retries exceeded: ${operation.id}`)
           }
         }
+      }
+
+      await StorageLock.withLock(this.SYNC_QUEUE_KEY, async () => {
+        const remainingQueue = this.queueCache.filter(op => !successfulOps.includes(op.id))
+        const finalQueue = [...remainingQueue, ...failedOps]
+        await this.persistQueueUnlocked(finalQueue)
+      })
+
+      ConnectionMonitor.updateStatus(successfulOps.length > 0 ? 'synced' : 'online')
+      this.updateLastSyncTime()
+
+      console.log(`[DataSync] ?Y"S Sync completed: ${successfulOps.length} success, ${this.queueCache.length} remaining`)
+    } finally {
+      this.isProcessing = false
+    }
+  }  
+
+  private static async ensureQueueLoaded(): Promise<void> {
+    if (this.queueInitialized) return
+    if (this.queueInitPromise) {
+      await this.queueInitPromise
+      return
+    }
+
+    this.queueInitPromise = (async () => {
+      let queue: SyncOperation[] | null = null
+
+      try {
+        const stored = await StorageManager.get(this.SYNC_QUEUE_KEY)
+        if (Array.isArray(stored)) {
+          queue = stored as SyncOperation[]
+        }
       } catch (error) {
-        console.error(`[DataSync] ❌ Sync operation failed: ${operation.id}`, error)
-        
-        if (operation.retryCount < operation.maxRetries) {
-          operation.retryCount++
-          operation.timestamp = Date.now()
-          failedOps.push(operation)
+        console.warn('[DataSync] Failed to load sync queue from IndexedDB:', error)
+      }
+
+      if (!Array.isArray(queue)) {
+        queue = this.readQueueFromLocalStorage()
+        try {
+          await StorageManager.set(this.SYNC_QUEUE_KEY, queue)
+        } catch (error) {
+          console.warn('[DataSync] Failed to persist sync queue to IndexedDB:', error)
+        }
+      } else if (typeof window !== 'undefined') {
+        try {
+          localStorage.setItem(this.SYNC_QUEUE_KEY, JSON.stringify(queue))
+        } catch (error) {
+          console.warn('[DataSync] Failed to mirror sync queue to localStorage:', error)
         }
       }
+
+      this.queueCache = Array.isArray(queue) ? [...queue] : []
+      this.queueInitialized = true
+    })()
+
+    try {
+      await this.queueInitPromise
+    } finally {
+      this.queueInitPromise = null
     }
-    
-    // Update queue
-    const remainingQueue = queue.filter(op => !successfulOps.includes(op.id))
-    const finalQueue = [...remainingQueue, ...failedOps]
-    localStorage.setItem(this.SYNC_QUEUE_KEY, JSON.stringify(finalQueue))
-    
-    // Update status
-    ConnectionMonitor.updateStatus(successfulOps.length > 0 ? 'synced' : 'online')
-    this.updateLastSyncTime()
-    
-    console.log(`[DataSync] 📊 Sync completed: ${successfulOps.length} success, ${finalQueue.length} remaining`)
   }
-  
+
+  private static readQueueFromLocalStorage(): SyncOperation[] {
+    if (typeof window === 'undefined') return []
+
+    try {
+      const raw = localStorage.getItem(this.SYNC_QUEUE_KEY)
+      const parsed = raw ? JSON.parse(raw) : []
+      return Array.isArray(parsed) ? parsed : []
+    } catch (error) {
+      console.warn('[DataSync] Failed to read sync queue from localStorage:', error)
+      return []
+    }
+  }
+
+  private static async persistQueueUnlocked(queue: SyncOperation[]): Promise<void> {
+    this.queueCache = [...queue]
+
+    try {
+      await StorageManager.set(this.SYNC_QUEUE_KEY, queue)
+    } catch (error) {
+      console.warn('[DataSync] Failed to persist sync queue to IndexedDB:', error)
+    }
+
+    if (typeof window !== 'undefined') {
+      try {
+        if (queue.length === 0) {
+          localStorage.removeItem(this.SYNC_QUEUE_KEY)
+        } else {
+          localStorage.setItem(this.SYNC_QUEUE_KEY, JSON.stringify(queue))
+        }
+      } catch (error) {
+        console.warn('[DataSync] Failed to persist sync queue to localStorage:', error)
+      }
+    }
+  }
+
   /**
    * Execute individual sync operation
    */
@@ -528,3 +622,5 @@ if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
   }
   console.log('[DataSync] Development tools available at window.DataSyncServiceDev')
 }
+
+
