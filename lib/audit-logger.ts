@@ -68,17 +68,39 @@ export async function logAuditEvent(event: AuditLogEvent) {
       return;
     }
 
+    // Ensure details is properly serializable JSON
+    let detailsToLog: Record<string, any> | null = null;
+    if (event.details) {
+      try {
+        // Validate that details can be JSON stringified
+        // This catches circular references and non-serializable values
+        JSON.stringify(event.details);
+        detailsToLog = event.details;
+      } catch (serializeError) {
+        console.warn("[AuditLogger] Details object contains non-serializable values, converting to string:", serializeError);
+        // If details can't be serialized, convert to string representation
+        detailsToLog = { error: "Non-serializable details", stringified: String(event.details) };
+      }
+    }
+
+    // Ensure userAgent is a string (not an object)
+    let userAgentToLog: string | null = null;
+    if (event.userAgent) {
+      const agentString = typeof event.userAgent === 'string' ? event.userAgent : String(event.userAgent);
+      userAgentToLog = agentString.substring(0, 500);
+    }
+
     const { error } = await supabase.from("audit_logs").insert([
       {
         user_id: event.userId,
         action: event.action,
         resource_type: event.resourceType || null,
         resource_id: event.resourceId || null,
-        details: event.details || null,
+        details: detailsToLog,
         // Note: ip_address is INET type in database - Supabase RLS should handle this via edge function
         // If passing from client, set to null; server-side functions should set it
         ip_address: null,
-        user_agent: event.userAgent ? event.userAgent.substring(0, 500) : null,
+        user_agent: userAgentToLog,
         // Let database handle created_at default (DEFAULT NOW())
       },
     ]);
