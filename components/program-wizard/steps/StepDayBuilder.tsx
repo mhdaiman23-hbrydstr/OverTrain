@@ -9,11 +9,21 @@ import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import type { Exercise } from '@/lib/services/exercise-library-service'
 import type { DayInWizard, ExerciseInWizard } from '../types'
-import { DaySection } from '../components/DaySection'
 import { ExerciseSelectionDialog } from '../components/ExerciseSelectionDialog'
-import { ExerciseRow } from '../components/ExerciseRow'
+import { SortableExerciseRow } from '../components/SortableExerciseRow'
 import { programWizardDebugger } from '@/lib/program-wizard-debug'
 import { cn } from '@/lib/utils'
+import {
+  DndContext,
+  type DragEndEvent,
+  type DragStartEvent,
+  PointerSensor,
+  KeyboardSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core'
+import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable'
 
 interface StepDayBuilderProps {
   days: DayInWizard[]
@@ -71,7 +81,19 @@ export function StepDayBuilder({
 
   // State for day collapse/expand
   const [collapsedDays, setCollapsedDays] = useState<Set<number>>(new Set())
+  const [activeExerciseId, setActiveExerciseId] = useState<string | null>(null)
 
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 6,
+        tolerance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
+  )
 
   const hasExerciseLibraryData = exercises.length > 0
   const isSelectionDisabled = isExerciseLoading && !hasExerciseLibraryData
@@ -422,14 +444,57 @@ export function StepDayBuilder({
                         No exercises added yet. Use the assignment step or randomize button to populate this day.
                       </div>
                     ) : (
-                      day.exercises.map((exercise, exerciseIndex) => (
-                        <ExerciseRow
-                          key={exercise.tempId}
-                          exercise={exercise}
-                          onRemove={tempId => onRemoveExercise(index, tempId)}
-                          actionSlot={renderReplaceActions({ exercise, dayIndex: index, exerciseIndex })}
-                        />
-                      ))
+                      <DndContext
+                        sensors={sensors}
+                        collisionDetection={closestCenter}
+                        onDragStart={(event: DragStartEvent) => {
+                          if (typeof event.active.id === 'string') {
+                            setActiveExerciseId(event.active.id)
+                          }
+                        }}
+                        onDragCancel={() => setActiveExerciseId(null)}
+                        onDragEnd={(event: DragEndEvent) => {
+                          setActiveExerciseId(null)
+                          const { active, over } = event
+                          if (!over) return
+
+                          const dataFromIndex = active.data.current?.sortable?.index as number | undefined
+                          const dataToIndex = over.data.current?.sortable?.index as number | undefined
+
+                          const fallbackFromIndex = day.exercises.findIndex(exercise => exercise.tempId === active.id)
+                          const fallbackToIndex = day.exercises.findIndex(exercise => exercise.tempId === over.id)
+
+                          const sourceIndex = typeof dataFromIndex === 'number' ? dataFromIndex : fallbackFromIndex
+                          const targetIndex = typeof dataToIndex === 'number' ? dataToIndex : fallbackToIndex
+
+                          if (sourceIndex === -1 || targetIndex === -1) {
+                            return
+                          }
+
+                          if (sourceIndex !== targetIndex) {
+                            onReorderExercise(index, sourceIndex, targetIndex)
+                          }
+                        }}
+                      >
+                        <SortableContext
+                          items={day.exercises.map(exercise => exercise.tempId)}
+                          strategy={verticalListSortingStrategy}
+                        >
+                          {day.exercises.map((exercise, exerciseIndex) => (
+                            <SortableExerciseRow
+                              key={exercise.tempId}
+                              exercise={exercise}
+                              onRemove={tempId => onRemoveExercise(index, tempId)}
+                              actionSlot={renderReplaceActions({ exercise, dayIndex: index, exerciseIndex })}
+                              isActive={activeExerciseId === exercise.tempId}
+                              onMoveUp={() => onReorderExercise(index, exerciseIndex, Math.max(0, exerciseIndex - 1))}
+                              onMoveDown={() =>
+                                onReorderExercise(index, exerciseIndex, Math.min(day.exercises.length - 1, exerciseIndex + 1))
+                              }
+                            />
+                          ))}
+                        </SortableContext>
+                      </DndContext>
                     )}
                   </div>
                 </>
