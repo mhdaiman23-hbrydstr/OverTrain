@@ -25,6 +25,7 @@ export function SortableExerciseRow({
     attributes,
     listeners,
     setNodeRef,
+    setActivatorNodeRef,
     transform,
     transition,
     isDragging,
@@ -49,7 +50,7 @@ export function SortableExerciseRow({
       ref={setNodeRef}
       style={style}
       className={cn(
-        'relative touch-manipulation',
+        'relative touch-none select-none',
         dragging && 'z-20',
       )}
     >
@@ -60,12 +61,13 @@ export function SortableExerciseRow({
         dragHandle={
           <button
             type="button"
-            className="flex h-full items-center justify-center rounded-md border border-transparent px-1 text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 active:cursor-grabbing touch-none"
+            ref={setActivatorNodeRef}
             aria-label="Drag to reorder exercise"
+            className="flex h-full items-center justify-center rounded-md border border-transparent px-1 text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 cursor-grab active:cursor-grabbing"
             {...attributes}
             {...listeners}
           >
-            <GripVertical className="h-4 w-4" />
+            <GripVertical className="h-4 w-4" aria-hidden="true" />
           </button>
         }
         isDragging={dragging}

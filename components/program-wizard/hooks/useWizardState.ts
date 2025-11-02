@@ -198,7 +198,10 @@ export function useWizardState(): UseWizardStateResult {
         updated.splice(toIndex, 0, moved)
         return {
           ...day,
-          exercises: sortExercisesAndUpdateOrder(updated),
+          exercises: updated.map((exercise, position) => ({
+            ...exercise,
+            order: position,
+          })),
         }
       }),
     }))

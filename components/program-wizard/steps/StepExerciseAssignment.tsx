@@ -9,7 +9,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { useToast } from '@/hooks/use-toast'
 import type { DayInWizard, ExerciseInWizard } from '../types'
 import type { Exercise } from '@/lib/services/exercise-library-service'
-import { DndContext, type DragEndEvent, type DragStartEvent, PointerSensor, KeyboardSensor, closestCenter, useSensor, useSensors } from '@dnd-kit/core'
+import { DndContext, type DragEndEvent, type DragStartEvent, KeyboardSensor, PointerSensor, closestCenter, useSensor, useSensors } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy, sortableKeyboardCoordinates } from '@dnd-kit/sortable'
 import { ExerciseSelectionDialog } from '../components/ExerciseSelectionDialog'
 import { SortableExerciseRow } from '../components/SortableExerciseRow'
@@ -76,7 +76,7 @@ export function StepExerciseAssignment({
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        delay: 150,
+        distance: 6,
         tolerance: 8,
       },
     }),
@@ -379,13 +379,24 @@ export function StepExerciseAssignment({
                           onDragEnd={(event: DragEndEvent) => {
                             setActiveExerciseId(null)
                             const { active, over } = event
-                            if (!over || active.id === over.id) return
+                            if (!over) return
 
-                            const fromIndex = day.exercises.findIndex(exercise => exercise.tempId === active.id)
-                            const toIndex = day.exercises.findIndex(exercise => exercise.tempId === over.id)
-                            if (fromIndex === -1 || toIndex === -1) return
+                            const dataFromIndex = active.data.current?.sortable?.index as number | undefined
+                            const dataToIndex = over.data.current?.sortable?.index as number | undefined
 
-                            onReorderExercise(dayIndex, fromIndex, toIndex)
+                            const fallbackFromIndex = day.exercises.findIndex(exercise => exercise.tempId === active.id)
+                            const fallbackToIndex = day.exercises.findIndex(exercise => exercise.tempId === over.id)
+
+                            const sourceIndex = typeof dataFromIndex === 'number' ? dataFromIndex : fallbackFromIndex
+                            const targetIndex = typeof dataToIndex === 'number' ? dataToIndex : fallbackToIndex
+
+                            if (sourceIndex === -1 || targetIndex === -1) {
+                              return
+                            }
+
+                            if (sourceIndex !== targetIndex) {
+                              onReorderExercise(dayIndex, sourceIndex, targetIndex)
+                            }
                           }}
                         >
                           <SortableContext

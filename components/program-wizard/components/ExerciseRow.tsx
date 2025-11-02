@@ -34,14 +34,16 @@ export function ExerciseRow({
   onMoveUp,
   onMoveDown,
 }: ExerciseRowProps) {
+  const isCustomDrag = Boolean(dragHandlers)
 
   return (
     <div
       data-exercise-row
       className={cn(
-        'flex items-center gap-3 rounded-md border border-dashed border-border/60 bg-background px-3 py-2 transition-all duration-200',
+        'flex items-center gap-3 rounded-md border border-dashed border-border/60 bg-background px-3 py-2 transition-all duration-200 select-none',
         'hover:border-primary/60',
         (isDragOver || isDragging) && 'border-primary bg-primary/5 shadow-lg scale-[1.02]',
+        isCustomDrag ? 'cursor-grab active:cursor-grabbing touch-none' : 'touch-manipulation',
       )}
       aria-label={`Exercise: ${exercise.exerciseName}`}
       draggable={Boolean(dragHandlers)}

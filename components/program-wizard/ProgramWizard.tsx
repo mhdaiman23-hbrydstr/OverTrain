@@ -31,6 +31,7 @@ import {
   validateWizardState,
 } from './utils'
 import type { ExerciseInWizard, ProgramSource, WizardStep } from './types'
+import { SessionManager } from '@/lib/session-manager'
 
 interface ProgramWizardProps {
   onClose: () => void
@@ -389,10 +390,46 @@ export function ProgramWizard({ onClose, onComplete, initialStep, onStepChange }
     setLoading(true)
     try {
       const userId = user.id
+
+      const ensureSupabaseSession = async (): Promise<boolean> => {
+        if (!supabase) return false
+        try {
+          const { data, error } = await supabase.auth.getSession()
+          if (!error && data.session) {
+            return true
+          }
+        } catch (sessionError) {
+          console.error('[ProgramWizard] Failed to inspect Supabase session:', sessionError)
+        }
+
+        try {
+          const refreshed = await SessionManager.refreshSession()
+          if (refreshed) {
+            const { data } = await supabase.auth.getSession()
+            return Boolean(data.session)
+          }
+        } catch (refreshError) {
+          console.error('[ProgramWizard] Session refresh error:', refreshError)
+        }
+        return false
+      }
+
+      const hasSession = await ensureSupabaseSession()
+      if (!hasSession) {
+        toast({
+          title: 'Sign in required',
+          description: 'Your database session expired. Please sign back in and try saving again.',
+          variant: 'destructive',
+        })
+        setIsSaving(false)
+        setLoading(false)
+        return
+      }
+
       let templateId: string
       if (state.source === 'scratch') {
         templateId = await programForkService.createBlankProgram(
-          userId, 
+          userId,
           state.metadata.name,
           state.metadata.weeks,
           state.metadata.deloadWeek
@@ -512,7 +549,11 @@ export function ProgramWizard({ onClose, onComplete, initialStep, onStepChange }
       let message = 'Failed to save program. Please try again.'
 
       if (error instanceof Error) {
-        message = error.message
+        if ('code' in error && (error as any).code === '42501') {
+          message = 'Your session does not have permission to save programs right now. Please sign in again and retry.'
+        } else {
+          message = error.message
+        }
       } else if (typeof error === 'object' && error !== null) {
         // Handle Supabase errors and other objects
         message = (error as any).message || (error as any).details || JSON.stringify(error)
