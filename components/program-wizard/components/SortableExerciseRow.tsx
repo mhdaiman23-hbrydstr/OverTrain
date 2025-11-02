@@ -13,6 +13,8 @@ interface SortableExerciseRowProps {
   onRemove: (tempId: string) => void
   actionSlot?: ReactNode
   isActive?: boolean
+  onMoveUp?: () => void
+  onMoveDown?: () => void
 }
 
 export function SortableExerciseRow({
@@ -20,6 +22,8 @@ export function SortableExerciseRow({
   onRemove,
   actionSlot,
   isActive = false,
+  onMoveUp,
+  onMoveDown,
 }: SortableExerciseRowProps) {
   const {
     attributes,
@@ -58,6 +62,8 @@ export function SortableExerciseRow({
         exercise={exercise}
         onRemove={onRemove}
         actionSlot={actionSlot}
+        onMoveUp={onMoveUp}
+        onMoveDown={onMoveDown}
         dragHandle={
           <button
             type="button"

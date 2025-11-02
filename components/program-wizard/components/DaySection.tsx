@@ -1,11 +1,24 @@
-import { useState, type ReactNode } from 'react'
+'use client'
+
+import { useMemo, useState, type ReactNode } from 'react'
 import { ChevronDown, ChevronRight, Plus, Shuffle, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import type { DayInWizard, ExerciseInWizard } from '../types'
-import { ExerciseRow } from './ExerciseRow'
 import { DayNameEditor } from './DayNameEditor'
+import { SortableExerciseRow } from './SortableExerciseRow'
+import {
+  DndContext,
+  type DragEndEvent,
+  type DragStartEvent,
+  KeyboardSensor,
+  PointerSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core'
+import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable'
 
 interface DaySectionProps {
   index: number
@@ -34,30 +47,22 @@ export function DaySection({
   onAddExercise,
   disableAddExercise,
 }: DaySectionProps) {
-  const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
-  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)
   const [open, setOpen] = useState(true)
+  const [activeExerciseId, setActiveExerciseId] = useState<string | null>(null)
 
-  const handleDragStart = (exerciseIndex: number) => () => {
-    setDraggedIndex(exerciseIndex)
-  }
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 6,
+        tolerance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
+  )
 
-  const handleDragEnter = (exerciseIndex: number) => () => {
-    if (draggedIndex === null || draggedIndex === exerciseIndex) return
-    setDragOverIndex(exerciseIndex)
-  }
-
-  const handleDragEnd = () => {
-    setDraggedIndex(null)
-    setDragOverIndex(null)
-  }
-
-  const handleDrop = (exerciseIndex: number) => () => {
-    if (draggedIndex === null) return
-    onReorderExercise(index, draggedIndex, exerciseIndex)
-    setDraggedIndex(null)
-    setDragOverIndex(null)
-  }
+  const items = useMemo(() => day.exercises.map(exercise => exercise.tempId), [day.exercises])
 
   const handleAddExerciseClick = () => {
     onAddExercise?.(index)
@@ -87,15 +92,15 @@ export function DaySection({
           <h3 className="text-base font-semibold">{day.dayName}</h3>
         </div>
 
-        <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center gap-1" onClick={event => event.stopPropagation()}>
           <DayNameEditor dayName={day.dayName} onSave={name => onRename(index, name)} />
           {onEditMuscleGroups && (
             <Button
               variant="ghost"
               size="icon"
-              onClick={(e) => {
-                e.stopPropagation();
-                onEditMuscleGroups?.(index);
+              onClick={event => {
+                event.stopPropagation()
+                onEditMuscleGroups?.(index)
               }}
               aria-label="Adjust muscle groups"
             >
@@ -106,9 +111,9 @@ export function DaySection({
             <Button
               variant="ghost"
               size="icon"
-              onClick={(e) => {
-                e.stopPropagation();
-                onRandomize?.(index);
+              onClick={event => {
+                event.stopPropagation()
+                onRandomize?.(index)
               }}
               aria-label="Shuffle exercises for this day"
             >
@@ -119,9 +124,9 @@ export function DaySection({
             <Button
               variant="ghost"
               size="icon"
-              onClick={(e) => {
-                e.stopPropagation();
-                onRemoveDay?.(index);
+              onClick={event => {
+                event.stopPropagation()
+                onRemoveDay?.(index)
               }}
               className="text-destructive hover:text-destructive"
               aria-label="Delete training day"
@@ -163,23 +168,52 @@ export function DaySection({
             </div>
           ) : (
             <div className="space-y-3">
-              {day.exercises.map((exercise, exerciseIndex) => (
-                <ExerciseRow
-                  key={exercise.tempId}
-                  exercise={exercise}
-                  onRemove={tempId => onRemoveExercise(index, tempId)}
-                  actionSlot={renderExerciseActions?.({ exercise, dayIndex: index, exerciseIndex })}
-                  dragHandlers={{
-                    onDragStart: handleDragStart(exerciseIndex),
-                    onDragEnter: handleDragEnter(exerciseIndex),
-                    onDragEnd: handleDragEnd,
-                    onDrop: handleDrop(exerciseIndex),
-                  }}
-                  onMoveUp={() => onReorderExercise(index, exerciseIndex, Math.max(0, exerciseIndex - 1))}
-                  onMoveDown={() => onReorderExercise(index, exerciseIndex, Math.min(day.exercises.length - 1, exerciseIndex + 1))}
-                  isDragOver={dragOverIndex === exerciseIndex && draggedIndex !== null && draggedIndex !== exerciseIndex}
-                />
-              ))}
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragStart={(event: DragStartEvent) => {
+                  if (typeof event.active.id === 'string') {
+                    setActiveExerciseId(event.active.id)
+                  }
+                }}
+                onDragCancel={() => setActiveExerciseId(null)}
+                onDragEnd={(event: DragEndEvent) => {
+                  setActiveExerciseId(null)
+                  const { active, over } = event
+                  if (!over) return
+
+                  const dataFromIndex = active.data.current?.sortable?.index as number | undefined
+                  const dataToIndex = over.data.current?.sortable?.index as number | undefined
+
+                  const fallbackFromIndex = day.exercises.findIndex(exercise => exercise.tempId === active.id)
+                  const fallbackToIndex = day.exercises.findIndex(exercise => exercise.tempId === over.id)
+
+                  const sourceIndex = typeof dataFromIndex === 'number' ? dataFromIndex : fallbackFromIndex
+                  const targetIndex = typeof dataToIndex === 'number' ? dataToIndex : fallbackToIndex
+
+                  if (sourceIndex === -1 || targetIndex === -1) {
+                    return
+                  }
+
+                  if (sourceIndex !== targetIndex) {
+                    onReorderExercise(index, sourceIndex, targetIndex)
+                  }
+                }}
+              >
+                <SortableContext items={items} strategy={verticalListSortingStrategy}>
+                  {day.exercises.map((exercise, exerciseIndex) => (
+                    <SortableExerciseRow
+                      key={exercise.tempId}
+                      exercise={exercise}
+                      onRemove={tempId => onRemoveExercise(index, tempId)}
+                      actionSlot={renderExerciseActions?.({ exercise, dayIndex: index, exerciseIndex })}
+                      isActive={activeExerciseId === exercise.tempId}
+                      onMoveUp={() => onReorderExercise(index, exerciseIndex, Math.max(0, exerciseIndex - 1))}
+                      onMoveDown={() => onReorderExercise(index, exerciseIndex, Math.min(day.exercises.length - 1, exerciseIndex + 1))}
+                    />
+                  ))}
+                </SortableContext>
+              </DndContext>
 
               {onAddExercise && (
                 <Button
