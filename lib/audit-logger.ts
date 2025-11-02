@@ -77,9 +77,21 @@ export async function logAuditEvent(event: AuditLogEvent) {
         JSON.stringify(event.details);
         detailsToLog = event.details;
       } catch (serializeError) {
-        console.warn("[AuditLogger] Details object contains non-serializable values, converting to string:", serializeError);
-        // If details can't be serialized, convert to string representation
-        detailsToLog = { error: "Non-serializable details", stringified: String(event.details) };
+        const serializeMsg = serializeError instanceof Error ? serializeError.message : String(serializeError);
+        console.warn("[AuditLogger] Details object contains non-serializable values:", serializeMsg);
+
+        // Attempt to sanitize the details object
+        const sanitized: Record<string, any> = {};
+        for (const [key, value] of Object.entries(event.details)) {
+          try {
+            JSON.stringify(value);
+            sanitized[key] = value;
+          } catch {
+            // If individual value can't be serialized, convert to string
+            sanitized[key] = String(value);
+          }
+        }
+        detailsToLog = sanitized;
       }
     }
 
@@ -90,46 +102,80 @@ export async function logAuditEvent(event: AuditLogEvent) {
       userAgentToLog = agentString.substring(0, 500);
     }
 
-    const { error } = await supabase.from("audit_logs").insert([
-      {
+    // Final validation before insert
+    try {
+      // Ensure the entire payload can be JSON stringified
+      let finalDetails: Record<string, any> | null = null;
+      if (detailsToLog && Object.keys(detailsToLog).length > 0) {
+        finalDetails = detailsToLog;
+      }
+
+      const payloadToInsert = {
         user_id: event.userId,
         action: event.action,
         resource_type: event.resourceType || null,
         resource_id: event.resourceId || null,
-        details: detailsToLog,
-        // Note: ip_address is INET type in database - Supabase RLS should handle this via edge function
-        // If passing from client, set to null; server-side functions should set it
+        details: finalDetails,
         ip_address: null,
         user_agent: userAgentToLog,
-        // Let database handle created_at default (DEFAULT NOW())
-      },
-    ]);
+      };
+      JSON.stringify(payloadToInsert);
 
-    if (error) {
-      // Enhanced error logging with more context
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      const errorCode = (error as any)?.code || 'UNKNOWN';
-      const errorHint = (error as any)?.hint || '';
+      const { error } = await supabase.from("audit_logs").insert([payloadToInsert]);
 
-      console.error(
-        `[AuditLogger] Failed to log event ${event.action} for user ${event.userId}: ` +
-        `Code=${errorCode}, Message="${errorMessage}"${errorHint ? `, Hint="${errorHint}"` : ''}`
-      );
+      if (error) {
+        // Enhanced error logging with more context
+        let errorMessage = '';
 
-      // Provide helpful guidance for common errors
-      if (errorCode === 'PGRST116' || errorMessage.includes('relation') || errorMessage.includes('audit_logs')) {
+        if (error instanceof Error) {
+          errorMessage = error.message || error.toString();
+        } else if (typeof error === 'string') {
+          errorMessage = error;
+        } else if (error && typeof error === 'object') {
+          // For plain objects, try to extract message or convert to JSON
+          const msg = (error as any)?.message;
+          if (msg) {
+            errorMessage = msg;
+          } else {
+            try {
+              const stringified = JSON.stringify(error);
+              errorMessage = stringified !== '{}' ? stringified : 'Empty error object';
+            } catch {
+              errorMessage = 'Error object (non-serializable)';
+            }
+          }
+        } else {
+          errorMessage = String(error) || 'Unknown error';
+        }
+
+        const errorCode = (error as any)?.code || 'UNKNOWN';
+        const errorHint = (error as any)?.hint || '';
+        const errorDetails = (error as any)?.details || '';
+
         console.error(
-          '[AuditLogger] HINT: The audit_logs table may not exist. ' +
-          'Run docs/AUDIT_LOGS_SETUP.sql in your Supabase SQL editor to create it.'
+          `[AuditLogger] Failed to log event ${event.action} for user ${event.userId}: ` +
+          `Code=${errorCode}, Message="${errorMessage}"${errorHint ? `, Hint="${errorHint}"` : ''}${errorDetails ? `, Details="${errorDetails}"` : ''}`
         );
-      }
-      if (errorCode === '42501' || errorMessage.includes('policy')) {
-        console.error(
-          '[AuditLogger] HINT: RLS policy issue. Verify INSERT policy is enabled on audit_logs table.'
-        );
-      }
 
-      // Don't throw - don't let audit logging break the main operation
+        // Provide helpful guidance for common errors
+        if (errorCode === 'PGRST116' || errorMessage.includes('relation') || errorMessage.includes('audit_logs')) {
+          console.error(
+            '[AuditLogger] HINT: The audit_logs table may not exist. ' +
+            'Run docs/AUDIT_LOGS_SETUP.sql in your Supabase SQL editor to create it.'
+          );
+        }
+        if (errorCode === '42501' || errorMessage.includes('policy')) {
+          console.error(
+            '[AuditLogger] HINT: RLS policy issue. Verify INSERT policy is enabled on audit_logs table.'
+          );
+        }
+
+        // Don't throw - don't let audit logging break the main operation
+      }
+    } catch (payloadError) {
+      // Handle JSON stringify or other payload-related errors
+      const errorMsg = payloadError instanceof Error ? payloadError.message : String(payloadError);
+      console.error("[AuditLogger] Failed to prepare audit log payload:", errorMsg);
     }
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);

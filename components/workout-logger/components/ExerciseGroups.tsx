@@ -97,6 +97,7 @@ export function ExerciseGroups({
   // State for exercise notes and RPE dialogs
   const [selectedExerciseForNotes, setSelectedExerciseForNotes] = useState<string | null>(null)
   const [selectedExerciseForRpe, setSelectedExerciseForRpe] = useState<string | null>(null)
+  const isReadOnly = isWorkoutBlocked || workout.completed
   return (
     <div className="w-full max-w-full mx-auto px-3 sm:px-4 overflow-x-hidden">
       {Object.entries(groupedExercises).map(([muscleGroup, exercises]) => (
@@ -132,7 +133,11 @@ export function ExerciseGroups({
                     {exerciseNotes[exercise.id] && (
                       <ExerciseNotesBanner
                         note={exerciseNotes[exercise.id]}
-                        onEdit={() => setSelectedExerciseForNotes(exercise.id)}
+                        onEdit={() => {
+                          if (!isReadOnly) {
+                            setSelectedExerciseForNotes(exercise.id)
+                          }
+                        }}
                       />
                     )}
 
@@ -150,6 +155,7 @@ export function ExerciseGroups({
                                 : undefined
                             }
                             onOpen={() => setSelectedExerciseForRpe(exercise.id)}
+                            disabled={isReadOnly}
                           />
                         </div>
                         <div className="flex items-center gap-1 text-xs text-muted-foreground">
@@ -159,36 +165,39 @@ export function ExerciseGroups({
                       <div className="flex items-center gap-2">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
+                            <Button variant="ghost" size="icon" disabled={isReadOnly}>
                               <MoreVertical className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" className="z-[100]">
-                            <DropdownMenuItem onClick={() => setSelectedExerciseForNotes(exercise.id)}>
+                            <DropdownMenuItem onClick={() => setSelectedExerciseForNotes(exercise.id)} disabled={isReadOnly}>
                               <FileText className="h-4 w-4 mr-2" />
                               Exercise notes
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => onReplaceExercise(exercise.id)}>
+                            <DropdownMenuItem onClick={() => onReplaceExercise(exercise.id)} disabled={isReadOnly}>
                               <Replace className="h-4 w-4 mr-2" />
                               Replace
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => onMoveExerciseUp(exercise.id)} disabled={workout.exercises.findIndex((ex) => ex.id === exercise.id) <= 0}>
+                            <DropdownMenuItem
+                              onClick={() => onMoveExerciseUp(exercise.id)}
+                              disabled={isReadOnly || workout.exercises.findIndex((ex) => ex.id === exercise.id) <= 0}
+                            >
                               <ArrowUp className="h-4 w-4 mr-2" />
                               Move up
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() => onMoveExerciseDown(exercise.id)}
-                              disabled={workout.exercises.findIndex((ex) => ex.id === exercise.id) >= workout.exercises.length - 1}
+                              disabled={isReadOnly || workout.exercises.findIndex((ex) => ex.id === exercise.id) >= workout.exercises.length - 1}
                             >
                               <ArrowDown className="h-4 w-4 mr-2" />
                               Move down
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={() => onSkipAllSets(exercise.id)}>
+                            <DropdownMenuItem onClick={() => onSkipAllSets(exercise.id)} disabled={isReadOnly}>
                               <SkipForward className="h-4 w-4 mr-2" />
                               Skip all sets
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => onDeleteExercise(exercise.id)} className="text-red-600">
+                            <DropdownMenuItem onClick={() => onDeleteExercise(exercise.id)} className="text-red-600" disabled={isReadOnly}>
                               <Trash2 className="h-4 w-4 mr-2" />
                               Delete exercise
                             </DropdownMenuItem>
@@ -227,21 +236,21 @@ export function ExerciseGroups({
                               <div className="col-span-1">
                                 <DropdownMenu>
                                   <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" size="icon">
+                                    <Button variant="ghost" size="icon" disabled={isReadOnly}>
                                       <MoreVertical className="h-4 w-4" />
                                     </Button>
                                   </DropdownMenuTrigger>
                                   <DropdownMenuContent align="start" className="z-[100]">
-                                    <DropdownMenuItem onClick={() => onAddSet(exercise.id, set.id)}>
+                                    <DropdownMenuItem onClick={() => onAddSet(exercise.id, set.id)} disabled={isReadOnly}>
                                       <Plus className="h-4 w-4 mr-2" />
                                       Add set below
                                     </DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => onSkipSet(exercise.id, set.id)}>
+                                    <DropdownMenuItem onClick={() => onSkipSet(exercise.id, set.id)} disabled={isReadOnly}>
                                       <SkipForward className="h-4 w-4 mr-2" />
                                       Skip set
                                     </DropdownMenuItem>
                                     {exercise.sets.length > 1 && (
-                                      <DropdownMenuItem onClick={() => onDeleteSet(exercise.id, set.id)} className="text-red-600">
+                                      <DropdownMenuItem onClick={() => onDeleteSet(exercise.id, set.id)} className="text-red-600" disabled={isReadOnly}>
                                         <Trash2 className="h-4 w-4 mr-2" />
                                         Delete set
                                       </DropdownMenuItem>
@@ -265,7 +274,7 @@ export function ExerciseGroups({
                                   step="2.5"
                                   min="0"
                                   max="1000"
-                                  disabled={isWorkoutBlocked}
+                                  disabled={isReadOnly}
                                   title={(exercise as any).progressionNote ||
                                     ((exercise as any).suggestedWeight && (exercise as any).suggestedWeight > 0
                                       ? `Suggested: ${(exercise as any).suggestedWeight}`
@@ -286,14 +295,14 @@ export function ExerciseGroups({
                                   placeholder=""
                                   min="0"
                                   max="1000"
-                                  disabled={isWorkoutBlocked}
+                                  disabled={isReadOnly}
                                 />
                               </div>
                               <div className="col-span-3">
                                 <Button
                                   size="sm"
                                   onClick={() => onCompleteSet(exercise.id, set.id)}
-                                  disabled={isWorkoutBlocked}
+                                  disabled={isReadOnly}
                                   variant="ghost"
                                   className={`w-full h-10 border-2 ${set.completed ? ((set.reps === 0 && set.weight === 0) || set.skipped ? "bg-blue-50 border-blue-500 text-blue-700" : "bg-green-50 border-green-500 text-green-700") : "border-border/50 hover:border-primary"}`}
                                 >

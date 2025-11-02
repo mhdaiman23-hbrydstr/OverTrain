@@ -51,6 +51,58 @@ export interface WorkoutSession {
   skipped?: boolean
 }
 
+/**
+ * Helper to safely stringify error objects for logging
+ * Prevents console errors from showing "[object Object]" or "{}"
+ * Handles edge cases where error objects have no readable properties
+ */
+function getErrorMessage(error: any): string {
+  if (!error) {
+    return 'Unknown error (empty)'
+  }
+
+  if (error instanceof Error) {
+    return error.message || error.toString()
+  }
+
+  if (typeof error === 'string') {
+    return error
+  }
+
+  if (typeof error === 'object') {
+    // Try to extract common error properties
+    const message = (error as any)?.message
+    const code = (error as any)?.code
+    const hint = (error as any)?.hint
+
+    if (message) {
+      return `${message}${code ? ` (code: ${code})` : ''}`
+    }
+
+    if (code) {
+      return `Error code: ${code}${hint ? `, Hint: ${hint}` : ''}`
+    }
+
+    // Last resort: try to stringify and include keys
+    try {
+      const stringified = JSON.stringify(error)
+      if (stringified && stringified !== '{}') {
+        return stringified
+      }
+    } catch {}
+
+    // If object is empty, show what keys it has
+    const keys = Object.keys(error)
+    if (keys.length > 0) {
+      return `Error object with properties: ${keys.join(', ')}`
+    }
+
+    return 'Unknown error (empty object)'
+  }
+
+  return String(error) || 'Unknown error'
+}
+
 export class WorkoutLogger implements SetSyncProvider {
   private static readonly STORAGE_KEY = "liftlog_workouts"
   private static readonly IN_PROGRESS_KEY = "liftlog_in_progress_workouts"
@@ -82,6 +134,8 @@ export class WorkoutLogger implements SetSyncProvider {
   private static pendingWorkoutSave: { workout: WorkoutSession; userId?: string } | null = null
   private static saveTimer: NodeJS.Timeout | null = null
   private static readonly SAVE_DEBOUNCE_MS = 300  // Debounce set updates for 300ms
+  private static readonly UUID_REGEX =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
   /**
    * Async storage helpers - use IndexedDB on mobile, localStorage fallback
@@ -92,7 +146,7 @@ export class WorkoutLogger implements SetSyncProvider {
       const data = await StorageManager.get(storageKey)
       return data && Array.isArray(data) ? data : []
     } catch (error) {
-      console.error("[WorkoutLogger] Failed to read in-progress workouts:", error)
+      console.error(`[WorkoutLogger] Failed to read in-progress workouts: ${getErrorMessage(error)}`)
       // Fallback to localStorage if IndexedDB fails
       try {
         const stored = localStorage.getItem(storageKey)
@@ -107,7 +161,7 @@ export class WorkoutLogger implements SetSyncProvider {
     try {
       await StorageManager.set(storageKey, workouts)
     } catch (error) {
-      console.error("[WorkoutLogger] Failed to save in-progress workouts to IndexedDB:", error)
+      console.error(`[WorkoutLogger] Failed to save in-progress workouts to IndexedDB: ${getErrorMessage(error)}`)
       // Fallback to localStorage
       try {
         localStorage.setItem(storageKey, JSON.stringify(workouts))
@@ -124,6 +178,10 @@ export class WorkoutLogger implements SetSyncProvider {
    * Queue a set completion for batched database sync
    * Returns immediately - data is persisted to localStorage, sync happens later
    */
+  private static isValidUUID(value?: string | null): boolean {
+    return typeof value === "string" && this.UUID_REGEX.test(value)
+  }
+
   private static queueSetCompletion(params: {
     workoutId: string
     exerciseId: string
@@ -145,7 +203,7 @@ export class WorkoutLogger implements SetSyncProvider {
     if (!this.flushTimer) {
       this.flushTimer = setTimeout(() => {
         this.flushSetCompletions().catch((error) => {
-          console.error("[WorkoutLogger] Failed to flush set completions:", error)
+          console.error(`[WorkoutLogger] Failed to flush set completions in scheduled timeout: ${getErrorMessage(error)}`)
         })
       }, this.FLUSH_INTERVAL_MS)
     }
@@ -165,8 +223,21 @@ export class WorkoutLogger implements SetSyncProvider {
     console.log(`[WorkoutLogger] Flushing ${queueSize} queued set completions`)
 
     // Take all items from queue (will be replaced with empty array)
-    const itemsToFlush = this.setCompletionQueue.splice(0, this.setCompletionQueue.length)
+    let itemsToFlush = this.setCompletionQueue.splice(0, this.setCompletionQueue.length)
     this.flushTimer = null
+
+    // Deduplicate queue items - keep only the latest version of each set
+    // This prevents ON CONFLICT DO UPDATE errors when the same set appears multiple times in one batch
+    const seenSets = new Map<string, typeof itemsToFlush[0]>()
+    for (const item of itemsToFlush) {
+      const setKey = `${item.workoutId}-${item.exerciseId}-${item.setNumber}`
+      seenSets.set(setKey, item)  // Latest item overwrites previous
+    }
+    itemsToFlush = Array.from(seenSets.values())
+
+    if (itemsToFlush.length < queueSize) {
+      console.log(`[WorkoutLogger] Deduplicated queue: ${queueSize} items → ${itemsToFlush.length} unique sets`)
+    }
 
     if (!supabase) {
       console.warn("[WorkoutLogger] Supabase not available, requeueing items")
@@ -198,14 +269,14 @@ export class WorkoutLogger implements SetSyncProvider {
         )
 
       if (error) {
-        console.error("[WorkoutLogger] Failed to flush set completions:", error)
+        console.error(`[WorkoutLogger] Failed to flush set completions (${itemsToFlush.length} deduplicated items): ${getErrorMessage(error)}`)
         // Requeue items for retry
         this.setCompletionQueue.push(...itemsToFlush)
       } else {
-        console.log(`[WorkoutLogger] Successfully flushed ${queueSize} set completions`)
+        console.log(`[WorkoutLogger] Successfully flushed ${itemsToFlush.length} set completions`)
       }
     } catch (error) {
-      console.error("[WorkoutLogger] Exception flushing set completions:", error)
+      console.error(`[WorkoutLogger] Exception flushing set completions: ${getErrorMessage(error)}`)
       // Requeue items for retry
       this.setCompletionQueue.push(...itemsToFlush)
     }
@@ -236,13 +307,13 @@ export class WorkoutLogger implements SetSyncProvider {
         if (typeof window !== "undefined" && "requestIdleCallback" in window) {
           requestIdleCallback(() => {
             this.saveCurrentWorkout(workoutToSave, userIdToSave).catch((error) => {
-              console.error("[WorkoutLogger] Failed to save updated workout:", error)
+              console.error(`[WorkoutLogger] Failed to save updated workout: ${getErrorMessage(error)}`)
             })
           }, { timeout: 2000 })  // Fallback after 2 seconds
         } else {
           // Fallback for browsers without requestIdleCallback
           this.saveCurrentWorkout(workoutToSave, userIdToSave).catch((error) => {
-            console.error("[WorkoutLogger] Failed to save updated workout:", error)
+            console.error(`[WorkoutLogger] Failed to save updated workout: ${getErrorMessage(error)}`)
           })
         }
       }
@@ -269,7 +340,7 @@ export class WorkoutLogger implements SetSyncProvider {
           this.saveCurrentWorkout(workout, userId)
             .then(() => resolve())
             .catch((error) => {
-              console.error("[WorkoutLogger] Failed to flush pending save:", error)
+              console.error(`[WorkoutLogger] Failed to flush pending save: ${getErrorMessage(error)}`)
               resolve() // Resolve even on error to not block completion
             })
         } else {
@@ -350,7 +421,7 @@ export class WorkoutLogger implements SetSyncProvider {
 
     this.databaseLoadPromise = this.loadFromDatabase(resolvedUserId, options?.force ?? false)
       .catch((error) => {
-        console.error("[WorkoutLogger] Database preload failed:", error)
+        console.error(`[WorkoutLogger] Database preload failed: ${getErrorMessage(error)}`)
       })
       .finally(() => {
         this.markDatabaseLoaded()
@@ -446,7 +517,7 @@ export class WorkoutLogger implements SetSyncProvider {
         }
       }
     } catch (error) {
-      console.error("[WorkoutLogger] Failed to migrate completed workouts:", error)
+      console.error(`[WorkoutLogger] Failed to migrate completed workouts: ${getErrorMessage(error)}`)
     }
 
     // Migrate in-progress workouts
@@ -465,7 +536,7 @@ export class WorkoutLogger implements SetSyncProvider {
         }
       }
     } catch (error) {
-      console.error("[WorkoutLogger] Failed to migrate in-progress workouts:", error)
+      console.error(`[WorkoutLogger] Failed to migrate in-progress workouts: ${getErrorMessage(error)}`)
     }
 
     // After successful migration, optionally clean up global data
@@ -588,7 +659,7 @@ export class WorkoutLogger implements SetSyncProvider {
         }
       }
     } catch (error) {
-      console.error("[WorkoutLogger] Failed to clean up in-progress workouts:", error)
+      console.error(`[WorkoutLogger] Failed to clean up in-progress workouts: ${getErrorMessage(error)}`)
     }
 
     // Clean up completed workouts
@@ -625,7 +696,7 @@ export class WorkoutLogger implements SetSyncProvider {
         }
       }
     } catch (error) {
-      console.error("[WorkoutLogger] Failed to clean up completed workouts:", error)
+      console.error(`[WorkoutLogger] Failed to clean up completed workouts: ${getErrorMessage(error)}`)
     }
 
     console.log(`[WorkoutLogger] Cleanup completed. Total items removed: ${cleanedCount}`)
@@ -742,7 +813,7 @@ export class WorkoutLogger implements SetSyncProvider {
         }
       }
     } catch (error) {
-      console.error("[WorkoutLogger] Failed to validate completed workouts:", error)
+      console.error(`[WorkoutLogger] Failed to validate completed workouts: ${getErrorMessage(error)}`)
     }
 
     // Validate and repair in-progress workouts
@@ -831,7 +902,7 @@ export class WorkoutLogger implements SetSyncProvider {
         }
       }
     } catch (error) {
-      console.error("[WorkoutLogger] Failed to validate in-progress workouts:", error)
+      console.error(`[WorkoutLogger] Failed to validate in-progress workouts: ${getErrorMessage(error)}`)
     }
 
     console.log(`[WorkoutLogger] Workout data integrity validation completed. Validated ${validatedWorkouts} workouts, repaired ${repairedCount} issues.`)
@@ -962,7 +1033,7 @@ export class WorkoutLogger implements SetSyncProvider {
 
       return match
     } catch (error) {
-      console.error("[WorkoutLogger] Error in getInProgressWorkoutSync:", error)
+      console.error(`[WorkoutLogger] Error in getInProgressWorkoutSync: ${getErrorMessage(error)}`)
       return null
     }
   }
@@ -1003,7 +1074,7 @@ export class WorkoutLogger implements SetSyncProvider {
 
       return match
     } catch (error) {
-      console.error("[WorkoutLogger] Error in getInProgressWorkout:", error)
+      console.error(`[WorkoutLogger] Error in getInProgressWorkout: ${getErrorMessage(error)}`)
       return null
     }
   }
@@ -1158,14 +1229,45 @@ export class WorkoutLogger implements SetSyncProvider {
             })
 
           if (insertError) {
-            // Only log database sync errors if they seem critical (not just auth/connection issues)
-            // Auth errors and network issues are expected in dev/test environments
-            const isCritical = insertError?.code && insertError.code !== 'PGRST' && insertError.code !== 'CONN_ERROR'
-            if (isCritical || (insertError?.message && insertError.message.includes('constraint'))) {
-              console.warn("[WorkoutLogger.saveCurrentWorkout] Insert sync issue (non-critical):", {
-                message: insertError?.message,
-                code: insertError?.code,
-              })
+            // Check if this is a constraint violation (duplicate week/day for this user)
+            const isConstraintViolation = insertError?.code === '23505' && insertError?.message?.includes('idx_in_progress_unique_week_day')
+
+            if (isConstraintViolation) {
+              // This means the workout already exists in the database
+              // Try to update using week/day instead of ID
+              console.log("[WorkoutLogger.saveCurrentWorkout] Workout exists by week/day, updating via alternate key")
+              const { error: retryUpdateError } = await supabase
+                .from("in_progress_workouts")
+                .update({
+                  id: normalizedWorkout.id,
+                  workout_name: normalizedWorkout.workoutName,
+                  start_time: normalizedWorkout.startTime,
+                  exercises: normalizedWorkout.exercises,
+                  notes: normalizedWorkout.notes || null,
+                  program_id: normalizedWorkout.programId || null,
+                  program_instance_id: normalizedWorkout.programInstanceId || null,
+                })
+                .eq('user_id', userId)
+                .eq('week', normalizedWorkout.week)
+                .eq('day', normalizedWorkout.day)
+
+              if (retryUpdateError) {
+                console.warn("[WorkoutLogger.saveCurrentWorkout] Retry update failed:", {
+                  message: retryUpdateError?.message,
+                  code: retryUpdateError?.code,
+                })
+              } else {
+                console.log("[WorkoutLogger.saveCurrentWorkout] Successfully updated workout via week/day key")
+              }
+            } else {
+              // Only log database sync errors if they seem critical (not just auth/connection issues)
+              const isCritical = insertError?.code && insertError.code !== 'PGRST' && insertError.code !== 'CONN_ERROR'
+              if (isCritical || (insertError?.message && insertError.message.includes('constraint'))) {
+                console.warn("[WorkoutLogger.saveCurrentWorkout] Insert sync issue (non-critical):", {
+                  message: insertError?.message,
+                  code: insertError?.code,
+                })
+              }
             }
             // Data is still safely saved in localStorage, so we can continue
           } else {
@@ -1391,13 +1493,13 @@ export class WorkoutLogger implements SetSyncProvider {
     if (typeof window !== "undefined" && "requestIdleCallback" in window) {
       requestIdleCallback(() => {
         this.saveCurrentWorkout(workout, userId).catch((error) => {
-          console.error("[WorkoutLogger] Failed to save workout:", error)
+          console.error(`[WorkoutLogger] Failed to save workout: ${getErrorMessage(error)}`)
         })
       }, { timeout: 5000 })  // Fallback to immediate save after 5 seconds
     } else {
       // Fallback for browsers without requestIdleCallback (do immediately)
       this.saveCurrentWorkout(workout, userId).catch((error) => {
-        console.error("[WorkoutLogger] Failed to save workout:", error)
+        console.error(`[WorkoutLogger] Failed to save workout: ${getErrorMessage(error)}`)
       })
     }
 
@@ -1532,16 +1634,25 @@ export class WorkoutLogger implements SetSyncProvider {
       // Log audit event for workout completion
       if (userId) {
         try {
+          const auditResourceId =
+            this.isValidUUID(workout?.id)
+              ? workout.id
+              : this.isValidUUID(workout?.programInstanceId)
+                ? workout.programInstanceId
+                : null
+
           const { logAuditEvent } = await import('./audit-logger')
           await logAuditEvent({
             action: 'WORKOUT_COMPLETED',
             userId: userId,
             resourceType: 'WORKOUT',
-            resourceId: workoutId,
+            resourceId: auditResourceId ?? undefined,
             details: {
               week: workout.week,
               day: workout.day,
               exercisesCompleted: workout.exercises.length,
+              workoutClientId: workout.id,
+              programInstanceId: workout.programInstanceId,
             },
             ipAddress: null,
             userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : null,
@@ -1652,7 +1763,7 @@ export class WorkoutLogger implements SetSyncProvider {
       const history = stored ? JSON.parse(stored) : []
       return history
     } catch (error) {
-      console.error("[WorkoutLogger] Error parsing workout history:", error)
+      console.error(`[WorkoutLogger] Error parsing workout history: ${getErrorMessage(error)}`)
       return []
     }
   }
@@ -1929,7 +2040,7 @@ export class WorkoutLogger implements SetSyncProvider {
       }
       this.saveSetToLocalStorage(setLog)
     } catch (error) {
-      console.error("[WorkoutLogger] Failed to save set to localStorage:", error)
+      console.error(`[WorkoutLogger] Failed to save set to localStorage: ${getErrorMessage(error)}`)
     }
   }
 
@@ -1950,7 +2061,7 @@ export class WorkoutLogger implements SetSyncProvider {
 
       localStorage.setItem(key, JSON.stringify(filtered))
     } catch (error) {
-      console.error("[WorkoutLogger] Failed to save set to localStorage:", error)
+      console.error(`[WorkoutLogger] Failed to save set to localStorage: ${getErrorMessage(error)}`)
     }
   }
 
@@ -1976,7 +2087,7 @@ export class WorkoutLogger implements SetSyncProvider {
         await this.syncQueuedSets()
       })
     } catch (error) {
-      console.error("[WorkoutLogger] Failed to add set to sync queue:", error)
+      console.error(`[WorkoutLogger] Failed to add set to sync queue: ${getErrorMessage(error)}`)
     }
   }
 
@@ -1996,7 +2107,7 @@ export class WorkoutLogger implements SetSyncProvider {
 
       localStorage.setItem(key, JSON.stringify(filtered))
     } catch (error) {
-      console.error("[WorkoutLogger] Failed to remove set from sync queue:", error)
+      console.error(`[WorkoutLogger] Failed to remove set from sync queue: ${getErrorMessage(error)}`)
     }
   }
 
@@ -2073,7 +2184,7 @@ export class WorkoutLogger implements SetSyncProvider {
         console.error(`[WorkoutLogger] Failed to sync ${errors.length} sets`)
       }
     } catch (error) {
-      console.error("[WorkoutLogger] Failed to sync queued sets:", error)
+      console.error(`[WorkoutLogger] Failed to sync queued sets: ${getErrorMessage(error)}`)
     }
   }
 
@@ -2176,7 +2287,7 @@ export class WorkoutLogger implements SetSyncProvider {
       localStorage.removeItem(backupKey)
       console.log("[WorkoutLogger] Conflict resolution completed, backup cleared")
     } catch (error) {
-      console.error("[WorkoutLogger] Conflict resolution failed:", error)
+      console.error(`[WorkoutLogger] Conflict resolution failed: ${getErrorMessage(error)}`)
     }
   }
 
@@ -2227,7 +2338,7 @@ export class WorkoutLogger implements SetSyncProvider {
         .eq("user_id", userId)
 
       if (error) {
-        console.error("[WorkoutLogger] Error fetching workout sets:", error)
+        console.error(`[WorkoutLogger] Error fetching workout sets: ${getErrorMessage(error)}`)
         return
       }
 
@@ -2263,7 +2374,7 @@ export class WorkoutLogger implements SetSyncProvider {
         extraInDb: extraInDb.length
       })
     } catch (error) {
-      console.error("[WorkoutLogger] Workout set integrity check failed:", error)
+      console.error(`[WorkoutLogger] Workout set integrity check failed: ${getErrorMessage(error)}`)
     }
   }
 
@@ -2338,7 +2449,7 @@ export class WorkoutLogger implements SetSyncProvider {
           .single()
 
         if (error) {
-          console.error("[WorkoutLogger] Test failed: Could not retrieve synced set:", error)
+          console.error(`[WorkoutLogger] Test failed: Could not retrieve synced set: ${getErrorMessage(error)}`)
         } else {
           console.log("[WorkoutLogger] Test passed: Set successfully synced to database:", syncedSet)
         }
@@ -2352,7 +2463,7 @@ export class WorkoutLogger implements SetSyncProvider {
 
       console.log("[WorkoutLogger] Offline sync test completed")
     } catch (error) {
-      console.error("[WorkoutLogger] Offline sync test failed:", error)
+      console.error(`[WorkoutLogger] Offline sync test failed: ${getErrorMessage(error)}`)
     }
   }
 
@@ -2572,7 +2683,7 @@ export class WorkoutLogger implements SetSyncProvider {
 
       this.markDatabaseLoaded()
     } catch (error) {
-      console.error("[WorkoutLogger] Load from database failed:", error)
+      console.error(`[WorkoutLogger] Load from database failed: ${getErrorMessage(error)}`)
       console.log("[WorkoutLogger] Will continue with local data only")
     }
   }
@@ -2602,7 +2713,7 @@ export class WorkoutLogger implements SetSyncProvider {
 
       console.log("[WorkoutLogger] Smart loading completed successfully")
     } catch (error) {
-      console.error("[WorkoutLogger] Smart loading failed:", error)
+      console.error(`[WorkoutLogger] Smart loading failed: ${getErrorMessage(error)}`)
       // Fallback to localStorage if database fails
       console.log("[WorkoutLogger] Falling back to localStorage")
     }
@@ -2692,7 +2803,7 @@ export class WorkoutLogger implements SetSyncProvider {
             )
 
           if (error) {
-            console.error("[WorkoutLogger] Failed to sync completed workouts:", error)
+            console.error(`[WorkoutLogger] Failed to sync completed workouts: ${getErrorMessage(error)}`)
           } else {
             console.log("[WorkoutLogger] Successfully synced completed workouts")
           }
@@ -2701,7 +2812,7 @@ export class WorkoutLogger implements SetSyncProvider {
 
       this.markDatabaseLoaded()
     } catch (error) {
-      console.error("[WorkoutLogger] syncToDatabase failed:", error)
+      console.error(`[WorkoutLogger] syncToDatabase failed: ${getErrorMessage(error)}`)
     }
   }
 
@@ -2722,7 +2833,7 @@ export class WorkoutLogger implements SetSyncProvider {
 
       console.log("[WorkoutLogger] Periodic sync completed")
     } catch (error) {
-      console.error("[WorkoutLogger] Periodic sync failed:", error)
+      console.error(`[WorkoutLogger] Periodic sync failed: ${getErrorMessage(error)}`)
     }
   }
   /**
@@ -2757,12 +2868,12 @@ export class WorkoutLogger implements SetSyncProvider {
           .eq("user_id", userId)
 
         if (error) {
-          console.error("[WorkoutLogger] Failed to delete in-progress workouts from database:", error)
+          console.error(`[WorkoutLogger] Failed to delete in-progress workouts from database: ${getErrorMessage(error)}`)
         } else {
           console.log("[WorkoutLogger] Deleted all in-progress workouts from database")
         }
       } catch (error) {
-        console.error("[WorkoutLogger] Error deleting in-progress workouts from database:", error)
+        console.error(`[WorkoutLogger] Error deleting in-progress workouts from database: ${getErrorMessage(error)}`)
       }
     }
   }
@@ -2828,7 +2939,7 @@ export class WorkoutLogger implements SetSyncProvider {
         console.log(`[WorkoutLogger] No in-progress workouts found for week ${week}`)
       }
     } catch (error) {
-      console.error("[WorkoutLogger] Failed to clear in-progress workouts for week:", error)
+      console.error(`[WorkoutLogger] Failed to clear in-progress workouts for week: ${getErrorMessage(error)}`)
     }
   }
 

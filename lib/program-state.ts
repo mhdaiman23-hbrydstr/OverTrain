@@ -706,6 +706,8 @@ export class ProgramStateManager {
         })
         if (!activeProgram.isCustom) {
           activeProgram.isCustom = true
+          // CRITICAL: Recalculate stats whenever marking as custom to ensure progress is accurate
+          this.recalculateActiveProgramStats(activeProgram)
           await this.saveActiveProgram(activeProgram)
         }
         return
@@ -719,6 +721,9 @@ export class ProgramStateManager {
           currentTemplateId: activeProgram.templateId,
         })
         activeProgram.isCustom = true
+        // CRITICAL: Recalculate stats whenever marking as custom to ensure progress is accurate
+        // This is especially important when forking happens mid-program
+        this.recalculateActiveProgramStats(activeProgram)
         await this.saveActiveProgram(activeProgram)
         return
       }

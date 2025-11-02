@@ -5,6 +5,7 @@ interface ExerciseCustomRpeBoxProps {
   hasCustomRpe: boolean
   averageRpe?: number
   onOpen: () => void
+  disabled?: boolean
 }
 
 /**
@@ -21,15 +22,19 @@ export function ExerciseCustomRpeBox({
   exerciseName,
   hasCustomRpe,
   averageRpe,
-  onOpen
+  onOpen,
+  disabled = false
 }: ExerciseCustomRpeBoxProps) {
   if (!hasCustomRpe) {
     // When empty: show subtle dot indicator only
     return (
       <button
-        onClick={onOpen}
+        onClick={disabled ? undefined : onOpen}
+        disabled={disabled}
         title={`Record custom RPE for ${exerciseName}`}
-        className="inline-flex items-center justify-center w-2 h-2 rounded-full bg-gray-600 hover:bg-gray-500 transition cursor-pointer"
+        className={`inline-flex items-center justify-center w-2 h-2 rounded-full bg-gray-600 transition ${
+          disabled ? "opacity-60 cursor-not-allowed" : "hover:bg-gray-500 cursor-pointer"
+        }`}
       />
     )
   }
@@ -37,9 +42,12 @@ export function ExerciseCustomRpeBox({
   // When filled: show minimal badge with value
   return (
     <button
-      onClick={onOpen}
+      onClick={disabled ? undefined : onOpen}
+      disabled={disabled}
       title={`${averageRpe?.toFixed(1)} - Click to edit`}
-      className="inline-flex items-center justify-center px-1.5 h-5 rounded text-xs font-normal bg-blue-500/20 text-blue-600 dark:bg-blue-500/30 dark:text-blue-400 hover:bg-blue-500/30 dark:hover:bg-blue-500/40 transition border border-blue-500/30 dark:border-blue-500/20"
+      className={`inline-flex items-center justify-center px-1.5 h-5 rounded text-xs font-normal bg-blue-500/20 text-blue-600 dark:bg-blue-500/30 dark:text-blue-400 transition border border-blue-500/30 dark:border-blue-500/20 ${
+        disabled ? "opacity-60 cursor-not-allowed" : "hover:bg-blue-500/30 dark:hover:bg-blue-500/40 cursor-pointer"
+      }`}
     >
       {averageRpe?.toFixed(1)}
     </button>

@@ -215,11 +215,7 @@
 
   /* Touch device specific fixes */
   @media (hover: none) and (pointer: coarse) {
-    /* Remove hover effects on touch devices */
-    button:hover {
-      background-color: transparent !important;
-    }
-
+    /* Maintain button backgrounds so selected states stay visible on touch */
     /* Ensure proper touch handling */
     button {
       touch-action: manipulation !important;
