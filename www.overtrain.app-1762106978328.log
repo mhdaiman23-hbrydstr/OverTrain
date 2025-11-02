@@ -1,0 +1,1028 @@
+layout-76501c3451486924.js:1 [ProgramTemplateService] Warming cache...
+layout-76501c3451486924.js:1 [PWA] ===== PWA Initialization =====
+layout-76501c3451486924.js:1 [PWA] Environment: browser (Browser (Mobile))
+layout-76501c3451486924.js:1 [PWA] User Agent: Mozilla/5.0 (Linux; Android 13; SM-G981B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Mobile Safari/537.36
+layout-76501c3451486924.js:1 [PWA] Should show install prompt: true
+layout-76501c3451486924.js:1 [PWA] Is iOS: false
+layout-76501c3451486924.js:1 [PWA] Is Android: true
+layout-76501c3451486924.js:1 [PWA] Is WebView: false
+layout-76501c3451486924.js:1 [PWA] Is Capacitor: false
+layout-76501c3451486924.js:1 [PWA] Is Standalone: false
+layout-76501c3451486924.js:1 [PWA] Location Origin: https://www.overtrain.app
+layout-76501c3451486924.js:1 [PWA] Android/Desktop detected - setting up beforeinstallprompt listener
+7130-afea19973a11f2b8.js:1 [StoragePolyfill] Initializing IndexedDB-backed storage for mobile
+7130-afea19973a11f2b8.js:1 [SessionManager] 🔐 Starting session monitoring...
+7130-afea19973a11f2b8.js:1 [SessionManager] ✅ Session monitoring active
+7130-afea19973a11f2b8.js:1 [IndexedDB] Database initialized successfully
+7130-afea19973a11f2b8.js:1 [StorageManager] Using IndexedDB as primary storage
+layout-76501c3451486924.js:1 [PWA] Service Worker registered successfully ServiceWorkerRegistration {installing: null, waiting: null, active: ServiceWorker, navigationPreload: NavigationPreloadManager, scope: 'https://www.overtrain.app/', …}
+7130-afea19973a11f2b8.js:1 [SessionManager] Auth state changed: INITIAL_SESSION
+7130-afea19973a11f2b8.js:1 [SessionManager] Session check: {expiresIn: '56 minutes', expiresAt: '11:06:00 PM', userId: '6bf0e5d0...'}
+7130-afea19973a11f2b8.js:1 [Auth] Loading comprehensive user application data for: 6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c
+page-2c5e7ece55e88b30.js:1 [HomePage] Data loading status: Loading your workout data...
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Loading user data from database (forceRefresh: true )
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Testing database access...
+4051-d700bd289d10f690.js:1 [Auth] Loading user data from database (forceRefresh: false )...
+4051-d700bd289d10f690.js:1 [Auth] Using safe loading (preserves local data)
+4051-d700bd289d10f690.js:1 [Auth] Using safe loading (preserves local data)
+4051-d700bd289d10f690.js:1 [Auth] Loading fresh data from database (database is source of truth)
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Loading user data from database (forceRefresh: true )
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Testing database access...
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Loading user data from database (forceRefresh: false )
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Testing database access...
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Loading completed workouts...
+layout-76501c3451486924.js:1 [ProgramTemplateService] Cache warmed with 8 templates
+layout-76501c3451486924.js:1 [TemplateCacheWarmer] Cache warmed successfully
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Loading completed workouts...
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Loading completed workouts...
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Found 308 workouts in database
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Sample workout data: {id: 'c9u0nfzt1', user_id: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c', program_id: 'e3b586d4-62cc-472e-a268-065a2772b0eb', workout_name: 'Pull', start_time: 1762106762548, …}
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Loaded 308 workouts from database (forceRefresh: true )
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Loading in-progress workouts...
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Found 308 workouts in database
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Sample workout data: {id: 'c9u0nfzt1', user_id: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c', program_id: 'e3b586d4-62cc-472e-a268-065a2772b0eb', workout_name: 'Pull', start_time: 1762106762548, …}
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Loaded 308 workouts from database (forceRefresh: true )
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Loading in-progress workouts...
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Found 4 in-progress workouts in database
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Loaded 4 in-progress workouts from database (forceRefresh: true )
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Database loading completed. Total records loaded: 312
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Found 4 in-progress workouts in database
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Loaded 4 in-progress workouts from database (forceRefresh: true )
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Database loading completed. Total records loaded: 312
+477-b89eb45c7ddb035e.js:1 [ProgramState] Found active program in database: e3b586d4-62cc-472e-a268-065a2772b0eb
+477-b89eb45c7ddb035e.js:1 [ProgramState] Loaded template from database: e3b586d4-62cc-472e-a268-065a2772b0eb
+477-b89eb45c7ddb035e.js:1 [TemplateProcessor] Processing template with automatic deload: {templateId: 'e3b586d4-62cc-472e-a268-065a2772b0eb', weeks: 6, lastWeekIsDeload: 6}
+477-b89eb45c7ddb035e.js:1 [TemplateProcessor] Template processing complete
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Found 308 workouts in database
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Sample workout data: {id: 'c9u0nfzt1', user_id: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c', program_id: 'e3b586d4-62cc-472e-a268-065a2772b0eb', workout_name: 'Pull', start_time: 1762106762548, …}
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Preserving local workouts, found 504549 characters of local data
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Loading in-progress workouts...
+477-b89eb45c7ddb035e.js:1 [ProgramState] Found active program in database: e3b586d4-62cc-472e-a268-065a2772b0eb
+477-b89eb45c7ddb035e.js:1 [ProgramState] Synced active program to database: {week: 1, day: 3}
+477-b89eb45c7ddb035e.js:1 [ProgramState] Loaded active program from database
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Found 4 in-progress workouts in database
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Preserving local in-progress workouts, found 14262 characters of local data
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Database loading completed. Total records loaded: 312
+477-b89eb45c7ddb035e.js:1 [ProgramState] Synced active program to database: {week: 1, day: 3}
+477-b89eb45c7ddb035e.js:1 [ProgramState] Loaded active program from database
+477-b89eb45c7ddb035e.js:1 [ProgramState] Loaded program history from database
+477-b89eb45c7ddb035e.js:1 [ProgramState] Loaded program history from database
+4051-d700bd289d10f690.js:1 [Auth] User data loaded successfully
+page-2c5e7ece55e88b30.js:1 [HomePage] Data loading status: Validating workout data...
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Starting migration from global to user-specific keys for user: 6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Starting cleanup of corrupted workouts...
+ [WorkoutLogger] Removing corrupted completed workout: u2cn0yehk
+ [WorkoutLogger] Removing corrupted completed workout: c8d96yvku
+ [WorkoutLogger] Removing corrupted completed workout: j2wp1aguq
+ [WorkoutLogger] Removing corrupted completed workout: ecldsspvz
+ [WorkoutLogger] Removing corrupted completed workout: fjybda3j0
+ [WorkoutLogger] Removing corrupted completed workout: wqo9ax426
+ [WorkoutLogger] Removing corrupted completed workout: 3az17gmix
+ [WorkoutLogger] Removing corrupted completed workout: a80ru5n5u
+ [WorkoutLogger] Removing corrupted completed workout: zzeu30pjl
+ [WorkoutLogger] Removing corrupted completed workout: 1s9dvetk4
+ [WorkoutLogger] Removing corrupted completed workout: ippfdojcc
+ [WorkoutLogger] Removing corrupted completed workout: x1smdlgzk
+ [WorkoutLogger] Removing corrupted completed workout: mtdjkawdz
+ [WorkoutLogger] Removing corrupted completed workout: ufix8haxs
+ [WorkoutLogger] Removing corrupted completed workout: 5rso88pie
+ [WorkoutLogger] Removing corrupted completed workout: uos2o7czk
+ [WorkoutLogger] Removing corrupted completed workout: vxqqumhz5
+ [WorkoutLogger] Removing corrupted completed workout: yb01hncht
+ [WorkoutLogger] Removing corrupted completed workout: jg41j1z3a
+ [WorkoutLogger] Removing corrupted completed workout: smcrhhxgd
+ [WorkoutLogger] Removing corrupted completed workout: 41wxjcxkk
+ [WorkoutLogger] Removing corrupted completed workout: f7dwlh0jy
+ [WorkoutLogger] Removing corrupted completed workout: 0m9lzcbqn
+ [WorkoutLogger] Removing corrupted completed workout: gxu560djz
+ [WorkoutLogger] Removing corrupted completed workout: h86pm43mg
+ [WorkoutLogger] Removing corrupted completed workout: axk2bhnx8
+ [WorkoutLogger] Removing corrupted completed workout: 849rwmd8x
+ [WorkoutLogger] Removing corrupted completed workout: yui4iduri
+ [WorkoutLogger] Removing corrupted completed workout: yx65k83fi
+ [WorkoutLogger] Removing corrupted completed workout: rxcnst9he
+ [WorkoutLogger] Removing corrupted completed workout: j8tv16dmz
+ [WorkoutLogger] Removing corrupted completed workout: 4aea9qq1q
+ [WorkoutLogger] Removing corrupted completed workout: dk7e3d5dw
+ [WorkoutLogger] Removing corrupted completed workout: rchrxyaek
+ [WorkoutLogger] Removing corrupted completed workout: iwi95poq1
+ [WorkoutLogger] Removing corrupted completed workout: 34s6o91n6
+ [WorkoutLogger] Removing corrupted completed workout: i3wgblz6d
+ [WorkoutLogger] Removing corrupted completed workout: shms4y8ei
+ [WorkoutLogger] Removing corrupted completed workout: ub70tv0lz
+ [WorkoutLogger] Removing corrupted completed workout: w1gguaivj
+ [WorkoutLogger] Removing corrupted completed workout: dno0n8uy4
+ [WorkoutLogger] Removing corrupted completed workout: cq9rxgii7
+ [WorkoutLogger] Removing corrupted completed workout: yyvln1tc3
+ [WorkoutLogger] Removing corrupted completed workout: 41sckzx79
+ [WorkoutLogger] Removing corrupted completed workout: kaz48rpz4
+ [WorkoutLogger] Removing corrupted completed workout: y1g8ugehi
+ [WorkoutLogger] Removing corrupted completed workout: 6enm8gimg
+ [WorkoutLogger] Removing corrupted completed workout: 9hxa9hhv9
+ [WorkoutLogger] Removing corrupted completed workout: b02u6l0de
+ [WorkoutLogger] Removing corrupted completed workout: j6qwufcva
+ [WorkoutLogger] Removing corrupted completed workout: 2c8kwija9
+ [WorkoutLogger] Removing corrupted completed workout: rqvpqu4zs
+ [WorkoutLogger] Removing corrupted completed workout: 103jquzul
+ [WorkoutLogger] Removing corrupted completed workout: 4gg3j8qct
+ [WorkoutLogger] Removing corrupted completed workout: wjuvilwba
+ [WorkoutLogger] Removing corrupted completed workout: hnu7x8wt5
+ [WorkoutLogger] Removing corrupted completed workout: sb2oa6x1v
+ [WorkoutLogger] Removing corrupted completed workout: t3a2j1qm3
+ [WorkoutLogger] Removing corrupted completed workout: wqh7f4fg4
+ [WorkoutLogger] Removing corrupted completed workout: zkfy3ua4c
+ [WorkoutLogger] Removing corrupted completed workout: 0qbzxphb8
+ [WorkoutLogger] Removing corrupted completed workout: qkxe5uv7n
+ [WorkoutLogger] Removing corrupted completed workout: x5sdddozx
+ [WorkoutLogger] Removing corrupted completed workout: pdvg8gh54
+ [WorkoutLogger] Removing corrupted completed workout: 4xp633ixr
+ [WorkoutLogger] Removing corrupted completed workout: 51zv4qnrb
+ [WorkoutLogger] Removing corrupted completed workout: 1zncsugj5
+ [WorkoutLogger] Removing corrupted completed workout: oxde9tp7p
+ [WorkoutLogger] Removing corrupted completed workout: tj7vyiieh
+ [WorkoutLogger] Removing corrupted completed workout: ddyt4k3lt
+ [WorkoutLogger] Removing corrupted completed workout: frajit11p
+ [WorkoutLogger] Removing corrupted completed workout: ywigq3882
+ [WorkoutLogger] Removing corrupted completed workout: 3pa2hs9w7
+ [WorkoutLogger] Removing corrupted completed workout: 1b6s8o2v1
+ [WorkoutLogger] Removing corrupted completed workout: ilf3c8we4
+ [WorkoutLogger] Removing corrupted completed workout: w8c8z0d3b
+ [WorkoutLogger] Removing corrupted completed workout: 8n7q6e0jj
+ [WorkoutLogger] Removing corrupted completed workout: hxu5gmhrc
+ [WorkoutLogger] Removing corrupted completed workout: 3eyy6yy8r
+ [WorkoutLogger] Removing corrupted completed workout: dof3oliaa
+ [WorkoutLogger] Removing corrupted completed workout: hsjqa381j
+ [WorkoutLogger] Removing corrupted completed workout: g9anlg1wr
+ [WorkoutLogger] Removing corrupted completed workout: 3symv1sng
+ [WorkoutLogger] Removing corrupted completed workout: llu4dgiwk
+ [WorkoutLogger] Removing corrupted completed workout: gl9wbww4i
+ [WorkoutLogger] Removing corrupted completed workout: vrahbxcat
+ [WorkoutLogger] Removing corrupted completed workout: baszs7o2v
+ [WorkoutLogger] Removing corrupted completed workout: rpox3r2mp
+ [WorkoutLogger] Removing corrupted completed workout: bmzchfw7r
+ [WorkoutLogger] Removing corrupted completed workout: ftozuhyfu
+ [WorkoutLogger] Removing corrupted completed workout: c428fuus2
+ [WorkoutLogger] Removing corrupted completed workout: 5gerwokjd
+ [WorkoutLogger] Removing corrupted completed workout: u29iym457
+ [WorkoutLogger] Removing corrupted completed workout: h9ihfj9k0
+ [WorkoutLogger] Removing corrupted completed workout: cuzx8fzgc
+ [WorkoutLogger] Removing corrupted completed workout: rg24dfnt6
+ [WorkoutLogger] Removing corrupted completed workout: b18qpx3go
+ [WorkoutLogger] Removing corrupted completed workout: bbphs7yfi
+ [WorkoutLogger] Removing corrupted completed workout: iijlj84gr
+ [WorkoutLogger] Removing corrupted completed workout: asyqtfs9o
+ [WorkoutLogger] Removing corrupted completed workout: 3pcfz9t6g
+ [WorkoutLogger] Removing corrupted completed workout: cgivjfdjr
+ [WorkoutLogger] Removing corrupted completed workout: u5rla8iaq
+ [WorkoutLogger] Removing corrupted completed workout: r8i5px0hn
+ [WorkoutLogger] Removing corrupted completed workout: m8dpykdmk
+ [WorkoutLogger] Removing corrupted completed workout: twpjtge7n
+ [WorkoutLogger] Removing corrupted completed workout: 7vlwjed21
+ [WorkoutLogger] Removing corrupted completed workout: t9rlovezr
+ [WorkoutLogger] Removing corrupted completed workout: knkhqwd55
+ [WorkoutLogger] Removing corrupted completed workout: jr9wutmnm
+ [WorkoutLogger] Removing corrupted completed workout: 30siqmi9s
+ [WorkoutLogger] Removing corrupted completed workout: h3nki3fgv
+ [WorkoutLogger] Removing corrupted completed workout: 9tc6bw35b
+ [WorkoutLogger] Removing corrupted completed workout: 95rb5xqkw
+ [WorkoutLogger] Removing corrupted completed workout: cg2bjn8nb
+ [WorkoutLogger] Removing corrupted completed workout: x9gyhndti
+ [WorkoutLogger] Removing corrupted completed workout: es1i781h1
+ [WorkoutLogger] Removing corrupted completed workout: jy0jk77r9
+ [WorkoutLogger] Removing corrupted completed workout: m0b14g8vh
+ [WorkoutLogger] Removing corrupted completed workout: ytj44q7ly
+ [WorkoutLogger] Removing corrupted completed workout: lxq2us5kb
+ [WorkoutLogger] Removing corrupted completed workout: k9wjnjwkv
+ [WorkoutLogger] Removing corrupted completed workout: 6tp1s7yi3
+ [WorkoutLogger] Removing corrupted completed workout: lctweiajl
+ [WorkoutLogger] Removing corrupted completed workout: 6lf8bohyn
+ [WorkoutLogger] Removing corrupted completed workout: 9sehgmsea
+ [WorkoutLogger] Removing corrupted completed workout: x0figy5cy
+ [WorkoutLogger] Removing corrupted completed workout: isauh584k
+ [WorkoutLogger] Removing corrupted completed workout: 0u6t96ryq
+ [WorkoutLogger] Removing corrupted completed workout: unlar54dt
+ [WorkoutLogger] Removing corrupted completed workout: 84isrgfcf
+ [WorkoutLogger] Removing corrupted completed workout: na5sjuapd
+ [WorkoutLogger] Removing corrupted completed workout: 4s6t7ynp8
+ [WorkoutLogger] Removing corrupted completed workout: o0po03ruh
+ [WorkoutLogger] Removing corrupted completed workout: 40of9t8wb
+ [WorkoutLogger] Removing corrupted completed workout: 0pj28qniy
+ [WorkoutLogger] Removing corrupted completed workout: 8cav7ibj0
+ [WorkoutLogger] Removing corrupted completed workout: 49q6axw4e
+ [WorkoutLogger] Removing corrupted completed workout: 6gpoi5wkd
+ [WorkoutLogger] Removing corrupted completed workout: m6j0kl5s7
+ [WorkoutLogger] Removing corrupted completed workout: rahosck4l
+ [WorkoutLogger] Removing corrupted completed workout: blqik9y42
+ [WorkoutLogger] Removing corrupted completed workout: nlua38v1n
+ [WorkoutLogger] Removing corrupted completed workout: 2fgglisdw
+ [WorkoutLogger] Removing corrupted completed workout: 2h2ib4zyt
+ [WorkoutLogger] Removing corrupted completed workout: p72stu300
+ [WorkoutLogger] Removing corrupted completed workout: 2tgcs2ed9
+ [WorkoutLogger] Removing corrupted completed workout: 6tdu1ai7u
+ [WorkoutLogger] Removing corrupted completed workout: 5f858km8e
+ [WorkoutLogger] Removing corrupted completed workout: 8d0sh2pou
+ [WorkoutLogger] Removing corrupted completed workout: r82oxy8z9
+ [WorkoutLogger] Removing corrupted completed workout: pz3ayotof
+ [WorkoutLogger] Removing corrupted completed workout: gseeqn197
+ [WorkoutLogger] Removing corrupted completed workout: 798au4s04
+ [WorkoutLogger] Removing corrupted completed workout: u0ydigvsv
+ [WorkoutLogger] Removing corrupted completed workout: ytomufgom
+ [WorkoutLogger] Removing corrupted completed workout: 5n5ma8tze
+ [WorkoutLogger] Removing corrupted completed workout: i904xd8ox
+ [WorkoutLogger] Removing corrupted completed workout: bckrwss1e
+ [WorkoutLogger] Removing corrupted completed workout: dqv2d6qll
+ [WorkoutLogger] Removing corrupted completed workout: 6xxjrnjvt
+ [WorkoutLogger] Removing corrupted completed workout: nb1scgyca
+ [WorkoutLogger] Removing corrupted completed workout: kjo5u9kkb
+ [WorkoutLogger] Removing corrupted completed workout: 7rpwg0wek
+ [WorkoutLogger] Removing corrupted completed workout: s5d79wi0n
+ [WorkoutLogger] Removing corrupted completed workout: 37jkgycpb
+ [WorkoutLogger] Removing corrupted completed workout: iwx6sn148
+ [WorkoutLogger] Removing corrupted completed workout: 04xbfpzl0
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Removing corrupted completed workout: k0a342mcd
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Removing corrupted completed workout: trz2797mi
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Removing corrupted completed workout: 2lzs0yply
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Removing corrupted completed workout: 8s3s0jved
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Removing corrupted completed workout: wxu1v7cgj
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Removing corrupted completed workout: x7zfjcxwk
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Removing corrupted completed workout: 2qm7a1nmb
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Removing corrupted completed workout: jztaz4av5
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Removing corrupted completed workout: ncqi356q8
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Removing corrupted completed workout: 7jv930886
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Removing corrupted completed workout: 4i2777q0j
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Removing corrupted completed workout: 8a8k01h0j
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Removing corrupted completed workout: iav2xo4cl
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Removing corrupted completed workout: lyv5h451s
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Removing corrupted completed workout: ph6f9yhc4
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Removing corrupted completed workout: 0qu4ptdeq
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Removing corrupted completed workout: io53yb1zl
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Removing corrupted completed workout: 6q21o5u5y
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Removing corrupted completed workout: zvuason7i
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Removing corrupted completed workout: gxhfwk8tn
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Removing corrupted completed workout: ufrb3tcsh
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Removing corrupted completed workout: s46sbcjao
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Removing corrupted completed workout: ni65ig2na
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Removing corrupted completed workout: o3497m67e
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Cleaned up 192 corrupted completed workouts
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Cleanup completed. Total items removed: 192
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Starting workout data integrity validation...
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Workout data integrity validation completed. Validated 120 workouts, repaired 0 issues.
+page-2c5e7ece55e88b30.js:1 [HomePage] Data loading status: Loading active programs...
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Loading user data from database (forceRefresh: true )
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Testing database access...
+477-b89eb45c7ddb035e.js:1 [ProgramState] Synced active program to database: {week: 1, day: 3}
+page-2c5e7ece55e88b30.js:1 Rendering workout with 0 exercises
+page-2c5e7ece55e88b30.js:1 [ProgramsSection] Component mounted, loading initial data...
+page-2c5e7ece55e88b30.js:1 [ProgramsSection] Fetching fresh templates from database
+page-2c5e7ece55e88b30.js:1 [TrainSection] Component mounted, loading program data...
+page-2c5e7ece55e88b30.js:1 [TrainSection] Loading active program...
+page-2c5e7ece55e88b30.js:1 [TrainSection] localStorage has active program: true
+page-2c5e7ece55e88b30.js:1 [TrainSection] Active program templateId in localStorage: e3b586d4-62cc-472e-a268-065a2772b0eb
+page-2c5e7ece55e88b30.js:1 [TrainSection] Has template data: false
+page-2c5e7ece55e88b30.js:1 [TrainSection] INSTANT: Using cached program data, skipping database call
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Loading user data from database (forceRefresh: true )
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Testing database access...
+page-2c5e7ece55e88b30.js:1 💾 RAW LOCALSTORAGE CHECK: {inProgressKey: 'liftlog_in_progress_workouts', rawValue: null, parsed: null}
+477-b89eb45c7ddb035e.js:1 [ProgramState] Loaded 8 lightweight templates (metadata only)
+page-2c5e7ece55e88b30.js:1 [ProgramsSection] Loaded 8 lightweight templates (metadata only)
+page-2c5e7ece55e88b30.js:1 📥 COMPONENT LOAD - Existing workout from localStorage: {id: '8z29o4p6p', week: 1, day: 3, exerciseCount: 6, exercises: Array(6), …}
+page-2c5e7ece55e88b30.js:1 Checking if workout should be blocked: {existingWorkoutWeek: 1, activeProgramWeek: 1, activeProgramDay: 3}
+page-2c5e7ece55e88b30.js:1 Workout not blocked - current or past week
+page-2c5e7ece55e88b30.js:1 Rendering workout with 6 exercises
+page-2c5e7ece55e88b30.js:1 Exercise 1: Barbell Squat - 3 sets
+page-2c5e7ece55e88b30.js:1 Exercise 2: Deadlift - 3 sets
+page-2c5e7ece55e88b30.js:1 Exercise 3: Leg Press - 3 sets
+page-2c5e7ece55e88b30.js:1 Exercise 4: Lying Leg Curl - 3 sets
+page-2c5e7ece55e88b30.js:1 Exercise 5: Leg Extension - 3 sets
+page-2c5e7ece55e88b30.js:1 Exercise 6: Calf Raises - 3 sets
+page-2c5e7ece55e88b30.js:1 [ExerciseNotes] Hydrating cache for program instance: c80ae3dc-c315-48f4-84b6-6135123915c7
+page-2c5e7ece55e88b30.js:1 [ExerciseNotes] Query parameters - userId: 6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c programInstanceId: c80ae3dc-c315-48f4-84b6-6135123915c7
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Loading completed workouts...
+page-2c5e7ece55e88b30.js:1 [ExerciseNotes] Query executed successfully
+page-2c5e7ece55e88b30.js:1 [ExerciseNotes] Hydrated 0 notes for program instance
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Loading completed workouts...
+page-2c5e7ece55e88b30.js:1 Rendering workout with 6 exercises
+page-2c5e7ece55e88b30.js:1 Exercise 1: Barbell Squat - 3 sets
+page-2c5e7ece55e88b30.js:1 Exercise 2: Deadlift - 3 sets
+page-2c5e7ece55e88b30.js:1 Exercise 3: Leg Press - 3 sets
+page-2c5e7ece55e88b30.js:1 Exercise 4: Lying Leg Curl - 3 sets
+page-2c5e7ece55e88b30.js:1 Exercise 5: Leg Extension - 3 sets
+page-2c5e7ece55e88b30.js:1 Exercise 6: Calf Raises - 3 sets
+page-2c5e7ece55e88b30.js:1 [TrainSection] Preloading next workout: Week 2, Day 1
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Found 308 workouts in database
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Sample workout data: {id: 'c9u0nfzt1', user_id: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c', program_id: 'e3b586d4-62cc-472e-a268-065a2772b0eb', workout_name: 'Pull', start_time: 1762106762548, …}
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Loaded 308 workouts from database (forceRefresh: true )
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Loading in-progress workouts...
+477-b89eb45c7ddb035e.js:1 [ProgressionRouter] Routing progression calculation: {exerciseName: 'Leg Press', category: 'compound', templateSchemeType: 'linear', templateConfigType: undefined, resolvedStrategy: 'linear', …}
+477-b89eb45c7ddb035e.js:1 [ProgressionTierResolver] Resolving tier for: Leg Press {exerciseLibraryId: 'ffea652a-37ce-44ca-aec1-797890f26d54', category: 'compound', hasExerciseId: true}
+477-b89eb45c7ddb035e.js:1 [ProgressionRouter] Routing progression calculation: {exerciseName: 'Barbell Squat', category: 'compound', templateSchemeType: 'linear', templateConfigType: undefined, resolvedStrategy: 'linear', …}
+477-b89eb45c7ddb035e.js:1 [ProgressionTierResolver] Resolving tier for: Barbell Squat {exerciseLibraryId: '0a1a634d-1a56-48bd-a485-f40dd6273253', category: 'compound', hasExerciseId: true}
+477-b89eb45c7ddb035e.js:1 [ProgressionRouter] Routing progression calculation: {exerciseName: 'Calf Raises', category: 'isolation', templateSchemeType: 'linear', templateConfigType: undefined, resolvedStrategy: 'linear', …}
+477-b89eb45c7ddb035e.js:1 [ProgressionTierResolver] Resolving tier for: Calf Raises {exerciseLibraryId: '373ba96a-d33f-4367-b374-b95a491c1a5a', category: 'isolation', hasExerciseId: true}
+477-b89eb45c7ddb035e.js:1 [ProgressionRouter] Routing progression calculation: {exerciseName: 'Deadlift', category: 'compound', templateSchemeType: 'linear', templateConfigType: undefined, resolvedStrategy: 'linear', …}
+477-b89eb45c7ddb035e.js:1 [ProgressionTierResolver] Resolving tier for: Deadlift {exerciseLibraryId: 'a15d8beb-f7e9-4d83-8b5f-b7d60f9f9c97', category: 'compound', hasExerciseId: true}
+477-b89eb45c7ddb035e.js:1 [ProgressionRouter] Routing progression calculation: {exerciseName: 'Leg Extension', category: 'isolation', templateSchemeType: 'linear', templateConfigType: undefined, resolvedStrategy: 'linear', …}
+477-b89eb45c7ddb035e.js:1 [ProgressionTierResolver] Resolving tier for: Leg Extension {exerciseLibraryId: '3ac66e9a-7999-4851-a28f-79e39d47eb83', category: 'isolation', hasExerciseId: true}
+477-b89eb45c7ddb035e.js:1 [ProgressionRouter] Routing progression calculation: {exerciseName: 'Lying Leg Curl', category: 'isolation', templateSchemeType: 'linear', templateConfigType: undefined, resolvedStrategy: 'linear', …}
+477-b89eb45c7ddb035e.js:1 [ProgressionTierResolver] Resolving tier for: Lying Leg Curl {exerciseLibraryId: 'bc091a8d-0c63-4c16-84be-edd100bfe8dd', category: 'isolation', hasExerciseId: true}
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Found 4 in-progress workouts in database
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Loaded 4 in-progress workouts from database (forceRefresh: true )
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Database loading completed. Total records loaded: 312
+477-b89eb45c7ddb035e.js:1 [LinearProgressionTierService] Loaded tier rules for exercise ffea652a-37ce-44ca-aec1-797890f26d54: {tierName: 'large_compound', rules: {…}}
+477-b89eb45c7ddb035e.js:1 [LinearProgressionTierService] Loaded tier rules for exercise 0a1a634d-1a56-48bd-a485-f40dd6273253: {tierName: 'large_compound', rules: {…}}
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Found 308 workouts in database
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Sample workout data: {id: 'c9u0nfzt1', user_id: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c', program_id: 'e3b586d4-62cc-472e-a268-065a2772b0eb', workout_name: 'Pull', start_time: 1762106762548, …}
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Loaded 308 workouts from database (forceRefresh: true )
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Loading in-progress workouts...
+477-b89eb45c7ddb035e.js:1 [LinearProgressionTierService] Loaded tier rules for exercise bc091a8d-0c63-4c16-84be-edd100bfe8dd: {tierName: 'large_isolation', rules: {…}}
+477-b89eb45c7ddb035e.js:1 [LinearProgressionTierService] Loaded tier rules for exercise a15d8beb-f7e9-4d83-8b5f-b7d60f9f9c97: {tierName: 'large_compound', rules: {…}}
+477-b89eb45c7ddb035e.js:1 [LinearProgressionTierService] Loaded tier rules for exercise 373ba96a-d33f-4367-b374-b95a491c1a5a: {tierName: 'small_isolation', rules: {…}}
+477-b89eb45c7ddb035e.js:1 [LinearProgressionTierService] Loaded tier rules for exercise 3ac66e9a-7999-4851-a28f-79e39d47eb83: {tierName: 'large_isolation', rules: {…}}
+477-b89eb45c7ddb035e.js:1 [ProgramState] Found active program in database: e3b586d4-62cc-472e-a268-065a2772b0eb
+477-b89eb45c7ddb035e.js:1 [ProgressionTierResolver] ✅ Resolved from DATABASE: {exerciseName: 'Leg Press', tierName: 'large_compound', tierRules: {…}}
+477-b89eb45c7ddb035e.js:1 [ProgressionRouter] Tier resolution: {exerciseName: 'Leg Press', source: 'database', tierName: 'large_compound', tierRules: {…}}
+477-b89eb45c7ddb035e.js:1 [LinearProgressionEngine] Calculating progression: {exerciseName: 'Leg Press', currentWeek: 1, hasPreviousData: false, userWeightAdjustment: undefined}
+page-2c5e7ece55e88b30.js:1 Rendering workout with 6 exercises
+page-2c5e7ece55e88b30.js:1 Exercise 1: Barbell Squat - 3 sets
+page-2c5e7ece55e88b30.js:1 Exercise 2: Deadlift - 3 sets
+page-2c5e7ece55e88b30.js:1 Exercise 3: Leg Press - 3 sets
+page-2c5e7ece55e88b30.js:1 Exercise 4: Lying Leg Curl - 3 sets
+page-2c5e7ece55e88b30.js:1 Exercise 5: Leg Extension - 3 sets
+page-2c5e7ece55e88b30.js:1 Exercise 6: Calf Raises - 3 sets
+477-b89eb45c7ddb035e.js:1 [ProgressionTierResolver] ✅ Resolved from DATABASE: {exerciseName: 'Barbell Squat', tierName: 'large_compound', tierRules: {…}}
+477-b89eb45c7ddb035e.js:1 [ProgressionRouter] Tier resolution: {exerciseName: 'Barbell Squat', source: 'database', tierName: 'large_compound', tierRules: {…}}
+477-b89eb45c7ddb035e.js:1 [LinearProgressionEngine] Calculating progression: {exerciseName: 'Barbell Squat', currentWeek: 1, hasPreviousData: false, userWeightAdjustment: undefined}
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Found 4 in-progress workouts in database
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Loaded 4 in-progress workouts from database (forceRefresh: true )
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Database loading completed. Total records loaded: 312
+page-2c5e7ece55e88b30.js:1 ===== STORAGE DEBUG =====
+page-2c5e7ece55e88b30.js:1 IN-PROGRESS WORKOUTS: None
+page-2c5e7ece55e88b30.js:1 WORKOUT HISTORY: None
+page-2c5e7ece55e88b30.js:1 ===== END STORAGE DEBUG =====
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Loading user data from database (forceRefresh: true )
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Testing database access...
+477-b89eb45c7ddb035e.js:1 [ProgressionTierResolver] ✅ Resolved from DATABASE: {exerciseName: 'Deadlift', tierName: 'large_compound', tierRules: {…}}
+477-b89eb45c7ddb035e.js:1 [ProgressionRouter] Tier resolution: {exerciseName: 'Deadlift', source: 'database', tierName: 'large_compound', tierRules: {…}}
+477-b89eb45c7ddb035e.js:1 [LinearProgressionEngine] Calculating progression: {exerciseName: 'Deadlift', currentWeek: 1, hasPreviousData: false, userWeightAdjustment: undefined}
+477-b89eb45c7ddb035e.js:1 [ProgressionTierResolver] ✅ Resolved from DATABASE: {exerciseName: 'Lying Leg Curl', tierName: 'large_isolation', tierRules: {…}}
+477-b89eb45c7ddb035e.js:1 [ProgressionRouter] Tier resolution: {exerciseName: 'Lying Leg Curl', source: 'database', tierName: 'large_isolation', tierRules: {…}}
+477-b89eb45c7ddb035e.js:1 [LinearProgressionEngine] Calculating progression: {exerciseName: 'Lying Leg Curl', currentWeek: 1, hasPreviousData: false, userWeightAdjustment: undefined}
+477-b89eb45c7ddb035e.js:1 [ProgressionTierResolver] ✅ Resolved from DATABASE: {exerciseName: 'Leg Extension', tierName: 'large_isolation', tierRules: {…}}
+477-b89eb45c7ddb035e.js:1 [ProgressionRouter] Tier resolution: {exerciseName: 'Leg Extension', source: 'database', tierName: 'large_isolation', tierRules: {…}}
+477-b89eb45c7ddb035e.js:1 [LinearProgressionEngine] Calculating progression: {exerciseName: 'Leg Extension', currentWeek: 1, hasPreviousData: false, userWeightAdjustment: undefined}
+477-b89eb45c7ddb035e.js:1 [ProgressionTierResolver] ✅ Resolved from DATABASE: {exerciseName: 'Calf Raises', tierName: 'small_isolation', tierRules: {…}}
+477-b89eb45c7ddb035e.js:1 [ProgressionRouter] Tier resolution: {exerciseName: 'Calf Raises', source: 'database', tierName: 'small_isolation', tierRules: {…}}
+477-b89eb45c7ddb035e.js:1 [LinearProgressionEngine] Calculating progression: {exerciseName: 'Calf Raises', currentWeek: 1, hasPreviousData: false, userWeightAdjustment: undefined}
+477-b89eb45c7ddb035e.js:1 [ProgramState] Synced active program to database: {week: 1, day: 3}
+477-b89eb45c7ddb035e.js:1 [ProgramState] Loaded active program from database
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Loading completed workouts...
+477-b89eb45c7ddb035e.js:1 [ProgramState] Synced active program to database: {week: 1, day: 3}
+477-b89eb45c7ddb035e.js:1 [ProgramState] Loaded program history from database
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Loading user data from database (forceRefresh: true )
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Testing database access...
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Loading completed workouts...
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Found 308 workouts in database
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Sample workout data: {id: 'c9u0nfzt1', user_id: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c', program_id: 'e3b586d4-62cc-472e-a268-065a2772b0eb', workout_name: 'Pull', start_time: 1762106762548, …}
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Loaded 308 workouts from database (forceRefresh: true )
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Loading in-progress workouts...
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Found 308 workouts in database
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Sample workout data: {id: 'c9u0nfzt1', user_id: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c', program_id: 'e3b586d4-62cc-472e-a268-065a2772b0eb', workout_name: 'Pull', start_time: 1762106762548, …}
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Loaded 308 workouts from database (forceRefresh: true )
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Loading in-progress workouts...
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Found 4 in-progress workouts in database
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Loaded 4 in-progress workouts from database (forceRefresh: true )
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Database loading completed. Total records loaded: 312
+477-b89eb45c7ddb035e.js:1 [ProgramState] Found active program in database: e3b586d4-62cc-472e-a268-065a2772b0eb
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Found 4 in-progress workouts in database
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Loaded 4 in-progress workouts from database (forceRefresh: true )
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Database loading completed. Total records loaded: 312
+477-b89eb45c7ddb035e.js:1 [ProgramState] Recalculating progress for user: 6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c
+477-b89eb45c7ddb035e.js:1 [ProgramState] Days per week: 3
+477-b89eb45c7ddb035e.js:1 [ProgramState] Completed workouts found: (2) [{…}, {…}]
+477-b89eb45c7ddb035e.js:1 [ProgramState] Week 1, Day 1: COMPLETED
+477-b89eb45c7ddb035e.js:1 [ProgramState] Week 1, Day 2: COMPLETED
+477-b89eb45c7ddb035e.js:1 [ProgramState] Week 1, Day 3: INCOMPLETE
+477-b89eb45c7ddb035e.js:1 [ProgramState] Recalculated progress to week 1 day 3
+477-b89eb45c7ddb035e.js:1 [ProgramState] Synced active program to database: {week: 1, day: 3}
+477-b89eb45c7ddb035e.js:1 [ProgramState] Loaded active program from database
+ [ProgramState] Synced active program to database: {week: 1, day: 3}
+ [HomePage] Data loading status: Loading program templates...
+ [Auth] Preloading program templates for instant access
+ [ProgramState] Loaded 8 lightweight templates (metadata only)
+ [Auth] Program templates preloaded successfully
+ [Auth] Dispatching programChanged event to refresh UI
+ [ProgramsSection] Program changed, invalidating template cache...
+ [ProgramsSection] Fetching fresh templates from database
+ [WorkoutLogger] Loading user data from database (forceRefresh: true )
+ [WorkoutLogger] Testing database access...
+ [TrainSection] Active program changed event received, reloading...
+ [TrainSection] Loading active program...
+page-2c5e7ece55e88b30.js:1 [TrainSection] localStorage has active program: true
+page-2c5e7ece55e88b30.js:1 [TrainSection] Active program templateId in localStorage: e3b586d4-62cc-472e-a268-065a2772b0eb
+page-2c5e7ece55e88b30.js:1 [TrainSection] Has template data: false
+page-2c5e7ece55e88b30.js:1 [TrainSection] INSTANT: Using cached program data, skipping database call
+page-2c5e7ece55e88b30.js:1 Program state changed, reloading workout...
+page-2c5e7ece55e88b30.js:1 [HomePage] Data loading status: Ready!
+7130-afea19973a11f2b8.js:1 [Auth] User application data loaded successfully
+477-b89eb45c7ddb035e.js:1 [ProgramState] Loaded 8 lightweight templates (metadata only)
+page-2c5e7ece55e88b30.js:1 Program state after refresh: {currentWeek: 1, currentDay: 3, timestamp: '2025-11-02T18:09:21.771Z'}
+page-2c5e7ece55e88b30.js:1 [ExerciseNotes] Invalidating cache for week: 1
+page-2c5e7ece55e88b30.js:1 [ExerciseNotes] Hydrating cache for program instance: c80ae3dc-c315-48f4-84b6-6135123915c7
+page-2c5e7ece55e88b30.js:1 [ExerciseNotes] Query parameters - userId: 6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c programInstanceId: c80ae3dc-c315-48f4-84b6-6135123915c7
+page-2c5e7ece55e88b30.js:1 Rendering workout with 6 exercises
+page-2c5e7ece55e88b30.js:1 Exercise 1: Barbell Squat - 3 sets
+page-2c5e7ece55e88b30.js:1 Exercise 2: Deadlift - 3 sets
+page-2c5e7ece55e88b30.js:1 Exercise 3: Leg Press - 3 sets
+page-2c5e7ece55e88b30.js:1 Exercise 4: Lying Leg Curl - 3 sets
+page-2c5e7ece55e88b30.js:1 Exercise 5: Leg Extension - 3 sets
+page-2c5e7ece55e88b30.js:1 Exercise 6: Calf Raises - 3 sets
+page-2c5e7ece55e88b30.js:1 Found existing in-progress workout for week 1 day 3 - using it instead of creating new one
+page-2c5e7ece55e88b30.js:1 Rendering workout with 6 exercises
+page-2c5e7ece55e88b30.js:1 Exercise 1: Barbell Squat - 3 sets
+page-2c5e7ece55e88b30.js:1 Exercise 2: Deadlift - 3 sets
+page-2c5e7ece55e88b30.js:1 Exercise 3: Leg Press - 3 sets
+page-2c5e7ece55e88b30.js:1 Exercise 4: Lying Leg Curl - 3 sets
+page-2c5e7ece55e88b30.js:1 Exercise 5: Leg Extension - 3 sets
+page-2c5e7ece55e88b30.js:1 Exercise 6: Calf Raises - 3 sets
+layout-76501c3451486924.js:1 [PWA] ⚠️ beforeinstallprompt event not received after 5 seconds
+(anonymous) @ layout-76501c3451486924.js:1
+setTimeout
+(anonymous) @ layout-76501c3451486924.js:1
+o1 @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+i_ @ 7fb61f6b-4704cb8c4e475e21.js:1
+iT @ 7fb61f6b-4704cb8c4e475e21.js:1
+iG @ 7fb61f6b-4704cb8c4e475e21.js:1
+iW @ 7fb61f6b-4704cb8c4e475e21.js:1
+iN @ 7fb61f6b-4704cb8c4e475e21.js:1
+iz @ 7fb61f6b-4704cb8c4e475e21.js:1
+ii @ 7fb61f6b-4704cb8c4e475e21.js:1
+iu @ 7fb61f6b-4704cb8c4e475e21.js:1
+iX @ 7fb61f6b-4704cb8c4e475e21.js:1
+x @ 5864-e348ea2eb4d2d5a3.js:5
+layout-76501c3451486924.js:1 [PWA] Possible reasons:
+(anonymous) @ layout-76501c3451486924.js:1
+setTimeout
+(anonymous) @ layout-76501c3451486924.js:1
+o1 @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+i_ @ 7fb61f6b-4704cb8c4e475e21.js:1
+iT @ 7fb61f6b-4704cb8c4e475e21.js:1
+iG @ 7fb61f6b-4704cb8c4e475e21.js:1
+iW @ 7fb61f6b-4704cb8c4e475e21.js:1
+iN @ 7fb61f6b-4704cb8c4e475e21.js:1
+iz @ 7fb61f6b-4704cb8c4e475e21.js:1
+ii @ 7fb61f6b-4704cb8c4e475e21.js:1
+iu @ 7fb61f6b-4704cb8c4e475e21.js:1
+iX @ 7fb61f6b-4704cb8c4e475e21.js:1
+x @ 5864-e348ea2eb4d2d5a3.js:5
+layout-76501c3451486924.js:1   - Service worker not registered
+(anonymous) @ layout-76501c3451486924.js:1
+setTimeout
+(anonymous) @ layout-76501c3451486924.js:1
+o1 @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+i_ @ 7fb61f6b-4704cb8c4e475e21.js:1
+iT @ 7fb61f6b-4704cb8c4e475e21.js:1
+iG @ 7fb61f6b-4704cb8c4e475e21.js:1
+iW @ 7fb61f6b-4704cb8c4e475e21.js:1
+iN @ 7fb61f6b-4704cb8c4e475e21.js:1
+iz @ 7fb61f6b-4704cb8c4e475e21.js:1
+ii @ 7fb61f6b-4704cb8c4e475e21.js:1
+iu @ 7fb61f6b-4704cb8c4e475e21.js:1
+iX @ 7fb61f6b-4704cb8c4e475e21.js:1
+x @ 5864-e348ea2eb4d2d5a3.js:5
+layout-76501c3451486924.js:1   - Manifest.json not found or invalid
+(anonymous) @ layout-76501c3451486924.js:1
+setTimeout
+(anonymous) @ layout-76501c3451486924.js:1
+o1 @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+i_ @ 7fb61f6b-4704cb8c4e475e21.js:1
+iT @ 7fb61f6b-4704cb8c4e475e21.js:1
+iG @ 7fb61f6b-4704cb8c4e475e21.js:1
+iW @ 7fb61f6b-4704cb8c4e475e21.js:1
+iN @ 7fb61f6b-4704cb8c4e475e21.js:1
+iz @ 7fb61f6b-4704cb8c4e475e21.js:1
+ii @ 7fb61f6b-4704cb8c4e475e21.js:1
+iu @ 7fb61f6b-4704cb8c4e475e21.js:1
+iX @ 7fb61f6b-4704cb8c4e475e21.js:1
+x @ 5864-e348ea2eb4d2d5a3.js:5
+layout-76501c3451486924.js:1   - App criteria not met (check Lighthouse)
+(anonymous) @ layout-76501c3451486924.js:1
+setTimeout
+(anonymous) @ layout-76501c3451486924.js:1
+o1 @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+i_ @ 7fb61f6b-4704cb8c4e475e21.js:1
+iT @ 7fb61f6b-4704cb8c4e475e21.js:1
+iG @ 7fb61f6b-4704cb8c4e475e21.js:1
+iW @ 7fb61f6b-4704cb8c4e475e21.js:1
+iN @ 7fb61f6b-4704cb8c4e475e21.js:1
+iz @ 7fb61f6b-4704cb8c4e475e21.js:1
+ii @ 7fb61f6b-4704cb8c4e475e21.js:1
+iu @ 7fb61f6b-4704cb8c4e475e21.js:1
+iX @ 7fb61f6b-4704cb8c4e475e21.js:1
+x @ 5864-e348ea2eb4d2d5a3.js:5
+layout-76501c3451486924.js:1   - Browser doesn't support install prompt
+(anonymous) @ layout-76501c3451486924.js:1
+setTimeout
+(anonymous) @ layout-76501c3451486924.js:1
+o1 @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+ux @ 7fb61f6b-4704cb8c4e475e21.js:1
+uE @ 7fb61f6b-4704cb8c4e475e21.js:1
+i_ @ 7fb61f6b-4704cb8c4e475e21.js:1
+iT @ 7fb61f6b-4704cb8c4e475e21.js:1
+iG @ 7fb61f6b-4704cb8c4e475e21.js:1
+iW @ 7fb61f6b-4704cb8c4e475e21.js:1
+iN @ 7fb61f6b-4704cb8c4e475e21.js:1
+iz @ 7fb61f6b-4704cb8c4e475e21.js:1
+ii @ 7fb61f6b-4704cb8c4e475e21.js:1
+iu @ 7fb61f6b-4704cb8c4e475e21.js:1
+iX @ 7fb61f6b-4704cb8c4e475e21.js:1
+x @ 5864-e348ea2eb4d2d5a3.js:5
+477-b89eb45c7ddb035e.js:1 [ProgramState] Loaded program history from database
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Loading user data from database (forceRefresh: true )
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Testing database access...
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Loading completed workouts...
+page-2c5e7ece55e88b30.js:1 [ExerciseNotes] Query executed successfully
+page-2c5e7ece55e88b30.js:1 [ExerciseNotes] Hydrated 0 notes for program instance
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Loading completed workouts...
+page-2c5e7ece55e88b30.js:1 Rendering workout with 6 exercises
+page-2c5e7ece55e88b30.js:1 Exercise 1: Barbell Squat - 3 sets
+page-2c5e7ece55e88b30.js:1 Exercise 2: Deadlift - 3 sets
+page-2c5e7ece55e88b30.js:1 Exercise 3: Leg Press - 3 sets
+page-2c5e7ece55e88b30.js:1 Exercise 4: Lying Leg Curl - 3 sets
+page-2c5e7ece55e88b30.js:1 Exercise 5: Leg Extension - 3 sets
+page-2c5e7ece55e88b30.js:1 Exercise 6: Calf Raises - 3 sets
+page-2c5e7ece55e88b30.js:1 [HomePage] Loading completed, clearing status
+page-2c5e7ece55e88b30.js:1 Rendering workout with 6 exercises
+page-2c5e7ece55e88b30.js:1 Exercise 1: Barbell Squat - 3 sets
+page-2c5e7ece55e88b30.js:1 Exercise 2: Deadlift - 3 sets
+page-2c5e7ece55e88b30.js:1 Exercise 3: Leg Press - 3 sets
+page-2c5e7ece55e88b30.js:1 Exercise 4: Lying Leg Curl - 3 sets
+page-2c5e7ece55e88b30.js:1 Exercise 5: Leg Extension - 3 sets
+page-2c5e7ece55e88b30.js:1 Exercise 6: Calf Raises - 3 sets
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Found 308 workouts in database
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Sample workout data: {id: 'c9u0nfzt1', user_id: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c', program_id: 'e3b586d4-62cc-472e-a268-065a2772b0eb', workout_name: 'Pull', start_time: 1762106762548, …}
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Loaded 308 workouts from database (forceRefresh: true )
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Loading in-progress workouts...
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Found 4 in-progress workouts in database
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Loaded 4 in-progress workouts from database (forceRefresh: true )
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Database loading completed. Total records loaded: 312
+page-2c5e7ece55e88b30.js:1 [HomePage] Data loading status: 
+7130-afea19973a11f2b8.js:1 [Auth] All data loading completed successfully
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Found 308 workouts in database
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Sample workout data: {id: 'c9u0nfzt1', user_id: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c', program_id: 'e3b586d4-62cc-472e-a268-065a2772b0eb', workout_name: 'Pull', start_time: 1762106762548, …}
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Loaded 308 workouts from database (forceRefresh: true )
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Loading in-progress workouts...
+477-b89eb45c7ddb035e.js:1 [ProgramState] Found active program in database: e3b586d4-62cc-472e-a268-065a2772b0eb
+477-b89eb45c7ddb035e.js:1 [ProgramState] Synced active program to database: {week: 1, day: 3}
+477-b89eb45c7ddb035e.js:1 [ProgramState] Loaded active program from database
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Found 4 in-progress workouts in database
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Loaded 4 in-progress workouts from database (forceRefresh: true )
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Database loading completed. Total records loaded: 312
+477-b89eb45c7ddb035e.js:1 [ProgramState] Recalculating progress for user: 6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c
+477-b89eb45c7ddb035e.js:1 [ProgramState] Days per week: 3
+477-b89eb45c7ddb035e.js:1 [ProgramState] Completed workouts found: (2) [{…}, {…}]
+477-b89eb45c7ddb035e.js:1 [ProgramState] Week 1, Day 1: COMPLETED
+477-b89eb45c7ddb035e.js:1 [ProgramState] Week 1, Day 2: COMPLETED
+477-b89eb45c7ddb035e.js:1 [ProgramState] Week 1, Day 3: INCOMPLETE
+477-b89eb45c7ddb035e.js:1 [ProgramState] Recalculated progress to week 1 day 3
+477-b89eb45c7ddb035e.js:1 [ProgramState] Loaded program history from database
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Loading user data from database (forceRefresh: true )
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Testing database access...
+page-2c5e7ece55e88b30.js:1 [HomePage] Loading completed, clearing status
+477-b89eb45c7ddb035e.js:1 [ProgramState] Synced active program to database: {week: 1, day: 3}
+page-2c5e7ece55e88b30.js:1 [MOUNT] Progress recalculation completed
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Loading completed workouts...
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Found 308 workouts in database
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Sample workout data: {id: 'c9u0nfzt1', user_id: '6bf0e5d0-cf5c-4820-90f5-346e1e2a4d4c', program_id: 'e3b586d4-62cc-472e-a268-065a2772b0eb', workout_name: 'Pull', start_time: 1762106762548, …}
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Loaded 308 workouts from database (forceRefresh: true )
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Loading in-progress workouts...
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Found 4 in-progress workouts in database
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Loaded 4 in-progress workouts from database (forceRefresh: true )
+7612-fadb7b630791d83b.js:1 [WorkoutLogger] Database loading completed. Total records loaded: 312
+477-b89eb45c7ddb035e.js:1 [ProgramState] Refreshing template from database...
+477-b89eb45c7ddb035e.js:1 [ProgramState] Synced active program to database: {week: 1, day: 3}
+477-b89eb45c7ddb035e.js:1 [ProgramState] Template refreshed with latest database version
+page-2c5e7ece55e88b30.js:1 [ProgramsSection] Loaded 8 lightweight templates (metadata only)
