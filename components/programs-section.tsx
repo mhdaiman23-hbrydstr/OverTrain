@@ -1,6 +1,6 @@
 ﻿"use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useMemo } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -84,6 +84,41 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
     }
     return "templates"
   })
+
+  const availableDays = useMemo(() => {
+    const daysSet = new Set<number>()
+    allTemplates.forEach((template) => {
+      const value = Number(template?.days ?? template?.daysPerWeek ?? template?.days_per_week)
+      if (Number.isFinite(value) && value > 0) {
+        daysSet.add(value)
+      }
+    })
+    return Array.from(daysSet).sort((a, b) => a - b)
+  }, [allTemplates])
+
+  const availableDurations = useMemo(() => {
+    const weeksSet = new Set<number>()
+    allTemplates.forEach((template) => {
+      const value = Number(template?.weeks ?? template?.totalWeeks ?? template?.total_weeks)
+      if (Number.isFinite(value) && value > 0) {
+        weeksSet.add(value)
+      }
+    })
+    return Array.from(weeksSet).sort((a, b) => a - b)
+  }, [allTemplates])
+
+  useEffect(() => {
+    if (daysFilter !== "all" && !availableDays.map(String).includes(daysFilter)) {
+      setDaysFilter("all")
+    }
+  }, [availableDays, daysFilter])
+
+  useEffect(() => {
+    if (durationFilter !== "all" && !availableDurations.map(String).includes(durationFilter)) {
+      setDurationFilter("all")
+    }
+  }, [availableDurations, durationFilter])
+
   const { toast } = useToast()
   const router = useRouter()
 
@@ -389,19 +424,48 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
 
     // Apply days per week filter
     if (daysFilter !== "all") {
-      const days = Number.parseInt(daysFilter)
-      templates = templates.filter((t) => t.days === days)
+      const days = Number(daysFilter)
+      templates = templates.filter((t) => {
+        const templateDays = Number(t?.days ?? t?.daysPerWeek ?? t?.days_per_week)
+        return Number.isFinite(templateDays) && templateDays === days
+      })
     }
 
     // Apply gender filter
     if (genderFilter !== "all") {
-      templates = templates.filter((t) => t.gender?.includes(genderFilter as any))
+      templates = templates.filter((t) => {
+        const gendersRaw = Array.isArray(t?.gender)
+          ? t.gender
+          : typeof t?.gender === "string"
+            ? [t.gender]
+            : []
+
+        const genders = gendersRaw
+          .map((g: string) => g?.toLowerCase?.() ?? "")
+          .filter((g: string): g is "male" | "female" => g === "male" || g === "female")
+
+        const hasMale = genders.includes("male")
+        const hasFemale = genders.includes("female")
+
+        if (genderFilter === "male") {
+          return hasMale && !hasFemale
+        }
+
+        if (genderFilter === "female") {
+          return hasFemale && !hasMale
+        }
+
+        return true
+      })
     }
 
     // Apply duration filter
     if (durationFilter !== "all") {
-      const weeks = Number.parseInt(durationFilter)
-      templates = templates.filter((t) => t.weeks === weeks)
+      const weeks = Number(durationFilter)
+      templates = templates.filter((t) => {
+        const templateWeeks = Number(t?.weeks ?? t?.totalWeeks ?? t?.total_weeks)
+        return Number.isFinite(templateWeeks) && templateWeeks === weeks
+      })
     }
 
     return templates
@@ -657,9 +721,11 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="all">All Days</SelectItem>
-                            <SelectItem value="3">3 Days</SelectItem>
-                            <SelectItem value="4">4 Days</SelectItem>
-                            <SelectItem value="6">6 Days</SelectItem>
+                            {availableDays.map((day) => (
+                              <SelectItem key={day} value={String(day)}>
+                                {day} {day === 1 ? "Day" : "Days"}
+                              </SelectItem>
+                            ))}
                           </SelectContent>
                         </Select>
                       </div>
@@ -672,8 +738,11 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="all">All Durations</SelectItem>
-                            <SelectItem value="8">8 Weeks</SelectItem>
-                            <SelectItem value="12">12 Weeks</SelectItem>
+                            {availableDurations.map((week) => (
+                              <SelectItem key={week} value={String(week)}>
+                                {week} {week === 1 ? "Week" : "Weeks"}
+                              </SelectItem>
+                            ))}
                           </SelectContent>
                         </Select>
                       </div>
