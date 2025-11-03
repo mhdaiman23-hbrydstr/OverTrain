@@ -5,6 +5,7 @@ export interface ExerciseTemplate {
   exerciseName: string
   exerciseLibraryId?: string // NEW: Optional UUID reference to exercise_library table (for DB integration)
   category: "compound" | "isolation"
+  muscleGroup?: string
   equipmentType?: string
   tier?: ProgressionTier
   progressionTemplate: {

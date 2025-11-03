@@ -257,6 +257,18 @@ return ProgramStateManager.withLock(async () => {
 ```
 - Avoid calling helpers that acquire `withLock()` while already inside another `withLock()` scope—nested lock acquisition stalls the second call and leaves state partially updated.
 - Ensure the active program is marked custom *prior* to template mutations so the CURRENT pill follows the forked template instead of leaving the user on the original.
+- When enriching template data, keep database-sourced metadata intact so reloads stay lossless (avoid guessing fields client-side when Supabase already stores them).
+
+### Pattern 5: Preserve Exercise Metadata On Reload
+Used in: Muscle-group persistence for future-week replacements
+```typescript
+const exercises: ExerciseTemplate[] = day.exercises?.map(ex => ({
+  // ...existing fields...
+  muscleGroup: ex.exercise?.muscle_group ?? undefined,
+}))
+```
+- When converting Supabase rows to `ExerciseTemplate`, forward all metadata we rely on in the workout logger (e.g., `muscleGroup`) instead of recomputing it later.
+- This keeps future-week views aligned with the immediate replacement UI and prevents regressions like “Other” muscle groups after cache refreshes.
 
 ---
 

@@ -321,6 +321,7 @@ export class ProgramTemplateService {
         exerciseName: ex.exercise.name, // EXACT name from database
         exerciseLibraryId: ex.exercise_id, // UUID for future reference
         category: ex.category,
+        muscleGroup: ex.exercise?.muscle_group ?? undefined,
         equipmentType: ex.exercise.equipment_type,
         tier: ex.progression_config.tier as any,
         progressionTemplate: ex.progression_config.progressionTemplate,
