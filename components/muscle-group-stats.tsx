@@ -38,71 +38,80 @@ export function MuscleGroupStats({ open, onClose }: MuscleGroupStatsProps) {
         return
       }
 
-    // Calculate which week each workout belongs to
-    const programStartDate = new Date(activeProgram.startDate)
-    const weeklyMuscleData = new Map<number, Map<string, number>>() // week -> muscleGroup -> sets
+      // Calculate which week each workout belongs to
+      const programStartDate = new Date(activeProgram.startDate)
+      const weeklyMuscleData = new Map<number, Map<string, number>>() // week -> muscleGroup -> sets
+      let highestWeekSeen = Math.max(activeProgram.currentWeek ?? 0, 0)
 
-    workouts.forEach((workout) => {
-      // LAZY-LOAD FIX: Use templateId from activeProgram instead of full template
-      if (!workout.completed || workout.programId !== activeProgram.templateId) return
+      workouts.forEach((workout) => {
+        // LAZY-LOAD FIX: Use templateId from activeProgram instead of full template
+        if (!workout.completed || workout.programId !== activeProgram.templateId) return
 
-      const workoutDate = new Date(workout.startTime)
-      const daysSinceStart = Math.floor((workoutDate.getTime() - programStartDate.getTime()) / (1000 * 60 * 60 * 24))
-      const weekNumber = Math.floor(daysSinceStart / 7) + 1
+        const weekFromWorkout = Number.isFinite(workout.week) ? Number(workout.week) : undefined
+        const fallbackWeek = (() => {
+          const workoutDate = new Date(workout.startTime)
+          if (Number.isNaN(workoutDate.getTime())) return 1
+          const daysSinceStart = Math.floor(
+            (workoutDate.getTime() - programStartDate.getTime()) / (1000 * 60 * 60 * 24),
+          )
+          return Math.floor(daysSinceStart / 7) + 1
+        })()
 
-      if (!weeklyMuscleData.has(weekNumber)) {
-        weeklyMuscleData.set(weekNumber, new Map())
-      }
+        const weekNumber = Math.max(1, weekFromWorkout ?? fallbackWeek)
+        highestWeekSeen = Math.max(highestWeekSeen, weekNumber)
 
-      const weekData = weeklyMuscleData.get(weekNumber)!
+        if (!weeklyMuscleData.has(weekNumber)) {
+          weeklyMuscleData.set(weekNumber, new Map())
+        }
 
-      workout.exercises.forEach((exercise) => {
-        // Prefer DB-provided muscle group when available; otherwise fall back to heuristic.
-        const safeName = typeof (exercise as any)?.exerciseName === 'string'
-          ? (exercise as any).exerciseName
-          : (typeof (exercise as any)?.name === 'string' ? (exercise as any).name : '')
+        const weekData = weeklyMuscleData.get(weekNumber)!
 
-        const muscleGroup: string = (exercise as any)?.muscle_group ?? getExerciseMuscleGroup(safeName)
+        workout.exercises.forEach((exercise) => {
+          // Prefer DB-provided muscle group when available; otherwise fall back to heuristic.
+          const safeName =
+            typeof (exercise as any)?.exerciseName === "string"
+              ? (exercise as any).exerciseName
+              : typeof (exercise as any)?.name === "string"
+                ? (exercise as any).name
+                : ""
 
-        const setsArray = Array.isArray((exercise as any)?.sets) ? (exercise as any).sets : []
-        const completedSets = setsArray.filter((set: any) => set?.completed && (set?.reps ?? 0) > 0).length
+          const muscleGroup: string = (exercise as any)?.muscle_group ?? getExerciseMuscleGroup(safeName)
 
-        weekData.set(muscleGroup, (weekData.get(muscleGroup) || 0) + completedSets)
+          const setsArray = Array.isArray((exercise as any)?.sets) ? (exercise as any).sets : []
+          const completedSets = setsArray.filter((set: any) => set?.completed && (set?.reps ?? 0) > 0).length
+
+          weekData.set(muscleGroup, (weekData.get(muscleGroup) || 0) + completedSets)
+        })
       })
-    })
 
-    // Get current week
-    const currentDate = new Date()
-    const daysSinceStart = Math.floor((currentDate.getTime() - programStartDate.getTime()) / (1000 * 60 * 60 * 24))
-    const currentWeek = Math.floor(daysSinceStart / 7) + 1
+      // Prepare data for display
+      const muscleGroups = ["CHEST", "BACK", "TRICEPS", "BICEPS", "SHOULDERS", "QUADS", "GLUTES", "HAMSTRINGS", "CALVES"]
+      const totalProgramWeeks = activeProgram.template?.weeks ?? activeProgram.templateMetadata?.weeks ?? 0
+      const maxWeeks = Math.max(highestWeekSeen, totalProgramWeeks, 4) // Show at least 4 weeks
 
-    // Prepare data for display
-    const muscleGroups = ["CHEST", "BACK", "TRICEPS", "BICEPS", "SHOULDERS", "QUADS", "GLUTES", "HAMSTRINGS", "CALVES"]
-    const maxWeeks = Math.max(currentWeek, 4) // Show at least 4 weeks
+      const stats = muscleGroups
+        .map((muscleGroup) => {
+          const weeklyData: (number | null)[] = []
+          let totalSets = 0
+          let weeksWithData = 0
 
-    const stats = muscleGroups
-      .map((muscleGroup) => {
-        const weeklyData: (number | null)[] = []
-        let totalSets = 0
-        let weeksWithData = 0
-
-        for (let week = 1; week <= maxWeeks; week++) {
-          const weekData = weeklyMuscleData.get(week)
-          const sets = weekData?.get(muscleGroup) || null
-          weeklyData.push(sets)
-          if (sets !== null) {
-            totalSets += sets
-            weeksWithData++
+          for (let week = 1; week <= maxWeeks; week++) {
+            const weekData = weeklyMuscleData.get(week)
+            const sets = weekData?.get(muscleGroup) || null
+            weeklyData.push(sets)
+            if (sets !== null) {
+              totalSets += sets
+              weeksWithData++
+            }
           }
-        }
 
-        return {
-          name: muscleGroup.charAt(0) + muscleGroup.slice(1).toLowerCase(),
-          avgSets: weeksWithData > 0 ? Math.round(totalSets / weeksWithData) : 0,
-          weeklyData,
-        }
-      })
-      .filter((group) => group.avgSets > 0) // Only show muscle groups with data
+          return {
+            name: muscleGroup.charAt(0) + muscleGroup.slice(1).toLowerCase(),
+            avgSets: weeksWithData > 0 ? Math.round(totalSets / weeksWithData) : 0,
+            weeklyData,
+          }
+        })
+        .filter((group) => group.avgSets > 0) // Only show muscle groups with data
 
       setMuscleGroupStats(stats)
     }
