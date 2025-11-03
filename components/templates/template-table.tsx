@@ -52,6 +52,7 @@ export function TemplateTable({ accessToken, onCreate, onEdit, onDuplicate, refr
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [templateToDelete, setTemplateToDelete] = useState<ProgramTemplateSummary | null>(null)
   const [confirmText, setConfirmText] = useState("")
+  const [searchTerm, setSearchTerm] = useState("")
 
   useEffect(() => {
     if (!accessToken) return
@@ -99,7 +100,25 @@ export function TemplateTable({ accessToken, onCreate, onEdit, onDuplicate, refr
     return () => controller.abort()
   }, [accessToken, refreshKey])
 
-  const activeTemplates = useMemo(() => templates, [templates])
+  const filteredTemplates = useMemo(() => {
+    const query = searchTerm.trim().toLowerCase()
+    if (!query) return templates
+
+    return templates.filter((template) => {
+      const fields = [
+        template.name,
+        template.description ?? "",
+        template.progressionType ?? "",
+        template.gender?.join(" ") ?? "",
+        template.experienceLevel?.join(" ") ?? "",
+      ]
+
+      return fields.some((field) => field.toLowerCase().includes(query))
+    })
+  }, [searchTerm, templates])
+
+  const totalTemplates = templates.length
+  const visibleTemplates = filteredTemplates.length
 
   const handleDelete = async () => {
     if (!templateToDelete || !accessToken) return
@@ -128,17 +147,36 @@ export function TemplateTable({ accessToken, onCreate, onEdit, onDuplicate, refr
   return (
     <>
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between gap-4">
-          <div className="space-y-1">
-            <CardTitle className="text-lg">Program Templates</CardTitle>
+        <CardHeader className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div className="space-y-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <CardTitle className="text-lg">Program Templates</CardTitle>
+              <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
+                {totalTemplates} total
+              </span>
+              {searchTerm.trim() && (
+                <span className="text-xs text-muted-foreground">
+                  Showing {visibleTemplates} match{visibleTemplates === 1 ? "" : "es"}
+                </span>
+              )}
+            </div>
             <p className="text-sm text-muted-foreground">
               Manage existing templates or start a new one. Duplicate to iterate safely without publishing immediately.
             </p>
           </div>
-          <Button onClick={onCreate}>
-            <Plus className="mr-2 h-4 w-4" />
-            New Template
-          </Button>
+          <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center sm:justify-end md:w-auto">
+            <Input
+              value={searchTerm}
+              onChange={(event) => setSearchTerm(event.target.value)}
+              placeholder="Search templates..."
+              aria-label="Search program templates"
+              className="sm:w-64"
+            />
+            <Button onClick={onCreate} className="whitespace-nowrap">
+              <Plus className="mr-2 h-4 w-4" />
+              New Template
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           {isLoading ? (
@@ -147,12 +185,21 @@ export function TemplateTable({ accessToken, onCreate, onEdit, onDuplicate, refr
             </div>
           ) : error ? (
             <div className="flex h-48 items-center justify-center text-sm text-destructive">{error}</div>
-          ) : activeTemplates.length === 0 ? (
+          ) : totalTemplates === 0 ? (
             <div className="flex h-48 flex-col items-center justify-center gap-3 text-center text-sm text-muted-foreground">
               <p>No templates yet.</p>
               <Button onClick={onCreate} variant="outline" size="sm">
                 <Plus className="mr-2 h-4 w-4" />
                 Create your first template
+              </Button>
+            </div>
+          ) : visibleTemplates === 0 ? (
+            <div className="flex h-48 flex-col items-center justify-center gap-2 text-center text-sm text-muted-foreground">
+              <p>
+                No templates match <span className="font-medium text-foreground">"{searchTerm.trim()}"</span>.
+              </p>
+              <Button onClick={() => setSearchTerm("")} variant="outline" size="sm">
+                Clear search
               </Button>
             </div>
           ) : (
@@ -170,7 +217,7 @@ export function TemplateTable({ accessToken, onCreate, onEdit, onDuplicate, refr
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {activeTemplates.map((template) => (
+                  {filteredTemplates.map((template) => (
                     <TableRow key={template.id}>
                       <TableCell className="font-medium">
                         <div className="flex flex-col">
