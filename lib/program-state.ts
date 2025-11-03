@@ -826,16 +826,18 @@ export class ProgramStateManager {
   }): Promise<void> {
     if (typeof window === "undefined") return
 
+    // Ensure the active program is forked into a custom copy before entering the lock.
+    let activeProgram = await this.getActiveProgram({ skipDatabaseLoad: true })
+    if (!activeProgram) {
+      console.warn("[ProgramState] Cannot apply exercise replacement - no active program")
+      return
+    }
+    if (!activeProgram.isCustom) {
+      await this.ensureCustomTemplateForActiveProgram()
+    }
+
     return this.withLock(async () => {
       const { dayNumber, fromExerciseId, fromExerciseName, templateExerciseIds, toExercise, applyToFutureWeeks = true } = params
-
-      let activeProgram = await this.getActiveProgram({ skipDatabaseLoad: true })
-      if (!activeProgram) {
-        console.warn("[ProgramState] Cannot apply exercise replacement - no active program")
-        return
-      }
-
-      await this.ensureCustomTemplateForActiveProgram()
 
       activeProgram = await this.getActiveProgram({ skipDatabaseLoad: true })
       if (!activeProgram) return

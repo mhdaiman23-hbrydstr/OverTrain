@@ -242,6 +242,22 @@ Used in: Bodyweight input dialog
 // 5. Single integration point in core logic
 ```
 
+### Pattern 4: ProgramStateManager Lock Hygiene
+Used in: Custom program forking during exercise replacement
+```typescript
+// Run fork-or-custom logic before acquiring the mutex
+if (!activeProgram.isCustom) {
+  await ProgramStateManager.ensureCustomTemplateForActiveProgram()
+}
+
+return ProgramStateManager.withLock(async () => {
+  const updated = await ProgramStateManager.getActiveProgram({ skipDatabaseLoad: true })
+  // ... mutate template safely inside the lock ...
+})
+```
+- Avoid calling helpers that acquire `withLock()` while already inside another `withLock()` scope—nested lock acquisition stalls the second call and leaves state partially updated.
+- Ensure the active program is marked custom *prior* to template mutations so the CURRENT pill follows the forked template instead of leaving the user on the original.
+
 ---
 
 ## Version Information
