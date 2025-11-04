@@ -46,7 +46,7 @@ export const DEFAULT_PROGRESSION_CONFIG = {
   },
 }
 
-export const AVAILABLE_DAY_COUNTS = [3, 4, 5, 6]
+export const AVAILABLE_DAY_COUNTS = [3, 4, 5, 6, 7]
 export const AVAILABLE_WEEKS = [4, 5, 6, 7, 8]
 export const AVAILABLE_GENDERS = ['male', 'female']
 export const AVAILABLE_EXPERIENCE = ['beginner', 'intermediate', 'advanced']
