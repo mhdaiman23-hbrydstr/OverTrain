@@ -113,9 +113,11 @@ export function SidebarNavigation({ currentView, onViewChange }: SidebarNavigati
         {/* Header */}
         <div className="flex items-center justify-between h-16 px-4 border-b border-border">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-primary rounded flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-sm">OT</span>
-            </div>
+            <img
+              src="/icons/overtrain_icon_256x256.png"
+              alt="OverTrain logo"
+              className="w-8 h-8 rounded"
+            />
             <div>
               <div className="font-semibold text-sm">OverTrain</div>
               <div className="text-xs text-muted-foreground">Go One More</div>
