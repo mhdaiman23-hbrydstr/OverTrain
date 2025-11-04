@@ -34,24 +34,24 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: "/favicon.ico",
-    apple: "/icons/apple-touch-icon.png",
+    apple: "/icons/overtrain_icon_192x192.png",
     other: [
       {
         rel: "apple-touch-icon",
-        url: "/icons/apple-touch-icon.png",
-        sizes: "180x180",
+        url: "/icons/overtrain_icon_192x192.png",
+        sizes: "192x192",
       },
       {
         rel: "icon",
         type: "image/png",
         sizes: "192x192",
-        url: "/icons/icon-192x192.png",
+        url: "/icons/overtrain_icon_192x192.png",
       },
       {
         rel: "icon",
         type: "image/png",
         sizes: "512x512",
-        url: "/icons/icon-512x512.png",
+        url: "/icons/overtrain_icon_512x512.png",
       },
     ],
   },
