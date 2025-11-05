@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Spinner } from '@/components/ui/spinner'
@@ -30,13 +30,15 @@ import {
   inferExerciseCategory,
   validateWizardState,
 } from './utils'
-import type { ExerciseInWizard, ProgramSource, WizardStep } from './types'
+import type { ExerciseInWizard, ProgramSource, ProgramWizardState, WizardStep } from './types'
 import { SessionManager } from '@/lib/session-manager'
+import { programWizardDraftManager } from '@/lib/program-wizard-draft-manager'
 
 interface ProgramWizardProps {
   onClose: () => void
   onComplete: (templateId: string) => void
   initialStep?: WizardStep
+  initialDraftId?: string
   onStepChange?: (step: WizardStep) => void
 }
 
@@ -59,12 +61,11 @@ const shuffle = <T,>(items: T[]): T[] => {
   return copy
 }
 
-export function ProgramWizard({ onClose, onComplete, initialStep, onStepChange }: ProgramWizardProps) {
+export function ProgramWizard({ onClose, onComplete, initialStep, initialDraftId, onStepChange }: ProgramWizardProps) {
   const { toast } = useToast()
   const { user } = useAuth()
   const {
     state,
-    isDirty,
     setSource,
     setStep,
     setDayCount,
@@ -83,11 +84,17 @@ export function ProgramWizard({ onClose, onComplete, initialStep, onStepChange }
     setError,
     reset,
     markSaved,
+    hydrateState,
   } = useWizardState()
 
   const [validationErrors, setValidationErrors] = useState<string[]>([])
   const [isSaving, setIsSaving] = useState(false)
   const [exitConfirmOpen, setExitConfirmOpen] = useState(false)
+  const [currentDraftId, setCurrentDraftId] = useState<string | null>(initialDraftId ?? null)
+  const latestStateRef = useRef<ProgramWizardState>(state)
+  const lastSavedSnapshotRef = useRef<string | null>(null)
+  const skipNextAutoSaveRef = useRef(false)
+  const hydratedDraftRef = useRef<string | null>(null)
 
   const [initialized, setInitialized] = useState(false)
   const lastInitialStepRef = useRef<WizardStep | undefined>(undefined)
@@ -101,6 +108,102 @@ export function ProgramWizard({ onClose, onComplete, initialStep, onStepChange }
   } = templateCache
 
   const currentStep = state.step
+
+  useEffect(() => {
+    latestStateRef.current = state
+  }, [state])
+
+  const normalizeStateForDraft = useCallback(
+    (targetState: ProgramWizardState): ProgramWizardState => {
+      const trimmedName = targetState.metadata.name.trim()
+      const normalizedDays = targetState.days.map((day, index) => ({
+        ...day,
+        dayNumber: index + 1,
+      }))
+
+      return {
+        ...targetState,
+        step: targetState.step ?? 'dayCount',
+        metadata: {
+          ...targetState.metadata,
+          name: trimmedName,
+        },
+        days: normalizedDays,
+        dayCount: targetState.dayCount ?? normalizedDays.length,
+      }
+    },
+    [],
+  )
+
+  const computeSnapshotString = useCallback(
+    (targetState: ProgramWizardState) => JSON.stringify(normalizeStateForDraft(targetState)),
+    [normalizeStateForDraft],
+  )
+
+  const hasUnpersistedDraftChanges = useCallback(() => {
+    const latest = latestStateRef.current
+    if (!latest || latest.step === 'source') {
+      return false
+    }
+    if (!lastSavedSnapshotRef.current) {
+      return true
+    }
+    const snapshot = computeSnapshotString(latest)
+    return snapshot !== lastSavedSnapshotRef.current
+  }, [computeSnapshotString])
+
+  const persistDraft = useCallback(
+    (reason: 'manual' | 'auto' | 'exit' | 'beforeunload') => {
+      const latest = latestStateRef.current
+      if (!latest || latest.step === 'source') {
+        return null
+      }
+
+      const normalizedState = normalizeStateForDraft(latest)
+      const snapshotString = JSON.stringify(normalizedState)
+
+      if (reason !== 'manual' && snapshotString === lastSavedSnapshotRef.current) {
+        return null
+      }
+
+      const targetId = currentDraftId ?? programWizardDraftManager.generateId()
+      const record = programWizardDraftManager.saveDraft({
+        id: targetId,
+        name: normalizedState.metadata.name,
+        state: normalizedState,
+      })
+
+      setCurrentDraftId(record.id)
+      lastSavedSnapshotRef.current = snapshotString
+      hydratedDraftRef.current = record.id
+      return record
+    },
+    [currentDraftId, normalizeStateForDraft, setCurrentDraftId],
+  )
+
+  const handleManualSaveDraft = useCallback(() => {
+    if (state.step === 'source') {
+      toast({
+        title: 'Nothing to save yet',
+        description: 'Select a starting point or add details before saving a draft.',
+      })
+      return
+    }
+
+    const record = persistDraft('manual')
+    if (!record) {
+      toast({
+        title: 'Draft already up to date',
+        description: 'Your latest changes are already saved.',
+      })
+      return
+    }
+
+  toast({
+    title: 'Draft saved',
+    description: 'Find it under My Programs > Drafts.',
+  })
+  }, [persistDraft, state.step, toast])
 
   useEffect(() => {
     reset()
@@ -158,21 +261,117 @@ export function ProgramWizard({ onClose, onComplete, initialStep, onStepChange }
     refreshTemplates,
   ])
 
+  useEffect(() => {
+    if (!initialized) return
+    if (!initialDraftId) return
+    if (hydratedDraftRef.current === initialDraftId) return
+
+    const draft = programWizardDraftManager.getDraft(initialDraftId)
+    if (!draft) return
+
+    hydrateState(draft.state, { markDirty: false })
+    setCurrentDraftId(draft.id)
+    hydratedDraftRef.current = draft.id
+    lastSavedSnapshotRef.current = JSON.stringify(draft.state)
+    skipNextAutoSaveRef.current = true
+    setValidationErrors([])
+    setIsSaving(false)
+    markSaved()
+    toast({
+      title: 'Draft loaded',
+      description: 'Continue where you left off.',
+    })
+  }, [hydrateState, initialDraftId, initialized, markSaved, setCurrentDraftId, toast])
+
+  const handleClose = useCallback(
+    (options?: { discardDraft?: boolean }) => {
+      if (options?.discardDraft && currentDraftId) {
+        programWizardDraftManager.deleteDraft(currentDraftId)
+      }
+
+      setExitConfirmOpen(false)
+      reset()
+      setValidationErrors([])
+      setIsSaving(false)
+      setCurrentDraftId(null)
+      lastSavedSnapshotRef.current = null
+      skipNextAutoSaveRef.current = false
+      hydratedDraftRef.current = null
+      markSaved()
+      onClose()
+    },
+    [currentDraftId, markSaved, onClose, reset, setCurrentDraftId],
+  )
+
   const attemptClose = () => {
     if (isSaving) return
-    if (isDirty && state.step !== 'source') {
+    if (hasUnpersistedDraftChanges()) {
       setExitConfirmOpen(true)
       return
     }
     handleClose()
   }
 
-  const handleClose = () => {
-    reset()
-    setValidationErrors([])
-    setIsSaving(false)
-    onClose()
-  }
+  const handleSaveDraftAndExit = useCallback(() => {
+    const record = persistDraft('exit')
+    setExitConfirmOpen(false)
+    if (record) {
+      toast({
+        title: 'Draft saved',
+        description: 'You can resume it later from My Programs.',
+      })
+    }
+    handleClose()
+  }, [handleClose, persistDraft, toast])
+
+  const handleDiscardAndExit = useCallback(() => {
+    setExitConfirmOpen(false)
+    handleClose({ discardDraft: true })
+  }, [handleClose])
+
+  useEffect(() => {
+    if (!initialized) return
+    if (isSaving) return
+    if (state.step === 'source') return
+
+    if (skipNextAutoSaveRef.current) {
+      skipNextAutoSaveRef.current = false
+      return
+    }
+
+    const timer = window.setTimeout(() => {
+      persistDraft('auto')
+    }, 800)
+
+    return () => window.clearTimeout(timer)
+  }, [initialized, isSaving, persistDraft, state.dayCount, state.days, state.metadata, state.step])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+
+    const handleBeforeUnload = () => {
+      persistDraft('beforeunload')
+    }
+
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload)
+    }
+  }, [persistDraft])
+
+  useEffect(() => {
+    if (validationErrors.length === 0) return
+
+    const normalized = normalizeStateForDraft(state)
+    const { errors } = validateWizardState(normalized)
+
+    const currentKey = validationErrors.join('|')
+    const nextKey = errors.join('|')
+
+    if (nextKey !== currentKey) {
+      setValidationErrors(errors)
+    }
+  }, [normalizeStateForDraft, state, validationErrors, setValidationErrors])
 
   const handleSelectSource = (source: Exclude<ProgramSource, null>) => {
     setSource(source)
@@ -537,6 +736,14 @@ export function ProgramWizard({ onClose, onComplete, initialStep, onStepChange }
       await ProgramStateManager.getMyPrograms()
       window.dispatchEvent(new Event('programChanged'))
 
+      if (currentDraftId) {
+        programWizardDraftManager.deleteDraft(currentDraftId)
+        setCurrentDraftId(null)
+      }
+      lastSavedSnapshotRef.current = null
+      hydratedDraftRef.current = null
+      skipNextAutoSaveRef.current = false
+
       markSaved()
       toast({
         title: 'Program saved',
@@ -704,15 +911,27 @@ export function ProgramWizard({ onClose, onComplete, initialStep, onStepChange }
                 Build your ideal custom training plan based of our existing templates.
               </p>
             </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="size-9 sm:size-10"
-              onClick={attemptClose}
-              aria-label="Close wizard"
-            >
-              <X className="size-4" />
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 px-3"
+                onClick={handleManualSaveDraft}
+                disabled={state.step === 'source'}
+                title={state.step === 'source' ? 'Start configuring your program before saving a draft.' : undefined}
+              >
+                Save draft
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-9 sm:size-10"
+                onClick={attemptClose}
+                aria-label="Close wizard"
+              >
+                <X className="size-4" />
+              </Button>
+            </div>
           </div>
         </header>
 
@@ -753,11 +972,8 @@ export function ProgramWizard({ onClose, onComplete, initialStep, onStepChange }
       <ExitConfirmation
         open={exitConfirmOpen}
         onStay={() => setExitConfirmOpen(false)}
-        onLeave={() => {
-          setExitConfirmOpen(false)
-          markSaved()
-          handleClose()
-        }}
+        onSaveDraft={handleSaveDraftAndExit}
+        onDiscard={handleDiscardAndExit}
       />
     </div>
   )

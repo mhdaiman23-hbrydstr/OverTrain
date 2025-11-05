@@ -119,17 +119,30 @@ export const generateProgressionConfig = (
   }
 }
 
-const hasRequiredMuscleGroupExercises = (day: DayInWizard): boolean => {
+export const getMissingMuscleGroupAssignments = (day: DayInWizard): Array<{ group: string; missing: number }> => {
   if (!day.muscleGroups || day.muscleGroups.length === 0) {
-    return true
+    return []
   }
 
-  return day.muscleGroups.every((selection: MuscleGroupSelection) => {
-    const count = day.exercises.filter(exercise =>
-      exercise.muscleGroup.toLowerCase() === selection.group.toLowerCase(),
-    ).length
-    return count >= selection.count
-  })
+  return day.muscleGroups
+    .map((selection: MuscleGroupSelection) => {
+      const count = day.exercises.filter(exercise =>
+        exercise.muscleGroup.toLowerCase() === selection.group.toLowerCase(),
+      ).length
+      const missing = selection.count - count
+      if (missing > 0) {
+        return {
+          group: selection.group,
+          missing,
+        }
+      }
+      return null
+    })
+    .filter((value): value is { group: string; missing: number } => value !== null)
+}
+
+export const hasRequiredMuscleGroupExercises = (day: DayInWizard): boolean => {
+  return getMissingMuscleGroupAssignments(day).length === 0
 }
 
 export const validateWizardState = (state: ProgramWizardState) => {

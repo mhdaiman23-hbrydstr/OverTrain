@@ -32,6 +32,8 @@ export default function ProgramWizardPage() {
     return undefined
   }, [searchParams])
 
+  const initialDraftId = useMemo(() => searchParams.get('draft') ?? undefined, [searchParams])
+
   const returnTo = useMemo(() => searchParams.get('return') ?? '/', [searchParams])
   const completionTab = useMemo(() => searchParams.get('tab') ?? 'my-programs', [searchParams])
 
@@ -86,6 +88,7 @@ export default function ProgramWizardPage() {
         onClose={handleClose}
         onComplete={handleComplete}
         initialStep={initialStep}
+        initialDraftId={initialDraftId}
         onStepChange={handleStepChange}
       />
     </div>

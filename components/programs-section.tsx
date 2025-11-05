@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Plus, MoreVertical, AlertTriangle, Filter, Check, X, GitBranch, ChevronRight } from "lucide-react"
 import { GYM_TEMPLATES, getTemplatesByFilter } from "@/lib/gym-templates"
 import { ProgramStateManager, type MyProgramInfo } from "@/lib/program-state"
+import { programWizardDraftManager, type ProgramWizardDraftSummary } from "@/lib/program-wizard-draft-manager"
 import { getHistoricalWorkouts } from "@/lib/history"
 import { TemplateStorageManager } from "@/lib/template-storage"
 import { MY_PROGRAMS_ENABLED } from "@/lib/feature-flags"
@@ -55,6 +56,7 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
   const [programHistory, setProgramHistory] = useState<any[]>([])
   const [activeProgram, setActiveProgram] = useState<any>(null)
   const [myPrograms, setMyPrograms] = useState<MyProgramInfo[]>([])
+  const [drafts, setDrafts] = useState<ProgramWizardDraftSummary[]>([])
   const [workoutHistory, setWorkoutHistory] = useState<any[]>([])
   const [filterOpen, setFilterOpen] = useState(false)
   const [isStartingProgram, setIsStartingProgram] = useState(false)
@@ -145,6 +147,22 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
     }
   }, [activeTab])
 
+  useEffect(() => {
+    if (typeof window === "undefined") return
+
+    const loadDrafts = () => {
+      setDrafts(programWizardDraftManager.getDraftSummaries())
+    }
+
+    loadDrafts()
+
+    const handler = () => loadDrafts()
+    window.addEventListener('programDraftsUpdated', handler)
+    return () => {
+      window.removeEventListener('programDraftsUpdated', handler)
+    }
+  }, [setDrafts])
+
   const loadMyPrograms = useCallback(async (savedLocal?: any[], active?: any) => {
     const activeId = active?.templateId
 
@@ -210,6 +228,33 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
       setStartingTemplateId(null)
     }, 500)
   }, [onAddProgram, router])
+
+  const handleDraftClick = useCallback((draftId: string) => {
+    if (suppressNextRowClick) {
+      setSuppressNextRowClick(false)
+      return
+    }
+
+    const pathname = typeof window !== "undefined" ? window.location.pathname : "/"
+    const returnLocation = `${pathname}?view=programs`
+
+    const params = new URLSearchParams()
+    params.set("return", returnLocation)
+    params.set("tab", "my-programs")
+    params.set("draft", draftId)
+
+    router.push(`/program-wizard?${params.toString()}`)
+    onAddProgram()
+  }, [onAddProgram, router, setSuppressNextRowClick, suppressNextRowClick])
+
+  const handleDeleteDraft = useCallback((draftId: string) => {
+    programWizardDraftManager.deleteDraft(draftId)
+    setDrafts(programWizardDraftManager.getDraftSummaries())
+    toast({
+      title: "Draft deleted",
+      description: "The draft has been removed.",
+    })
+  }, [setDrafts, toast])
 
   const loadData = useCallback(async (options?: { refreshTemplate?: boolean }) => {
     // CACHE HIT: Check if we have fresh template cache
@@ -799,7 +844,7 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
                 {isStartingProgram ? (
                   <span className="flex items-center gap-2">
                     <Spinner size="sm" />
-                    <span className="truncate">Opening…</span>
+                    <span className="truncate">Opening�</span>
                   </span>
                 ) : (
                   <>
@@ -889,109 +934,190 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
 
             <TabsContent value="my-templates" className="mt-0">
               <div className="divide-y divide-border">
-                {myPrograms.length === 0 ? (
+                {drafts.length === 0 && myPrograms.length === 0 ? (
                   <div className="px-4 py-12 text-center text-muted-foreground">
                     <p>No custom programs yet</p>
                     <p className="text-sm mt-2">Create or customize a program to see it here</p>
                   </div>
                 ) : (
-                  myPrograms.map((program) => {
-                    const isActive = program.isActive
-                    return (
-                    <div
-                      key={program.id}
-                      className="px-4 py-4 hover:bg-muted/30 transition-colors cursor-pointer flex items-center justify-between gap-3"
-                      onClick={() => handleTemplateClick(program.id, isActive)}
-                    >
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <GitBranch className="h-4 w-4 text-muted-foreground" />
-                          <h3 className="font-semibold text-base leading-tight">{program.name}</h3>
-                          {isActive && (
-                            <Badge className="text-xs font-medium px-2 py-1 bg-green-500 text-white border-transparent">
-                              CURRENT
-                            </Badge>
-                          )}
+                  <>
+                    {drafts.length > 0 && (
+                      <>
+                        <div className="px-4 py-2 text-xs font-semibold uppercase text-muted-foreground">
+                          Drafts
                         </div>
-                        <p className="text-xs text-muted-foreground uppercase">
-                          {program.weeks} WEEKS - {program.days} DAYS/WEEK
-                        </p>
-                      </div>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 w-8 p-0"
-                            onPointerDown={(event) => {
-                              // Prevent the parent row's onClick from firing when opening the menu
-                              event.stopPropagation()
-                              
-                              setSuppressNextRowClick(true)
-                            }}
-                            onMouseDown={(event) => {
-                              event.stopPropagation()
-                              
-                              setSuppressNextRowClick(true)
-                            }}
-                            onClick={(event) => {
-                              event.stopPropagation()
-                              // no preventDefault here to allow the menu to open
-                            }}
+                        {drafts.map((draft) => (
+                          <div
+                            key={`draft-${draft.id}`}
+                            className="px-4 py-4 hover:bg-muted/30 transition-colors cursor-pointer flex items-center justify-between gap-3"
+                            onClick={() => handleDraftClick(draft.id)}
                           >
-                            <MoreVertical className="h-4 w-4 text-muted-foreground" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem
-                            onPointerDown={(event) => {
-                              
-                              event.stopPropagation()
-                            }}
-                            onSelect={(event) => {
-                              
-                              event.stopPropagation()
-                              handleRenameMyProgram(program)
-                            }}
-                          >
-                            Rename Program
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onPointerDown={(event) => {
-                              
-                              event.stopPropagation()
-                            }}
-                            onSelect={(event) => {
-                              
-                              event.stopPropagation()
-                              handleDeleteMyProgram(program)
-                            }}
-                            className="text-destructive"
-                          >
-                            Delete Program
-                          </DropdownMenuItem>
-                          {isActive && (
-                            <DropdownMenuItem
-                              className="text-destructive"
-                              onPointerDown={(event) => {
-                                
-                                event.stopPropagation()
-                              }}
-                              onSelect={(event) => {
-                                
-                                event.stopPropagation()
-                              setSuppressNextRowClick(true)
-                              handleEndMyProgram(program)
-                              }}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1">
+                                <GitBranch className="h-4 w-4 text-muted-foreground" />
+                                <h3 className="font-semibold text-base leading-tight truncate">{draft.name}</h3>
+                                <Badge className="text-xs font-medium px-2 py-1 bg-amber-500 text-white border-transparent">
+                                  DRAFT
+                                </Badge>
+                              </div>
+                              <p className="text-xs text-muted-foreground uppercase">
+                                {draft.weeks ?? 0} WEEKS - {draft.days ?? 0} DAYS/WEEK
+                              </p>
+                              <p className="text-xs text-muted-foreground mt-1">
+                                Updated {new Date(draft.updatedAt).toLocaleDateString()}
+                              </p>
+                            </div>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-8 w-8 p-0"
+                                  onPointerDown={(event) => {
+                                    event.stopPropagation()
+                                    setSuppressNextRowClick(true)
+                                  }}
+                                  onMouseDown={(event) => {
+                                    event.stopPropagation()
+                                    setSuppressNextRowClick(true)
+                                  }}
+                                  onClick={(event) => {
+                                    event.stopPropagation()
+                                  }}
+                                >
+                                  <MoreVertical className="h-4 w-4 text-muted-foreground" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem
+                                  onPointerDown={(event) => {
+                                    event.stopPropagation()
+                                  }}
+                                  onSelect={(event) => {
+                                    event.stopPropagation()
+                                    setSuppressNextRowClick(false)
+                                    handleDraftClick(draft.id)
+                                  }}
+                                >
+                                  Resume Editing
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  className="text-destructive"
+                                  onPointerDown={(event) => {
+                                    event.stopPropagation()
+                                  }}
+                                  onSelect={(event) => {
+                                    event.stopPropagation()
+                                    setSuppressNextRowClick(false)
+                                    handleDeleteDraft(draft.id)
+                                  }}
+                                >
+                                  Delete Draft
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
+                        ))}
+                      </>
+                    )}
+
+                    {myPrograms.length > 0 && (
+                      <>
+                        {drafts.length > 0 && (
+                          <div className="px-4 py-2 text-xs font-semibold uppercase text-muted-foreground">
+                            Saved Programs
+                          </div>
+                        )}
+                        {myPrograms.map((program) => {
+                          const isActive = program.isActive
+                          return (
+                            <div
+                              key={program.id}
+                              className="px-4 py-4 hover:bg-muted/30 transition-colors cursor-pointer flex items-center justify-between gap-3"
+                              onClick={() => handleTemplateClick(program.id, isActive)}
                             >
-                              End Program
-                            </DropdownMenuItem>
-                          )}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                    )
-                  })
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <GitBranch className="h-4 w-4 text-muted-foreground" />
+                                  <h3 className="font-semibold text-base leading-tight">{program.name}</h3>
+                                  {isActive && (
+                                    <Badge className="text-xs font-medium px-2 py-1 bg-green-500 text-white border-transparent">
+                                      CURRENT
+                                    </Badge>
+                                  )}
+                                </div>
+                                <p className="text-xs text-muted-foreground uppercase">
+                                  {program.weeks} WEEKS - {program.days} DAYS/WEEK
+                                </p>
+                              </div>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-8 w-8 p-0"
+                                    onPointerDown={(event) => {
+                                      event.stopPropagation()
+                                      setSuppressNextRowClick(true)
+                                    }}
+                                    onMouseDown={(event) => {
+                                      event.stopPropagation()
+                                      setSuppressNextRowClick(true)
+                                    }}
+                                    onClick={(event) => {
+                                      event.stopPropagation()
+                                    }}
+                                  >
+                                    <MoreVertical className="h-4 w-4 text-muted-foreground" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuItem
+                                    onPointerDown={(event) => {
+                                      event.stopPropagation()
+                                    }}
+                                    onSelect={(event) => {
+                                      event.stopPropagation()
+                                      handleRenameMyProgram(program)
+                                    }}
+                                  >
+                                    Rename Program
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    onPointerDown={(event) => {
+                                      event.stopPropagation()
+                                    }}
+                                    onSelect={(event) => {
+                                      event.stopPropagation()
+                                      handleDeleteMyProgram(program)
+                                    }}
+                                    className="text-destructive"
+                                  >
+                                    Delete Program
+                                  </DropdownMenuItem>
+                                  {isActive && (
+                                    <DropdownMenuItem
+                                      className="text-destructive"
+                                      onPointerDown={(event) => {
+                                        event.stopPropagation()
+                                      }}
+                                      onSelect={(event) => {
+                                        event.stopPropagation()
+                                        setSuppressNextRowClick(true)
+                                        handleEndMyProgram(program)
+                                      }}
+                                    >
+                                      End Program
+                                    </DropdownMenuItem>
+                                  )}
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </div>
+                          )
+                        })}
+                      </>
+                    )}
+                  </>
                 )}
               </div>
             </TabsContent>
