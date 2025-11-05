@@ -47,6 +47,7 @@ interface UseWizardStateResult {
   setError: (error: string | null) => void
   reset: () => void
   markSaved: () => void
+  hydrateState: (nextState: ProgramWizardState, options?: { markDirty?: boolean }) => void
 }
 
 const cloneExercises = (exercises: ExerciseInWizard[]): ExerciseInWizard[] =>
@@ -303,6 +304,21 @@ export function useWizardState(): UseWizardStateResult {
     setIsDirty(false)
   }, [])
 
+  const hydrateState = useCallback((nextState: ProgramWizardState, options?: { markDirty?: boolean }) => {
+    const normalizedDays = reindexDays(nextState.days ?? [])
+
+    setState({
+      ...initialWizardState,
+      ...nextState,
+      dayCount: nextState.dayCount ?? normalizedDays.length,
+      days: normalizedDays,
+      isLoading: nextState.isLoading ?? false,
+      error: nextState.error ?? null,
+    })
+
+    setIsDirty(options?.markDirty ?? false)
+  }, [])
+
   return useMemo(() => ({
     state,
     isDirty,
@@ -325,6 +341,7 @@ export function useWizardState(): UseWizardStateResult {
     setError,
     reset,
     markSaved,
+    hydrateState,
   }), [
     state,
     isDirty,
@@ -347,5 +364,6 @@ export function useWizardState(): UseWizardStateResult {
     setError,
     reset,
     markSaved,
+    hydrateState,
   ])
 }

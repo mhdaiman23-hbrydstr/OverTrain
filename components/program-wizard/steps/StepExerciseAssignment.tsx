@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+﻿import { useMemo, useState } from 'react'
 import { ArrowLeftRight, ChevronDown, Edit3, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { BottomActionBar } from '@/components/ui/bottom-action-bar'
@@ -14,6 +14,8 @@ import { SortableContext, verticalListSortingStrategy, sortableKeyboardCoordinat
 import { ExerciseSelectionDialog } from '../components/ExerciseSelectionDialog'
 import { SortableExerciseRow } from '../components/SortableExerciseRow'
 import { cn } from '@/lib/utils'
+import { getMuscleGroupLabel } from '@/lib/exercise-muscle-groups'
+import { getMissingMuscleGroupAssignments } from '../utils'
 
 interface StepExerciseAssignmentProps {
   days: DayInWizard[]
@@ -88,6 +90,31 @@ export function StepExerciseAssignment({
   const [activeExerciseId, setActiveExerciseId] = useState<string | null>(null)
 
   const allDaysHaveExercises = days.every(day => day.exercises.length > 0)
+  const missingAssignmentsByDay = useMemo(
+    () => days.map(day => getMissingMuscleGroupAssignments(day)),
+    [days],
+  )
+  const totalMissingAssignments = useMemo(
+    () => missingAssignmentsByDay.reduce((total, entries) => total + entries.length, 0),
+    [missingAssignmentsByDay],
+  )
+  const daysWithoutPlannedGroups = useMemo(
+    () =>
+      days.reduce<number[]>((acc, day, index) => {
+        if (!day.muscleGroups || day.muscleGroups.length === 0) {
+          acc.push(index + 1)
+        }
+        return acc
+      }, []),
+    [days],
+  )
+  const hasMissingAssignments = missingAssignmentsByDay.some(missing => missing.length > 0)
+  const canProceed = allDaysHaveExercises && !hasMissingAssignments
+  const nextDisabledReason = !allDaysHaveExercises
+    ? 'Add at least one exercise to every day.'
+    : hasMissingAssignments
+      ? 'Complete the planned muscle group counts before continuing.'
+      : undefined
 
   const toggleDayExpansion = (dayIndex: number) => {
     setExpandedDays(prev => {
@@ -220,11 +247,27 @@ export function StepExerciseAssignment({
 
       {!isLoading && !error && (
         <div className="space-y-4">
+          {hasMissingAssignments && (
+            <div className="rounded-md border border-amber-300 bg-amber-50 px-3 py-3 text-sm text-amber-900">
+              {totalMissingAssignments > 1
+                ? 'Some muscle group plans still need exercises. Expand the highlighted days below to finish assigning.'
+                : 'One muscle group plan still needs an exercise. Expand the highlighted day below to finish assigning.'}
+            </div>
+          )}
+          {daysWithoutPlannedGroups.length > 0 && (
+            <div className="rounded-md border border-border/60 bg-muted/25 px-3 py-2 text-xs text-muted-foreground">
+              Day{daysWithoutPlannedGroups.length > 1 ? 's' : ''} {daysWithoutPlannedGroups.join(', ')} do not have any planned muscle groups. Suggestions will be broad, and you may want to review those days manually.
+            </div>
+          )}
           {days.map((day, dayIndex) => {
-            const groupedByMuscle = day.muscleGroups?.map(group => ({
-              label: `${group.group} x ${group.count} planned`,
-              count: group.count,
-            })) ?? []
+            const missingAssignments = missingAssignmentsByDay[dayIndex] ?? []
+            const groupedByMuscle = day.muscleGroups?.map(group => {
+              const label = `${getMuscleGroupLabel(group.group)} • ${group.count} planned`
+              return {
+                label,
+                count: group.count,
+              }
+            }) ?? []
             const isDayExpanded = expandedDays.has(dayIndex)
 
             return (
@@ -300,6 +343,11 @@ export function StepExerciseAssignment({
 
                     {/* Right side: Badge and Delete button */}
                     <div className="flex items-center gap-2 flex-shrink-0">
+                      {missingAssignments.length > 0 && (
+                        <Badge className="text-xs font-medium bg-amber-500 text-white border-transparent shadow-sm">
+                          Needs attention
+                        </Badge>
+                      )}
                       <Badge variant="outline" className="text-xs">
                         {day.exercises.length} exercises
                       </Badge>
@@ -321,7 +369,7 @@ export function StepExerciseAssignment({
                   </div>
 
                   {/* Metadata shown in header */}
-                  {groupedByMuscle.length > 0 && (
+                  {groupedByMuscle.length > 0 ? (
                     <div className="flex flex-wrap gap-2 text-xs text-muted-foreground mt-2 ml-8">
                       {groupedByMuscle.map(item => (
                         <span key={item.label} className="rounded bg-muted/60 px-2 py-1">
@@ -329,12 +377,28 @@ export function StepExerciseAssignment({
                         </span>
                       ))}
                     </div>
+                  ) : (
+                    <div className="border border-dashed border-border/50 bg-muted/20 text-xs text-muted-foreground mt-2 ml-8 px-2 py-1">
+                      No muscle groups planned for this day.
+                    </div>
                   )}
                 </div>
 
                 {/* Expandable Content */}
                 {isDayExpanded && (
                   <>
+                    {missingAssignments.length > 0 && (
+                      <div className="border-t border-amber-200 bg-amber-50 px-3 py-3 text-xs text-amber-900 sm:px-4 sm:py-3">
+                        <div className="font-medium mb-1">Finish planned muscle groups</div>
+                        {missingAssignments.map(({ group, missing }) => (
+                          <div key={`${group}-${missing}`}>
+                            Add {missing} more {getMuscleGroupLabel(group)} exercise
+                            {missing > 1 ? 's' : ''}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
                     {/* Action Buttons - Separated from header */}
                     <div className="border-t border-border/40 px-3 py-3 sm:px-4 sm:py-4 bg-muted/20">
                       <div className="flex flex-wrap items-center gap-2 sm:flex-nowrap">
@@ -437,6 +501,10 @@ export function StepExerciseAssignment({
         onSelectExercise={handleExerciseSelection}
       />
 
+      {!canProceed && nextDisabledReason && (
+        <p className="text-xs text-muted-foreground text-center px-4">{nextDisabledReason}</p>
+      )}
+
       <BottomActionBar
         leftContent={
           <Button variant="ghost" onClick={onBack} className="w-full">
@@ -447,7 +515,8 @@ export function StepExerciseAssignment({
           <Button
             className="w-full gradient-primary text-primary-foreground h-auto py-2 px-4 text-center"
             onClick={onNext}
-            disabled={!allDaysHaveExercises}
+            disabled={!canProceed}
+            title={nextDisabledReason}
           >
             Continue
           </Button>
@@ -457,6 +526,8 @@ export function StepExerciseAssignment({
     </div>
   )
 }
+
+
 
 
 

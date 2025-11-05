@@ -8,6 +8,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
+import { Button } from '@/components/ui/button'
 
 interface ConfirmationDialogProps {
   open: boolean
@@ -47,19 +48,39 @@ export function ConfirmationDialog({
 interface ExitConfirmationProps {
   open: boolean
   onStay: () => void
-  onLeave: () => void
+  onSaveDraft: () => void
+  onDiscard: () => void
 }
 
-export function ExitConfirmation({ open, onStay, onLeave }: ExitConfirmationProps) {
+export function ExitConfirmation({ open, onStay, onSaveDraft, onDiscard }: ExitConfirmationProps) {
   return (
-    <ConfirmationDialog
-      open={open}
-      title="Discard Your Custom Program?"
-      description="You have unsaved progress. Leaving now will discard all changes."
-      confirmLabel="Discard Changes"
-      cancelLabel="Keep Editing"
-      onConfirm={onLeave}
-      onCancel={onStay}
-    />
+    <AlertDialog open={open} onOpenChange={value => {
+      if (!value) {
+        onStay()
+      }
+    }}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Discard Your Custom Program?</AlertDialogTitle>
+          <AlertDialogDescription>
+            You have unsaved progress. Save a draft to finish later or discard the current changes.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter className="sm:flex-row sm:items-center sm:justify-between">
+          <AlertDialogCancel onClick={onStay}>Keep Editing</AlertDialogCancel>
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <Button variant="secondary" onClick={onSaveDraft}>
+              Save draft &amp; exit
+            </Button>
+            <AlertDialogAction
+              onClick={onDiscard}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Discard changes
+            </AlertDialogAction>
+          </div>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   )
 }

@@ -40,6 +40,27 @@ export function MuscleGroupPicker({ open, onOpenChange, selection, onSave }: Mus
     return Object.values(localSelection).reduce((total, item) => total + item.count, 0)
   }, [localSelection])
 
+  const hasChanges = useMemo(() => {
+    const original = new Map<string, number>()
+    selection.forEach(item => {
+      original.set(`${item.category}:${item.group}`, item.count)
+    })
+
+    const current = new Map<string, number>()
+    Object.values(localSelection).forEach(item => {
+      current.set(`${item.category}:${item.group}`, item.count)
+    })
+
+    const keys = new Set<string>([...original.keys(), ...current.keys()])
+    for (const key of keys) {
+      if ((original.get(key) ?? 0) !== (current.get(key) ?? 0)) {
+        return true
+      }
+    }
+
+    return false
+  }, [selection, localSelection])
+
   const updateGroup = (category: MuscleGroupSelection['category'], group: string, delta: number) => {
     setLocalSelection(prev => {
       const key = `${category}:${group}`
@@ -141,7 +162,7 @@ export function MuscleGroupPicker({ open, onOpenChange, selection, onSave }: Mus
             <Button variant="ghost" onClick={handleClear}>
               Clear
             </Button>
-            <Button onClick={handleSave} disabled={totalSelected === 0}>
+            <Button onClick={handleSave} disabled={!hasChanges}>
               Save groups
             </Button>
           </div>

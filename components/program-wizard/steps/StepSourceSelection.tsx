@@ -12,7 +12,7 @@ export function StepSourceSelection({ onSelect }: StepSourceSelectionProps) {
       <Card className="border border-border/70 hover:border-primary/60 transition-colors">
         <CardHeader>
           <CardTitle>Start from a Template</CardTitle>
-          <CardDescription>Pick one of LiftLog&apos;s proven programs and customize it to match your goals.</CardDescription>
+          <CardDescription>Pick one of OverTrain&apos;s proven programs and customize it to match your goals.</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4 text-sm text-muted-foreground">
