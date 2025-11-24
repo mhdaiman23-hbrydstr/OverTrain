@@ -14,6 +14,7 @@ import { ProgressionNoteBanner } from "@/components/workout-logger/components/Pr
 import { ExerciseGroups } from "@/components/workout-logger/components/ExerciseGroups"
 import { CompletionBar } from "@/components/workout-logger/components/CompletionBar"
 import { WorkoutDialogs } from "@/components/workout-logger/components/WorkoutDialogs"
+import { AddSetDialog } from "@/components/workout-logger/components/AddSetDialog"
 import { useConnectionStatus } from "@/components/workout-logger/hooks/use-connection-status"
 import { useWorkoutSession } from "@/components/workout-logger/hooks/use-workout-session"
 
@@ -25,8 +26,6 @@ function WorkoutLoggerView({ initialWorkout, onComplete, onCancel, onViewAnalyti
     setShowNotesDialog,
     showSummaryDialog,
     setShowSummaryDialog,
-    showAddExerciseDialog,
-    setShowAddExerciseDialog,
     showEndWorkoutDialog,
     setShowEndWorkoutDialog,
     showEndProgramDialog,
@@ -97,6 +96,13 @@ function WorkoutLoggerView({ initialWorkout, onComplete, onCancel, onViewAnalyti
     handleSaveExerciseNote,
     handleSaveCustomRpe,
 showBodyweightDialog,    setShowBodyweightDialog,    bodyweightInput,    setBodyweightInput,    handleSaveBodyweight,
+    showAddSetDialog,
+    setShowAddSetDialog,
+    addSetExerciseId,
+    isAddingSet,
+    handleConfirmAddSet,
+    isAddingExercise,
+    handleOpenAddExercise,
   } = useWorkoutSession({ initialWorkout, onComplete, onCancel })
 
   const connectionStatus = useConnectionStatus()
@@ -136,7 +142,7 @@ showBodyweightDialog,    setShowBodyweightDialog,    bodyweightInput,    setBody
         onToggleCalendar={() => setShowCalendar((prev) => !prev)}
         onOpenNotes={() => setShowNotesDialog(true)}
         onOpenSummary={() => setShowSummaryDialog(true)}
-        onOpenAddExercise={() => setShowAddExerciseDialog(true)}
+        onOpenAddExercise={handleOpenAddExercise}
         onOpenEndWorkout={() => setShowEndWorkoutDialog(true)}
         onOpenEndProgram={() => setShowEndProgramDialog(true)}
       />
@@ -169,8 +175,6 @@ showBodyweightDialog,    setShowBodyweightDialog,    bodyweightInput,    setBody
         showSummaryDialog={showSummaryDialog}
         setShowSummaryDialog={setShowSummaryDialog}
         getWorkoutSummary={getWorkoutSummary}
-        showAddExerciseDialog={showAddExerciseDialog}
-        setShowAddExerciseDialog={setShowAddExerciseDialog}
         showEndWorkoutDialog={showEndWorkoutDialog}
         setShowEndWorkoutDialog={setShowEndWorkoutDialog}
         endWorkoutConfirmation={endWorkoutConfirmation}
@@ -239,6 +243,16 @@ showBodyweightDialog={showBodyweightDialog}        setShowBodyweightDialog={setS
           replaceExerciseId ? workout.exercises.find((ex) => ex.id === replaceExerciseId)?.exerciseName : undefined
         }
       />
+
+      {addSetExerciseId && (
+        <AddSetDialog
+          open={showAddSetDialog}
+          onOpenChange={setShowAddSetDialog}
+          exerciseName={workout.exercises.find((ex) => ex.id === addSetExerciseId)?.exerciseName || "Exercise"}
+          onConfirm={handleConfirmAddSet}
+          isAdding={isAddingSet}
+        />
+      )}
     </>
   )
 }

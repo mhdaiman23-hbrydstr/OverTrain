@@ -978,6 +978,279 @@ export class ProgramStateManager {
     })
   }
 
+  /**
+   * Add a set to an exercise in the program template
+   * If repeatInFollowingWeeks is true, increases sets for all weeks in the progression template
+   */
+  static async addSetToExercise(params: {
+    dayNumber: number
+    exerciseId: string
+    exerciseName: string
+    repeatInFollowingWeeks: boolean
+  }): Promise<void> {
+    if (typeof window === "undefined") return
+
+    // Ensure the active program is forked into a custom copy
+    let activeProgram = await this.getActiveProgram({ skipDatabaseLoad: true })
+    if (!activeProgram) {
+      throw new Error("No active program found")
+    }
+    if (!activeProgram.isCustom) {
+      await this.ensureCustomTemplateForActiveProgram()
+      activeProgram = await this.getActiveProgram({ skipDatabaseLoad: true })
+      if (!activeProgram) return
+    }
+
+    return this.withLock(async () => {
+      const { dayNumber, exerciseId, exerciseName, repeatInFollowingWeeks } = params
+
+      // Re-fetch activeProgram inside lock to avoid stale data
+      activeProgram = await this.getActiveProgram({ skipDatabaseLoad: true })
+      if (!activeProgram) {
+        throw new Error("No active program found")
+      }
+
+      const dayKey = `day${dayNumber}`
+      const dayEntry = activeProgram.template.schedule?.[dayKey]
+
+      if (!dayEntry) {
+        throw new Error(`Day ${dayNumber} not found in template`)
+      }
+
+      // Find the exercise in the template
+      const exercise = dayEntry.exercises.find(
+        (ex) => ex.id === exerciseId || ex.exerciseName === exerciseName
+      )
+
+      if (!exercise) {
+        throw new Error(`Exercise "${exerciseName}" not found in day ${dayNumber}`)
+      }
+
+      // Update progression template to add one set for all weeks
+      const totalWeeks = activeProgram.template.weeks || 1
+      const updatedProgressionTemplate = { ...exercise.progressionTemplate }
+
+      for (let week = 1; week <= totalWeeks; week++) {
+        const weekKey = `week${week}` as keyof typeof exercise.progressionTemplate
+        const weekData = exercise.progressionTemplate[weekKey]
+
+        if (weekData && typeof weekData === 'object' && 'sets' in weekData) {
+          updatedProgressionTemplate[weekKey] = {
+            ...weekData,
+            sets: (weekData.sets as number) + 1,
+          }
+        } else {
+          // If week not defined, use week1 as base or default
+          const baseWeek = exercise.progressionTemplate.week1 || { sets: 3, repRange: "8-10" }
+          updatedProgressionTemplate[weekKey] = {
+            ...baseWeek,
+            sets: baseWeek.sets + 1,
+          }
+        }
+      }
+
+      // Update in-memory template
+      exercise.progressionTemplate = updatedProgressionTemplate
+
+      // Update database if repeatInFollowingWeeks is true
+      if (repeatInFollowingWeeks && supabase) {
+        try {
+          // Find the template exercise ID in database
+          const fullTemplate = await programTemplateService.getFullTemplate(activeProgram.templateId)
+          if (!fullTemplate) {
+            throw new Error("Template not found in database")
+          }
+
+          const templateDay = fullTemplate.days?.find((d) => d.day_number === dayNumber)
+          if (!templateDay) {
+            throw new Error(`Day ${dayNumber} not found in database template`)
+          }
+
+          const templateExercise = templateDay.exercises?.find(
+            (ex) => ex.exercise_id === exercise.exerciseLibraryId || ex.exercise_id === exerciseId
+          )
+
+          if (templateExercise) {
+            // Update progression_config in database
+            const updatedProgressionConfig = {
+              ...templateExercise.progression_config,
+              progressionTemplate: updatedProgressionTemplate,
+            }
+
+            const { error } = await supabase
+              .from("program_template_exercises")
+              .update({ progression_config: updatedProgressionConfig })
+              .eq("id", templateExercise.id)
+
+            if (error) {
+              console.error("[ProgramState] Failed to update exercise sets in database:", error)
+              throw error
+            }
+
+            programTemplateService.clearCache()
+          }
+        } catch (error) {
+          console.error("[ProgramState] Error updating database for set addition:", error)
+          // Continue with in-memory update even if database update fails
+        }
+      }
+
+      await this.saveActiveProgram(activeProgram)
+      window.dispatchEvent(new Event("programChanged"))
+    })
+  }
+
+  /**
+   * Add an exercise to a day in the program template
+   * If repeatInFollowingWeeks is true, adds the exercise to all future weeks
+   */
+  static async addExerciseToDay(params: {
+    dayNumber: number
+    exercise: {
+      id: string
+      name: string
+      muscleGroup?: string
+      equipmentType?: string
+    }
+    repeatInFollowingWeeks: boolean
+  }): Promise<void> {
+    if (typeof window === "undefined") return
+
+    // Ensure the active program is forked into a custom copy
+    let activeProgram = await this.getActiveProgram({ skipDatabaseLoad: true })
+    if (!activeProgram) {
+      throw new Error("No active program found")
+    }
+    if (!activeProgram.isCustom) {
+      await this.ensureCustomTemplateForActiveProgram()
+      activeProgram = await this.getActiveProgram({ skipDatabaseLoad: true })
+      if (!activeProgram) return
+    }
+
+    return this.withLock(async () => {
+      const { dayNumber, exercise, repeatInFollowingWeeks } = params
+
+      // Re-fetch activeProgram inside lock to avoid stale data
+      activeProgram = await this.getActiveProgram({ skipDatabaseLoad: true })
+      if (!activeProgram) {
+        throw new Error("No active program found")
+      }
+
+      const dayKey = `day${dayNumber}`
+      const dayEntry = activeProgram.template.schedule?.[dayKey]
+
+      if (!dayEntry) {
+        throw new Error(`Day ${dayNumber} not found in template`)
+      }
+
+      // Get exercise metadata from library
+      const exerciseService = ExerciseLibraryService.getInstance()
+      let exerciseData = await exerciseService.getExerciseById(exercise.id)
+      if (!exerciseData) {
+        exerciseData = await exerciseService.getExerciseByName(exercise.name)
+      }
+
+      const muscleGroup = exerciseData?.muscleGroup || exercise.muscleGroup || "Other"
+      const equipmentType = exerciseData?.equipmentType || exercise.equipmentType || "Bodyweight"
+      
+      // Determine category based on muscle group - compound movements are typically for larger muscle groups
+      const compoundMuscleGroups = ["chest", "back", "legs", "shoulders", "quadriceps", "hamstrings", "glutes"]
+      const isCompound = compoundMuscleGroups.some(group => 
+        muscleGroup.toLowerCase().includes(group)
+      )
+      const category = isCompound ? "compound" : "isolation"
+
+      // Create progression template for all weeks
+      const totalWeeks = activeProgram.template.weeks || 1
+      const progressionTemplate: Record<string, { sets: number; repRange: string }> = {}
+      for (let week = 1; week <= totalWeeks; week++) {
+        progressionTemplate[`week${week}`] = {
+          sets: 3,
+          repRange: "8-10",
+        }
+      }
+
+      // Create new exercise template
+      const newExercise: any = {
+        id: Math.random().toString(36).substr(2, 9),
+        exerciseName: exercise.name,
+        exerciseLibraryId: exercise.id,
+        category,
+        muscleGroup,
+        equipmentType,
+        restTime: 90,
+        progressionTemplate,
+        autoProgression: {
+          enabled: true,
+          progressionType: "weight_based" as const,
+          rules: {
+            if_all_sets_completed: "increase_weight",
+            if_failed_reps: "repeat_weight",
+            if_failed_twice: "deload",
+          },
+        },
+      }
+
+      // Add to in-memory template
+      dayEntry.exercises.push(newExercise)
+
+      // Update database if repeatInFollowingWeeks is true
+      if (repeatInFollowingWeeks && supabase) {
+        try {
+          const fullTemplate = await programTemplateService.getFullTemplate(activeProgram.templateId)
+          if (!fullTemplate) {
+            throw new Error("Template not found in database")
+          }
+
+          const templateDay = fullTemplate.days?.find((d) => d.day_number === dayNumber)
+          if (!templateDay) {
+            throw new Error(`Day ${dayNumber} not found in database template`)
+          }
+
+          // Get max exercise order
+          const maxOrder = Math.max(
+            ...(templateDay.exercises?.map((ex) => ex.exercise_order) || [0]),
+            0
+          )
+
+          // Insert new exercise into database
+          const { error } = await supabase.from("program_template_exercises").insert({
+            template_day_id: templateDay.id,
+            exercise_id: exercise.id,
+            exercise_order: maxOrder + 1,
+            category,
+            rest_time_seconds: 90,
+            progression_config: {
+              progressionTemplate,
+              autoProgression: {
+                enabled: true,
+                progressionType: "weight_based",
+                rules: {
+                  if_all_sets_completed: "increase_weight",
+                  if_failed_reps: "repeat_weight",
+                  if_failed_twice: "deload",
+                },
+              },
+            },
+          })
+
+          if (error) {
+            console.error("[ProgramState] Failed to add exercise to database:", error)
+            throw error
+          }
+
+          programTemplateService.clearCache()
+        } catch (error) {
+          console.error("[ProgramState] Error adding exercise to database:", error)
+          // Continue with in-memory update even if database update fails
+        }
+      }
+
+      await this.saveActiveProgram(activeProgram)
+      window.dispatchEvent(new Event("programChanged"))
+    })
+  }
+
   static async deleteCustomProgram(templateId: string): Promise<void> {
     const userId = this.getCurrentUserId()
     if (!userId) {

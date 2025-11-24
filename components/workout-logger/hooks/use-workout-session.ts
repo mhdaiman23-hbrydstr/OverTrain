@@ -32,7 +32,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
   const [workout, setWorkout] = useState<WorkoutSession | null>(null)
   const [showNotesDialog, setShowNotesDialog] = useState(false)
   const [showSummaryDialog, setShowSummaryDialog] = useState(false)
-  const [showAddExerciseDialog, setShowAddExerciseDialog] = useState(false)
+  // showAddExerciseDialog removed - now using showExerciseLibrary with isAddingNewExercise flag
   const [showEndWorkoutDialog, setShowEndWorkoutDialog] = useState(false)
   const [showEndProgramDialog, setShowEndProgramDialog] = useState(false)
   const [showCompletionDialog, setShowCompletionDialog] = useState(false)
@@ -82,6 +82,14 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
   const [showBodyweightDialog, setShowBodyweightDialog] = useState(false)
   const [bodyweightExerciseId, setBodyweightExerciseId] = useState<string | null>(null)
   const [bodyweightInput, setBodyweightInput] = useState("")
+
+  // Add set/exercise dialog state
+  const [showAddSetDialog, setShowAddSetDialog] = useState(false)
+  const [addSetExerciseId, setAddSetExerciseId] = useState<string | null>(null)
+  const [addSetAfterSetId, setAddSetAfterSetId] = useState<string | null>(null)
+  const [isAddingSet, setIsAddingSet] = useState(false)
+  const [isAddingExercise, setIsAddingExercise] = useState(false)
+  const [isAddingNewExercise, setIsAddingNewExercise] = useState(false) // Flag to distinguish add vs replace
 
   // Save exercise note callback
   const handleSaveExerciseNote = async (exerciseId: string, noteText: string, isPinned: boolean) => {
@@ -1819,23 +1827,85 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
 
   
   const handleAddSet = (exerciseId: string, afterSetId: string) => {
-    if (!workout) return
+    // Show dialog to ask if user wants to repeat in following weeks
+    setAddSetExerciseId(exerciseId)
+    setAddSetAfterSetId(afterSetId)
+    setShowAddSetDialog(true)
+  }
 
-    const exercise = workout.exercises.find((ex) => ex.id === exerciseId)
-    if (!exercise) return
+  const handleConfirmAddSet = async (repeatInFollowingWeeks: boolean) => {
+    if (!workout || !addSetExerciseId || !addSetAfterSetId) return
 
-    const setIndex = exercise.sets.findIndex((s) => s.id === afterSetId)
-    const newSet = {
-      id: Math.random().toString(36).substr(2, 9),
-      reps: 0,
-      weight: 0,
-      completed: false,
-      userAdded: true, // Mark as user-added so it persists to future weeks
+    setIsAddingSet(true)
+    try {
+      const exercise = workout.exercises.find((ex) => ex.id === addSetExerciseId)
+      if (!exercise) {
+        toast({
+          title: "Error",
+          description: "Exercise not found",
+          variant: "destructive",
+        })
+        return
+      }
+
+      // If repeat in following weeks, update the template
+      if (repeatInFollowingWeeks) {
+        try {
+          const activeProgram = await ProgramStateManager.getActiveProgram()
+          if (activeProgram) {
+            await ProgramStateManager.addSetToExercise({
+              dayNumber: workout.day || activeProgram.currentDay,
+              exerciseId: exercise.exerciseId,
+              exerciseName: exercise.exerciseName,
+              repeatInFollowingWeeks: true,
+            })
+            toast({
+              title: "Set added",
+              description: "This set will appear in all future workouts for this exercise",
+            })
+          }
+        } catch (error) {
+          console.error("[WorkoutLogger] Failed to add set to template:", error)
+          toast({
+            title: "Warning",
+            description: "Set added to current workout, but failed to update template",
+            variant: "destructive",
+          })
+        }
+      } else {
+        toast({
+          title: "Set added",
+          description: "Set added to current workout only",
+        })
+      }
+
+      // Add set to current workout
+      const setIndex = exercise.sets.findIndex((s) => s.id === addSetAfterSetId)
+      const newSet = {
+        id: Math.random().toString(36).substr(2, 9),
+        reps: 0,
+        weight: 0,
+        completed: false,
+        userAdded: true,
+      }
+
+      exercise.sets.splice(setIndex + 1, 0, newSet)
+      setWorkout({ ...workout })
+      WorkoutLogger.saveCurrentWorkout(workout, user?.id)
+
+      setShowAddSetDialog(false)
+      setAddSetExerciseId(null)
+      setAddSetAfterSetId(null)
+    } catch (error) {
+      console.error("[WorkoutLogger] Error adding set:", error)
+      toast({
+        title: "Error",
+        description: "Failed to add set. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsAddingSet(false)
     }
-
-    exercise.sets.splice(setIndex + 1, 0, newSet)
-    setWorkout({ ...workout })
-    WorkoutLogger.saveCurrentWorkout(workout, user?.id)
   }
 
   const handleDeleteSet = (exerciseId: string, setId: string) => {
@@ -1888,6 +1958,13 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
 
   const handleReplaceExercise = (exerciseId: string) => {
     setReplaceExerciseId(exerciseId)
+    setIsAddingNewExercise(false)
+    setShowExerciseLibrary(true)
+  }
+
+  const handleOpenAddExercise = () => {
+    setReplaceExerciseId(null)
+    setIsAddingNewExercise(true)
     setShowExerciseLibrary(true)
   }
 
@@ -1969,7 +2046,98 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
   }
 
   const handleSelectExerciseFromLibrary = async (selectedExercise: Exercise, options?: { repeat?: boolean }) => {
-    if (!workout || !replaceExerciseId) return
+    if (!workout) return
+
+    // Handle "Add New Exercise" flow
+    if (isAddingNewExercise) {
+      setIsAddingExercise(true)
+      try {
+        const activeProgram = await ProgramStateManager.getActiveProgram()
+        if (!activeProgram) {
+          toast({
+            title: "Error",
+            description: "No active program found",
+            variant: "destructive",
+          })
+          return
+        }
+
+        const repeatInFollowingWeeks = options?.repeat ?? false
+
+        // If repeat in following weeks, update the template
+        if (repeatInFollowingWeeks) {
+          try {
+            await ProgramStateManager.addExerciseToDay({
+              dayNumber: workout.day || activeProgram.currentDay,
+              exercise: {
+                id: selectedExercise.id,
+                name: selectedExercise.name,
+                muscleGroup: selectedExercise.muscleGroup,
+                equipmentType: selectedExercise.equipmentType,
+              },
+              repeatInFollowingWeeks: true,
+            })
+            toast({
+              title: "Exercise added",
+              description: "This exercise will appear in all future workouts for this day",
+            })
+          } catch (error) {
+            console.error("[WorkoutLogger] Failed to add exercise to template:", error)
+            toast({
+              title: "Warning",
+              description: "Exercise added to current workout, but failed to update template",
+              variant: "destructive",
+            })
+          }
+        } else {
+          toast({
+            title: "Exercise added",
+            description: "Exercise added to current workout only",
+          })
+        }
+
+        // Add exercise to current workout
+        const newExercise = {
+          id: Math.random().toString(36).substr(2, 9),
+          exerciseId: selectedExercise.id,
+          exerciseLibraryId: selectedExercise.id,
+          exerciseName: selectedExercise.name,
+          targetSets: 3,
+          targetRest: "90s",
+          muscleGroup: selectedExercise.muscleGroup,
+          equipmentType: selectedExercise.equipmentType,
+          sets: Array.from({ length: 3 }, () => ({
+            id: Math.random().toString(36).substr(2, 9),
+            reps: 0,
+            weight: 0,
+            completed: false,
+          })),
+          completed: false,
+        }
+
+        const updatedWorkout = {
+          ...workout,
+          exercises: [...workout.exercises, newExercise],
+        }
+        setWorkout(updatedWorkout)
+        await WorkoutLogger.saveCurrentWorkout(updatedWorkout, user?.id)
+      } catch (error) {
+        console.error("[WorkoutLogger] Error adding exercise:", error)
+        toast({
+          title: "Error",
+          description: "Failed to add exercise. Please try again.",
+          variant: "destructive",
+        })
+      } finally {
+        setIsAddingExercise(false)
+        setIsAddingNewExercise(false)
+        setShowExerciseLibrary(false)
+      }
+      return
+    }
+
+    // Handle "Replace Exercise" flow
+    if (!replaceExerciseId) return
 
     const normalize = (s: string) => s.toLowerCase().trim()
 
@@ -2437,8 +2605,6 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
     setShowNotesDialog,
     showSummaryDialog,
     setShowSummaryDialog,
-    showAddExerciseDialog,
-    setShowAddExerciseDialog,
     showEndWorkoutDialog,
     setShowEndWorkoutDialog,
     showEndProgramDialog,
@@ -2533,5 +2699,14 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
     bodyweightInput,
     setBodyweightInput,
     handleSaveBodyweight,
+    showAddSetDialog,
+    setShowAddSetDialog,
+    addSetExerciseId,
+    addSetAfterSetId,
+    isAddingSet,
+    handleConfirmAddSet,
+    isAddingExercise,
+    isAddingNewExercise,
+    handleOpenAddExercise,
   }
 }

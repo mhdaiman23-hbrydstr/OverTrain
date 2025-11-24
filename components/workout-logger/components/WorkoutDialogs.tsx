@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Plus, Check, AlertTriangle, Loader2 } from "lucide-react"
+import { Check, AlertTriangle, Loader2 } from "lucide-react"
 import { BodyweightDialog } from "./bodyweight-dialog"
 
 interface WorkoutDialogsProps {
@@ -24,9 +24,6 @@ interface WorkoutDialogsProps {
   showSummaryDialog: boolean
   setShowSummaryDialog: Dispatch<SetStateAction<boolean>>
   getWorkoutSummary: () => { completedSets: number; skippedSets: number; totalSets: number; exercises: number }
-
-  showAddExerciseDialog: boolean
-  setShowAddExerciseDialog: Dispatch<SetStateAction<boolean>>
 
   showEndWorkoutDialog: boolean
   setShowEndWorkoutDialog: Dispatch<SetStateAction<boolean>>
@@ -57,8 +54,6 @@ export function WorkoutDialogs({
   showSummaryDialog,
   setShowSummaryDialog,
   getWorkoutSummary,
-  showAddExerciseDialog,
-  setShowAddExerciseDialog,
   showEndWorkoutDialog,
   setShowEndWorkoutDialog,
   endWorkoutConfirmation,
@@ -157,27 +152,7 @@ showBodyweightDialog,  setShowBodyweightDialog,  bodyweightInput,  setBodyweight
         </DialogContent>
       </Dialog>
 
-      <Dialog open={showAddExerciseDialog} onOpenChange={setShowAddExerciseDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Add Exercise</DialogTitle>
-            <DialogDescription>Add an extra exercise to your current workout template.</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="text-center p-8 text-muted-foreground">
-              <Plus className="h-12 w-12 mx-auto mb-4" />
-              <p>Exercise selection feature coming soon...</p>
-              <p className="text-sm">You'll be able to browse and add exercises from our database.</p>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowAddExerciseDialog(false)}>
-              Cancel
-            </Button>
-            <Button disabled>Add Exercise</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Add Exercise Dialog moved to AddExerciseDialog component */}
 
       <Dialog open={showEndWorkoutDialog} onOpenChange={setShowEndWorkoutDialog}>
         <DialogContent className="flex flex-col max-h-[85vh]">
