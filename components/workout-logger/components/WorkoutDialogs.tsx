@@ -210,15 +210,23 @@ showBodyweightDialog,  setShowBodyweightDialog,  bodyweightInput,  setBodyweight
                 setShowEndWorkoutDialog(false)
                 setEndWorkoutConfirmation("")
               }}
+              disabled={isCompletingWorkout}
             >
               Cancel
             </Button>
             <Button
               className="bg-orange-600 hover:bg-orange-700"
               onClick={onEndWorkout}
-              disabled={endWorkoutConfirmation !== "End Workout"}
+              disabled={endWorkoutConfirmation.toLowerCase() !== "end workout" || isCompletingWorkout}
             >
-              End Workout
+              {isCompletingWorkout ? (
+                <span className="flex items-center justify-center">
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin flex-shrink-0" />
+                  <span>Ending...</span>
+                </span>
+              ) : (
+                "End Workout"
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -261,7 +269,7 @@ showBodyweightDialog,  setShowBodyweightDialog,  bodyweightInput,  setBodyweight
             <Button
               variant="destructive"
               onClick={onEndProgram}
-              disabled={endProgramConfirmation !== "End Program" || isCompletingWorkout}
+              disabled={endProgramConfirmation.toLowerCase() !== "end program" || isCompletingWorkout}
             >
               {isCompletingWorkout ? (
                 <span className="flex items-center justify-center">

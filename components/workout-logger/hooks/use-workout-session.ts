@@ -1456,68 +1456,74 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
   }
 
   const handleEndWorkout = async () => {
-    if (!workout || endWorkoutConfirmation !== "End Workout") return
+    if (!workout || endWorkoutConfirmation.toLowerCase() !== "end workout") return
 
-    // Mark all uncompleted sets as skipped and completed
-    const updatedWorkout: WorkoutSession = {
-      ...workout,
-      exercises: workout.exercises.map((exercise) => ({
-        ...exercise,
-        completed: true, // Mark exercise as completed
-        sets: exercise.sets.map((set) => {
-          if (!set.completed) {
-            // Mark incomplete sets as skipped with completed=true
-            return { ...set, completed: true, reps: 0, weight: 0, skipped: true }
-          }
-          return set
-        }),
-      })),
-    }
+    // Show loading state and disable button to prevent double-clicks
+    setIsCompletingWorkout(true)
 
-    setWorkout(updatedWorkout)
-    await WorkoutLogger.saveCurrentWorkout(updatedWorkout, user?.id)
-
-    // Check if workout was already completed BEFORE we complete it
-    const wasAlreadyCompleted = WorkoutLogger.hasCompletedWorkout(workout.week || 1, workout.day || 1, user?.id)
-
-    // COMPLETE the workout (moves to history and advances program)
-    const completedWorkout = await WorkoutLogger.completeWorkout(updatedWorkout.id, user?.id)
-
-    if (completedWorkout) {
-      // Advance program to next workout (only if not already completed)
-      if (!wasAlreadyCompleted) {
-        await ProgramStateManager.completeWorkout(user?.id)
+    try {
+      // Mark all uncompleted sets as skipped and completed
+      const updatedWorkout: WorkoutSession = {
+        ...workout,
+        exercises: workout.exercises.map((exercise) => ({
+          ...exercise,
+          completed: true, // Mark exercise as completed
+          sets: exercise.sets.map((set) => {
+            if (!set.completed) {
+              // Mark incomplete sets as skipped with completed=true
+              return { ...set, completed: true, reps: 0, weight: 0, skipped: true }
+            }
+            return set
+          }),
+        })),
       }
 
-      // Start database sync in background (non-blocking)
-      // Data is already safe in localStorage, so navigation can proceed immediately
-      if (user?.id) {
-        // Fire-and-forget background sync
-        // Promise keeps running even if component unmounts
-        WorkoutLogger.syncToDatabase(user.id)
-          .then(() => {
-            console.log("[handleEndWorkout] Background database sync completed")
-          })
-          .catch((error) => {
-            console.error("[handleEndWorkout] Background sync failed (will retry):", error)
-            // ConnectionMonitor will retry automatically
-          })
+      setWorkout(updatedWorkout)
+      await WorkoutLogger.saveCurrentWorkout(updatedWorkout, user?.id)
+
+      // Check if workout was already completed BEFORE we complete it
+      const wasAlreadyCompleted = WorkoutLogger.hasCompletedWorkout(workout.week || 1, workout.day || 1, user?.id)
+
+      // COMPLETE the workout (moves to history and advances program)
+      const completedWorkout = await WorkoutLogger.completeWorkout(updatedWorkout.id, user?.id)
+
+      if (completedWorkout) {
+        // Advance program to next workout (only if not already completed)
+        if (!wasAlreadyCompleted) {
+          await ProgramStateManager.completeWorkout(user?.id)
+        }
+
+        // Start database sync in background (non-blocking)
+        // Data is already safe in localStorage, so navigation can proceed immediately
+        if (user?.id) {
+          // Fire-and-forget background sync
+          // Promise keeps running even if component unmounts
+          WorkoutLogger.syncToDatabase(user.id)
+            .then(() => {
+              console.log("[handleEndWorkout] Background database sync completed")
+            })
+            .catch((error) => {
+              console.error("[handleEndWorkout] Background sync failed (will retry):", error)
+              // ConnectionMonitor will retry automatically
+            })
+        }
       }
 
+      // Close dialog and navigate IMMEDIATELY (optimistic UI)
+      // Data is safe in localStorage, sync happens in background
+      setShowEndWorkoutDialog(false)
+      setEndWorkoutConfirmation("")
+
+      // Navigate to next workout - parent will trigger programChanged event
+      // Don't dispatch programChanged here to avoid intermediate reload of current (now completed) workout
+      onComplete?.()
+    } finally {
+      setIsCompletingWorkout(false)
     }
-
-    // Close dialog and navigate IMMEDIATELY (optimistic UI)
-    // Data is safe in localStorage, sync happens in background
-    setShowEndWorkoutDialog(false)
-    setEndWorkoutConfirmation("")
-
-    // Navigate to next workout - parent will trigger programChanged event
-    // Don't dispatch programChanged here to avoid intermediate reload of current (now completed) workout
-    onComplete?.()
   }
 
   const handleEndProgram = async () => {
-    if (!workout || endProgramConfirmation !== "End Program") return
+    if (!workout || endProgramConfirmation.toLowerCase() !== "end program") return
 
     const activeProgram = await ProgramStateManager.getActiveProgram()
     if (!activeProgram) {
