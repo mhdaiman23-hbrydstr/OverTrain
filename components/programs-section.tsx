@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Spinner } from "@/components/ui/spinner"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Plus, MoreVertical, AlertTriangle, Filter, Check, X, GitBranch, ChevronRight } from "lucide-react"
+import { Plus, MoreVertical, AlertTriangle, Filter, Check, X, GitBranch, ChevronRight, Venus } from "lucide-react"
 import { GYM_TEMPLATES, getTemplatesByFilter } from "@/lib/gym-templates"
 import { ProgramStateManager, type MyProgramInfo } from "@/lib/program-state"
 import { programWizardDraftManager, type ProgramWizardDraftSummary } from "@/lib/program-wizard-draft-manager"
@@ -489,15 +489,11 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
           .map((g: string) => g?.toLowerCase?.() ?? "")
           .filter((g: string): g is "male" | "female" => g === "male" || g === "female")
 
-        const hasMale = genders.includes("male")
         const hasFemale = genders.includes("female")
 
-        if (genderFilter === "male") {
-          return hasMale && !hasFemale
-        }
-
+        // "female" filter shows only female-specific programs (not unisex)
         if (genderFilter === "female") {
-          return hasFemale && !hasMale
+          return hasFemale && genders.length === 1
         }
 
         return true
@@ -800,8 +796,7 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="all">All</SelectItem>
-                            <SelectItem value="male">Male</SelectItem>
-                            <SelectItem value="female">Female</SelectItem>
+                            <SelectItem value="female">Female Only</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -907,7 +902,7 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
                           <div className="flex items-center gap-2 mb-1">
                             <h3 className="font-semibold text-base leading-tight">{template.name}</h3>
                             {isFemaleOnlyTemplate && (
-                              <div className="w-2 h-2 rounded-full bg-pink-400 dark:bg-pink-500 flex-shrink-0" title="Female-only" />
+                              <Venus className="h-4 w-4 text-pink-500 dark:text-pink-400 flex-shrink-0" title="Female-only" />
                             )}
                           </div>
                           <p className="text-xs text-muted-foreground uppercase">
