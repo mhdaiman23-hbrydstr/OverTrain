@@ -17,9 +17,10 @@ interface ExerciseLibraryProps {
   onOpenChange: (open: boolean) => void
   onSelectExercise: (exercise: Exercise, options?: { repeat?: boolean }) => void
   currentExerciseName?: string
+  mode?: "replace" | "add"
 }
 
-export function ExerciseLibrary({ open, onOpenChange, onSelectExercise, currentExerciseName }: ExerciseLibraryProps) {
+export function ExerciseLibrary({ open, onOpenChange, onSelectExercise, currentExerciseName, mode = "replace" }: ExerciseLibraryProps) {
   const [searchQuery, setSearchQuery] = useState("")
   const [showFilters, setShowFilters] = useState(false)
   const [selectedFilters, setSelectedFilters] = useState<ExerciseLibraryFilterValues>({
@@ -125,7 +126,7 @@ export function ExerciseLibrary({ open, onOpenChange, onSelectExercise, currentE
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
           <DialogHeader>
-            <DialogTitle>Exercises</DialogTitle>
+            <DialogTitle>{mode === "add" ? "Add Exercise" : "Replace Exercise"}</DialogTitle>
           </DialogHeader>
 
           {/* Search and Filter */}
@@ -215,7 +216,7 @@ export function ExerciseLibrary({ open, onOpenChange, onSelectExercise, currentE
             <Checkbox id="repeat" checked={repeat} onCheckedChange={(checked) => setRepeat(checked === true)} />
             <div className="flex items-center gap-1">
               <label htmlFor="repeat" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer">
-                Repeat
+                Repeat in following weeks
               </label>
               <MobileTooltip
                 side="top"
@@ -223,7 +224,9 @@ export function ExerciseLibrary({ open, onOpenChange, onSelectExercise, currentE
                 sideOffset={8}
                 content={
                   <span className="max-w-xs block text-left">
-                    When checked, this exercise replaces every upcoming instance in the program. Leave it off to change only today's workout.
+                    {mode === "add"
+                      ? "When checked, this exercise will be added to all future workouts for this day. Leave it off to add only to today's workout."
+                      : "When checked, this exercise replaces every upcoming instance in the program. Leave it off to change only today's workout."}
                   </span>
                 }
                 className="z-[120]"
@@ -245,7 +248,7 @@ export function ExerciseLibrary({ open, onOpenChange, onSelectExercise, currentE
               CANCEL
             </Button>
             <Button onClick={handleReplace} disabled={!selectedExercise}>
-              REPLACE
+              {mode === "add" ? "ADD" : "REPLACE"}
             </Button>
           </DialogFooter>
         </DialogContent>

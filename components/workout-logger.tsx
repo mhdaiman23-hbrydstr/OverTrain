@@ -102,6 +102,7 @@ showBodyweightDialog,    setShowBodyweightDialog,    bodyweightInput,    setBody
     isAddingSet,
     handleConfirmAddSet,
     isAddingExercise,
+    isAddingNewExercise,
     handleOpenAddExercise,
   } = useWorkoutSession({ initialWorkout, onComplete, onCancel })
 
@@ -242,6 +243,7 @@ showBodyweightDialog={showBodyweightDialog}        setShowBodyweightDialog={setS
         currentExerciseName={
           replaceExerciseId ? workout.exercises.find((ex) => ex.id === replaceExerciseId)?.exerciseName : undefined
         }
+        mode={isAddingNewExercise ? "add" : "replace"}
       />
 
       {addSetExerciseId && (

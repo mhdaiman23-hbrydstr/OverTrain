@@ -44,11 +44,12 @@ export function AddSetDialog({
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
-          <div className="flex items-start space-x-3 p-4 bg-muted/50 rounded-lg">
+          <div className="flex items-start space-x-3 p-4 bg-muted/50 rounded-lg border border-border">
             <Checkbox
               id="repeat-sets"
               checked={repeatInFollowingWeeks}
               onCheckedChange={(checked) => setRepeatInFollowingWeeks(checked === true)}
+              className="h-5 w-5 border-2 border-foreground/40 data-[state=checked]:bg-primary data-[state=checked]:border-primary data-[state=checked]:text-primary-foreground"
             />
             <div className="flex-1 space-y-1">
               <Label htmlFor="repeat-sets" className="text-sm font-medium cursor-pointer">
