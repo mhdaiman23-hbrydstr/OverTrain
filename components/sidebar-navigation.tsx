@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/auth-context"
 import { useRouter } from "next/navigation"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { useState, useEffect } from "react"
+import { APP_VERSION } from "@/lib/version"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -215,7 +216,7 @@ export function SidebarNavigation({ currentView, onViewChange }: SidebarNavigati
 
         {/* Version & Sync Status */}
         <div className="px-4 py-3 text-xs border-t border-border space-y-2">
-          <div className="text-muted-foreground">Version 0.9.11</div>
+          <div className="text-muted-foreground">Version {APP_VERSION}</div>
 
           {/* Sync Status Indicator */}
           <div className="flex items-center gap-2">

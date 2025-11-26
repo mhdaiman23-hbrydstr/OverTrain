@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo } from "react"
+import { useMemo, useState, useEffect } from "react"
 import { HelpCircle } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { MobileTooltip } from "@/components/ui/mobile-tooltip"
@@ -16,20 +16,86 @@ interface VolumeTrendChartProps {
   trainingLoad: TrainingLoadData[]
 }
 
+/**
+ * Custom animated dot component for the line chart
+ */
+function AnimatedDot(props: any) {
+  const { cx, cy, index, dataLength } = props
+  
+  // Stagger animation based on index
+  const delay = Math.min(index * 50, 500)
+  
+  return (
+    <circle
+      cx={cx}
+      cy={cy}
+      r={3}
+      fill="var(--color-volume)"
+      className="animate-scale-in"
+      style={{
+        animationDelay: `${delay}ms`,
+        animationFillMode: 'both',
+        transformOrigin: `${cx}px ${cy}px`,
+      }}
+    />
+  )
+}
+
+/**
+ * Custom active dot with spring animation
+ */
+function AnimatedActiveDot(props: any) {
+  const { cx, cy } = props
+  
+  return (
+    <g>
+      {/* Pulse ring */}
+      <circle
+        cx={cx}
+        cy={cy}
+        r={12}
+        fill="none"
+        stroke="var(--color-volume)"
+        strokeWidth={2}
+        opacity={0.3}
+        className="animate-timer-pulse"
+      />
+      {/* Main dot */}
+      <circle
+        cx={cx}
+        cy={cy}
+        r={5}
+        fill="var(--color-volume)"
+        className="animate-bounce-in"
+        style={{ transformOrigin: `${cx}px ${cy}px` }}
+      />
+    </g>
+  )
+}
+
 export function VolumeTrendChart({ trainingLoad }: VolumeTrendChartProps) {
+  const [isVisible, setIsVisible] = useState(false)
+  
+  // Trigger animation when component mounts
+  useEffect(() => {
+    const timer = setTimeout(() => setIsVisible(true), 100)
+    return () => clearTimeout(timer)
+  }, [])
+  
   const chartData = useMemo(() => {
     if (!trainingLoad || trainingLoad.length === 0) return []
 
-    return trainingLoad.map(item => ({
+    return trainingLoad.map((item, index) => ({
       date: new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
       volume: Math.round(item.volume / 1000 * 10) / 10, // Convert to kg
       load: Math.round(item.load),
+      index, // For staggered animations
     }))
   }, [trainingLoad])
 
   if (chartData.length === 0) {
     return (
-      <Card>
+      <Card className="animate-fade-in">
         <CardHeader>
           <CardTitle className="text-lg">Volume Trend</CardTitle>
         </CardHeader>
@@ -50,7 +116,7 @@ export function VolumeTrendChart({ trainingLoad }: VolumeTrendChartProps) {
   }
 
   return (
-    <Card>
+    <Card className={`transition-all duration-300 ${isVisible ? 'animate-slide-up' : 'opacity-0'}`}>
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg">Volume Trend</CardTitle>
@@ -73,12 +139,16 @@ export function VolumeTrendChart({ trainingLoad }: VolumeTrendChartProps) {
         </div>
       </CardHeader>
       <CardContent>
-      <ChartContainer config={chartConfig} className="h-64 w-full">
+      <ChartContainer config={chartConfig} className="h-64 w-full gpu-accelerated">
         <LineChart
           data={chartData}
           margin={{ top: 5, right: 10, left: 0, bottom: 5 }}
         >
-          <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
+          <CartesianGrid 
+            strokeDasharray="3 3" 
+            stroke="var(--color-border)"
+            className={isVisible ? 'animate-fade-in stagger-1' : 'opacity-0'}
+          />
           <XAxis
             dataKey="date"
             tick={{ fontSize: 12 }}
@@ -95,8 +165,12 @@ export function VolumeTrendChart({ trainingLoad }: VolumeTrendChartProps) {
             dataKey="volume"
             stroke="var(--color-volume)"
             strokeWidth={2}
-            dot={{ fill: "var(--color-volume)", r: 3 }}
-            activeDot={{ r: 5 }}
+            dot={<AnimatedDot dataLength={chartData.length} />}
+            activeDot={<AnimatedActiveDot />}
+            isAnimationActive={true}
+            animationBegin={200}
+            animationDuration={800}
+            animationEasing="ease-out"
           />
         </LineChart>
       </ChartContainer>

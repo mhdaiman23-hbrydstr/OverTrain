@@ -40,7 +40,15 @@
       "Read(//s//**)",
       "Bash(git cherry-pick:*)",
       "Bash(git branch:*)",
-      "Bash(git fetch:*)"
+      "Bash(git fetch:*)",
+      "Bash(test:*)",
+      "Bash(java -version:*)",
+      "Bash(npx cap sync)",
+      "Bash(where java:*)",
+      "Bash(echo:*)",
+      "Bash(./gradlew assembleRelease:*)",
+      "Bash(./gradlew:*)",
+      "Bash(keytool:*)"
     ],
     "deny": [],
     "ask": []

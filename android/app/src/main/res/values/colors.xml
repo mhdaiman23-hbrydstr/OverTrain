@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Primary brand color - blue -->
+    <color name="colorPrimary">#3B82F6</color>
+    <color name="colorPrimaryDark">#2563EB</color>
+    <color name="colorAccent">#3B82F6</color>
+    
+    <!-- Background colors -->
+    <color name="colorBackground">#000000</color>
+    <color name="colorSurface">#121212</color>
+    
+    <!-- Text colors -->
+    <color name="colorOnPrimary">#FFFFFF</color>
+    <color name="colorOnBackground">#FFFFFF</color>
+    
+    <!-- Splash screen background -->
+    <color name="splash_background">#000000</color>
+</resources>
+

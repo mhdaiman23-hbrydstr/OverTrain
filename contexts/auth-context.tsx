@@ -25,40 +25,69 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [dataLoaded, setDataLoaded] = useState(false) // Prevent multiple data loading attempts
 
   useEffect(() => {
-    // Initialize storage layer on app start (IndexedDB for mobile, localStorage fallback)
-    initializeStoragePolyfill().catch((error) => {
-      console.error('[Auth] Failed to initialize storage:', error)
-    })
+    const initializeApp = async () => {
+      console.log('[Auth] Starting app initialization...')
+      
+      try {
+        // Initialize storage layer on app start (IndexedDB for mobile, localStorage fallback)
+        await initializeStoragePolyfill().catch((error) => {
+          console.error('[Auth] Failed to initialize storage:', error)
+        })
 
-    // Start session monitoring on mount
-    SessionManager.startMonitoring()
+        // Initialize native services if available (SQLite, notifications, etc.)
+        try {
+          const { initializeNativeServices } = await import('@/lib/native')
+          const nativeStatus = await initializeNativeServices()
+          console.log('[Auth] Native services initialized:', nativeStatus)
+        } catch (nativeError) {
+          // Native services not available (web build) - this is fine
+          console.log('[Auth] Running in web mode (native services not available)')
+        }
 
-    // Check for OAuth callback first
-    const checkOAuthCallback = async () => {
-      const oauthUser = await AuthService.handleOAuthCallback()
-      if (oauthUser) {
-        setState({ user: oauthUser, isLoading: false })
-        // Load user data from database with comprehensive loading (only if not already loaded)
-        if (oauthUser.id && !dataLoaded) {
-          await loadUserApplicationData(oauthUser.id)
-          setDataLoaded(true)
-          // Start periodic sync
-          startPeriodicSync(oauthUser.id)
+        // Start session monitoring on mount
+        SessionManager.startMonitoring()
+
+        // Check for OAuth callback first
+        console.log('[Auth] Checking for existing auth session...')
+        const oauthUser = await AuthService.handleOAuthCallback()
+        
+        if (oauthUser) {
+          console.log('[Auth] Found existing session for:', oauthUser.email)
+          setState({ user: oauthUser, isLoading: false })
+          // Load user data from database with comprehensive loading (only if not already loaded)
+          if (oauthUser.id && !dataLoaded) {
+            await loadUserApplicationData(oauthUser.id)
+            setDataLoaded(true)
+            // Start periodic sync
+            startPeriodicSync(oauthUser.id)
+          }
+        } else {
+          console.log('[Auth] No OAuth session, checking local storage...')
+          const localUser = AuthService.getUser()
+          setState({ user: localUser, isLoading: false })
+          
+          if (localUser) {
+            console.log('[Auth] Found local user:', localUser.email)
+          } else {
+            console.log('[Auth] No user found, showing login screen')
+          }
+          
+          // Load user data from database if user exists (only if not already loaded)
+          if (localUser && localUser.id && !dataLoaded) {
+            await loadUserApplicationData(localUser.id)
+            setDataLoaded(true)
+            // Start periodic sync
+            startPeriodicSync(localUser.id)
+          }
         }
-      } else {
-        const localUser = AuthService.getUser()
-        setState({ user: localUser, isLoading: false })
-        // Load user data from database if user exists (only if not already loaded)
-        if (localUser && localUser.id && !dataLoaded) {
-          await loadUserApplicationData(localUser.id)
-          setDataLoaded(true)
-          // Start periodic sync
-          startPeriodicSync(localUser.id)
-        }
+      } catch (error) {
+        console.error('[Auth] Initialization error:', error)
+        // Ensure we don't stay in loading state on error
+        setState({ user: null, isLoading: false })
       }
     }
 
-    checkOAuthCallback()
+    initializeApp()
 
     // Cleanup session monitoring on unmount
     return () => {

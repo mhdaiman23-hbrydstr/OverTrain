@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { templateSchema, requireAdmin, insertTemplateStructure } from './helpers'
 
+// Required for static export (native builds)
+export const dynamic = 'force-static';
+
 export async function GET(request: NextRequest) {
   try {
     const auth = await requireAdmin(request)

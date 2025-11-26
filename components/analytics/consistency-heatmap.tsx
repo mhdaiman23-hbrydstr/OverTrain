@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo } from "react"
+import { useMemo, useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { HelpCircle } from "lucide-react"
 import { MobileTooltip } from "@/components/ui/mobile-tooltip"
@@ -11,7 +11,54 @@ interface ConsistencyHeatmapProps {
   heatmap: HeatmapData[]
 }
 
+/**
+ * Animated heatmap cell component
+ */
+function HeatmapCell({ 
+  day, 
+  weekIdx, 
+  dayIdx, 
+  getIntensityColor 
+}: { 
+  day: any
+  weekIdx: number
+  dayIdx: number
+  getIntensityColor: (intensity: string) => string
+}) {
+  const [isVisible, setIsVisible] = useState(false)
+  
+  // Calculate stagger delay based on position (wave from left to right, top to bottom)
+  const delay = weekIdx * 20 + dayIdx * 10
+  
+  useEffect(() => {
+    const timer = setTimeout(() => setIsVisible(true), delay)
+    return () => clearTimeout(timer)
+  }, [delay])
+  
+  return (
+    <div
+      className={cn(
+        "w-3 h-3 rounded-sm cursor-pointer transition-all hover:ring-2 hover:ring-offset-1 gpu-accelerated",
+        getIntensityColor(day.intensity),
+        isVisible ? "animate-scale-in" : "opacity-0 scale-0"
+      )}
+      style={{
+        animationDelay: `${delay}ms`,
+        animationFillMode: 'both',
+      }}
+      title={`${day.date}: ${day.value} workout${day.value !== 1 ? 's' : ''}`}
+    />
+  )
+}
+
 export function ConsistencyHeatmap({ heatmap }: ConsistencyHeatmapProps) {
+  const [isVisible, setIsVisible] = useState(false)
+  
+  useEffect(() => {
+    const timer = setTimeout(() => setIsVisible(true), 100)
+    return () => clearTimeout(timer)
+  }, [])
+  
   const weeks = useMemo(() => {
     if (!heatmap || heatmap.length === 0) return []
 
@@ -60,7 +107,7 @@ export function ConsistencyHeatmap({ heatmap }: ConsistencyHeatmapProps) {
   const dayLabels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
   return (
-    <Card>
+    <Card className={`transition-all duration-300 ${isVisible ? 'animate-slide-up stagger-2' : 'opacity-0'}`}>
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg">Consistency</CardTitle>
@@ -92,7 +139,7 @@ export function ConsistencyHeatmap({ heatmap }: ConsistencyHeatmapProps) {
       </CardHeader>
       <CardContent>
         {weeks.length === 0 ? (
-          <div className="flex items-center justify-center h-32 text-muted-foreground">
+          <div className="flex items-center justify-center h-32 text-muted-foreground animate-fade-in">
             <p>No workout data available</p>
           </div>
         ) : (
@@ -101,25 +148,28 @@ export function ConsistencyHeatmap({ heatmap }: ConsistencyHeatmapProps) {
               {weeks.map((week, weekIdx) => (
                 <div key={weekIdx} className="flex flex-col gap-0.5">
                   {week.map((day, dayIdx) => (
-                    <div
+                    <HeatmapCell
                       key={`${weekIdx}-${dayIdx}`}
-                      className={cn(
-                        "w-3 h-3 rounded-sm cursor-pointer transition-all hover:ring-2 hover:ring-offset-1",
-                        getIntensityColor(day.intensity)
-                      )}
-                      title={`${day.date}: ${day.value} workout${day.value !== 1 ? 's' : ''}`}
+                      day={day}
+                      weekIdx={weekIdx}
+                      dayIdx={dayIdx}
+                      getIntensityColor={getIntensityColor}
                     />
                   ))}
                 </div>
               ))}
             </div>
-            <div className="mt-4 flex gap-2 text-xs text-muted-foreground">
+            <div className="mt-4 flex gap-2 text-xs text-muted-foreground animate-fade-in" style={{ animationDelay: '400ms' }}>
               <span>Less</span>
               <div className="flex gap-0.5">
-                {['low', 'medium', 'high'].map(intensity => (
+                {['low', 'medium', 'high'].map((intensity, idx) => (
                   <div
                     key={intensity}
-                    className={cn("w-2 h-2 rounded-sm", getIntensityColor(intensity))}
+                    className={cn(
+                      "w-2 h-2 rounded-sm animate-scale-in",
+                      getIntensityColor(intensity)
+                    )}
+                    style={{ animationDelay: `${450 + idx * 50}ms`, animationFillMode: 'both' }}
                   />
                 ))}
               </div>

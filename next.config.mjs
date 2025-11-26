@@ -1,40 +1,58 @@
 import { withSentryConfig } from "@sentry/nextjs";
 
+/**
+ * Next.js configuration for native app builds (Capacitor)
+ * 
+ * This config enables static export for Capacitor to bundle the app
+ * into Android and iOS native containers.
+ * 
+ * Key differences from web config:
+ * - output: 'export' for static HTML/CSS/JS generation
+ * - trailingSlash: true for proper file-based routing
+ * - No API routes (handled by Supabase directly)
+ */
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Enable static export for Capacitor
+  output: 'export',
+  
+  // Required for static export routing
+  trailingSlash: true,
+  
+  // Skip linting and type checking for faster builds
   eslint: {
     ignoreDuringBuilds: true,
   },
   typescript: {
     ignoreBuildErrors: true,
   },
+  
+  // Images must be unoptimized for static export
   images: {
     unoptimized: true,
+  },
+  
+  // Environment variable to detect native context
+  env: {
+    NEXT_PUBLIC_IS_NATIVE: 'true',
+  },
+  
+  // Disable server-side features for static export
+  // API routes won't work - use Supabase directly instead
+  experimental: {
+    // Ensure client-side navigation works properly
   },
 }
 
 export default withSentryConfig(nextConfig, {
-  // For all available options, see:
-  // https://github.com/getsentry/sentry-webpack-plugin/blob/master/src/index.ts#L29
-
   org: process.env.SENTRY_ORG || "liftlog",
   project: process.env.SENTRY_PROJECT || "liftlog-app",
-
-  // An auth token is required for uploading source maps.
   authToken: process.env.SENTRY_AUTH_TOKEN,
-
-  // Suppresses source map uploading logs during build
   silent: true,
-
-  // For CI environments, you can set the following to true
-  // to automatically discover and upload source maps.
   widenClientFileUpload: true,
-
-  // Routes browser requests to Sentry through a Next.js rewrite to circumvent ad-blockers.
-  // Can be disabled if you have a reason to do so
-  tunnelRoute: "/monitoring",
-
-  // Hides client-side release information and improves privacy
+  // Disable tunnel route for native (no server-side rewrites)
+  tunnelRoute: undefined,
   hideSourceMaps: true,
 });
 

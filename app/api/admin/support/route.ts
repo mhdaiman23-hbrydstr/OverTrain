@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
+// Required for static export (native builds)
+export const dynamic = 'force-static';
+
 // GET: Retrieve all support requests (admin only)
 export async function GET(req: NextRequest) {
   try {

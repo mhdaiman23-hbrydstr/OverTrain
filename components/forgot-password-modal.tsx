@@ -2,6 +2,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
+import { useEffect, useState } from "react"
 
 type ForgotPasswordModalProps = {
   open: boolean
@@ -24,13 +25,26 @@ export function ForgotPasswordModal({
   onSubmit,
   submitting = false,
 }: ForgotPasswordModalProps) {
+  const [isNative, setIsNative] = useState(false)
+  
+  useEffect(() => {
+    // Check if running in native Capacitor environment
+    setIsNative(
+      typeof window !== 'undefined' && 
+      (window as any).Capacitor?.isNativePlatform?.() === true
+    )
+  }, [])
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Reset Your Password</DialogTitle>
           <DialogDescription>
-            Enter your email address and we'll send you a link to reset your password.
+            {isNative 
+              ? "Enter your email and we'll send a reset link. Open it on any device to set a new password, then come back here to log in."
+              : "Enter your email address and we'll send you a link to reset your password."
+            }
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">

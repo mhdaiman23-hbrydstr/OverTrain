@@ -1,6 +1,9 @@
 import * as Sentry from "@sentry/nextjs";
 import { NextRequest, NextResponse } from "next/server";
 
+// Required for static export (native builds)
+export const dynamic = 'force-static';
+
 /**
  * Test endpoint for triggering errors in Sentry
  *

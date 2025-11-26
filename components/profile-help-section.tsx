@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { HelpCircle, Book, Mail } from "lucide-react"
+import { APP_VERSION } from "@/lib/version"
 
 export function ProfileHelpSection() {
   const [supportOpen, setSupportOpen] = useState(false)
@@ -120,7 +121,7 @@ export function ProfileHelpSection() {
           </div>
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium">Last Update</span>
-            <span className="text-sm text-muted-foreground">Version 1.0.0 - Current</span>
+            <span className="text-sm text-muted-foreground">Version {APP_VERSION} - Current</span>
           </div>
         </CardContent>
       </Card>

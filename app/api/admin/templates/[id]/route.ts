@@ -1,6 +1,14 @@
 import { NextRequest, NextResponse } from "next/server"
 import { templateSchema, requireAdmin, insertTemplateStructure } from "../helpers"
 
+// Required for static export (native builds)
+export const dynamic = 'force-static';
+
+// Generate empty static params (API routes not used in native builds)
+export function generateStaticParams() {
+  return [];
+}
+
 interface RouteParams {
   params: { id: string }
 }

@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSupabase } from '@/lib/server-supabase'
 
+// Required for static export (native builds)
+export const dynamic = 'force-static';
+
 async function requireAdmin(request: NextRequest) {
   const authHeader = request.headers.get('authorization')
   if (!authHeader) {

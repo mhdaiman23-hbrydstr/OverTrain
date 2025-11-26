@@ -172,6 +172,19 @@ export class AuthService {
       throw new Error("Supabase not configured. Please add your Supabase credentials to .env.local")
     }
 
+    // Check if we're in a native Capacitor environment
+    const isNative = typeof window !== 'undefined' && 
+      (window as any).Capacitor?.isNativePlatform?.() === true;
+
+    if (isNative) {
+      // For native apps, Google OAuth requires special handling with deep links
+      // For now, throw a user-friendly error suggesting email login
+      throw new Error(
+        "Google Sign-In is not yet available in the mobile app. " +
+        "Please use email and password to sign in, or use the web version for Google Sign-In."
+      );
+    }
+
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
@@ -190,12 +203,31 @@ export class AuthService {
   }
 
   static async handleOAuthCallback(): Promise<User | null> {
-    if (!supabase) return null
+    if (!supabase) {
+      console.log('[Auth] No supabase client, skipping OAuth callback')
+      return null
+    }
 
     try {
-      const { data: { session } } = await supabase.auth.getSession()
+      console.log('[Auth] Checking for existing session...')
+      
+      // Add timeout to prevent hanging
+      const sessionPromise = supabase.auth.getSession()
+      const timeoutPromise = new Promise<{ data: { session: null } }>((resolve) => 
+        setTimeout(() => {
+          console.log('[Auth] Session check timed out')
+          resolve({ data: { session: null } })
+        }, 5000)
+      )
+      
+      const { data: { session } } = await Promise.race([sessionPromise, timeoutPromise])
 
-      if (!session?.user) return null
+      if (!session?.user) {
+        console.log('[Auth] No active session found')
+        return null
+      }
+      
+      console.log('[Auth] Session found for:', session.user.email)
 
       // Check if profile exists
       const { data: profile } = await supabase
@@ -378,9 +410,27 @@ export class AuthService {
       throw new Error("Authentication service is not configured")
     }
 
+    // Check if we're in a native Capacitor environment
+    const isNative = typeof window !== 'undefined' && 
+      (window as any).Capacitor?.isNativePlatform?.() === true;
+
+    // For native apps, we need to use the web app URL for password reset
+    // because email links can't open capacitor:// URLs directly
+    // Users will reset on web, then log in with new password on native
+    let redirectUrl: string;
+    
+    if (isNative) {
+      // Use production web URL for native apps
+      // After resetting password on web, user logs in with new password on native
+      redirectUrl = 'https://overtrain.app/auth/reset-password';
+    } else {
+      // Use current origin for web apps
+      redirectUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}/auth/reset-password`;
+    }
+
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${typeof window !== 'undefined' ? window.location.origin : ''}/auth/reset-password`,
+        redirectTo: redirectUrl,
       })
 
       if (error) {
@@ -389,6 +439,14 @@ export class AuthService {
         return {
           success: true,
           message: 'If an account exists with that email, you will receive a password reset link',
+        }
+      }
+
+      // Different message for native vs web
+      if (isNative) {
+        return {
+          success: true,
+          message: 'Password reset link sent to your email. Open the link on any device to reset your password, then return here to log in.',
         }
       }
 

@@ -1,5 +1,8 @@
 ﻿import { NextRequest, NextResponse } from 'next/server'
 
+// Required for static export (native builds)
+export const dynamic = 'force-static';
+
 // Use Resend for email delivery. Set RESEND_API_KEY in env.
 // Configure FEEDBACK_TO_EMAIL (default: info@overtrain.app) and FEEDBACK_FROM_EMAIL (must be a verified domain).
 export async function POST(req: NextRequest) {

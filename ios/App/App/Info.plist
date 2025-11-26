@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>en</string>
+	<key>CFBundleDisplayName</key>
+	<string>OverTrain</string>
+	<key>CFBundleExecutable</key>
+	<string>$(EXECUTABLE_NAME)</string>
+	<key>CFBundleIdentifier</key>
+	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>$(PRODUCT_NAME)</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>$(MARKETING_VERSION)</string>
+	<key>CFBundleVersion</key>
+	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<key>LSRequiresIPhoneOS</key>
+	<true/>
+	<key>UILaunchStoryboardName</key>
+	<string>LaunchScreen</string>
+	<key>UIMainStoryboardFile</key>
+	<string>Main</string>
+	<key>UIRequiredDeviceCapabilities</key>
+	<array>
+		<string>armv7</string>
+	</array>
+	
+	<!-- Portrait only for workout logging UX -->
+	<key>UISupportedInterfaceOrientations</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+	</array>
+	<key>UISupportedInterfaceOrientations~ipad</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationPortraitUpsideDown</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
+	
+	<key>UIViewControllerBasedStatusBarAppearance</key>
+	<true/>
+	
+	<!-- App Transport Security -->
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoadsInWebContent</key>
+		<true/>
+		<key>NSAllowsLocalNetworking</key>
+		<true/>
+	</dict>
+	
+	<!-- Deep Linking / Universal Links -->
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>app.overtrain.gooonemore</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>overtrain</string>
+			</array>
+		</dict>
+	</array>
+	
+	<!-- Background Modes -->
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>fetch</string>
+		<string>remote-notification</string>
+	</array>
+	
+	<!-- Privacy Descriptions (required for App Store) -->
+	<key>NSCameraUsageDescription</key>
+	<string>OverTrain may use your camera for taking progress photos.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>OverTrain may access your photo library to save and select progress photos.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>OverTrain may save progress photos to your photo library.</string>
+	<key>NSUserTrackingUsageDescription</key>
+	<string>OverTrain may use this to provide personalized workout recommendations.</string>
+	
+	<!-- Status Bar Style -->
+	<key>UIStatusBarStyle</key>
+	<string>UIStatusBarStyleLightContent</string>
+	
+	<!-- Launch Screen Background Color -->
+	<key>UILaunchScreenBackgroundColor</key>
+	<string>#000000</string>
+	
+	<!-- Disable auto-rotate for workout logging -->
+	<key>UIRequiresFullScreen</key>
+	<true/>
+	
+	<!-- ITSAppUsesNonExemptEncryption - No custom encryption -->
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
+</dict>
+</plist>
