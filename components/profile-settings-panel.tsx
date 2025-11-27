@@ -1,14 +1,196 @@
 "use client"
 
+import { useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Separator } from "@/components/ui/separator"
 import { Badge } from "@/components/ui/badge"
-import { Settings, Palette, Bell, Shield, Database } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Settings, Palette, Bell, Shield, Database, Download, Trash2 } from "lucide-react"
 import { ThemeToggle } from "@/components/theme-toggle"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+import { useAuth } from "@/contexts/auth-context"
+import { useToast } from "@/hooks/use-toast"
+import { supabase } from "@/lib/supabase"
 
 export function ProfileSettingsPanel() {
+  const { user, signOut } = useAuth()
+  const { toast } = useToast()
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [isExporting, setIsExporting] = useState(false)
+
+  const handleExportData = async () => {
+    if (!user) return
+
+    setIsExporting(true)
+    try {
+      // Gather all user data from localStorage and database
+      const workouts = localStorage.getItem('liftlog_workouts')
+      const inProgressWorkouts = localStorage.getItem('liftlog_in_progress_workouts')
+      const activeProgram = localStorage.getItem('liftlog_active_program')
+      const programHistory = localStorage.getItem('liftlog_program_history')
+
+      const exportData = {
+        profile: {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          gender: user.gender,
+          experience: user.experience,
+          goals: user.goals,
+          bodyweight: user.bodyweight,
+          oneRepMax: user.oneRepMax,
+          preferredUnit: user.preferredUnit,
+        },
+        workouts: workouts ? JSON.parse(workouts) : [],
+        inProgressWorkouts: inProgressWorkouts ? JSON.parse(inProgressWorkouts) : [],
+        activeProgram: activeProgram ? JSON.parse(activeProgram) : null,
+        programHistory: programHistory ? JSON.parse(programHistory) : [],
+        exportedAt: new Date().toISOString(),
+      }
+
+      // Create downloadable JSON file
+      const dataStr = JSON.stringify(exportData, null, 2)
+      const dataBlob = new Blob([dataStr], { type: 'application/json' })
+      const url = URL.createObjectURL(dataBlob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `overtrain-data-export-${new Date().toISOString().split('T')[0]}.json`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      URL.revokeObjectURL(url)
+
+      toast({
+        title: "Data exported successfully",
+        description: "Your workout data has been downloaded as a JSON file.",
+      })
+    } catch (error) {
+      console.error('Failed to export data:', error)
+      toast({
+        title: "Export failed",
+        description: "Failed to export your data. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsExporting(false)
+    }
+  }
+
+  const handleDeleteAccount = async () => {
+    if (!user || !supabase) return
+
+    setIsDeleting(true)
+    try {
+      console.log('[Account Delete] Starting account deletion for user:', user.email)
+
+      // Log audit event BEFORE deletion
+      try {
+        const { logAuditEvent } = await import('@/lib/audit-logger')
+        await logAuditEvent({
+          action: 'ACCOUNT_DELETED',
+          userId: user.id,
+          details: { email: user.email, deletedAt: new Date().toISOString() },
+          ipAddress: null,
+          userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : null,
+        })
+      } catch (auditError) {
+        console.error('[Account Delete] Failed to log audit event:', auditError)
+        // Don't block deletion if audit logging fails
+      }
+
+      // For web/native apps: Call the RPC function or use the REST API
+      // Since we're using static export, we need to call Supabase functions directly
+      // Option 1: Use a Supabase Edge Function (recommended for production)
+      // Option 2: Contact support email (fallback for static sites)
+
+      // For now, use the API endpoint if available (web), otherwise guide user to support
+      const isStaticExport = typeof window !== 'undefined' && !window.location.origin.includes('localhost')
+
+      if (!isStaticExport && window.location.origin.includes('localhost')) {
+        // Development mode - use API endpoint
+        const session = await supabase.auth.getSession()
+        const token = session?.data?.session?.access_token
+
+        if (!token) {
+          throw new Error('No active session')
+        }
+
+        const response = await fetch('/api/account/delete', {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        })
+
+        const data = await response.json()
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to delete account')
+        }
+      } else {
+        // Production/Native mode - use RPC or direct deletion if user has permission
+        // For security, account deletion should be done server-side
+        // Let's try to delete via RPC function (needs to be created in Supabase)
+
+        // Try to call a Supabase RPC function for account deletion
+        const { error: rpcError } = await supabase.rpc('delete_user_account')
+
+        if (rpcError) {
+          console.error('[Account Delete] RPC error:', rpcError)
+          // Fallback: Show message to contact support
+          throw new Error('Account deletion must be completed through support. Please contact support@overtrain.app to delete your account.')
+        }
+      }
+
+      // Clear all local data
+      localStorage.clear()
+
+      // Show success message
+      toast({
+        title: "Account deleted",
+        description: "Your account and all data have been permanently deleted.",
+      })
+
+      // Sign out (which will redirect to landing page)
+      await signOut()
+
+    } catch (error) {
+      console.error('[Account Delete] Failed:', error)
+
+      // If it's the support message, show it differently
+      const errorMessage = error instanceof Error ? error.message : 'Failed to delete account. Please try again or contact support.'
+
+      if (errorMessage.includes('contact support')) {
+        toast({
+          title: "Contact Support Required",
+          description: errorMessage,
+          variant: "default",
+        })
+      } else {
+        toast({
+          title: "Deletion failed",
+          description: errorMessage,
+          variant: "destructive",
+        })
+      }
+    } finally {
+      setIsDeleting(false)
+    }
+  }
+
   return (
     <div className="space-y-6">
       {/* Appearance Settings */}
@@ -149,6 +331,76 @@ export function ProfileSettingsPanel() {
               <Badge variant="outline">Last backup: 2 hours ago</Badge>
               <Badge variant="secondary">Synced</Badge>
             </div>
+          </div>
+          <Separator className="my-4" />
+
+          {/* Data Export */}
+          <div className="space-y-2">
+            <Label>Export Your Data</Label>
+            <p className="text-sm text-muted-foreground">
+              Download all your workout data, progress, and profile information as a JSON file
+            </p>
+            <Button
+              variant="outline"
+              onClick={handleExportData}
+              disabled={isExporting}
+              className="w-full sm:w-auto"
+            >
+              <Download className="mr-2 h-4 w-4" />
+              {isExporting ? "Exporting..." : "Export Data"}
+            </Button>
+          </div>
+
+          <Separator className="my-4" />
+
+          {/* Account Deletion */}
+          <div className="space-y-2">
+            <Label className="text-destructive">Delete Account</Label>
+            <p className="text-sm text-muted-foreground">
+              Permanently delete your account and all associated data. This action cannot be undone.
+            </p>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="destructive"
+                  className="w-full sm:w-auto"
+                  disabled={isDeleting}
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Delete Account
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                  <AlertDialogDescription className="space-y-2">
+                    <p>
+                      This action cannot be undone. This will permanently delete your account and remove all your data from our servers, including:
+                    </p>
+                    <ul className="list-disc list-inside space-y-1 text-sm">
+                      <li>Your profile and account information</li>
+                      <li>All workout history and progress data</li>
+                      <li>Active programs and in-progress workouts</li>
+                      <li>Analytics and performance metrics</li>
+                      <li>Any saved preferences or settings</li>
+                    </ul>
+                    <p className="font-semibold pt-2">
+                      Consider exporting your data first if you want to keep a backup.
+                    </p>
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={handleDeleteAccount}
+                    disabled={isDeleting}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
+                    {isDeleting ? "Deleting..." : "Yes, delete my account"}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         </CardContent>
       </Card>
