@@ -110,49 +110,24 @@ export function ProfileSettingsPanel() {
         // Don't block deletion if audit logging fails
       }
 
-      // For web/native apps: Call the RPC function or use the REST API
-      // Since we're using static export, we need to call Supabase functions directly
-      // Option 1: Use a Supabase Edge Function (recommended for production)
-      // Option 2: Contact support email (fallback for static sites)
+      // Call Supabase RPC function to delete account
+      // This works for both web and native apps (static export)
+      const { data: rpcData, error: rpcError } = await supabase.rpc('delete_user_account')
 
-      // For now, use the API endpoint if available (web), otherwise guide user to support
-      const isStaticExport = typeof window !== 'undefined' && !window.location.origin.includes('localhost')
+      if (rpcError) {
+        console.error('[Account Delete] RPC error:', rpcError)
 
-      if (!isStaticExport && window.location.origin.includes('localhost')) {
-        // Development mode - use API endpoint
-        const session = await supabase.auth.getSession()
-        const token = session?.data?.session?.access_token
-
-        if (!token) {
-          throw new Error('No active session')
+        // If RPC function doesn't exist yet, guide user to contact support
+        if (rpcError.message?.includes('function') || rpcError.code === '42883') {
+          throw new Error('Account deletion is not yet configured. Please contact support@overtrain.app to delete your account, or run the database migration first.')
         }
 
-        const response = await fetch('/api/account/delete', {
-          method: 'DELETE',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        })
+        throw new Error(rpcError.message || 'Failed to delete account')
+      }
 
-        const data = await response.json()
-
-        if (!response.ok) {
-          throw new Error(data.error || 'Failed to delete account')
-        }
-      } else {
-        // Production/Native mode - use RPC or direct deletion if user has permission
-        // For security, account deletion should be done server-side
-        // Let's try to delete via RPC function (needs to be created in Supabase)
-
-        // Try to call a Supabase RPC function for account deletion
-        const { error: rpcError } = await supabase.rpc('delete_user_account')
-
-        if (rpcError) {
-          console.error('[Account Delete] RPC error:', rpcError)
-          // Fallback: Show message to contact support
-          throw new Error('Account deletion must be completed through support. Please contact support@overtrain.app to delete your account.')
-        }
+      // Check if deletion was successful
+      if (rpcData && !rpcData.success) {
+        throw new Error(rpcData.error || 'Failed to delete account')
       }
 
       // Clear all local data

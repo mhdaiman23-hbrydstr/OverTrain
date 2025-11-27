@@ -16,39 +16,27 @@ The account deletion feature has been implemented with three components:
   - "Export Data" button to backup data before deletion
   - Loading states and error handling
 
-### 2. **API Endpoint** ✅ (Completed - Web Only)
-- Location: `app/api/account/delete/route.ts`
-- Method: `DELETE`
-- Purpose: Handles account deletion for web deployment
-- Note: **Not available in static export** (used for native apps)
-
-### 3. **Supabase RPC Function** ✅ (Created - Needs Deployment)
+### 2. **Supabase RPC Function** ✅ (Created - Needs Deployment)
 - Location: `migrations/add-delete-user-account-function.sql`
 - Function: `delete_user_account()`
-- Purpose: Handles account deletion for native/static apps
+- Purpose: Handles account deletion for all platforms (web, iOS, Android)
 - Security: Uses `SECURITY DEFINER` to safely delete from `auth.users`
+- Note: **Required for the feature to work** - must be deployed to Supabase
 
 ---
 
 ## How It Works
 
-### Web App (Development/Production Server)
-1. User clicks "Delete Account" in Profile Settings
-2. Confirmation dialog appears with detailed warning
-3. User confirms deletion
-4. App calls `/api/account/delete` endpoint
-5. Endpoint uses Supabase Admin API to delete user
-6. CASCADE DELETE removes all user data automatically
-7. User is signed out and redirected to landing page
-
-### Native App (iOS/Android - Static Export)
+### All Platforms (Web, iOS, Android)
 1. User clicks "Delete Account" in Profile Settings
 2. Confirmation dialog appears with detailed warning
 3. User confirms deletion
 4. App calls Supabase RPC function `delete_user_account()`
-5. RPC function deletes user from `auth.users`
-6. CASCADE DELETE removes all user data automatically
-7. User is signed out and redirected to landing page
+5. RPC function verifies user is authenticated (via `auth.uid()`)
+6. RPC function deletes user from `auth.users` table
+7. CASCADE DELETE automatically removes all user data (profiles, workouts, programs, etc.)
+8. Local storage is cleared
+9. User is signed out and redirected to landing page
 
 ---
 
@@ -111,7 +99,9 @@ Expected output: All user-related tables (`profiles`, `workouts`, `active_progra
 
 ### Step 3: Test the Feature
 
-**Testing in Development (Web):**
+**Important**: Before testing, make sure you've deployed the RPC function (Step 1 above).
+
+**Testing Steps (All Platforms):**
 
 1. Start dev server: `npm run dev`
 2. Sign in with a test account
@@ -123,17 +113,8 @@ Expected output: All user-related tables (`profiles`, `workouts`, `active_progra
 8. Verify:
    - Success toast appears
    - Local storage is cleared
-   - User is signed out
+   - User is signed out and redirected to landing page
    - User cannot sign in again (account deleted)
-
-**Testing in Production (Native App):**
-
-1. Build and deploy the app: `npm run build`
-2. Install on a test device
-3. Sign in with a test account
-4. Go to Profile → Settings tab
-5. Follow same steps as web testing
-6. Verify RPC function is called correctly
 
 **Verify Data Deletion in Supabase:**
 
@@ -143,6 +124,15 @@ Expected output: All user-related tables (`profiles`, `workouts`, `active_progra
    - User should be gone from Authentication → Users
    - User's data should be gone from all tables (profiles, workouts, etc.)
 4. Check audit_logs table (if it exists) for deletion event
+
+**If Testing Fails:**
+
+- **Error: "function delete_user_account does not exist"**
+  - Solution: Deploy the RPC function from Step 1
+- **Error: "Account deletion is not yet configured"**
+  - Solution: Run the migration SQL in Supabase Dashboard
+- **Error: "Not authenticated"**
+  - Solution: Make sure you're signed in before attempting deletion
 
 ---
 
@@ -241,12 +231,12 @@ Re-run the `fix-cascade-constraints-aggressive.sql` migration if needed.
 ## Files Modified/Created
 
 ### Created:
-- `app/api/account/delete/route.ts` - API endpoint for web
-- `migrations/add-delete-user-account-function.sql` - RPC function for native
+- `migrations/add-delete-user-account-function.sql` - Supabase RPC function for account deletion
+- `app/delete-account/page.tsx` - Public account deletion instructions page
 - `ACCOUNT_DELETION_SETUP.md` - This documentation
 
 ### Modified:
-- `components/profile-settings-panel.tsx` - Added delete account UI and data export
+- `components/profile-settings-panel.tsx` - Added delete account UI and data export functionality
 
 ---
 
