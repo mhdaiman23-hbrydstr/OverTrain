@@ -1,0 +1,40 @@
+{
+  "expo": {
+    "name": "OverTrain: Go One More",
+    "slug": "my-v0-project",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./public/icon.png",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./public/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#000000"
+    },
+    "ios": {
+      "bundleIdentifier": "app.overtrain.gooonemore",
+      "buildNumber": "1",
+      "supportsTablet": false,
+      "infoPlist": {
+        "UIBackgroundModes": [
+          "fetch"
+        ],
+        "NSPhotoLibraryUsageDescription": "Allow OverTrain to access your photos to save workout progress screenshots.",
+        "NSCameraUsageDescription": "Allow OverTrain to use your camera to take workout progress photos."
+      }
+    },
+    "android": {
+      "package": "app.overtrain.gooonemore",
+      "versionCode": 1,
+      "adaptiveIcon": {
+        "foregroundImage": "./public/adaptive-icon.png",
+        "backgroundColor": "#000000"
+      }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "b14190ca-2213-4796-b4bb-da94e3caecb8"
+      }
+    }
+  }
+}
