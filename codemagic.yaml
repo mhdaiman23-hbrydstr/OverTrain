@@ -67,7 +67,7 @@ workflows:
 
       email:
         recipients:
-          - your-email@example.com # Change this to your email
+          - mhd.aiman23@gmail.com # Change this to your email
         notify:
           success: true
           failure: true
@@ -122,7 +122,7 @@ workflows:
 
       email:
         recipients:
-          - your-email@example.com # Change this to your email
+          - c # Change this to your email
         notify:
           success: true
           failure: true

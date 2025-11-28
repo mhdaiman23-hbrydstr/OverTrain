@@ -48,7 +48,9 @@
       "Bash(echo:*)",
       "Bash(./gradlew assembleRelease:*)",
       "Bash(./gradlew:*)",
-      "Bash(keytool:*)"
+      "Bash(keytool:*)",
+      "Bash(xcodebuild:*)",
+      "Bash(rm:*)"
     ],
     "deny": [],
     "ask": []
