@@ -7,8 +7,9 @@ workflows:
       app_store_connect: OverTrain # Configure this in Codemagic UI
     environment:
       ios_signing:
-        distribution_type: development  # Changed from app_store for diagnostic
+        distribution_type: app_store
         bundle_identifier: app.overtrain.gooonemore
+        # Let Codemagic auto-create certificate and profile
       vars:
         # Required environment variables - set these in Codemagic UI:
         # XCODE_WORKSPACE: "ios/App/App.xcworkspace"
