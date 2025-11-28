@@ -32,3 +32,27 @@ next-env.d.ts
 # Claude Code settings (exclude local config with API keys)
 .claude/settings.local.json
 .vercel
+
+# Expo
+.expo/
+
+# iOS / Capacitor
+ios/App/Pods/
+ios/App/build/
+*.ipa
+*.dSYM.zip
+*.mobileprovision
+*.p12
+*.cer
+DerivedData/
+
+# Android / Capacitor
+android/.gradle/
+android/build/
+android/app/build/
+*.jks
+*.keystore
+local.properties
+
+# Codemagic
+codemagic-build-artifacts/

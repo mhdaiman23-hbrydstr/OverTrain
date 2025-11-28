@@ -1,0 +1,128 @@
+workflows:
+  ios-capacitor-workflow:
+    name: iOS Capacitor Build
+    max_build_duration: 120
+    instance_type: mac_mini_m2
+    integrations:
+      app_store_connect: OverTrain # Configure this in Codemagic UI
+    environment:
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: app.overtrain.gooonemore
+      vars:
+        # Required environment variables - set these in Codemagic UI:
+        # XCODE_WORKSPACE: "ios/App/App.xcworkspace"
+        # XCODE_SCHEME: "App"
+        XCODE_WORKSPACE: "ios/App/App.xcworkspace"
+        XCODE_SCHEME: "App"
+        # Optional: Add Sentry auth token for error tracking
+        # SENTRY_AUTH_TOKEN: your_sentry_token
+      node: v20.11.0
+      xcode: 15.2
+      cocoapods: default
+    scripts:
+      - name: Install Node.js dependencies
+        script: |
+          npm ci
+
+      - name: Install CocoaPods dependencies
+        script: |
+          cd ios/App
+          pod install
+
+      - name: Build Next.js app for native (static export)
+        script: |
+          npm run build:native
+
+      - name: Sync Capacitor with iOS
+        script: |
+          npx cap sync ios
+
+      - name: Set build number and version
+        script: |
+          # Auto-increment build number
+          cd ios/App
+          agvtool new-version -all $(($(app-store-connect get-latest-testflight-build-number "$APP_STORE_ID") + 1))
+
+      - name: Build iOS app
+        script: |
+          xcode-project build-ipa \
+            --workspace "$XCODE_WORKSPACE" \
+            --scheme "$XCODE_SCHEME"
+
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+
+    publishing:
+      # Submit to App Store Connect / TestFlight
+      app_store_connect:
+        auth: integration
+
+        # Submit to TestFlight for internal testing
+        submit_to_testflight: true
+
+        # Optional: Auto-submit to App Store (beta)
+        # submit_to_app_store: false
+
+      email:
+        recipients:
+          - your-email@example.com # Change this to your email
+        notify:
+          success: true
+          failure: true
+
+  # Optional: Android workflow for completeness
+  android-capacitor-workflow:
+    name: Android Capacitor Build
+    max_build_duration: 120
+    instance_type: linux_x2
+    environment:
+      android_signing:
+        - overtrain_keystore # Configure this in Codemagic UI
+      groups:
+        - android_credentials # Add KEYSTORE_PASSWORD, KEY_ALIAS, KEY_PASSWORD
+      vars:
+        PACKAGE_NAME: "app.overtrain.gooonemore"
+      node: v20.11.0
+      java: 17
+    scripts:
+      - name: Install Node.js dependencies
+        script: |
+          npm ci
+
+      - name: Build Next.js app for native (static export)
+        script: |
+          npm run build:native
+
+      - name: Sync Capacitor with Android
+        script: |
+          npx cap sync android
+
+      - name: Set version code
+        script: |
+          cd android
+          # Auto-increment version code based on build number
+          echo "VERSION_CODE=$BUILD_NUMBER" >> gradle.properties
+
+      - name: Build Android release
+        script: |
+          cd android
+          ./gradlew assembleRelease
+
+    artifacts:
+      - android/app/build/outputs/**/*.apk
+      - android/app/build/outputs/**/*.aab
+
+    publishing:
+      # Optional: Submit to Google Play
+      # google_play:
+      #   credentials: $GCLOUD_SERVICE_ACCOUNT_CREDENTIALS
+      #   track: internal
+
+      email:
+        recipients:
+          - your-email@example.com # Change this to your email
+        notify:
+          success: true
+          failure: true
