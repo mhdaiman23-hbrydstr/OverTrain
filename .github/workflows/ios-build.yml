@@ -92,6 +92,9 @@ jobs:
           bundle exec fastlane beta
         env:
           TEAM_ID: ${{ secrets.IOS_DEVELOPMENT_TEAM }}
+          APPSTORE_API_KEY_ID: ${{ secrets.APPSTORE_API_KEY_ID }}
+          APPSTORE_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
+          APPSTORE_API_PRIVATE_KEY: ${{ secrets.APPSTORE_API_PRIVATE_KEY }}
 
       - name: Build for Ad-Hoc
         if: github.event.inputs.build_type == 'adhoc'
