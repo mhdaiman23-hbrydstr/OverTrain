@@ -64,6 +64,12 @@ jobs:
 
       - name: Build Next.js app for native
         run: npm run build:native
+        env:
+          # Disable Sentry for builds to avoid configuration issues
+          SENTRY_ORG: ''
+          SENTRY_PROJECT: ''
+          SENTRY_AUTH_TOKEN: ''
+          NEXT_PUBLIC_IS_NATIVE: 'true'
 
       - name: Sync Capacitor with iOS
         run: npx cap sync ios
