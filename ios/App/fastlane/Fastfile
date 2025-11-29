@@ -12,20 +12,21 @@ platform :ios do
     api_key_id = ENV["APP_STORE_CONNECT_API_KEY_ID"]
     api_issuer_id = ENV["APP_STORE_CONNECT_API_ISSUER_ID"]
 
-    # Configure code signing settings in Xcode project
-    update_code_signing_settings(
-      use_automatic_signing: true,
-      team_id: team_id,
-      path: "App.xcodeproj"
+    # Setup code signing with Match
+    match(
+      type: "appstore",
+      readonly: true,  # Don't create new certificates, just fetch existing ones
+      app_identifier: "app.overtrain.gooonemore"
     )
 
-    # Build xcargs with authentication if API key is available
-    xcargs_value = "-allowProvisioningUpdates"
-    if api_key_path && api_key_id && api_issuer_id
-      xcargs_value += " -authenticationKeyPath #{api_key_path}"
-      xcargs_value += " -authenticationKeyID #{api_key_id}"
-      xcargs_value += " -authenticationKeyIssuerID #{api_issuer_id}"
-    end
+    # Configure code signing settings to use Match certificates
+    update_code_signing_settings(
+      use_automatic_signing: false,  # Use manual signing with Match
+      team_id: team_id,
+      path: "App.xcodeproj",
+      code_sign_identity: "iPhone Distribution",  # Use the Match certificate
+      profile_name: "match AppStore app.overtrain.gooonemore"  # Use the Match profile
+    )
 
     # Build the app
     build_app(
@@ -37,12 +38,13 @@ platform :ios do
       output_name: "OverTrain.ipa",
       include_symbols: true,
       include_bitcode: false,
-      xcargs: xcargs_value,
       export_options: {
         teamID: team_id,
         method: "app-store",
-        signingStyle: "automatic",
-        provisioningProfiles: {}
+        signingStyle: "manual",  # Use manual signing
+        provisioningProfiles: {
+          "app.overtrain.gooonemore" => "match AppStore app.overtrain.gooonemore"
+        }
       }
     )
 

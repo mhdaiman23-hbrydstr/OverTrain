@@ -50,7 +50,13 @@
       "Bash(./gradlew:*)",
       "Bash(keytool:*)",
       "Bash(xcodebuild:*)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(gh run list:*)",
+      "Bash(gh run view:*)",
+      "Bash(gh run watch:*)",
+      "Bash(bundle exec fastlane match:*)",
+      "Bash(gh run cancel:*)",
+      "Bash(gh workflow run:*)"
     ],
     "deny": [],
     "ask": []

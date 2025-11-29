@@ -74,18 +74,9 @@ jobs:
       - name: Sync Capacitor with iOS
         run: npx cap sync ios
 
-      - name: Setup App Store Connect API key for code signing
+      - name: Setup App Store Connect API key for TestFlight upload
         run: |
-          # Create private key directory for xcodebuild
-          mkdir -p ~/private_keys
-
-          # Write the private key to a .p8 file (preserve line breaks)
-          echo -e "${{ secrets.APPSTORE_API_PRIVATE_KEY }}" > ~/private_keys/AuthKey_${{ secrets.APPSTORE_API_KEY_ID }}.p8
-
-          # Verify the file was created
-          ls -la ~/private_keys/
-
-          # Also create JSON for Fastlane upload
+          # Create JSON for Fastlane upload to TestFlight
           mkdir -p ~/.appstoreconnect
           cat > ~/.appstoreconnect/auth_key.json <<EOF
           {
@@ -102,9 +93,9 @@ jobs:
           bundle exec fastlane beta
         env:
           TEAM_ID: ${{ secrets.IOS_DEVELOPMENT_TEAM }}
-          APP_STORE_CONNECT_API_KEY_PATH: ~/private_keys/AuthKey_${{ secrets.APPSTORE_API_KEY_ID }}.p8
-          APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APPSTORE_API_KEY_ID }}
-          APP_STORE_CONNECT_API_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
+          MATCH_GIT_URL: ${{ secrets.MATCH_GIT_URL }}
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+          MATCH_GIT_BASIC_AUTHORIZATION: ${{ secrets.MATCH_GIT_BASIC_AUTHORIZATION }}
 
       - name: Build for Ad-Hoc
         if: github.event.inputs.build_type == 'adhoc'
