@@ -89,7 +89,7 @@ jobs:
         if: github.event.inputs.build_type == 'beta' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
         run: |
           cd ios/App
-          fastlane beta
+          bundle exec fastlane beta
         env:
           TEAM_ID: ${{ secrets.IOS_DEVELOPMENT_TEAM }}
 
@@ -97,7 +97,7 @@ jobs:
         if: github.event.inputs.build_type == 'adhoc'
         run: |
           cd ios/App
-          fastlane adhoc
+          bundle exec fastlane adhoc
         env:
           TEAM_ID: ${{ secrets.IOS_DEVELOPMENT_TEAM }}
 
