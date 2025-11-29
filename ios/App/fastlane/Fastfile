@@ -9,15 +9,6 @@ platform :ios do
     # Get team ID from environment
     team_id = ENV["TEAM_ID"]
 
-    # Set up App Store Connect API Key for authentication
-    api_key = app_store_connect_api_key(
-      key_id: ENV["APPSTORE_API_KEY_ID"],
-      issuer_id: ENV["APPSTORE_ISSUER_ID"],
-      key_content: ENV["APPSTORE_API_PRIVATE_KEY"],
-      is_key_content_base64: false,
-      in_house: false
-    )
-
     # Configure code signing settings in Xcode project
     update_code_signing_settings(
       use_automatic_signing: true,
@@ -46,7 +37,6 @@ platform :ios do
 
     # Upload to TestFlight
     upload_to_testflight(
-      api_key: api_key,
       skip_waiting_for_build_processing: true,
       notify_external_testers: false,
       changelog: default_changelog
