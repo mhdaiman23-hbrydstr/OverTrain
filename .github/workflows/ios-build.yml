@@ -1,0 +1,103 @@
+name: iOS Build and TestFlight Deployment
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+    tags:
+      - 'v*'
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      build_type:
+        description: 'Build type'
+        required: true
+        default: 'beta'
+        type: choice
+        options:
+          - beta
+          - adhoc
+
+env:
+  NODE_VERSION: '20.11.0'
+  XCODE_VERSION: '15.2'
+  BUNDLE_IDENTIFIER: 'app.overtrain.gooonemore'
+
+jobs:
+  build-ios:
+    name: Build and Deploy iOS App
+    runs-on: macos-14
+    timeout-minutes: 120
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Setup Ruby and Fastlane
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          working-directory: ios/App
+          bundler-cache: true
+
+      - name: Setup Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: ${{ env.XCODE_VERSION }}
+
+      - name: Install Node.js dependencies
+        run: npm ci
+
+      - name: Install CocoaPods dependencies
+        run: |
+          cd ios/App
+          pod install --repo-update
+
+      - name: Build Next.js app for native
+        run: npm run build:native
+
+      - name: Sync Capacitor with iOS
+        run: npx cap sync ios
+
+      - name: Setup App Store Connect API key for Fastlane
+        run: |
+          mkdir -p ~/.appstoreconnect
+          cat > ~/.appstoreconnect/auth_key.json <<EOF
+          {
+            "key_id": "${{ secrets.APPSTORE_API_KEY_ID }}",
+            "issuer_id": "${{ secrets.APPSTORE_ISSUER_ID }}",
+            "key": "${{ secrets.APPSTORE_API_PRIVATE_KEY }}"
+          }
+          EOF
+
+      - name: Build and upload to TestFlight
+        if: github.event.inputs.build_type == 'beta' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
+        run: |
+          cd ios/App
+          fastlane beta
+        env:
+          TEAM_ID: ${{ secrets.IOS_DEVELOPMENT_TEAM }}
+
+      - name: Build for Ad-Hoc
+        if: github.event.inputs.build_type == 'adhoc'
+        run: |
+          cd ios/App
+          fastlane adhoc
+        env:
+          TEAM_ID: ${{ secrets.IOS_DEVELOPMENT_TEAM }}
+
+      - name: Upload IPA artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-ipa
+          path: ios/build/*.ipa
+          retention-days: 30

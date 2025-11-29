@@ -1,0 +1,51 @@
+# This file contains the fastlane.tools configuration
+# You can find the documentation at https://docs.fastlane.tools
+
+default_platform(:ios)
+
+platform :ios do
+  desc "Build and upload to TestFlight"
+  lane :beta do
+    # Build the app
+    build_app(
+      workspace: "App.xcworkspace",
+      scheme: "App",
+      configuration: "Release",
+      export_method: "app-store",
+      output_directory: "../build",
+      output_name: "OverTrain.ipa",
+      include_symbols: true,
+      include_bitcode: false
+    )
+    
+    # Upload to TestFlight
+    upload_to_testflight(
+      skip_waiting_for_build_processing: true,
+      notify_external_testers: false,
+      changelog: default_changelog
+    )
+  end
+
+  desc "Build for ad-hoc distribution"
+  lane :adhoc do
+    build_app(
+      workspace: "App.xcworkspace",
+      scheme: "App", 
+      configuration: "Release",
+      export_method: "ad-hoc",
+      output_directory: "../build",
+      output_name: "OverTrain-AdHoc.ipa",
+      include_symbols: true,
+      include_bitcode: false
+    )
+  end
+
+  private_lane :default_changelog do
+    # Get the latest commit message for changelog
+    changelog = last_git_commit[:message]
+    if changelog.length > 200
+      changelog = changelog[0, 200] + "..."
+    end
+    changelog
+  end
+end
