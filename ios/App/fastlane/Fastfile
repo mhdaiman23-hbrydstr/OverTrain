@@ -9,8 +9,17 @@ platform :ios do
     # Get team ID from environment
     team_id = ENV["TEAM_ID"]
 
-    # Install certificate from environment variable
+    # Create and setup keychain for code signing
     if ENV["IOS_CERTIFICATE_BASE64"]
+      create_keychain(
+        name: "ios-build.keychain",
+        password: "tempkeychainpassword",
+        default_keychain: true,
+        unlock: true,
+        timeout: 3600,
+        lock_when_sleeps: false
+      )
+
       import_certificate(
         certificate_path: "distribution.p12",
         certificate_password: ENV["P12_PASSWORD"] || "",
