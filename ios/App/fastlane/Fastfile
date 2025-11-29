@@ -26,6 +26,7 @@ platform :ios do
       output_name: "OverTrain.ipa",
       include_symbols: true,
       include_bitcode: false,
+      xcargs: "-allowProvisioningUpdates",
       export_options: {
         teamID: team_id,
         method: "app-store",
@@ -63,6 +64,7 @@ platform :ios do
       output_name: "OverTrain-AdHoc.ipa",
       include_symbols: true,
       include_bitcode: false,
+      xcargs: "-allowProvisioningUpdates",
       export_options: {
         teamID: team_id,
         method: "ad-hoc",
