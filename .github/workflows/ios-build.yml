@@ -79,8 +79,11 @@ jobs:
           # Create private key directory for xcodebuild
           mkdir -p ~/private_keys
 
-          # Write the private key to a .p8 file
-          echo "${{ secrets.APPSTORE_API_PRIVATE_KEY }}" > ~/private_keys/AuthKey_${{ secrets.APPSTORE_API_KEY_ID }}.p8
+          # Write the private key to a .p8 file (preserve line breaks)
+          echo -e "${{ secrets.APPSTORE_API_PRIVATE_KEY }}" > ~/private_keys/AuthKey_${{ secrets.APPSTORE_API_KEY_ID }}.p8
+
+          # Verify the file was created
+          ls -la ~/private_keys/
 
           # Also create JSON for Fastlane upload
           mkdir -p ~/.appstoreconnect
