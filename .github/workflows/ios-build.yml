@@ -74,9 +74,12 @@ jobs:
       - name: Sync Capacitor with iOS
         run: npx cap sync ios
 
-      - name: Setup App Store Connect API key for TestFlight upload
+      - name: Setup iOS code signing certificate
         run: |
-          # Create JSON for Fastlane upload to TestFlight
+          # Decode and save the certificate
+          echo "${{ secrets.IOS_CERTIFICATE_BASE64 }}" | base64 --decode > ios/App/distribution.p12
+
+          # Create App Store Connect API key JSON for TestFlight upload
           mkdir -p ~/.appstoreconnect
           cat > ~/.appstoreconnect/auth_key.json <<EOF
           {
@@ -93,9 +96,8 @@ jobs:
           bundle exec fastlane beta
         env:
           TEAM_ID: ${{ secrets.IOS_DEVELOPMENT_TEAM }}
-          MATCH_GIT_URL: ${{ secrets.MATCH_GIT_URL }}
-          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
-          MATCH_GIT_BASIC_AUTHORIZATION: ${{ secrets.MATCH_GIT_BASIC_AUTHORIZATION }}
+          IOS_CERTIFICATE_BASE64: ${{ secrets.IOS_CERTIFICATE_BASE64 }}
+          P12_PASSWORD: "temp_password_12345"
 
       - name: Build for Ad-Hoc
         if: github.event.inputs.build_type == 'adhoc'

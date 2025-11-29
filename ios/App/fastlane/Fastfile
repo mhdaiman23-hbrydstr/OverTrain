@@ -6,26 +6,24 @@ default_platform(:ios)
 platform :ios do
   desc "Build and upload to TestFlight"
   lane :beta do
-    # Get team ID and API key info from environment
+    # Get team ID from environment
     team_id = ENV["TEAM_ID"]
-    api_key_path = ENV["APP_STORE_CONNECT_API_KEY_PATH"]
-    api_key_id = ENV["APP_STORE_CONNECT_API_KEY_ID"]
-    api_issuer_id = ENV["APP_STORE_CONNECT_API_ISSUER_ID"]
 
-    # Setup code signing with Match
-    match(
-      type: "appstore",
-      readonly: true,  # Don't create new certificates, just fetch existing ones
-      app_identifier: "app.overtrain.gooonemore"
-    )
+    # Install certificate from environment variable
+    if ENV["IOS_CERTIFICATE_BASE64"]
+      import_certificate(
+        certificate_path: "distribution.p12",
+        certificate_password: ENV["P12_PASSWORD"] || "",
+        keychain_name: "ios-build.keychain",
+        keychain_password: "tempkeychainpassword"
+      )
+    end
 
-    # Configure code signing settings to use Match certificates
+    # Configure code signing settings
     update_code_signing_settings(
-      use_automatic_signing: false,  # Use manual signing with Match
+      use_automatic_signing: true,
       team_id: team_id,
-      path: "App.xcodeproj",
-      code_sign_identity: "iPhone Distribution",  # Use the Match certificate
-      profile_name: "match AppStore app.overtrain.gooonemore"  # Use the Match profile
+      path: "App.xcodeproj"
     )
 
     # Build the app
@@ -38,13 +36,11 @@ platform :ios do
       output_name: "OverTrain.ipa",
       include_symbols: true,
       include_bitcode: false,
+      xcargs: "-allowProvisioningUpdates",
       export_options: {
         teamID: team_id,
         method: "app-store",
-        signingStyle: "manual",  # Use manual signing
-        provisioningProfiles: {
-          "app.overtrain.gooonemore" => "match AppStore app.overtrain.gooonemore"
-        }
+        provisioningProfiles: {}
       }
     )
 
