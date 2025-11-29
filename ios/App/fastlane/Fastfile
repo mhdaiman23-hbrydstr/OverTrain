@@ -9,6 +9,13 @@ platform :ios do
     # Get team ID from environment
     team_id = ENV["TEAM_ID"]
 
+    # Configure code signing settings in Xcode project
+    update_code_signing_settings(
+      use_automatic_signing: true,
+      team_id: team_id,
+      path: "App.xcodeproj"
+    )
+
     # Build the app
     build_app(
       workspace: "App.xcworkspace",
@@ -39,6 +46,13 @@ platform :ios do
   lane :adhoc do
     # Get team ID from environment
     team_id = ENV["TEAM_ID"]
+
+    # Configure code signing settings in Xcode project
+    update_code_signing_settings(
+      use_automatic_signing: true,
+      team_id: team_id,
+      path: "App.xcodeproj"
+    )
 
     build_app(
       workspace: "App.xcworkspace",
