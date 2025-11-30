@@ -49,6 +49,11 @@ workflows:
           NEW_BUILD=$((LATEST_BUILD + 1))
           agvtool new-version -all $NEW_BUILD
 
+      - name: Prepare signing assets (profiles & export options)
+        script: |
+          # Fetch and apply provisioning profiles + generate export options plist
+          xcode-project use-profiles
+
       - name: Build iOS app
         script: |
           xcode-project build-ipa \
