@@ -21,7 +21,7 @@ workflows:
         # Optional: Add Sentry auth token for error tracking
         # SENTRY_AUTH_TOKEN: your_sentry_token
       node: v20.11.0
-      xcode: 15.2
+      xcode: 15.4
       cocoapods: default
     scripts:
       - name: Install Node.js dependencies
@@ -43,9 +43,11 @@ workflows:
 
       - name: Set build number and version
         script: |
-          # Auto-increment build number
+          # Auto-increment build number using latest TestFlight build
           cd ios/App
-          agvtool new-version -all $(($(app-store-connect get-latest-testflight-build-number "$APP_STORE_ID") + 1))
+          LATEST_BUILD=$(app-store-connect get-latest-testflight-build-number "app.overtrain.gooonemore")
+          NEW_BUILD=$((LATEST_BUILD + 1))
+          agvtool new-version -all $NEW_BUILD
 
       - name: Build iOS app
         script: |

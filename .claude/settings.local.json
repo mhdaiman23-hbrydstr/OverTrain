@@ -56,7 +56,11 @@
       "Bash(gh run watch:*)",
       "Bash(bundle exec fastlane match:*)",
       "Bash(gh run cancel:*)",
-      "Bash(gh workflow run:*)"
+      "Bash(gh workflow run:*)",
+      "Bash(openssl pkcs12:*)",
+      "Bash(eas --version:*)",
+      "Bash(eas whoami:*)",
+      "Bash(eas build:*)"
     ],
     "deny": [],
     "ask": []
