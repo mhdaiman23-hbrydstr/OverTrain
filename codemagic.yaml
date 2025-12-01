@@ -43,11 +43,13 @@ workflows:
 
       - name: Set build number and version
         script: |
-          # Auto-increment build number using latest TestFlight build
+          # Set CFBundleVersion (build number) from Codemagic's BUILD_NUMBER
           cd ios/App
-          LATEST_BUILD=$(app-store-connect get-latest-testflight-build-number "app.overtrain.gooonemore")
-          NEW_BUILD=$((LATEST_BUILD + 1))
-          agvtool new-version -all $NEW_BUILD
+          if [ -z "$BUILD_NUMBER" ]; then
+            echo "BUILD_NUMBER is not set, defaulting to 1"
+            BUILD_NUMBER=1
+          fi
+          agvtool new-version -all "$BUILD_NUMBER"
 
       - name: Prepare signing assets (profiles & export options)
         script: |
