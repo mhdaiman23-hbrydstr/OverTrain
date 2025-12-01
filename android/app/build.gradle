@@ -37,7 +37,7 @@ android {
             }
 
             storePassword props.getProperty('KEYSTORE_PASSWORD') ?: System.getenv('KEYSTORE_PASSWORD') ?: ''
-            keyAlias props.getProperty('KEY_ALIAS') ?: System.getenv('KEY_ALIAS') ?: 'overtrain'
+            keyAlias props.getProperty('KEY_ALIAS') ?: System.getenv('KEY_ALIAS') ?: 'keystore'
             keyPassword props.getProperty('KEY_PASSWORD') ?: System.getenv('KEY_PASSWORD') ?: ''
         }
     }

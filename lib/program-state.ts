@@ -5,6 +5,9 @@ import { programTemplateService } from "./services/program-template-service"
 import { programForkService } from "./services/program-fork-service"
 import { ExerciseLibraryService } from "./services/exercise-library-service"
 import { ProgressionRouter } from "./progression-router"
+// Native platform support for SQLite-first storage
+import { isNative } from "./native/platform"
+import { unifiedStorage } from "./native/storage-service"
 
 function logSupabaseError(label: string, error: unknown) {
   if (!error) return
@@ -123,7 +126,10 @@ export class ProgramStateManager {
   private static readonly PROGRAM_PROGRESS_KEY = "liftlog_program_progress"
   private static readonly PROGRAM_HISTORY_KEY = "liftlog_program_history"
   private static readonly DATABASE_LOAD_KEY = "liftlog_program_db_loaded_at"
+  private static readonly LOCAL_SAVE_KEY = "liftlog_program_local_saved_at"
   private static readonly DATABASE_STALE_MS = 5_000
+  // RACE CONDITION FIX: Time window to protect fresh local saves from being overwritten by database
+  private static readonly LOCAL_SAVE_PROTECTION_MS = 3_000
   private static databaseLoadPromise: Promise<void> | null = null
   private static ensureCustomTemplatePromise: Promise<void> | null = null
 
@@ -176,6 +182,73 @@ export class ProgramStateManager {
     } finally {
       this.releaseLock()
     }
+  }
+
+  // ============================================================================
+  // NATIVE STORAGE ABSTRACTION
+  // Uses SQLite on native (instant, offline-first) and localStorage on web
+  // ============================================================================
+
+  /**
+   * Check if we should use native SQLite storage
+   */
+  private static shouldUseNativeStorage(): boolean {
+    try {
+      return isNative()
+    } catch {
+      return false
+    }
+  }
+
+  /**
+   * Get value from storage (SQLite on native, localStorage on web)
+   */
+  private static async getStorageValue(key: string): Promise<string | null> {
+    if (this.shouldUseNativeStorage()) {
+      try {
+        const value = await unifiedStorage.get(key)
+        // UnifiedStorage returns parsed object, we need to stringify for compatibility
+        return value ? JSON.stringify(value) : null
+      } catch (error) {
+        console.warn(`[ProgramState] Native storage get failed for ${key}, falling back to localStorage:`, error)
+      }
+    }
+    return localStorage.getItem(key)
+  }
+
+  /**
+   * Set value in storage (SQLite on native, localStorage on web)
+   */
+  private static async setStorageValue(key: string, value: string): Promise<void> {
+    if (this.shouldUseNativeStorage()) {
+      try {
+        // UnifiedStorage expects parsed object, not string
+        const parsed = JSON.parse(value)
+        await unifiedStorage.set(key, parsed)
+        console.log(`[ProgramState] Saved to native storage: ${key}`)
+        return
+      } catch (error) {
+        console.warn(`[ProgramState] Native storage set failed for ${key}, falling back to localStorage:`, error)
+      }
+    }
+    localStorage.setItem(key, value)
+    // RACE CONDITION FIX: Mark local save to protect from database overwrite (web only)
+    this.markLocalSave()
+  }
+
+  /**
+   * Remove value from storage
+   */
+  private static async removeStorageValue(key: string): Promise<void> {
+    if (this.shouldUseNativeStorage()) {
+      try {
+        await unifiedStorage.remove(key)
+        return
+      } catch (error) {
+        console.warn(`[ProgramState] Native storage remove failed for ${key}, falling back to localStorage:`, error)
+      }
+    }
+    localStorage.removeItem(key)
   }
 
   private static generateInstanceId(): string {
@@ -259,7 +332,17 @@ export class ProgramStateManager {
 
   private static saveProgramHistory(history: ProgramHistoryEntry[]): void {
     if (typeof window === "undefined") return
-    localStorage.setItem(this.PROGRAM_HISTORY_KEY, JSON.stringify(history))
+    
+    // Use platform-aware storage
+    if (this.shouldUseNativeStorage()) {
+      this.setStorageValue(this.PROGRAM_HISTORY_KEY, JSON.stringify(history)).catch(error => {
+        console.error("[ProgramState] Failed to save program history to native storage:", error)
+        // Fallback to localStorage
+        localStorage.setItem(this.PROGRAM_HISTORY_KEY, JSON.stringify(history))
+      })
+    } else {
+      localStorage.setItem(this.PROGRAM_HISTORY_KEY, JSON.stringify(history))
+    }
   }
 
   private static async ensureActiveProgramInstance(program: ActiveProgram): Promise<ActiveProgram> {
@@ -313,11 +396,40 @@ export class ProgramStateManager {
     return Number.isNaN(parsed) ? undefined : parsed
   }
 
+  /**
+   * RACE CONDITION FIX: Mark when a local save happens
+   * This protects fresh local data from being overwritten by stale database data
+   */
+  private static markLocalSave(): void {
+    if (typeof window === "undefined") return
+    localStorage.setItem(this.LOCAL_SAVE_KEY, Date.now().toString())
+  }
+
+  /**
+   * RACE CONDITION FIX: Check if a recent local save happened
+   * Returns true if we should protect the local data from database overwrites
+   */
+  private static hasRecentLocalSave(): boolean {
+    if (typeof window === "undefined") return false
+    const stored = localStorage.getItem(this.LOCAL_SAVE_KEY)
+    if (!stored) return false
+    const savedAt = Number.parseInt(stored, 10)
+    if (Number.isNaN(savedAt)) return false
+    return Date.now() - savedAt < this.LOCAL_SAVE_PROTECTION_MS
+  }
+
   private static async ensureDatabaseLoaded(userId?: string, options?: { force?: boolean }): Promise<void> {
     if (!supabase || typeof window === "undefined") return
 
     const resolvedUserId = userId ?? this.getCurrentUserId()
     if (!resolvedUserId) return
+
+    // RACE CONDITION FIX: Skip database load if a recent local save just happened
+    // This prevents stale database data from overwriting fresh local changes
+    if (!options?.force && this.hasRecentLocalSave()) {
+      console.log("[ProgramState] Skipping database load - recent local save detected")
+      return
+    }
 
     if (!options?.force) {
       const lastLoaded = this.getLastDatabaseLoad()
@@ -483,12 +595,14 @@ export class ProgramStateManager {
     try {
       const currentUserId = this.getCurrentUserId()
 
-      if (!options?.skipDatabaseLoad) {
+      // NATIVE OPTIMIZATION: Skip database sync on native - SQLite is the cache
+      // Background sync handles Supabase synchronization separately
+      if (!options?.skipDatabaseLoad && !this.shouldUseNativeStorage()) {
         await this.ensureDatabaseLoaded(currentUserId, { force: options?.refreshTemplate })
         await WorkoutLogger.ensureDatabaseLoaded(currentUserId, { force: options?.refreshTemplate })
       }
 
-      const stored = localStorage.getItem(this.ACTIVE_PROGRAM_KEY)
+      const stored = await this.getStorageValue(this.ACTIVE_PROGRAM_KEY)
       if (!stored) return null
 
       let program = JSON.parse(stored) as ActiveProgram
@@ -1326,10 +1440,17 @@ export class ProgramStateManager {
 
   static clearActiveProgram(): void {
     if (typeof window === "undefined") return
-    localStorage.removeItem(this.ACTIVE_PROGRAM_KEY)
-    localStorage.removeItem(this.PROGRAM_PROGRESS_KEY)
+    
+    // Use platform-aware storage removal
+    if (this.shouldUseNativeStorage()) {
+      this.removeStorageValue(this.ACTIVE_PROGRAM_KEY).catch(console.error)
+      this.removeStorageValue(this.PROGRAM_PROGRESS_KEY).catch(console.error)
+    } else {
+      localStorage.removeItem(this.ACTIVE_PROGRAM_KEY)
+      localStorage.removeItem(this.PROGRAM_PROGRESS_KEY)
+    }
     // NOTE: Do NOT clear program history here - that should persist
-    console.log("[ProgramState] Cleared active program from localStorage")
+    console.log("[ProgramState] Cleared active program from storage")
   }
 
   /**
@@ -1340,10 +1461,16 @@ export class ProgramStateManager {
     if (typeof window === "undefined") return
     
     console.log("[ProgramState] Clearing all program history")
-    localStorage.removeItem(this.PROGRAM_HISTORY_KEY)
     
-    // Also clear the active program
-    localStorage.removeItem(this.ACTIVE_PROGRAM_KEY)
+    // Use platform-aware storage removal
+    if (this.shouldUseNativeStorage()) {
+      this.removeStorageValue(this.PROGRAM_HISTORY_KEY).catch(console.error)
+      this.removeStorageValue(this.ACTIVE_PROGRAM_KEY).catch(console.error)
+    } else {
+      localStorage.removeItem(this.PROGRAM_HISTORY_KEY)
+      // Also clear the active program
+      localStorage.removeItem(this.ACTIVE_PROGRAM_KEY)
+    }
     localStorage.removeItem(this.DATABASE_LOAD_KEY)
     
     window.dispatchEvent(new Event("programChanged"))
@@ -1760,13 +1887,31 @@ export class ProgramStateManager {
 
     const serializedProgram = this.serializeProgramForStorage(program)
 
+    // NATIVE OPTIMIZATION: Use SQLite storage on native for instant saves
+    // Background sync will handle Supabase synchronization
+    if (this.shouldUseNativeStorage()) {
+      try {
+        await this.setStorageValue(this.ACTIVE_PROGRAM_KEY, serializedProgram)
+        console.log("[ProgramState] Saved to native SQLite storage")
+        // On native, background sync handles Supabase - don't block on it
+        return
+      } catch (error) {
+        console.warn("[ProgramState] Native storage failed, falling back to web storage:", error)
+      }
+    }
+
+    // Web: Use localStorage with quota handling
     try {
       localStorage.setItem(this.ACTIVE_PROGRAM_KEY, serializedProgram)
+      // RACE CONDITION FIX: Mark local save to protect from database overwrite
+      this.markLocalSave()
     } catch (error) {
       if (this.isQuotaExceeded(error)) {
         console.warn("[ProgramState] Storage quota exceeded while saving active program - storing minimal snapshot")
         try {
           localStorage.setItem(this.ACTIVE_PROGRAM_KEY, this.serializeProgramMinimal(program))
+          // RACE CONDITION FIX: Mark local save to protect from database overwrite
+          this.markLocalSave()
         } catch (secondaryError) {
           console.error("[ProgramState] Failed to persist minimal active program snapshot:", secondaryError)
         }
@@ -1776,6 +1921,7 @@ export class ProgramStateManager {
     }
 
     // Sync to database (critical for multi-device + page refresh)
+    // On web, do this immediately. On native, background sync handles it.
     const userId = this.getCurrentUserId()
     if (userId && supabase) {
       try {

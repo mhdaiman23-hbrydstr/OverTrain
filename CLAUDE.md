@@ -19,6 +19,16 @@ npm run test -- --run # Run tests once (no watch mode)
 
 Note: TypeScript and ESLint errors are ignored during builds (see next.config.mjs).
 
+## Build & Deployment
+
+**iOS Builds**: All iOS builds are handled through **Codemagic CI/CD** using the `codemagic.yaml` workflow. Do not build iOS locally unless testing. The workflow:
+- Builds the Next.js static export
+- Syncs Capacitor
+- Signs and uploads to TestFlight automatically
+- Uses `ios-capacitor-workflow` in `codemagic.yaml`
+
+**Android Builds**: Can be built locally or through CI/CD (check `codemagic.yaml` for Android workflow if configured).
+
 ## Testing
 
 **Test Structure**:

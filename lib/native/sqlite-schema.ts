@@ -40,19 +40,28 @@ CREATE TABLE IF NOT EXISTS profiles (
   synced_at INTEGER
 );
 
--- Active programs table
+-- Active programs table (matches ActiveProgram interface in program-state.ts)
 CREATE TABLE IF NOT EXISTS active_programs (
   id TEXT PRIMARY KEY,
   user_id TEXT NOT NULL,
-  program_id TEXT,
-  program_instance_id TEXT,
+  template_id TEXT NOT NULL,
+  instance_id TEXT NOT NULL,
   program_name TEXT NOT NULL,
-  template_data TEXT, -- JSON stored as TEXT
+  template_data TEXT, -- JSON stored as TEXT (full GymTemplate)
+  template_metadata TEXT, -- JSON stored as TEXT (lightweight metadata)
   current_week INTEGER DEFAULT 1,
   current_day INTEGER DEFAULT 1,
+  completed_workouts INTEGER DEFAULT 0,
+  total_workouts INTEGER DEFAULT 0,
+  progress REAL DEFAULT 0,
   started_at INTEGER NOT NULL,
   last_workout_at INTEGER,
+  progression_override TEXT, -- JSON stored as TEXT
+  is_custom INTEGER DEFAULT 0,
+  origin_template_id TEXT,
   is_active INTEGER DEFAULT 1,
+  created_at INTEGER DEFAULT (strftime('%s', 'now') * 1000),
+  updated_at INTEGER DEFAULT (strftime('%s', 'now') * 1000),
   synced INTEGER DEFAULT 0,
   synced_at INTEGER,
   FOREIGN KEY (user_id) REFERENCES profiles(id) ON DELETE CASCADE
@@ -209,8 +218,24 @@ CREATE INDEX IF NOT EXISTS idx_one_rep_max_user_exercise ON one_rep_max(user_id,
  */
 export const MIGRATIONS: { version: number; sql: string }[] = [
   // Version 1 is the base schema (CREATE_TABLES_SQL)
-  // Add future migrations here as needed
-  // { version: 2, sql: 'ALTER TABLE workouts ADD COLUMN new_field TEXT;' },
+  // Version 2: Add missing fields to active_programs for full ActiveProgram support
+  {
+    version: 2,
+    sql: `
+      -- Add missing columns to active_programs (ignore if already exist)
+      ALTER TABLE active_programs ADD COLUMN template_id TEXT;
+      ALTER TABLE active_programs ADD COLUMN instance_id TEXT;
+      ALTER TABLE active_programs ADD COLUMN template_metadata TEXT;
+      ALTER TABLE active_programs ADD COLUMN completed_workouts INTEGER DEFAULT 0;
+      ALTER TABLE active_programs ADD COLUMN total_workouts INTEGER DEFAULT 0;
+      ALTER TABLE active_programs ADD COLUMN progress REAL DEFAULT 0;
+      ALTER TABLE active_programs ADD COLUMN progression_override TEXT;
+      ALTER TABLE active_programs ADD COLUMN is_custom INTEGER DEFAULT 0;
+      ALTER TABLE active_programs ADD COLUMN origin_template_id TEXT;
+      ALTER TABLE active_programs ADD COLUMN created_at INTEGER DEFAULT (strftime('%s', 'now') * 1000);
+      ALTER TABLE active_programs ADD COLUMN updated_at INTEGER DEFAULT (strftime('%s', 'now') * 1000);
+    `
+  },
 ];
 
 /**
@@ -253,15 +278,24 @@ export interface ProfileRow {
 export interface ActiveProgramRow {
   id: string;
   user_id: string;
-  program_id: string | null;
-  program_instance_id: string | null;
+  template_id: string;
+  instance_id: string;
   program_name: string;
-  template_data: string | null; // JSON as string
+  template_data: string | null; // JSON as string (full GymTemplate)
+  template_metadata: string | null; // JSON as string (lightweight metadata)
   current_week: number;
   current_day: number;
+  completed_workouts: number;
+  total_workouts: number;
+  progress: number;
   started_at: number;
   last_workout_at: number | null;
+  progression_override: string | null; // JSON as string
+  is_custom: number;
+  origin_template_id: string | null;
   is_active: number;
+  created_at: number;
+  updated_at: number;
   synced: number;
   synced_at: number | null;
 }

@@ -108,7 +108,7 @@ Update `android/build.gradle` to use an older AGP version that supports Java 11.
 
 Your keystore is now configured:
 - **Path**: `android/app/release-keystore.jks`
-- **Alias**: `overtrain`
+- **Alias**: `keystore`
 - **Location**: Properly placed in Android app directory
 
 ## 🚀 Build Commands (After Java Fix)

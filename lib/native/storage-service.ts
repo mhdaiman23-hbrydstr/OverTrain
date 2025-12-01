@@ -153,19 +153,36 @@ class UnifiedStorageService {
 
   /**
    * Map localStorage keys to SQLite tables
+   * This enables seamless routing of program-state.ts calls to SQLite on native
    */
-  private mapKeyToTable(key: string): { table: TableName; idField: string } | null {
+  private mapKeyToTable(key: string): { table: TableName; idField: string; isArray?: boolean } | null {
+    // Active program (single object per user)
     if (key === 'liftlog_active_program') {
-      return { table: TABLES.ACTIVE_PROGRAMS, idField: 'id' };
+      return { table: TABLES.ACTIVE_PROGRAMS, idField: 'id', isArray: false };
     }
+    // In-progress workouts (array of workouts)
     if (key.startsWith('liftlog_in_progress_workouts')) {
-      return { table: TABLES.IN_PROGRESS_WORKOUTS, idField: 'id' };
+      return { table: TABLES.IN_PROGRESS_WORKOUTS, idField: 'id', isArray: true };
     }
+    // Completed workouts (array of workouts)
     if (key === 'liftlog_workouts' || key.startsWith('liftlog_workouts_')) {
-      return { table: TABLES.WORKOUTS, idField: 'id' };
+      return { table: TABLES.WORKOUTS, idField: 'id', isArray: true };
     }
+    // Program history (array of completed programs)
     if (key === 'liftlog_program_history') {
-      return { table: TABLES.PROGRAM_HISTORY, idField: 'id' };
+      return { table: TABLES.PROGRAM_HISTORY, idField: 'id', isArray: true };
+    }
+    // One-rep max records
+    if (key === 'liftlog_one_rep_max' || key.startsWith('liftlog_one_rep_max_')) {
+      return { table: TABLES.ONE_REP_MAX, idField: 'id', isArray: true };
+    }
+    // Exercise notes
+    if (key.startsWith('liftlog_exercise_notes')) {
+      return { table: TABLES.EXERCISE_NOTES, idField: 'id', isArray: true };
+    }
+    // Custom RPE values
+    if (key.startsWith('liftlog_exercise_rpe')) {
+      return { table: TABLES.EXERCISE_CUSTOM_RPE, idField: 'id', isArray: true };
     }
     return null;
   }
@@ -185,8 +202,8 @@ class UnifiedStorageService {
     try {
       const results = await sqliteService.getAll(mapping.table);
       
-      // For array-based storage (workouts, in-progress workouts)
-      if (key.startsWith('liftlog_workouts') || key.startsWith('liftlog_in_progress')) {
+      // For array-based storage (workouts, in-progress workouts, history, etc.)
+      if (mapping.isArray) {
         return results.map(row => this.sqliteRowToObject(row));
       }
       
@@ -216,8 +233,8 @@ class UnifiedStorageService {
     }
 
     try {
-      if (Array.isArray(value)) {
-        // For array data (workouts, in-progress workouts)
+      if (mapping.isArray && Array.isArray(value)) {
+        // For array data (workouts, in-progress workouts, history)
         // Clear existing and insert all
         await sqliteService.deleteAll(mapping.table);
         for (const item of value) {
@@ -225,9 +242,16 @@ class UnifiedStorageService {
           await sqliteService.insert(mapping.table, row);
         }
       } else if (value) {
-        // For single objects
+        // For single objects (active program)
+        // Clear existing first (one active program per user)
+        if (!mapping.isArray) {
+          await sqliteService.deleteAll(mapping.table);
+        }
         const row = this.objectToSQLiteRow(value, mapping.table);
         await sqliteService.insert(mapping.table, row);
+      } else if (value === null) {
+        // Handle explicit null/clear
+        await sqliteService.deleteAll(mapping.table);
       }
     } catch (error) {
       console.error(`[UnifiedStorage] SQLite set failed for ${key}:`, error);
@@ -261,21 +285,39 @@ class UnifiedStorageService {
 
   /**
    * Convert SQLite row to JavaScript object
+   * Handles ActiveProgram, WorkoutSession, and other data types
    */
   private sqliteRowToObject(row: any): any {
     if (!row) return null;
 
     const result: any = {};
+    
+    // JSON fields that need parsing
+    const jsonFields = [
+      'exercises', 'template_data', 'template_metadata', 'goals', 
+      'one_rep_max', 'progression_override'
+    ];
+    
+    // Boolean fields stored as 0/1 in SQLite
+    const booleanFields = [
+      'completed', 'synced', 'skipped', 'is_active', 'is_custom'
+    ];
+    
     for (const [key, value] of Object.entries(row)) {
       // Convert snake_case to camelCase
-      const camelKey = key.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
+      let camelKey = key.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
+      
+      // Special mappings for ActiveProgram compatibility
+      if (key === 'template_data') camelKey = 'template';
+      if (key === 'started_at') camelKey = 'startDate';
       
       // Parse JSON fields
-      if (key === 'exercises' || key === 'template_data' || key === 'goals' || key === 'one_rep_max') {
-        result[camelKey] = parseJsonField(value as string, key === 'exercises' || key === 'goals' ? [] : {});
+      if (jsonFields.includes(key)) {
+        const defaultValue = key === 'exercises' || key === 'goals' ? [] : {};
+        result[camelKey] = parseJsonField(value as string, defaultValue);
       } 
       // Convert boolean fields
-      else if (key === 'completed' || key === 'synced' || key === 'skipped' || key === 'is_active') {
+      else if (booleanFields.includes(key)) {
         result[camelKey] = value === 1;
       }
       else {
@@ -287,21 +329,38 @@ class UnifiedStorageService {
 
   /**
    * Convert JavaScript object to SQLite row
+   * Handles ActiveProgram, WorkoutSession, and other data types
    */
   private objectToSQLiteRow(obj: any, table: TableName): any {
     if (!obj) return null;
 
     const result: any = {};
+    
+    // JSON fields that need stringifying
+    const jsonFields = [
+      'exercises', 'template', 'templateData', 'templateMetadata', 
+      'goals', 'oneRepMax', 'progressionOverride'
+    ];
+    
+    // Boolean fields stored as 0/1 in SQLite
+    const booleanFields = [
+      'completed', 'synced', 'skipped', 'isActive', 'isCustom'
+    ];
+    
     for (const [key, value] of Object.entries(obj)) {
       // Convert camelCase to snake_case
-      const snakeKey = key.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
+      let snakeKey = key.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
+      
+      // Special mappings for ActiveProgram compatibility
+      if (key === 'template') snakeKey = 'template_data';
+      if (key === 'startDate') snakeKey = 'started_at';
       
       // Stringify JSON fields
-      if (key === 'exercises' || key === 'templateData' || key === 'goals' || key === 'oneRepMax') {
+      if (jsonFields.includes(key)) {
         result[snakeKey] = stringifyJsonField(value);
       }
       // Convert boolean fields
-      else if (key === 'completed' || key === 'synced' || key === 'skipped' || key === 'isActive') {
+      else if (booleanFields.includes(key)) {
         result[snakeKey] = value ? 1 : 0;
       }
       else {

@@ -247,6 +247,96 @@ class BackgroundSyncService {
         console.error('[BackgroundSync] Error syncing in-progress workout:', error);
       }
     }
+
+    // Sync active program state
+    await this.syncActiveProgram();
+  }
+
+  /**
+   * Sync active program state to Supabase
+   */
+  private async syncActiveProgram(): Promise<void> {
+    if (!sqliteService.isAvailable()) return;
+
+    try {
+      const unsyncedPrograms = await sqliteService.getUnsynced(TABLES.ACTIVE_PROGRAMS);
+      for (const program of unsyncedPrograms) {
+        try {
+          const data = this.prepareActiveProgramForSupabase(program as any);
+          const { error } = await supabase!
+            .from('active_programs')
+            .upsert(data, { onConflict: 'user_id' }); // One active program per user
+          
+          if (!error) {
+            await sqliteService.markSynced(TABLES.ACTIVE_PROGRAMS, [(program as any).id]);
+            console.log('[BackgroundSync] Synced active program to Supabase');
+          } else {
+            console.error('[BackgroundSync] Failed to sync active program:', error);
+          }
+        } catch (error) {
+          console.error('[BackgroundSync] Error syncing active program:', error);
+        }
+      }
+
+      // Sync program history
+      const unsyncedHistory = await sqliteService.getUnsynced(TABLES.PROGRAM_HISTORY);
+      for (const entry of unsyncedHistory) {
+        try {
+          const data = this.prepareProgramHistoryForSupabase(entry as any);
+          const { error } = await supabase!
+            .from('program_history')
+            .upsert(data, { onConflict: 'id' });
+          
+          if (!error) {
+            await sqliteService.markSynced(TABLES.PROGRAM_HISTORY, [(entry as any).id]);
+          } else {
+            console.error('[BackgroundSync] Failed to sync program history:', error);
+          }
+        } catch (error) {
+          console.error('[BackgroundSync] Error syncing program history:', error);
+        }
+      }
+    } catch (error) {
+      console.error('[BackgroundSync] Error in syncActiveProgram:', error);
+    }
+  }
+
+  /**
+   * Prepare active program data for Supabase upload
+   */
+  private prepareActiveProgramForSupabase(row: any): any {
+    return {
+      user_id: row.user_id,
+      program_id: row.template_id,
+      instance_id: row.instance_id,
+      program_name: row.program_name,
+      current_week: row.current_week,
+      current_day: row.current_day,
+      days_per_week: row.days_per_week || 3,
+      total_weeks: row.total_weeks || 6,
+      start_date: row.started_at ? new Date(row.started_at).toISOString() : new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+  }
+
+  /**
+   * Prepare program history data for Supabase upload
+   */
+  private prepareProgramHistoryForSupabase(row: any): any {
+    return {
+      id: row.id,
+      user_id: row.user_id,
+      template_id: row.program_id || row.template_id,
+      instance_id: row.instance_id || row.id,
+      name: row.program_name,
+      start_date: row.started_at ? new Date(row.started_at).toISOString() : null,
+      end_date: row.completed_at ? new Date(row.completed_at).toISOString() : null,
+      completion_rate: row.completion_rate || 0,
+      total_workouts: row.total_workouts || 0,
+      completed_workouts: row.completed_workouts || 0,
+      is_active: row.is_active === 1,
+      ended_early: row.ended_early === 1,
+    };
   }
 
   /**
@@ -304,8 +394,66 @@ class BackgroundSyncService {
           console.log(`[BackgroundSync] Downloaded ${sets.length} workout sets`);
         }
       }
+
+      // Download active program if changed on another device
+      await this.downloadActiveProgram(user.id, lastSyncDate);
     } catch (error) {
       console.error('[BackgroundSync] Error downloading changes:', error);
+    }
+  }
+
+  /**
+   * Download active program from Supabase if changed
+   */
+  private async downloadActiveProgram(userId: string, lastSyncDate: string): Promise<void> {
+    try {
+      const { data: activeProgram, error } = await supabase!
+        .from('active_programs')
+        .select('*')
+        .eq('user_id', userId)
+        .gt('updated_at', lastSyncDate)
+        .maybeSingle();
+
+      if (error) {
+        if (error.code !== 'PGRST116') { // Not found is ok
+          console.error('[BackgroundSync] Failed to check active program:', error);
+        }
+        return;
+      }
+
+      if (activeProgram) {
+        console.log('[BackgroundSync] Found updated active program from another device');
+        
+        // Convert Supabase format to SQLite format
+        const row = {
+          id: activeProgram.id || `program-${userId}`,
+          user_id: userId,
+          template_id: activeProgram.program_id,
+          instance_id: activeProgram.instance_id,
+          program_name: activeProgram.program_name,
+          current_week: activeProgram.current_week,
+          current_day: activeProgram.current_day,
+          started_at: activeProgram.start_date ? new Date(activeProgram.start_date).getTime() : Date.now(),
+          is_active: 1,
+          synced: 1,
+          synced_at: Date.now(),
+          created_at: activeProgram.created_at ? new Date(activeProgram.created_at).getTime() : Date.now(),
+          updated_at: activeProgram.updated_at ? new Date(activeProgram.updated_at).getTime() : Date.now(),
+        };
+
+        // Clear existing and insert new
+        await sqliteService.deleteAll(TABLES.ACTIVE_PROGRAMS);
+        await sqliteService.insert(TABLES.ACTIVE_PROGRAMS, row);
+        
+        console.log('[BackgroundSync] Updated local active program from remote');
+        
+        // Emit event to update UI
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new Event('programChanged'));
+        }
+      }
+    } catch (error) {
+      console.error('[BackgroundSync] Error downloading active program:', error);
     }
   }
 

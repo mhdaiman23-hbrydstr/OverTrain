@@ -1879,7 +1879,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
         })
       }
 
-      // Add set to current workout
+      // Add set to current workout - use immutable update pattern
       const setIndex = exercise.sets.findIndex((s) => s.id === addSetAfterSetId)
       const newSet = {
         id: Math.random().toString(36).substr(2, 9),
@@ -1889,9 +1889,18 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
         userAdded: true,
       }
 
-      exercise.sets.splice(setIndex + 1, 0, newSet)
-      setWorkout({ ...workout })
-      WorkoutLogger.saveCurrentWorkout(workout, user?.id)
+      // Create new arrays/objects to ensure React detects the change
+      const updatedExercises = workout.exercises.map((ex) => {
+        if (ex.id === addSetExerciseId) {
+          const newSets = [...ex.sets]
+          newSets.splice(setIndex + 1, 0, newSet)
+          return { ...ex, sets: newSets }
+        }
+        return ex
+      })
+      const updatedWorkout = { ...workout, exercises: updatedExercises }
+      setWorkout(updatedWorkout)
+      WorkoutLogger.saveCurrentWorkout(updatedWorkout, user?.id)
 
       setShowAddSetDialog(false)
       setAddSetExerciseId(null)
@@ -1914,9 +1923,16 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
     const exercise = workout.exercises.find((ex) => ex.id === exerciseId)
     if (!exercise || exercise.sets.length <= 1) return
 
-    exercise.sets = exercise.sets.filter((s) => s.id !== setId)
-    setWorkout({ ...workout })
-    WorkoutLogger.saveCurrentWorkout(workout, user?.id)
+    // Use immutable update pattern to ensure React detects the change
+    const updatedExercises = workout.exercises.map((ex) => {
+      if (ex.id === exerciseId) {
+        return { ...ex, sets: ex.sets.filter((s) => s.id !== setId) }
+      }
+      return ex
+    })
+    const updatedWorkout = { ...workout, exercises: updatedExercises }
+    setWorkout(updatedWorkout)
+    WorkoutLogger.saveCurrentWorkout(updatedWorkout, user?.id)
   }
 
   const handleSkipSet = async (exerciseId: string, setId: string) => {
@@ -2004,14 +2020,22 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
     const exercise = workout.exercises.find((ex) => ex.id === exerciseId)
     if (!exercise) return
 
-    exercise.sets.forEach((set) => {
-      set.completed = true
-      set.reps = 0
-      set.weight = 0
+    // Use immutable update pattern to ensure React detects the change
+    const updatedExercises = workout.exercises.map((ex) => {
+      if (ex.id === exerciseId) {
+        const skippedSets = ex.sets.map((set) => ({
+          ...set,
+          completed: true,
+          reps: 0,
+          weight: 0,
+        }))
+        return { ...ex, sets: skippedSets }
+      }
+      return ex
     })
-
-    setWorkout({ ...workout })
-    WorkoutLogger.saveCurrentWorkout(workout, user?.id)
+    const updatedWorkout = { ...workout, exercises: updatedExercises }
+    setWorkout(updatedWorkout)
+    WorkoutLogger.saveCurrentWorkout(updatedWorkout, user?.id)
   }
 
   const handleDeleteExercise = async (exerciseId: string) => {
@@ -2096,7 +2120,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
           })
         }
 
-        // Add exercise to current workout
+        // Add exercise to current workout - use functional update to avoid stale closure
         const newExercise = {
           id: Math.random().toString(36).substr(2, 9),
           exerciseId: selectedExercise.id,
@@ -2115,12 +2139,21 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
           completed: false,
         }
 
-        const updatedWorkout = {
-          ...workout,
-          exercises: [...workout.exercises, newExercise],
+        // Use functional update to ensure we get the latest workout state
+        let updatedWorkout: WorkoutSession | null = null
+        setWorkout((prevWorkout) => {
+          if (!prevWorkout) return prevWorkout
+          updatedWorkout = {
+            ...prevWorkout,
+            exercises: [...prevWorkout.exercises, newExercise],
+          }
+          return updatedWorkout
+        })
+        
+        // Save the updated workout after state update
+        if (updatedWorkout) {
+          await WorkoutLogger.saveCurrentWorkout(updatedWorkout, user?.id)
         }
-        setWorkout(updatedWorkout)
-        await WorkoutLogger.saveCurrentWorkout(updatedWorkout, user?.id)
       } catch (error) {
         console.error("[WorkoutLogger] Error adding exercise:", error)
         toast({

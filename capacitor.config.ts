@@ -20,7 +20,7 @@ const config: CapacitorConfig = {
   android: {
     buildOptions: {
       keystorePath: 'android/app/release-keystore.jks',
-      keystoreAlias: 'overtrain',
+      keystoreAlias: 'keystore',
     },
     // Allow mixed content for development
     allowMixedContent: false,

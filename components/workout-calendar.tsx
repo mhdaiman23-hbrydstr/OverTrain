@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Spinner } from "@/components/ui/spinner"
@@ -45,6 +45,99 @@ export function WorkoutCalendar({ onWorkoutClick, selectedWeek, selectedDay, rea
   const lastRecalculationTimeRef = useRef<number>(0)
   const RECALC_DEBOUNCE_MS = 2000 // Don't recalculate more than once every 2 seconds
 
+  // STALE CLOSURE FIX: Use ref to always have access to latest loadActiveProgram function
+  const loadActiveProgramRef = useRef<() => Promise<void>>(() => Promise.resolve())
+
+  // Define loadActiveProgram with useCallback BEFORE the useEffect that uses it
+  const loadActiveProgram = useCallback(async () => {
+    if (readOnly) return
+
+    // Only show loading spinner if we don't have a program yet (cold start)
+    // This prevents spinner flash when navigating between weeks/days
+    setActiveProgram(currentProgram => {
+      if (!currentProgram) {
+        setIsLoading(true)
+      }
+      return currentProgram
+    })
+
+    const program = await ProgramStateManager.getActiveProgram()
+    setActiveProgram(program)
+    setIsLoading(false)
+    if (program && program.templateMetadata) {
+      // LAZY-LOAD FIX: Use cached metadata instead of full template
+      const baseWeeks = program.templateMetadata.weeks || 4
+      // Use exact week count from template (no +2 extension)
+      setTotalWeeks(baseWeeks)
+      console.log("[Calendar] Active program loaded:", {
+        name: program.templateMetadata.name,
+        currentWeek: program.currentWeek,
+        currentDay: program.currentDay,
+        totalWeeks: baseWeeks
+      })
+
+      // CRITICAL FIX: Only recalculate progress if:
+      // 1. Not already recalculating (prevent infinite loop)
+      // 2. Enough time has passed since last recalculation (debounce)
+      // 3. Current workout is actually completed (indicating we should advance)
+      if (user?.id) {
+        const now = Date.now()
+        const timeSinceLastRecalc = now - lastRecalculationTimeRef.current
+
+        // Skip if already recalculating or debounce period hasn't passed
+        if (isRecalculatingRef.current) {
+          console.log("[Calendar] Recalculation already in progress, skipping")
+          return
+        }
+
+        if (timeSinceLastRecalc < RECALC_DEBOUNCE_MS) {
+          console.log(`[Calendar] Debounce active (${timeSinceLastRecalc}ms < ${RECALC_DEBOUNCE_MS}ms), skipping recalculation`)
+          return
+        }
+
+        // Check if current workout is already completed (indicating we should advance)
+        const currentWorkoutCompleted = WorkoutLogger.hasCompletedWorkout(
+          program.currentWeek,
+          program.currentDay,
+          user.id,
+          program.instanceId
+        )
+
+        if (currentWorkoutCompleted) {
+          console.log("[Calendar] Current workout is already completed, recalculating to advance...")
+
+          // Set recalculation guard
+          isRecalculatingRef.current = true
+          lastRecalculationTimeRef.current = now
+
+          try {
+            await ProgramStateManager.recalculateProgress({ silent: true })
+
+            // Reload the program after recalculation
+            const recalculatedProgram = await ProgramStateManager.getActiveProgram()
+            setActiveProgram(recalculatedProgram)
+            console.log("[Calendar] Program after recalculation:", {
+              currentWeek: recalculatedProgram?.currentWeek,
+              currentDay: recalculatedProgram?.currentDay
+            })
+          } finally {
+            // Always clear the guard, even if recalculation fails
+            isRecalculatingRef.current = false
+          }
+        } else {
+          console.log("[Calendar] Program state appears consistent, no recalculation needed")
+        }
+      }
+    } else {
+      console.log("[Calendar] No active program found")
+    }
+  }, [readOnly, user?.id])
+
+  // Keep ref updated with latest version of loadActiveProgram
+  useEffect(() => {
+    loadActiveProgramRef.current = loadActiveProgram
+  }, [loadActiveProgram])
+
   useEffect(() => {
     // Skip loading if in read-only mode (historical program viewer)
     if (readOnly) {
@@ -56,13 +149,14 @@ export function WorkoutCalendar({ onWorkoutClick, selectedWeek, selectedDay, rea
     // Load active program instantly (database-first architecture handles data loading in auth)
     if (user?.id) {
       console.log("[Calendar] Loading active program instantly")
-      loadActiveProgram()
+      loadActiveProgramRef.current()
     }
 
     // Listen for program changes (database sync, program state changes)
+    // Use ref to always call the latest version of loadActiveProgram
     const handleProgramChange = () => {
       console.log("[Calendar] Program changed, refreshing calendar")
-      loadActiveProgram()
+      loadActiveProgramRef.current()
     }
 
     window.addEventListener("programChanged", handleProgramChange)
@@ -89,7 +183,7 @@ export function WorkoutCalendar({ onWorkoutClick, selectedWeek, selectedDay, rea
       window.removeEventListener("programChanged", handleProgramChange)
       window.removeEventListener("workoutCompleted", handleWorkoutCompleted)
     }
-  }, [user?.id])
+  }, [user?.id, readOnly])
 
   // Refresh calendar when user ID changes (login/logout) - skip in read-only mode
   useEffect(() => {
@@ -100,12 +194,12 @@ export function WorkoutCalendar({ onWorkoutClick, selectedWeek, selectedDay, rea
     const timeoutId = setTimeout(() => {
       if (!activeProgram) {
         console.log("[Calendar] No active program found after delay, loading...")
-        loadActiveProgram()
+        loadActiveProgramRef.current()
       }
     }, 500) // Wait a bit to see if database sync loads it first
 
     return () => clearTimeout(timeoutId)
-  }, [user?.id, readOnly])
+  }, [user?.id, readOnly, activeProgram])
 
   // CRITICAL FIX: Periodic refresh without forced recalculation
   // Only refresh UI data from localStorage, don't trigger recalc on every tick
@@ -321,7 +415,7 @@ export function WorkoutCalendar({ onWorkoutClick, selectedWeek, selectedDay, rea
 
           console.log("=== End Program Progress Debug ===")
         },
-        forceRefresh: () => loadActiveProgram(),
+        forceRefresh: () => loadActiveProgramRef.current(),
         debugDay1Workout: async () => {
           console.log("=== Day 1 Workout Debug ===")
           if (!activeProgram || !user?.id) {
@@ -385,92 +479,6 @@ export function WorkoutCalendar({ onWorkoutClick, selectedWeek, selectedDay, rea
       console.log("[Calendar] Development tools available at window.CalendarDev")
     }
   }, [activeProgram, user])
-
-  const loadActiveProgram = async () => {
-    if (readOnly) return
-
-    // Only show loading spinner if we don't have a program yet (cold start)
-    // This prevents spinner flash when navigating between weeks/days
-    if (!activeProgram) {
-      setIsLoading(true)
-    }
-
-    const program = await ProgramStateManager.getActiveProgram()
-    setActiveProgram(program)
-    setIsLoading(false)
-    if (program && program.templateMetadata) {
-      // LAZY-LOAD FIX: Use cached metadata instead of full template
-      const baseWeeks = program.templateMetadata.weeks || 4
-      // Use exact week count from template (no +2 extension)
-      setTotalWeeks(baseWeeks)
-      console.log("[Calendar] Active program loaded:", {
-        name: program.templateMetadata.name,
-        currentWeek: program.currentWeek,
-        currentDay: program.currentDay,
-        totalWeeks: baseWeeks
-      })
-
-      // CRITICAL FIX: Only recalculate progress if:
-      // 1. Not already recalculating (prevent infinite loop)
-      // 2. Enough time has passed since last recalculation (debounce)
-      // 3. Current workout is actually completed (indicating we should advance)
-      if (user?.id) {
-        const now = Date.now()
-        const timeSinceLastRecalc = now - lastRecalculationTimeRef.current
-
-        // Skip if already recalculating or debounce period hasn't passed
-        if (isRecalculatingRef.current) {
-          console.log("[Calendar] Recalculation already in progress, skipping")
-          return
-        }
-
-        if (timeSinceLastRecalc < RECALC_DEBOUNCE_MS) {
-          console.log(`[Calendar] Debounce active (${timeSinceLastRecalc}ms < ${RECALC_DEBOUNCE_MS}ms), skipping recalculation`)
-          return
-        }
-
-        // Check if current workout is already completed (indicating we should advance)
-        // CRITICAL FIX: Use optimistic status first to avoid flickering during transitions
-        const key = `${program.currentWeek}-${program.currentDay}`
-        const optimisticCompleted = completionStatus.get(key)
-        const currentWorkoutCompleted =
-          optimisticCompleted ??
-          WorkoutLogger.hasCompletedWorkout(
-            program.currentWeek,
-            program.currentDay,
-            user.id,
-            program.instanceId
-          )
-
-        if (currentWorkoutCompleted) {
-          console.log("[Calendar] Current workout is already completed, recalculating to advance...")
-
-          // Set recalculation guard
-          isRecalculatingRef.current = true
-          lastRecalculationTimeRef.current = now
-
-          try {
-            await ProgramStateManager.recalculateProgress({ silent: true })
-
-            // Reload the program after recalculation
-            const recalculatedProgram = await ProgramStateManager.getActiveProgram()
-            setActiveProgram(recalculatedProgram)
-            console.log("[Calendar] Program after recalculation:", {
-              currentWeek: recalculatedProgram?.currentWeek,
-              currentDay: recalculatedProgram?.currentDay
-            })
-          } finally {
-            // Always clear the guard, even if recalculation fails
-            isRecalculatingRef.current = false
-          }
-        } else {
-          console.log("[Calendar] Program state appears consistent, no recalculation needed")
-        }
-      }
-    } else {
-      console.log("[Calendar] No active program found")
-    }
-  }
 
   if (isLoading) {
     return (
