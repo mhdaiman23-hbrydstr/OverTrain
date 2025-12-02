@@ -56,3 +56,15 @@ local.properties
 
 # Codemagic
 codemagic-build-artifacts/
+
+# Apple Developer Keys & Certificates (SENSITIVE - never commit!)
+*.p8
+*.p12
+*.cer
+*.Authkey_Store.json
+AuthKey_*.p8
+Certificates.p12
+CertificateSigningRequest.*
+
+# Apple secret generator script with credentials
+generate-apple-secret.js
