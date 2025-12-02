@@ -2316,9 +2316,8 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
     setShowCompletionDialog(false)
     setCompletedWorkout(null)
 
-    if (completedWorkout?.week && completedWorkout?.day) {
-      WorkoutLogger.clearCurrentWorkout(completedWorkout.week, completedWorkout.day, user?.id)
-    }
+    // Note: clearCurrentWorkout is already called in WorkoutLogger.completeWorkout()
+    // No need to clear again here
 
     // Check if program still exists - if not, the program was completed
     const activeProgram = await ProgramStateManager.getActiveProgram()
@@ -2331,12 +2330,13 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
       return
     }
 
-    // Program still exists - load next workout
-    // Set loading state BEFORE setting workout to null to prevent "No workout to log" flash
-    setIsLoadingWorkout(true)
-    setWorkout(null)
-    window.dispatchEvent(new Event("programChanged"))
-    onComplete?.()
+    // Program still exists - the new workout was already loaded by handleProgramChange
+    // when the programChanged event was dispatched in handleCompleteWorkout.
+    // Just close the dialogs and the user will see the new workout.
+    // 
+    // IMPORTANT: Do NOT call onComplete() here - that remounts the component and
+    // causes a race condition where the new workout state is lost.
+    console.log("[handleStartNextWorkout] Dialogs closed, new workout should already be loaded")
   }
 
   const handleWorkoutClick = async (week: number, day: number) => {

@@ -104,6 +104,7 @@ export function CustomRpeDialog({
               </label>
               <input
                 type="number"
+                inputMode="decimal"
                 min="1"
                 max="10"
                 step="0.5"

@@ -56,6 +56,7 @@ export function BodyweightDialog({
             <label className="text-sm font-medium">Bodyweight (kg)</label>
             <Input
               type="number"
+              inputMode="decimal"
               placeholder="Enter your bodyweight"
               value={bodyweightValue}
               onChange={(e) => onBodyweightChange(e.target.value)}

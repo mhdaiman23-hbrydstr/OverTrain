@@ -357,6 +357,7 @@ export function ExerciseGroups({
                               <div className="col-span-4">
                                 <Input
                                   type="number"
+                                  inputMode="decimal"
                                   value={set.weight || ""}
                                   onChange={(e) => {
                                     let value = Number.parseFloat(e.target.value) || 0
@@ -380,6 +381,7 @@ export function ExerciseGroups({
                               <div className="col-span-3">
                                 <Input
                                   type="number"
+                                  inputMode="numeric"
                                   value={set.reps || ""}
                                   onChange={(e) => {
                                     let value = Number.parseInt(e.target.value) || 0
