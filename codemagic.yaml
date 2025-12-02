@@ -6,6 +6,8 @@ workflows:
     integrations:
       app_store_connect: OverTrain # Configure this in Codemagic UI
     environment:
+      groups:
+        - Supabase
       ios_signing:
         distribution_type: app_store
         bundle_identifier: app.overtrain.gooonemore
@@ -45,7 +47,7 @@ workflows:
             echo "Please add this environment variable in Codemagic UI under Environment Variables"
             exit 1
           fi
-          echo "✓ Supabase environment variables are configured"
+          echo "Supabase environment variables are configured"
 
       - name: Build Next.js app for native (static export)
         script: |
@@ -108,6 +110,7 @@ workflows:
         - overtrain_keystore # Configure this in Codemagic UI
       groups:
         - android_credentials # Add KEYSTORE_PASSWORD, KEY_ALIAS, KEY_PASSWORD
+        - Supabase
       vars:
         PACKAGE_NAME: "app.overtrain.gooonemore"
         NOTIFICATION_EMAIL: "mhd.aiman23@gmail.com"
@@ -130,7 +133,7 @@ workflows:
             echo "Please add this environment variable in Codemagic UI under Environment Variables"
             exit 1
           fi
-          echo "✓ Supabase environment variables are configured"
+          echo "Supabase environment variables are configured"
 
       - name: Build Next.js app for native (static export)
         script: |
