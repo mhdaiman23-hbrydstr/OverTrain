@@ -1505,29 +1505,41 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
       // Check if workout was already completed BEFORE we complete it
       const wasAlreadyCompleted = WorkoutLogger.hasCompletedWorkout(workout.week || 1, workout.day || 1, user?.id)
 
+      // Flush any pending saves to ensure all data is persisted before completing
+      await WorkoutLogger.flushPendingWorkoutSave()
+
       // COMPLETE the workout (moves to history and advances program)
-      const completedWorkout = await WorkoutLogger.completeWorkout(updatedWorkout.id, user?.id)
+      // CRITICAL: Pass updatedWorkout directly to ensure we use the latest state with skipped sets
+      const completedWorkout = await WorkoutLogger.completeWorkout(updatedWorkout.id, user?.id, updatedWorkout)
 
-      if (completedWorkout) {
-        // Advance program to next workout (only if not already completed)
-        if (!wasAlreadyCompleted) {
-          await ProgramStateManager.completeWorkout(user?.id)
-        }
+      if (!completedWorkout) {
+        console.error("[handleEndWorkout] Failed to complete workout. WorkoutID:", updatedWorkout.id, "UserID:", user?.id)
+        toast({
+          title: "Error",
+          description: "Failed to end workout. Please try again.",
+          variant: "destructive",
+        })
+        return
+      }
 
-        // Start database sync in background (non-blocking)
-        // Data is already safe in localStorage, so navigation can proceed immediately
-        if (user?.id) {
-          // Fire-and-forget background sync
-          // Promise keeps running even if component unmounts
-          WorkoutLogger.syncToDatabase(user.id)
-            .then(() => {
-              console.log("[handleEndWorkout] Background database sync completed")
-            })
-            .catch((error) => {
-              console.error("[handleEndWorkout] Background sync failed (will retry):", error)
-              // ConnectionMonitor will retry automatically
-            })
-        }
+      // Advance program to next workout (only if not already completed)
+      if (!wasAlreadyCompleted) {
+        await ProgramStateManager.completeWorkout(user?.id)
+      }
+
+      // Start database sync in background (non-blocking)
+      // Data is already safe in localStorage, so navigation can proceed immediately
+      if (user?.id) {
+        // Fire-and-forget background sync
+        // Promise keeps running even if component unmounts
+        WorkoutLogger.syncToDatabase(user.id)
+          .then(() => {
+            console.log("[handleEndWorkout] Background database sync completed")
+          })
+          .catch((error) => {
+            console.error("[handleEndWorkout] Background sync failed (will retry):", error)
+            // ConnectionMonitor will retry automatically
+          })
       }
 
       // Close dialog and navigate IMMEDIATELY (optimistic UI)
@@ -1590,10 +1602,19 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
       console.log("[handleEndProgram] Saving workout with ID:", updatedWorkout.id, "userId:", user?.id)
       await WorkoutLogger.saveCurrentWorkout(updatedWorkout, user?.id)
 
+      // Flush any pending saves to ensure all data is persisted before completing
+      await WorkoutLogger.flushPendingWorkoutSave()
+
       console.log("[handleEndProgram] Attempting to complete workout with ID:", updatedWorkout.id, "userId:", user?.id)
-      const completedWorkout = await WorkoutLogger.completeWorkout(updatedWorkout.id, user?.id)
+      // CRITICAL: Pass updatedWorkout directly to ensure we use the latest state
+      const completedWorkout = await WorkoutLogger.completeWorkout(updatedWorkout.id, user?.id, updatedWorkout)
       if (!completedWorkout) {
         console.error("[handleEndProgram] Failed to complete current workout. WorkoutID:", updatedWorkout.id, "UserID:", user?.id)
+        toast({
+          title: "Error",
+          description: "Failed to complete workout. Please try again.",
+          variant: "destructive",
+        })
         return
       }
       console.log("[handleEndProgram] Successfully completed workout")
