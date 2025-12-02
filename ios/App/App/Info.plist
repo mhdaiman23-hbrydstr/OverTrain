@@ -75,7 +75,7 @@
 		<string>fetch</string>
 		<string>remote-notification</string>
 	</array>
-	
+
 	<!-- Privacy Descriptions (required for App Store) -->
 	<key>NSCameraUsageDescription</key>
 	<string>OverTrain may use your camera for taking progress photos.</string>
@@ -83,9 +83,7 @@
 	<string>OverTrain may access your photo library to save and select progress photos.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>OverTrain may save progress photos to your photo library.</string>
-	<key>NSUserTrackingUsageDescription</key>
-	<string>OverTrain may use this to provide personalized workout recommendations.</string>
-	
+
 	<!-- Status Bar Style -->
 	<key>UIStatusBarStyle</key>
 	<string>UIStatusBarStyleLightContent</string>

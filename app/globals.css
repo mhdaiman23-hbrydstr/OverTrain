@@ -124,6 +124,15 @@
   --color-sidebar-ring: var(--sidebar-ring);
 }
 
+/* Safe area insets for iOS notch, status bar, and home indicator */
+/* These provide padding so content doesn't bleed under system UI */
+:root {
+  --safe-area-inset-top: env(safe-area-inset-top, 0px);
+  --safe-area-inset-right: env(safe-area-inset-right, 0px);
+  --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-area-inset-left: env(safe-area-inset-left, 0px);
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -132,6 +141,11 @@
     @apply bg-background text-foreground;
     touch-action: pan-y;
     overscroll-behavior-x: none;
+    /* Apply safe area padding for native apps */
+    padding-top: var(--safe-area-inset-top);
+    padding-right: var(--safe-area-inset-right);
+    padding-bottom: var(--safe-area-inset-bottom);
+    padding-left: var(--safe-area-inset-left);
   }
 
   /* Prevent horizontal swipe gestures from triggering browser back/forward */

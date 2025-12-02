@@ -9,6 +9,7 @@ interface AuthContextType extends AuthState {
   signIn: (email: string, password: string) => Promise<void>
   signUp: (email: string, password: string) => Promise<void>
   signInWithGoogle: () => Promise<void>
+  signInWithApple: () => Promise<void>
   signOut: () => void
   updateUser: (updates: Partial<User>) => Promise<void>
   requestPasswordReset: (email: string) => Promise<{ success: boolean; message: string }>
@@ -299,6 +300,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  const signInWithApple = async () => {
+    setState((prev) => ({ ...prev, isLoading: true }))
+    try {
+      await AuthService.signInWithApple()
+      // User will be redirected to Apple, then back
+      // The OAuth callback will handle setting the user state
+    } catch (error) {
+      setState((prev) => ({ ...prev, isLoading: false }))
+      throw error
+    }
+  }
+
   const signOut = async () => {
     SessionManager.stopMonitoring() // Stop session monitoring
 
@@ -379,6 +392,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         signIn,
         signUp,
         signInWithGoogle,
+        signInWithApple,
         signOut,
         updateUser,
         requestPasswordReset,

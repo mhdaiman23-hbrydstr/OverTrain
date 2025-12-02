@@ -48,7 +48,7 @@ const config: CapacitorConfig = {
       androidScaleType: 'CENTER_CROP',
       showSpinner: false,
       splashFullScreen: true,
-      splashImmersive: true,
+      splashImmersive: false, // Changed to false to show status bar after splash
     },
     
     // Status Bar configuration

@@ -29,7 +29,7 @@ if (typeof window !== "undefined" && process.env.NODE_ENV === "development") {
 }
 
 export default function HomePage() {
-  const { user, signIn, signUp, signInWithGoogle, signOut, isLoading: authLoading, requestPasswordReset } = useAuth()
+  const { user, signIn, signUp, signInWithGoogle, signInWithApple, signOut, isLoading: authLoading, requestPasswordReset } = useAuth()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
   const [programKey, setProgramKey] = useState(0)
@@ -196,6 +196,19 @@ export default function HomePage() {
     try {
       await signInWithGoogle()
       // User will be redirected to Google
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An error occurred")
+      setIsLoading(false)
+    }
+  }
+
+  const handleAppleSignIn = async () => {
+    setIsLoading(true)
+    setError("")
+
+    try {
+      await signInWithApple()
+      // User will be redirected to Apple
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred")
       setIsLoading(false)
@@ -434,6 +447,7 @@ export default function HomePage() {
                 onInputChange={handleInputChange}
                 onAuth={handleAuth}
                 onGoogle={handleGoogleSignIn}
+                onApple={handleAppleSignIn}
                 onForgotPassword={() => setShowForgotPasswordModal(true)}
               />
             </CardContent>
@@ -538,6 +552,7 @@ export default function HomePage() {
                   onInputChange={handleInputChange}
                   onAuth={handleAuth}
                   onGoogle={handleGoogleSignIn}
+                  onApple={handleAppleSignIn}
                   onForgotPassword={() => setShowForgotPasswordModal(true)}
                 />
               </CardContent>

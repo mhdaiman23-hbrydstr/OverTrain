@@ -202,6 +202,36 @@ export class AuthService {
     // The callback route handles the session and redirects to dashboard
   }
 
+  static async signInWithApple(): Promise<void> {
+    if (!supabase) {
+      throw new Error("Supabase not configured. Please add your Supabase credentials to .env.local")
+    }
+
+    // Check if we're on iOS (Apple Sign-In should only show on iOS per Apple policy)
+    const isIOSNative = typeof window !== 'undefined' && 
+      (window as any).Capacitor?.getPlatform?.() === 'ios';
+
+    if (!isIOSNative) {
+      throw new Error(
+        "Apple Sign-In is only available on iOS devices."
+      );
+    }
+
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'apple',
+      options: {
+        redirectTo: typeof window !== 'undefined' ? `${window.location.origin}/auth/callback` : undefined,
+        // Skip browser redirect for native handling
+        skipBrowserRedirect: false,
+      },
+    })
+
+    if (error) throw error
+
+    // User will be redirected to Apple, then back to /auth/callback
+    // The callback route handles the session and redirects to dashboard
+  }
+
   static async handleOAuthCallback(): Promise<User | null> {
     if (!supabase) {
       console.log('[Auth] No supabase client, skipping OAuth callback')

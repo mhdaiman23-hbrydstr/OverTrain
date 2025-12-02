@@ -11,6 +11,7 @@ import { unifiedStorage } from './storage-service';
 import { backgroundSync } from './background-sync';
 import { reminderScheduler } from './reminder-scheduler';
 import { notificationService } from './notification-service';
+import { initializeStatusBar } from './status-bar-init';
 
 export { isNative, isWeb, isAndroid, isIOS, getPlatform, platformValue } from './platform';
 export { sqliteService } from './sqlite-service';
@@ -20,6 +21,7 @@ export { reminderScheduler } from './reminder-scheduler';
 export { notificationService } from './notification-service';
 export { TABLES, DATABASE_NAME } from './sqlite-schema';
 export * from './animations';
+export { initializeStatusBar, setStatusBarDark, setStatusBarLight, hideStatusBar, showStatusBar } from './status-bar-init';
 
 /**
  * Initialize all native services
@@ -58,6 +60,10 @@ export async function initializeNativeServices(): Promise<{
       // Initialize reminder scheduler
       await reminderScheduler.initialize();
       console.log('[Native] Reminder scheduler initialized');
+
+      // Initialize status bar (ensure proper display after splash screen)
+      await initializeStatusBar();
+      console.log('[Native] Status bar initialized');
 
     } catch (error) {
       console.error('[Native] Failed to initialize native services:', error);

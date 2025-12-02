@@ -91,6 +91,9 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
   const [isAddingExercise, setIsAddingExercise] = useState(false)
   const [isAddingNewExercise, setIsAddingNewExercise] = useState(false) // Flag to distinguish add vs replace
 
+  // Loading state for initial workout load / transitions
+  const [isLoadingWorkout, setIsLoadingWorkout] = useState(true)
+
   // Save exercise note callback
   const handleSaveExerciseNote = async (exerciseId: string, noteText: string, isPinned: boolean) => {
     if (!user?.id) return
@@ -799,6 +802,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
         
         if (!currentWorkout) {
           console.warn("No current workout available from program - this is normal if no active program exists")
+          setIsLoadingWorkout(false)
           return
         }
 
@@ -819,6 +823,8 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
         setIsFullyBlocked(false)
         setBlockedMessage("")
       }
+      // Mark loading complete after all paths have been checked
+      setIsLoadingWorkout(false)
     }
     
     loadProgramData()
@@ -828,6 +834,9 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
   useEffect(() => {
     const handleProgramChange = async () => {
       console.log("Program state changed, reloading workout...")
+      
+      // Set loading state to prevent "No workout to log" flash during transition
+      setIsLoadingWorkout(true)
 
       // CRITICAL FIX: Force refresh program state from database to avoid using stale cached data
       // This ensures we get the LATEST week/day after workout completion
@@ -862,6 +871,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
           setIsWorkoutBlocked(false)
           setIsFullyBlocked(false)
           setBlockedMessage("")
+          setIsLoadingWorkout(false)
           return
         }
 
@@ -881,6 +891,9 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
           setBlockedMessage("")
         }
       }
+      
+      // Mark loading complete
+      setIsLoadingWorkout(false)
     }
 
     window.addEventListener("programChanged", handleProgramChange)
@@ -2298,8 +2311,10 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
     }
 
     // Program still exists - load next workout
-    window.dispatchEvent(new Event("programChanged"))
+    // Set loading state BEFORE setting workout to null to prevent "No workout to log" flash
+    setIsLoadingWorkout(true)
     setWorkout(null)
+    window.dispatchEvent(new Event("programChanged"))
     onComplete?.()
   }
 
@@ -2741,5 +2756,6 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
     isAddingExercise,
     isAddingNewExercise,
     handleOpenAddExercise,
+    isLoadingWorkout,
   }
 }

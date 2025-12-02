@@ -33,6 +33,20 @@ workflows:
           cd ios/App
           pod install
 
+      - name: Verify Supabase environment variables
+        script: |
+          if [ -z "$NEXT_PUBLIC_SUPABASE_URL" ]; then
+            echo "ERROR: NEXT_PUBLIC_SUPABASE_URL is not set!"
+            echo "Please add this environment variable in Codemagic UI under Environment Variables"
+            exit 1
+          fi
+          if [ -z "$NEXT_PUBLIC_SUPABASE_ANON_KEY" ]; then
+            echo "ERROR: NEXT_PUBLIC_SUPABASE_ANON_KEY is not set!"
+            echo "Please add this environment variable in Codemagic UI under Environment Variables"
+            exit 1
+          fi
+          echo "✓ Supabase environment variables are configured"
+
       - name: Build Next.js app for native (static export)
         script: |
           npm run build:native
@@ -103,6 +117,20 @@ workflows:
       - name: Install Node.js dependencies
         script: |
           npm ci
+
+      - name: Verify Supabase environment variables
+        script: |
+          if [ -z "$NEXT_PUBLIC_SUPABASE_URL" ]; then
+            echo "ERROR: NEXT_PUBLIC_SUPABASE_URL is not set!"
+            echo "Please add this environment variable in Codemagic UI under Environment Variables"
+            exit 1
+          fi
+          if [ -z "$NEXT_PUBLIC_SUPABASE_ANON_KEY" ]; then
+            echo "ERROR: NEXT_PUBLIC_SUPABASE_ANON_KEY is not set!"
+            echo "Please add this environment variable in Codemagic UI under Environment Variables"
+            exit 1
+          fi
+          echo "✓ Supabase environment variables are configured"
 
       - name: Build Next.js app for native (static export)
         script: |

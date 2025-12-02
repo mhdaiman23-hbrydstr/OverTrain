@@ -34,7 +34,7 @@ import {
   Minus,
   Check,
 } from "lucide-react"
-import React, { ReactNode, Fragment, useState } from "react"
+import React, { ReactNode, Fragment, useState, useEffect, useCallback } from "react"
 
 interface ExerciseGroupsProps {
   groupedExercises: Record<string, WorkoutSession["exercises"]>
@@ -97,6 +97,35 @@ export function ExerciseGroups({
   // State for exercise notes and RPE dialogs
   const [selectedExerciseForNotes, setSelectedExerciseForNotes] = useState<string | null>(null)
   const [selectedExerciseForRpe, setSelectedExerciseForRpe] = useState<string | null>(null)
+  
+  // State for dropdown menus - only one can be open at a time
+  // Format: "exerciseId_setId" or null for exercise-level menus: "exercise_exerciseId"
+  const [openDropdownId, setOpenDropdownId] = useState<string | null>(null)
+
+  // Close dropdown on scroll or touch move
+  useEffect(() => {
+    const handleScrollOrTouch = () => {
+      if (openDropdownId) {
+        setOpenDropdownId(null)
+      }
+    }
+
+    // Listen for scroll events (capture phase to catch early)
+    window.addEventListener('scroll', handleScrollOrTouch, true)
+    // Listen for touch move (mobile scrolling)
+    window.addEventListener('touchmove', handleScrollOrTouch, { passive: true })
+
+    return () => {
+      window.removeEventListener('scroll', handleScrollOrTouch, true)
+      window.removeEventListener('touchmove', handleScrollOrTouch)
+    }
+  }, [openDropdownId])
+
+  // Handler for dropdown open/close state changes
+  const handleDropdownOpenChange = useCallback((dropdownId: string, isOpen: boolean) => {
+    setOpenDropdownId(isOpen ? dropdownId : null)
+  }, [])
+
   const isReadOnly = isWorkoutBlocked || workout.completed
   return (
     <div className="w-full max-w-full mx-auto px-3 sm:px-4 overflow-x-hidden">
@@ -163,41 +192,80 @@ export function ExerciseGroups({
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        <DropdownMenu>
+                        <DropdownMenu
+                          open={openDropdownId === `exercise_${exercise.id}`}
+                          onOpenChange={(isOpen) => handleDropdownOpenChange(`exercise_${exercise.id}`, isOpen)}
+                          modal={false}
+                        >
                           <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="icon" disabled={isReadOnly}>
                               <MoreVertical className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="z-[100]">
-                            <DropdownMenuItem onClick={() => setSelectedExerciseForNotes(exercise.id)} disabled={isReadOnly}>
+                          <DropdownMenuContent 
+                            align="end" 
+                            className="z-[100]"
+                            onInteractOutside={() => setOpenDropdownId(null)}
+                          >
+                            <DropdownMenuItem 
+                              onClick={() => {
+                                setOpenDropdownId(null)
+                                setSelectedExerciseForNotes(exercise.id)
+                              }} 
+                              disabled={isReadOnly}
+                            >
                               <FileText className="h-4 w-4 mr-2" />
                               Exercise notes
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => onReplaceExercise(exercise.id)} disabled={isReadOnly}>
+                            <DropdownMenuItem 
+                              onClick={() => {
+                                setOpenDropdownId(null)
+                                onReplaceExercise(exercise.id)
+                              }} 
+                              disabled={isReadOnly}
+                            >
                               <Replace className="h-4 w-4 mr-2" />
                               Replace
                             </DropdownMenuItem>
                             <DropdownMenuItem
-                              onClick={() => onMoveExerciseUp(exercise.id)}
+                              onClick={() => {
+                                setOpenDropdownId(null)
+                                onMoveExerciseUp(exercise.id)
+                              }}
                               disabled={isReadOnly || workout.exercises.findIndex((ex) => ex.id === exercise.id) <= 0}
                             >
                               <ArrowUp className="h-4 w-4 mr-2" />
                               Move up
                             </DropdownMenuItem>
                             <DropdownMenuItem
-                              onClick={() => onMoveExerciseDown(exercise.id)}
+                              onClick={() => {
+                                setOpenDropdownId(null)
+                                onMoveExerciseDown(exercise.id)
+                              }}
                               disabled={isReadOnly || workout.exercises.findIndex((ex) => ex.id === exercise.id) >= workout.exercises.length - 1}
                             >
                               <ArrowDown className="h-4 w-4 mr-2" />
                               Move down
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={() => onSkipAllSets(exercise.id)} disabled={isReadOnly}>
+                            <DropdownMenuItem 
+                              onClick={() => {
+                                setOpenDropdownId(null)
+                                onSkipAllSets(exercise.id)
+                              }} 
+                              disabled={isReadOnly}
+                            >
                               <SkipForward className="h-4 w-4 mr-2" />
                               Skip all sets
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => onDeleteExercise(exercise.id)} className="text-red-600" disabled={isReadOnly}>
+                            <DropdownMenuItem 
+                              onClick={() => {
+                                setOpenDropdownId(null)
+                                onDeleteExercise(exercise.id)
+                              }} 
+                              className="text-red-600" 
+                              disabled={isReadOnly}
+                            >
                               <Trash2 className="h-4 w-4 mr-2" />
                               Delete exercise
                             </DropdownMenuItem>
@@ -226,6 +294,7 @@ export function ExerciseGroups({
                       {exercise.sets.map((set, setIndex) => {
                         const volumeKey = `${exercise.id}_${set.id}`
                         const compensation = volumeCompensation[volumeKey]
+                        const setDropdownId = `set_${exercise.id}_${set.id}`
 
                         return (
                           <div key={set.id} className="rounded-lg border border-border/40 bg-card p-2 sm:p-3">
@@ -234,23 +303,50 @@ export function ExerciseGroups({
                                 <span className="text-sm font-medium text-muted-foreground">{setIndex + 1}</span>
                               </div>
                               <div className="col-span-1">
-                                <DropdownMenu>
+                                <DropdownMenu
+                                  open={openDropdownId === setDropdownId}
+                                  onOpenChange={(isOpen) => handleDropdownOpenChange(setDropdownId, isOpen)}
+                                  modal={false}
+                                >
                                   <DropdownMenuTrigger asChild>
                                     <Button variant="ghost" size="icon" disabled={isReadOnly}>
                                       <MoreVertical className="h-4 w-4" />
                                     </Button>
                                   </DropdownMenuTrigger>
-                                  <DropdownMenuContent align="start" className="z-[100]">
-                                    <DropdownMenuItem onClick={() => onAddSet(exercise.id, set.id)} disabled={isReadOnly}>
+                                  <DropdownMenuContent 
+                                    align="start" 
+                                    className="z-[100]"
+                                    onInteractOutside={() => setOpenDropdownId(null)}
+                                  >
+                                    <DropdownMenuItem 
+                                      onClick={() => {
+                                        setOpenDropdownId(null)
+                                        onAddSet(exercise.id, set.id)
+                                      }} 
+                                      disabled={isReadOnly}
+                                    >
                                       <Plus className="h-4 w-4 mr-2" />
                                       Add set below
                                     </DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => onSkipSet(exercise.id, set.id)} disabled={isReadOnly}>
+                                    <DropdownMenuItem 
+                                      onClick={() => {
+                                        setOpenDropdownId(null)
+                                        onSkipSet(exercise.id, set.id)
+                                      }} 
+                                      disabled={isReadOnly}
+                                    >
                                       <SkipForward className="h-4 w-4 mr-2" />
                                       Skip set
                                     </DropdownMenuItem>
                                     {exercise.sets.length > 1 && (
-                                      <DropdownMenuItem onClick={() => onDeleteSet(exercise.id, set.id)} className="text-red-600" disabled={isReadOnly}>
+                                      <DropdownMenuItem 
+                                        onClick={() => {
+                                          setOpenDropdownId(null)
+                                          onDeleteSet(exercise.id, set.id)
+                                        }} 
+                                        className="text-red-600" 
+                                        disabled={isReadOnly}
+                                      >
                                         <Trash2 className="h-4 w-4 mr-2" />
                                         Delete set
                                       </DropdownMenuItem>

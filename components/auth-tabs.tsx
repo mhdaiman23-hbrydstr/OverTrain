@@ -1,3 +1,6 @@
+"use client"
+
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -9,6 +12,7 @@ type AuthTabsProps = {
   onInputChange: (field: string, value: string) => void
   onAuth: (type: "login" | "signup") => void | Promise<void>
   onGoogle: () => void | Promise<void>
+  onApple?: () => void | Promise<void>
   onForgotPassword: () => void
   idPrefix?: string
 }
@@ -19,9 +23,22 @@ export function AuthTabs({
   onInputChange,
   onAuth,
   onGoogle,
+  onApple,
   onForgotPassword,
   idPrefix = "auth",
 }: AuthTabsProps) {
+  const [isIOS, setIsIOS] = useState(false)
+
+  useEffect(() => {
+    // Check if running on iOS native app
+    const checkPlatform = () => {
+      const isIOSDevice = typeof window !== 'undefined' && 
+        (window as any).Capacitor?.getPlatform?.() === 'ios'
+      setIsIOS(isIOSDevice)
+    }
+    checkPlatform()
+  }, [])
+
   const ids = {
     loginEmail: `${idPrefix}-login-email`,
     loginPassword: `${idPrefix}-login-password`,
@@ -67,6 +84,21 @@ export function AuthTabs({
           </svg>
           Continue with Google
         </Button>
+
+        {/* Apple Sign-In - Only visible on iOS devices (Apple policy requirement) */}
+        {isIOS && onApple && (
+          <Button
+            variant="outline"
+            className="w-full bg-black text-white hover:bg-gray-900 hover:text-white border-black"
+            onClick={onApple}
+            disabled={isLoading}
+          >
+            <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.53 4.08zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
+            </svg>
+            Continue with Apple
+          </Button>
+        )}
 
         <div className="relative">
           <div className="absolute inset-0 flex items-center">
@@ -162,6 +194,21 @@ export function AuthTabs({
           </svg>
           Continue with Google
         </Button>
+
+        {/* Apple Sign-In - Only visible on iOS devices (Apple policy requirement) */}
+        {isIOS && onApple && (
+          <Button
+            variant="outline"
+            className="w-full bg-black text-white hover:bg-gray-900 hover:text-white border-black"
+            onClick={onApple}
+            disabled={isLoading}
+          >
+            <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.53 4.08zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
+            </svg>
+            Continue with Apple
+          </Button>
+        )}
 
         <div className="relative">
           <div className="absolute inset-0 flex items-center">
