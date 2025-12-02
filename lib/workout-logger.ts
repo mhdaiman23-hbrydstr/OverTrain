@@ -1120,12 +1120,26 @@ export class WorkoutLogger implements SetSyncProvider {
       return workout.programId === templateId || !workout.programId
     }
 
-    // Prefer explicit instance matches.
-    if (!workout.programInstanceId) {
-      return false
+    // If workout has a programInstanceId, it must match
+    if (workout.programInstanceId) {
+      return workout.programInstanceId === instanceId
     }
 
-    return workout.programInstanceId === instanceId
+    // Workout doesn't have programInstanceId - check if it matches the template
+    // This handles workouts created before instance tracking was added
+    // or workouts that weren't properly tagged with an instance ID
+    if (templateId && workout.programId === templateId) {
+      console.log(`[WorkoutLogger.matchesInstance] Workout ${workout.id} matched by templateId (no instanceId)`)
+      return true
+    }
+
+    // If workout has no programId at all, it's a legacy workout - match it
+    if (!workout.programId) {
+      console.log(`[WorkoutLogger.matchesInstance] Workout ${workout.id} matched as legacy (no programId)`)
+      return true
+    }
+
+    return false
   }
 
   static async saveCurrentWorkout(workout: WorkoutSession, userId?: string): Promise<void> {

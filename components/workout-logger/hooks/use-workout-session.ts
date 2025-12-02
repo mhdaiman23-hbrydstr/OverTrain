@@ -1563,11 +1563,24 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
           })
       }
 
-      // Close dialog
+      // Close the "End Workout" confirmation dialog
       setShowEndWorkoutDialog(false)
       setEndWorkoutConfirmation("")
       
-      console.log("[handleEndWorkout] Workout ended, wasAlreadyCompleted:", wasAlreadyCompleted)
+      // Dispatch workout completed event for calendar updates
+      window.dispatchEvent(new CustomEvent("workoutCompleted", {
+        detail: {
+          week: completedWorkout.week,
+          day: completedWorkout.day,
+          completed: true
+        }
+      }))
+      
+      // Show the completion dialog with workout summary
+      setCompletedWorkout(completedWorkout)
+      setShowCompletionDialog(true)
+      
+      console.log("[handleEndWorkout] Workout ended, showing completion dialog, wasAlreadyCompleted:", wasAlreadyCompleted)
     } finally {
       setIsCompletingWorkout(false)
     }
