@@ -844,11 +844,13 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
       // This ensures we get the LATEST week/day after workout completion
       const activeProgram = await ProgramStateManager.getActiveProgram({ refreshTemplate: false, skipDatabaseLoad: false })
 
-      console.log("Program state after refresh:", {
+      console.log("[handleProgramChange] Program state after refresh:", JSON.stringify({
         currentWeek: activeProgram?.currentWeek,
         currentDay: activeProgram?.currentDay,
+        completedWorkouts: activeProgram?.completedWorkouts,
+        progress: activeProgram?.progress,
         timestamp: new Date().toISOString()
-      })
+      }))
 
       if (activeProgram) {
         setProgramName(activeProgram.templateMetadata?.name || 'My Program')
@@ -868,7 +870,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
         const existingInProgress = await WorkoutLogger.getInProgressWorkout(week, day, user?.id)
 
         if (existingInProgress) {
-          console.log("Found existing in-progress workout for week", week, "day", day, "- using it instead of creating new one")
+          console.log("[handleProgramChange] Found existing in-progress workout for week", week, "day", day, "- using it instead of creating new one")
           setWorkout(existingInProgress)
           setIsWorkoutBlocked(false)
           setIsFullyBlocked(false)
@@ -881,11 +883,12 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
         const currentWorkout = await ProgramStateManager.getCurrentWorkout()
         if (currentWorkout) {
           const newWorkout = await WorkoutLogger.startWorkout(currentWorkout.name, currentWorkout.exercises, week, day, user?.id)
-          console.log("Loaded new workout after program change:", {
+          console.log("[handleProgramChange] Loaded new workout after program change:", JSON.stringify({
             week,
             day,
             workoutName: newWorkout.workoutName,
-          })
+            exerciseCount: newWorkout.exercises.length,
+          }))
           // Only update state after new workout is fully loaded (prevents "No Workout" flash)
           setWorkout(newWorkout)
           setIsWorkoutBlocked(false)
@@ -1525,14 +1528,25 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
         return
       }
 
-      // Advance program to next workout (only if not already completed)
-      if (!wasAlreadyCompleted) {
-        await ProgramStateManager.completeWorkout(user?.id)
-      } else {
-        // Even if already completed, still dispatch programChanged to ensure UI updates
-        console.log("[handleEndWorkout] Workout was already completed, dispatching programChanged anyway")
-        window.dispatchEvent(new Event("programChanged"))
-      }
+      // Always advance program to next workout and log before/after states for debugging
+      const programBeforeAdvance = await ProgramStateManager.getActiveProgram({ refreshTemplate: false, skipDatabaseLoad: false })
+      console.log("[handleEndWorkout] Program before advance:", JSON.stringify({
+        wasAlreadyCompleted,
+        currentWeek: programBeforeAdvance?.currentWeek,
+        currentDay: programBeforeAdvance?.currentDay,
+        completedWorkouts: programBeforeAdvance?.completedWorkouts,
+        progress: programBeforeAdvance?.progress,
+      }))
+
+      await ProgramStateManager.completeWorkout(user?.id)
+
+      const programAfterAdvance = await ProgramStateManager.getActiveProgram({ refreshTemplate: false, skipDatabaseLoad: false })
+      console.log("[handleEndWorkout] Program after advance:", JSON.stringify({
+        currentWeek: programAfterAdvance?.currentWeek,
+        currentDay: programAfterAdvance?.currentDay,
+        completedWorkouts: programAfterAdvance?.completedWorkouts,
+        progress: programAfterAdvance?.progress,
+      }))
 
       // Start database sync in background (non-blocking)
       // Data is already safe in localStorage, so navigation can proceed immediately
