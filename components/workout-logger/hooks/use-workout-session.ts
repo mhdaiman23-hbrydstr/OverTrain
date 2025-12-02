@@ -832,8 +832,10 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
 
   // Listen for program state changes
   useEffect(() => {
+    console.log("[useWorkoutSession] Setting up programChanged event listener")
+    
     const handleProgramChange = async () => {
-      console.log("Program state changed, reloading workout...")
+      console.log("[handleProgramChange] Event received, reloading workout...")
       
       // Set loading state to prevent "No workout to log" flash during transition
       setIsLoadingWorkout(true)
@@ -1526,6 +1528,10 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
       // Advance program to next workout (only if not already completed)
       if (!wasAlreadyCompleted) {
         await ProgramStateManager.completeWorkout(user?.id)
+      } else {
+        // Even if already completed, still dispatch programChanged to ensure UI updates
+        console.log("[handleEndWorkout] Workout was already completed, dispatching programChanged anyway")
+        window.dispatchEvent(new Event("programChanged"))
       }
 
       // Start database sync in background (non-blocking)
@@ -1543,14 +1549,11 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
           })
       }
 
-      // Close dialog - the programChanged event from ProgramStateManager.completeWorkout()
-      // has already triggered handleProgramChange which loads the next workout.
-      // Do NOT call onComplete() here - it causes a component remount that races
-      // with the data persistence and results in empty/stale state.
+      // Close dialog
       setShowEndWorkoutDialog(false)
       setEndWorkoutConfirmation("")
       
-      console.log("[handleEndWorkout] Workout ended, next workout loaded via programChanged event")
+      console.log("[handleEndWorkout] Workout ended, wasAlreadyCompleted:", wasAlreadyCompleted)
     } finally {
       setIsCompletingWorkout(false)
     }
