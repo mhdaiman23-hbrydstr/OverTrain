@@ -1682,15 +1682,46 @@ export class ProgramStateManager {
         console.log("[v0] Week completed! Advanced to week", activeProgram.currentWeek)
       } else {
         // Find the next incomplete day in the current week
-        let nextDay = activeProgram.currentDay
-        for (let day = 1; day <= daysPerWeek; day++) {
-          if (!WorkoutLogger.hasCompletedWorkout(activeProgram.currentWeek, day, resolvedUserId, activeProgram.instanceId)) {
+        // Start from day AFTER the current day to ensure we advance
+        const currentDay = activeProgram.currentDay
+        let nextDay = currentDay
+        let foundIncomplete = false
+        
+        // First, check days after the current day
+        for (let day = currentDay + 1; day <= daysPerWeek; day++) {
+          const isCompleted = WorkoutLogger.hasCompletedWorkout(activeProgram.currentWeek, day, resolvedUserId, activeProgram.instanceId)
+          console.log(`[v0] Checking day ${day}: completed=${isCompleted}`)
+          if (!isCompleted) {
             nextDay = day
+            foundIncomplete = true
             break
           }
         }
-        activeProgram.currentDay = nextDay
-        console.log("[v0] Advanced to next incomplete day:", nextDay)
+        
+        // If no incomplete day found after current day, check from beginning
+        // (in case user completed days out of order)
+        if (!foundIncomplete) {
+          for (let day = 1; day < currentDay; day++) {
+            const isCompleted = WorkoutLogger.hasCompletedWorkout(activeProgram.currentWeek, day, resolvedUserId, activeProgram.instanceId)
+            console.log(`[v0] Checking day ${day} (wrap-around): completed=${isCompleted}`)
+            if (!isCompleted) {
+              nextDay = day
+              foundIncomplete = true
+              break
+            }
+          }
+        }
+        
+        // If still no incomplete day found, the week must be complete
+        // This shouldn't happen since isWeekCompleted was false, but handle it
+        if (!foundIncomplete) {
+          console.log("[v0] All days appear complete, but isWeekCompleted was false. Advancing to next week.")
+          activeProgram.currentWeek += 1
+          activeProgram.currentDay = 1
+        } else {
+          activeProgram.currentDay = nextDay
+          console.log("[v0] Advanced to next incomplete day:", nextDay, "from current day:", currentDay)
+        }
       }
 
       await this.saveActiveProgram(activeProgram)

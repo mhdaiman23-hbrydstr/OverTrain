@@ -1855,6 +1855,14 @@ export class WorkoutLogger implements SetSyncProvider {
       return false
     }
 
+    // Debug: Log all workouts to understand matching
+    console.log(`[WorkoutLogger.hasCompletedWorkout] Checking Week ${week} Day ${day}:`, {
+      historyCount: history.length,
+      instanceId,
+      templateId,
+      userId,
+    })
+    
     const completedWorkout = history.find(
       (workout) =>
         workout.week === week &&
@@ -1862,13 +1870,23 @@ export class WorkoutLogger implements SetSyncProvider {
         workout.completed &&
         this.matchesInstance(workout, instanceId, templateId)
     )
-
-    // Minimal debug logging (only in development)
-    if (week === 1 && day === 1 && process.env.NODE_ENV === "development") {
-      console.log(`[WorkoutLogger] Week 1 Day 1 completion:`, {
-        found: !!completedWorkout,
-        userId
-      })
+    
+    // If not found, log why
+    if (!completedWorkout) {
+      const matchingWeekDay = history.filter(w => w.week === week && w.day === day)
+      if (matchingWeekDay.length > 0) {
+        console.log(`[WorkoutLogger.hasCompletedWorkout] Found ${matchingWeekDay.length} workouts for Week ${week} Day ${day}, but none matched:`, 
+          matchingWeekDay.map(w => ({
+            id: w.id,
+            completed: w.completed,
+            programInstanceId: w.programInstanceId,
+            programId: w.programId,
+            matchesInstance: this.matchesInstance(w, instanceId, templateId)
+          }))
+        )
+      }
+    } else {
+      console.log(`[WorkoutLogger.hasCompletedWorkout] Found completed workout for Week ${week} Day ${day}:`, completedWorkout.id)
     }
 
     // Additional validation: ensure the completed workout has actual exercise data
