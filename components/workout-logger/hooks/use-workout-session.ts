@@ -1442,14 +1442,15 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
     setShowCompletionDialog(false)
     setCompletedWorkout(null)
     
-    // If program was ended, the event was already dispatched in handleEndProgram
-    // Just reset the flag
+    // The new workout was already loaded by handleProgramChange when 
+    // handleCompleteWorkout dispatched the programChanged event.
+    // Do NOT call onComplete() - it causes a component remount that races
+    // with data persistence and results in empty/stale state.
     if (programWasEnded) {
       setProgramWasEnded(false)
-      // Event already dispatched, no need to dispatch again
-    } else {
-      onComplete?.()
     }
+    
+    console.log("[handleCompletionDialogClose] Dialog closed, workout already loaded")
   }
 
   const handleViewMuscleGroupStats = () => {
@@ -1542,14 +1543,14 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
           })
       }
 
-      // Close dialog and navigate IMMEDIATELY (optimistic UI)
-      // Data is safe in localStorage, sync happens in background
+      // Close dialog - the programChanged event from ProgramStateManager.completeWorkout()
+      // has already triggered handleProgramChange which loads the next workout.
+      // Do NOT call onComplete() here - it causes a component remount that races
+      // with the data persistence and results in empty/stale state.
       setShowEndWorkoutDialog(false)
       setEndWorkoutConfirmation("")
-
-      // Navigate to next workout - parent will trigger programChanged event
-      // Don't dispatch programChanged here to avoid intermediate reload of current (now completed) workout
-      onComplete?.()
+      
+      console.log("[handleEndWorkout] Workout ended, next workout loaded via programChanged event")
     } finally {
       setIsCompletingWorkout(false)
     }
