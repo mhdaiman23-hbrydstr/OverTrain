@@ -258,7 +258,8 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
 
   useEffect(() => {
     const initializeWorkoutData = async () => {
-      await WorkoutLogger.ensureDatabaseLoaded(user?.id, { force: true })
+      // Use gentle load to avoid overwriting fresh local/native data after a completion
+      await WorkoutLogger.ensureDatabaseLoaded(user?.id)
 
       console.log("===== STORAGE DEBUG =====")
 
@@ -1842,11 +1843,9 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
         await WorkoutLogger.syncToDatabase(userId)
       }
 
-      // Finalize the active program
+      // Finalize the active program (this clears storage on both native SQLite AND localStorage)
+      // NOTE: No need to call clearActiveProgram() separately - finalizeActiveProgram handles it
       await ProgramStateManager.finalizeActiveProgram(userId, { endedEarly: true })
-
-      // Clear the active program to force program selection
-      await ProgramStateManager.clearActiveProgram()
       console.log("[finalizeProgramState] Program state finalized and cleared")
     } catch (error) {
       console.error("[finalizeProgramState] Failed to finalize program state:", error)

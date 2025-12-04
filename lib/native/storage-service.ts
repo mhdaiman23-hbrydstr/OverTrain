@@ -373,6 +373,13 @@ class UnifiedStorageService {
     if (result.created_at === undefined) result.created_at = Date.now();
     if (result.updated_at === undefined) result.updated_at = Date.now();
     
+    // SYNC PROTECTION: For active_programs, set pending_upload=1 and local_updated_at on writes
+    // This prevents stale Supabase data from overwriting fresh local state
+    if (table === TABLES.ACTIVE_PROGRAMS) {
+      result.pending_upload = 1; // Mark as needing upload to Supabase
+      result.local_updated_at = Date.now(); // Track when local state changed
+    }
+    
     return result;
   }
 
@@ -618,6 +625,50 @@ class UnifiedStorageService {
       backend: 'indexeddb',
       stats: StorageManager.getCacheStats(),
     };
+  }
+
+  // ============================================================================
+  // SYNC PROTECTION OPERATIONS
+  // ============================================================================
+
+  /**
+   * Clear the pending_upload flag for an active program after successful sync.
+   * This is called by background-sync.ts after uploading to Supabase.
+   */
+  async clearActiveProgramPendingUpload(programId: string): Promise<void> {
+    await this.initialize();
+
+    if (this.backend === 'sqlite') {
+      try {
+        await sqliteService.run(
+          `UPDATE ${TABLES.ACTIVE_PROGRAMS} SET pending_upload = 0 WHERE id = ?`,
+          [programId]
+        );
+        console.log('[UnifiedStorage] Cleared pending_upload flag for program:', programId);
+      } catch (error) {
+        console.warn('[UnifiedStorage] Failed to clear pending_upload flag:', error);
+      }
+    }
+  }
+
+  /**
+   * Check if the active program has pending uploads (local changes not yet synced)
+   */
+  async hasActiveProgramPendingUpload(): Promise<boolean> {
+    await this.initialize();
+
+    if (this.backend === 'sqlite') {
+      try {
+        const results = await sqliteService.getAll(TABLES.ACTIVE_PROGRAMS);
+        if (results.length > 0) {
+          const program = results[0] as any;
+          return program.pending_upload === 1;
+        }
+      } catch (error) {
+        console.warn('[UnifiedStorage] Failed to check pending_upload flag:', error);
+      }
+    }
+    return false;
   }
 }
 

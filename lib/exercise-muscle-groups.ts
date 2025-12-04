@@ -13,9 +13,19 @@ export function getExerciseMuscleGroup(exerciseName?: string): string {
   // Chest exercises
   if (
     name.includes("bench press") ||
+    name.includes("bench") ||
     (name.includes("incline") && name.includes("press")) ||
+    (name.includes("decline") && name.includes("press")) ||
+    (name.includes("dumbbell") && name.includes("press") && !name.includes("shoulder")) ||
     name.includes("chest") ||
-    name.includes("fly")
+    name.includes("pec") ||
+    name.includes("fly") ||
+    name.includes("flye") ||
+    name.includes("push-up") ||
+    name.includes("push up") ||
+    name.includes("pushup") ||
+    name.includes("cable crossover") ||
+    name.includes("crossover")
   ) {
     return "CHEST"
   }

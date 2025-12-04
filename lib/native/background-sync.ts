@@ -269,7 +269,10 @@ class BackgroundSyncService {
           
           if (!error) {
             await sqliteService.markSynced(TABLES.ACTIVE_PROGRAMS, [(program as any).id]);
-            console.log('[BackgroundSync] Synced active program to Supabase');
+            // SYNC PROTECTION: Clear pending_upload flag after successful sync
+            // This allows future downloads to overwrite local state (it's now in Supabase)
+            await this.clearPendingUploadFlag((program as any).id);
+            console.log('[BackgroundSync] Synced active program to Supabase, cleared pending_upload flag');
           } else {
             console.error('[BackgroundSync] Failed to sync active program:', error);
           }
@@ -403,10 +406,36 @@ class BackgroundSyncService {
   }
 
   /**
-   * Download active program from Supabase if changed
+   * Download active program from Supabase if changed.
+   * 
+   * SYNC PROTECTION: This method now checks for pending local uploads before overwriting.
+   * This prevents stale Supabase data from overwriting fresh local state when:
+   * 1. User starts a new program
+   * 2. App restarts before background sync uploads the new instanceId
+   * 3. This method would otherwise download the old Supabase data
    */
   private async downloadActiveProgram(userId: string, lastSyncDate: string): Promise<void> {
     try {
+      // SYNC PROTECTION: Check if local has pending uploads before downloading
+      // If pending_upload = 1, local state hasn't been synced yet - don't overwrite it
+      const localPrograms = await sqliteService.getAll(TABLES.ACTIVE_PROGRAMS);
+      const localProgram = localPrograms[0] as any;
+      
+      if (localProgram) {
+        const hasPendingUpload = localProgram.pending_upload === 1 || localProgram.synced === 0;
+        const localInstanceId = localProgram.instance_id;
+        const localUpdatedAt = localProgram.local_updated_at || localProgram.updated_at || 0;
+        
+        if (hasPendingUpload) {
+          console.log('[BackgroundSync] Skipping download - local has pending upload', {
+            localInstanceId,
+            pendingUpload: localProgram.pending_upload,
+            synced: localProgram.synced
+          });
+          return;
+        }
+      }
+
       const { data: activeProgram, error } = await supabase!
         .from('active_programs')
         .select('*')
@@ -422,6 +451,37 @@ class BackgroundSyncService {
       }
 
       if (activeProgram) {
+        const remoteInstanceId = activeProgram.instance_id;
+        const remoteUpdatedAt = activeProgram.updated_at ? new Date(activeProgram.updated_at).getTime() : 0;
+        
+        // SYNC PROTECTION: Compare instanceIds and timestamps before overwriting
+        if (localProgram) {
+          const localInstanceId = localProgram.instance_id;
+          const localUpdatedAt = localProgram.local_updated_at || localProgram.updated_at || 0;
+          
+          // If instanceIds are different, only accept remote if it's genuinely newer
+          // This handles the case where user started a new program locally
+          if (localInstanceId !== remoteInstanceId) {
+            // Local is newer - don't overwrite with stale remote data
+            if (localUpdatedAt >= remoteUpdatedAt) {
+              console.log('[BackgroundSync] Skipping download - local instanceId is newer', {
+                localInstanceId,
+                remoteInstanceId,
+                localUpdatedAt: new Date(localUpdatedAt).toISOString(),
+                remoteUpdatedAt: new Date(remoteUpdatedAt).toISOString()
+              });
+              return;
+            }
+            
+            console.log('[BackgroundSync] Accepting remote program with different instanceId (remote is genuinely newer)', {
+              localInstanceId,
+              remoteInstanceId,
+              localUpdatedAt: new Date(localUpdatedAt).toISOString(),
+              remoteUpdatedAt: new Date(remoteUpdatedAt).toISOString()
+            });
+          }
+        }
+        
         console.log('[BackgroundSync] Found updated active program from another device');
         
         // Convert Supabase format to SQLite format
@@ -437,6 +497,8 @@ class BackgroundSyncService {
           is_active: 1,
           synced: 1,
           synced_at: Date.now(),
+          pending_upload: 0, // Mark as synced - came from Supabase
+          local_updated_at: remoteUpdatedAt, // Track when this state was last updated
           created_at: activeProgram.created_at ? new Date(activeProgram.created_at).getTime() : Date.now(),
           updated_at: activeProgram.updated_at ? new Date(activeProgram.updated_at).getTime() : Date.now(),
         };
@@ -538,6 +600,23 @@ class BackgroundSyncService {
       }
     }
     return count;
+  }
+
+  /**
+   * SYNC PROTECTION: Clear the pending_upload flag for an active program after successful sync
+   * This allows future downloads to update the local state (since it's now in Supabase)
+   */
+  private async clearPendingUploadFlag(programId: string): Promise<void> {
+    if (!sqliteService.isAvailable()) return;
+
+    try {
+      await sqliteService.run(
+        `UPDATE ${TABLES.ACTIVE_PROGRAMS} SET pending_upload = 0 WHERE id = ?`,
+        [programId]
+      );
+    } catch (error) {
+      console.warn('[BackgroundSync] Failed to clear pending_upload flag:', error);
+    }
   }
 
   /**

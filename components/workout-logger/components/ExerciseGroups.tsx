@@ -101,29 +101,82 @@ export function ExerciseGroups({
   // State for dropdown menus - only one can be open at a time
   // Format: "exerciseId_setId" or null for exercise-level menus: "exercise_exerciseId"
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null)
+  
+  // SENSITIVITY FIX: Track touch start position to distinguish scrolling from tap wobble
+  const [touchStartPos, setTouchStartPos] = useState<{ x: number; y: number } | null>(null)
+  const [dropdownOpenTime, setDropdownOpenTime] = useState<number>(0)
+  
+  // Threshold in pixels - touch must move more than this to count as scroll
+  const TOUCH_MOVE_THRESHOLD = 15
+  // Delay in ms after opening before touch-close activates (prevents accidental immediate close)
+  const OPEN_PROTECTION_DELAY = 150
 
-  // Close dropdown on scroll or touch move
+  // Close dropdown on scroll or SIGNIFICANT touch move
   useEffect(() => {
-    const handleScrollOrTouch = () => {
+    const handleScroll = () => {
       if (openDropdownId) {
         setOpenDropdownId(null)
+        setTouchStartPos(null)
       }
     }
 
+    const handleTouchStart = (e: TouchEvent) => {
+      if (!openDropdownId) return
+      const touch = e.touches[0]
+      if (touch) {
+        setTouchStartPos({ x: touch.clientX, y: touch.clientY })
+      }
+    }
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (!openDropdownId || !touchStartPos) return
+      
+      // SENSITIVITY FIX: Don't close if we just opened (prevents accidental close on tap)
+      const timeSinceOpen = Date.now() - dropdownOpenTime
+      if (timeSinceOpen < OPEN_PROTECTION_DELAY) return
+      
+      const touch = e.touches[0]
+      if (!touch) return
+      
+      // Calculate movement distance
+      const deltaX = Math.abs(touch.clientX - touchStartPos.x)
+      const deltaY = Math.abs(touch.clientY - touchStartPos.y)
+      const totalMovement = Math.max(deltaX, deltaY)
+      
+      // SENSITIVITY FIX: Only close if significant movement (actual scrolling, not tap wobble)
+      if (totalMovement > TOUCH_MOVE_THRESHOLD) {
+        setOpenDropdownId(null)
+        setTouchStartPos(null)
+      }
+    }
+
+    const handleTouchEnd = () => {
+      setTouchStartPos(null)
+    }
+
     // Listen for scroll events (capture phase to catch early)
-    window.addEventListener('scroll', handleScrollOrTouch, true)
-    // Listen for touch move (mobile scrolling)
-    window.addEventListener('touchmove', handleScrollOrTouch, { passive: true })
+    window.addEventListener('scroll', handleScroll, true)
+    // Listen for touch events with threshold detection
+    window.addEventListener('touchstart', handleTouchStart, { passive: true })
+    window.addEventListener('touchmove', handleTouchMove, { passive: true })
+    window.addEventListener('touchend', handleTouchEnd, { passive: true })
 
     return () => {
-      window.removeEventListener('scroll', handleScrollOrTouch, true)
-      window.removeEventListener('touchmove', handleScrollOrTouch)
+      window.removeEventListener('scroll', handleScroll, true)
+      window.removeEventListener('touchstart', handleTouchStart)
+      window.removeEventListener('touchmove', handleTouchMove)
+      window.removeEventListener('touchend', handleTouchEnd)
     }
-  }, [openDropdownId])
+  }, [openDropdownId, touchStartPos, dropdownOpenTime])
 
   // Handler for dropdown open/close state changes
   const handleDropdownOpenChange = useCallback((dropdownId: string, isOpen: boolean) => {
     setOpenDropdownId(isOpen ? dropdownId : null)
+    if (isOpen) {
+      // Track when dropdown opened to protect against immediate close
+      setDropdownOpenTime(Date.now())
+    }
+    setTouchStartPos(null)
   }, [])
 
   const isReadOnly = isWorkoutBlocked || workout.completed

@@ -64,6 +64,9 @@ CREATE TABLE IF NOT EXISTS active_programs (
   updated_at INTEGER DEFAULT (strftime('%s', 'now') * 1000),
   synced INTEGER DEFAULT 0,
   synced_at INTEGER,
+  -- SYNC PROTECTION: Prevents stale Supabase data from overwriting fresh local state
+  pending_upload INTEGER DEFAULT 1, -- 1 = local has changes not yet synced, 0 = synced
+  local_updated_at INTEGER DEFAULT (strftime('%s', 'now') * 1000), -- When local state last changed
   FOREIGN KEY (user_id) REFERENCES profiles(id) ON DELETE CASCADE
 );
 
@@ -236,6 +239,15 @@ export const MIGRATIONS: { version: number; sql: string }[] = [
       ALTER TABLE active_programs ADD COLUMN updated_at INTEGER DEFAULT (strftime('%s', 'now') * 1000);
     `
   },
+  // Version 3: Add sync protection columns to prevent stale Supabase data from overwriting fresh local state
+  {
+    version: 3,
+    sql: `
+      -- Add sync protection columns to active_programs
+      ALTER TABLE active_programs ADD COLUMN pending_upload INTEGER DEFAULT 1;
+      ALTER TABLE active_programs ADD COLUMN local_updated_at INTEGER DEFAULT (strftime('%s', 'now') * 1000);
+    `
+  },
 ];
 
 /**
@@ -298,6 +310,9 @@ export interface ActiveProgramRow {
   updated_at: number;
   synced: number;
   synced_at: number | null;
+  // SYNC PROTECTION: Prevents stale Supabase data from overwriting fresh local state
+  pending_upload: number; // 1 = local has changes not yet synced, 0 = synced
+  local_updated_at: number; // When local state last changed
 }
 
 export interface WorkoutRow {

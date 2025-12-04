@@ -84,8 +84,31 @@ export function MuscleGroupStats({ open, onClose }: MuscleGroupStatsProps) {
         })
       })
 
-      // Prepare data for display
-      const muscleGroups = ["CHEST", "BACK", "TRICEPS", "BICEPS", "SHOULDERS", "QUADS", "GLUTES", "HAMSTRINGS", "CALVES"]
+      // DYNAMIC FIX: Collect ALL unique muscle groups from workout data instead of hardcoding
+      // This ensures we capture ABS, TRAPS, FOREARMS, LATS, CORE, LEGS, etc.
+      const allMuscleGroups = new Set<string>()
+      weeklyMuscleData.forEach((weekData) => {
+        weekData.forEach((_, muscleGroup) => {
+          // Normalize muscle group name and exclude "OTHER" 
+          const normalized = muscleGroup.toUpperCase().trim()
+          if (normalized && normalized !== "OTHER") {
+            allMuscleGroups.add(normalized)
+          }
+        })
+      })
+
+      // Sort muscle groups alphabetically, but put common ones first
+      const priorityOrder = ["CHEST", "BACK", "SHOULDERS", "BICEPS", "TRICEPS", "QUADS", "HAMSTRINGS", "GLUTES", "CALVES", "ABS", "CORE", "LATS", "TRAPS", "FOREARMS"]
+      const muscleGroups = Array.from(allMuscleGroups).sort((a, b) => {
+        const aIndex = priorityOrder.indexOf(a)
+        const bIndex = priorityOrder.indexOf(b)
+        // Priority groups come first, then alphabetical
+        if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex
+        if (aIndex !== -1) return -1
+        if (bIndex !== -1) return 1
+        return a.localeCompare(b)
+      })
+
       const totalProgramWeeks = activeProgram.template?.weeks ?? activeProgram.templateMetadata?.weeks ?? 0
       const maxWeeks = Math.max(highestWeekSeen, totalProgramWeeks, 4) // Show at least 4 weeks
 

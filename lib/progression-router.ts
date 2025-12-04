@@ -451,6 +451,14 @@ export class ProgressionRouter {
       (w) => w.week === previousWeek && w.completed && (!!instanceId ? w.programInstanceId === instanceId : false)
     )
 
+    // Fallback: if none found for the active instance, allow previous-week workouts regardless of instance
+    if (previousWeekWorkouts.length === 0) {
+      previousWeekWorkouts = history.filter((w) => w.week === previousWeek && w.completed)
+      if (previousWeekWorkouts.length > 0) {
+        console.log('[ProgressionRouter] No instance-matched history, falling back to any previous-week workout')
+      }
+    }
+
     console.log(`[ProgressionRouter] Found ${previousWeekWorkouts.length} workouts for Week ${previousWeek}`)
     
     if (previousWeekWorkouts.length === 0) {
@@ -503,7 +511,10 @@ export class ProgressionRouter {
     })
     
     const previousExercise = previousWorkout.exercises.find(
-      (ex) => ex.exerciseId === exerciseId || ex.exerciseName === exerciseName
+      (ex) =>
+        ex.exerciseId === exerciseId ||
+        ex.exerciseName === exerciseName ||
+        ex.exerciseName?.toLowerCase() === exerciseName.toLowerCase()
     )
 
     if (!previousExercise) {

@@ -161,6 +161,13 @@ export class WorkoutLogger implements SetSyncProvider {
   private static async saveInProgressWorkoutsAsync(storageKey: string, workouts: WorkoutSession[]): Promise<void> {
     try {
       await StorageManager.set(storageKey, workouts)
+      // CRITICAL: Also mirror to localStorage so sync functions (getInProgressWorkoutSync) can read it
+      // IndexedDB is async-only, but some callers need sync access
+      try {
+        localStorage.setItem(storageKey, JSON.stringify(workouts))
+      } catch (mirrorError) {
+        console.warn(`[WorkoutLogger] Failed to mirror in-progress workouts to localStorage:`, mirrorError)
+      }
     } catch (error) {
       console.error(`[WorkoutLogger] Failed to save in-progress workouts to IndexedDB: ${getErrorMessage(error)}`)
       // Fallback to localStorage
@@ -1114,32 +1121,22 @@ export class WorkoutLogger implements SetSyncProvider {
     instanceId?: string,
     templateId?: string
   ): boolean {
-    // Legacy case: no instance tracking yet, fall back to template match.
-    if (!instanceId) {
-      if (!templateId) return true
-      return workout.programId === templateId || !workout.programId
+    // STRICT MATCHING: If we have a current instanceId, ONLY match workouts with that exact instanceId
+    // This prevents old workouts from previous program runs from showing up in the current program
+    if (instanceId) {
+      // Workout must have the same programInstanceId to match
+      if (workout.programInstanceId === instanceId) {
+        return true
+      }
+      // Don't fall back to templateId matching - old workouts should not appear in new program instance
+      // This is intentional: when user starts a new program, they get a fresh slate
+      return false
     }
 
-    // If workout has a programInstanceId, it must match
-    if (workout.programInstanceId) {
-      return workout.programInstanceId === instanceId
-    }
-
-    // Workout doesn't have programInstanceId - check if it matches the template
-    // This handles workouts created before instance tracking was added
-    // or workouts that weren't properly tagged with an instance ID
-    if (templateId && workout.programId === templateId) {
-      console.log(`[WorkoutLogger.matchesInstance] Workout ${workout.id} matched by templateId (no instanceId)`)
-      return true
-    }
-
-    // If workout has no programId at all, it's a legacy workout - match it
-    if (!workout.programId) {
-      console.log(`[WorkoutLogger.matchesInstance] Workout ${workout.id} matched as legacy (no programId)`)
-      return true
-    }
-
-    return false
+    // Legacy case: no instance tracking on current program (shouldn't happen anymore)
+    // Fall back to template match for backwards compatibility
+    if (!templateId) return true
+    return workout.programId === templateId || !workout.programId
   }
 
   static async saveCurrentWorkout(workout: WorkoutSession, userId?: string): Promise<void> {
@@ -1302,18 +1299,58 @@ export class WorkoutLogger implements SetSyncProvider {
   static async clearInProgressWorkoutsForWeek(week: number, userId?: string): Promise<void> {
     if (typeof window === "undefined") return
 
+    // Get current user ID if not provided
+    if (!userId) {
+      try {
+        const storedUser = localStorage.getItem("liftlog_user")
+        const currentUser = storedUser ? JSON.parse(storedUser) : null
+        userId = currentUser?.id
+      } catch {
+        // Fallback to anonymous
+      }
+    }
+
+    const activeProgram = this.getActiveProgram()
+    const instanceId = activeProgram?.instanceId
+    const templateId = activeProgram?.templateId
     const storageKeys = this.getUserStorageKeys(userId)
 
-    // Use async storage helpers
+    // Use async storage helpers (IndexedDB + localStorage mirror)
     const workouts = await this.getInProgressWorkoutsAsync(storageKeys.inProgress)
     if (workouts.length === 0) return
 
-    const filtered = workouts.filter(w => w.week !== week)
+    console.log(`[WorkoutLogger] Before cleanup: ${workouts.length} in-progress workouts`)
+
+    // Filter out workouts from the specified week that match the current instance
+    const filtered = workouts.filter(
+      (w) => !(w.week === week && this.matchesInstance(w, instanceId, templateId))
+    )
     const removedCount = workouts.length - filtered.length
 
     if (removedCount > 0) {
-      console.log(`[WorkoutLogger] Cleared ${removedCount} in-progress workouts from week ${week}`)
+      console.log(`[WorkoutLogger] Clearing ${removedCount} in-progress workouts from week ${week}`)
       await this.saveInProgressWorkoutsAsync(storageKeys.inProgress, filtered)
+
+      // Also delete from database
+      if (userId && supabase) {
+        const workoutsToDelete = workouts.filter(
+          (w) => w.week === week && this.matchesInstance(w, instanceId, templateId)
+        )
+        for (const workout of workoutsToDelete) {
+          try {
+            await supabase
+              .from("in_progress_workouts")
+              .delete()
+              .eq("id", workout.id)
+              .eq("user_id", userId)
+          } catch (error) {
+            console.error(`[WorkoutLogger] Failed to delete workout ${workout.id} from database:`, error)
+          }
+        }
+        console.log(`[WorkoutLogger] Deleted ${workoutsToDelete.length} workouts from database`)
+      }
+    } else {
+      console.log(`[WorkoutLogger] No in-progress workouts found for week ${week}`)
     }
   }
 
@@ -1832,8 +1869,8 @@ export class WorkoutLogger implements SetSyncProvider {
     const completed = this.getCompletedWorkout(week, day, userId, programInstanceId)
     if (completed) return completed
 
-    // Then check in-progress workouts
-    return this.getInProgressWorkout(week, day, userId)
+    // Then check in-progress workouts (use sync version for sync function)
+    return this.getInProgressWorkoutSync(week, day, userId)
   }
 
   static hasCompletedWorkout(
@@ -2890,7 +2927,15 @@ export class WorkoutLogger implements SetSyncProvider {
 
     const storageKeys = this.getUserStorageKeys(userId)
 
-    // Clear from localStorage
+    // Clear from IndexedDB/StorageManager (primary storage for async operations)
+    try {
+      await StorageManager.remove(storageKeys.inProgress)
+      console.log("[WorkoutLogger] Cleared in-progress workouts from IndexedDB")
+    } catch (error) {
+      console.warn("[WorkoutLogger] Failed to clear from IndexedDB:", error)
+    }
+
+    // Also clear from localStorage (sync fallback)
     localStorage.removeItem(storageKeys.inProgress)
     console.log("[WorkoutLogger] Cleared in-progress workouts from localStorage")
 
@@ -2910,71 +2955,6 @@ export class WorkoutLogger implements SetSyncProvider {
       } catch (error) {
         console.error(`[WorkoutLogger] Error deleting in-progress workouts from database: ${getErrorMessage(error)}`)
       }
-    }
-  }
-
-  /**
-   * Clear all in-progress workouts for a specific week
-   * Used when advancing to a new week to clean up orphaned workouts
-   */
-  static async clearInProgressWorkoutsForWeek(week: number, userId?: string): Promise<void> {
-    if (typeof window === "undefined") return
-
-    // Get current user ID if not provided
-    if (!userId) {
-      try {
-        const storedUser = localStorage.getItem("liftlog_user")
-        const currentUser = storedUser ? JSON.parse(storedUser) : null
-        userId = currentUser?.id
-      } catch {
-        // Fallback to anonymous if localStorage is not available
-      }
-    }
-
-    const activeProgram = this.getActiveProgram()
-    const instanceId = activeProgram?.instanceId
-    const templateId = activeProgram?.templateId
-
-    const storageKeys = this.getUserStorageKeys(userId)
-
-    try {
-      const stored = localStorage.getItem(storageKeys.inProgress)
-      if (!stored) return
-
-      const workouts: WorkoutSession[] = JSON.parse(stored)
-      console.log(`[WorkoutLogger] Before cleanup: ${workouts.length} in-progress workouts`)
-
-      // Filter out workouts from the specified week that match the current instance
-      const filteredWorkouts = workouts.filter(
-        (w) => !(w.week === week && this.matchesInstance(w, instanceId, templateId))
-      )
-
-      const removedCount = workouts.length - filteredWorkouts.length
-      
-      if (removedCount > 0) {
-        console.log(`[WorkoutLogger] Clearing ${removedCount} in-progress workouts from week ${week}`)
-        localStorage.setItem(storageKeys.inProgress, JSON.stringify(filteredWorkouts))
-
-        // Also delete from database
-        if (userId && supabase) {
-          const workoutsToDelete = workouts.filter(
-            (w) => w.week === week && this.matchesInstance(w, instanceId, templateId)
-          )
-
-          for (const workout of workoutsToDelete) {
-            await supabase
-              .from("in_progress_workouts")
-              .delete()
-              .eq("id", workout.id)
-              .eq("user_id", userId)
-          }
-          console.log(`[WorkoutLogger] Deleted ${workoutsToDelete.length} workouts from database`)
-        }
-      } else {
-        console.log(`[WorkoutLogger] No in-progress workouts found for week ${week}`)
-      }
-    } catch (error) {
-      console.error(`[WorkoutLogger] Failed to clear in-progress workouts for week: ${getErrorMessage(error)}`)
     }
   }
 

@@ -6,8 +6,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Spinner } from "@/components/ui/spinner"
-import { Calendar, Clock, Dumbbell, Plus, Play } from "lucide-react"
+import { Calendar, Clock, Dumbbell, Plus, Play, Trophy, PartyPopper } from "lucide-react"
 import { ProgramStateManager, type ActiveProgram } from "@/lib/program-state"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog"
 
 interface TrainSectionProps {
   onStartWorkout: () => void
@@ -60,6 +68,10 @@ export function TrainSection({ onStartWorkout, onAddProgram, shouldAutoStart = f
   const [currentWorkout, setCurrentWorkout] = useState<{ name: string; exercises: any[] } | null>(getInitialCurrentWorkout)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // Program completion celebration dialog
+  const [showCompletionDialog, setShowCompletionDialog] = useState(false)
+  const [completedProgramName, setCompletedProgramName] = useState<string>("")
 
   // FIX: Use ref to track current shouldAutoStart value to prevent race conditions
   // This prevents stale closures in event listeners when shouldAutoStart prop changes
@@ -207,6 +219,13 @@ export function TrainSection({ onStartWorkout, onAddProgram, shouldAutoStart = f
       }, 1500) // Increased from 100ms to ensure database cleanup completes
     }
 
+    const handleProgramCompleted = (event: CustomEvent) => {
+      console.log("[TrainSection] Program completed event received!", event.detail)
+      const { programName } = event.detail || {}
+      setCompletedProgramName(programName || "Your Program")
+      setShowCompletionDialog(true)
+    }
+
     const handleVisibilityChange = () => {
       if (!document.hidden) {
         console.log("[TrainSection] Tab became visible, reloading program data...")
@@ -217,6 +236,7 @@ export function TrainSection({ onStartWorkout, onAddProgram, shouldAutoStart = f
     window.addEventListener("storage", handleStorageChange)
     window.addEventListener("programChanged", handleProgramChange)
     window.addEventListener("programEnded", handleProgramEnded)
+    window.addEventListener("programCompleted", handleProgramCompleted as EventListener)
     document.addEventListener("visibilitychange", handleVisibilityChange)
 
     return () => {
@@ -226,6 +246,7 @@ export function TrainSection({ onStartWorkout, onAddProgram, shouldAutoStart = f
       window.removeEventListener("storage", handleStorageChange)
       window.removeEventListener("programChanged", handleProgramChange)
       window.removeEventListener("programEnded", handleProgramEnded)
+      window.removeEventListener("programCompleted", handleProgramCompleted as EventListener)
       document.removeEventListener("visibilitychange", handleVisibilityChange)
     }
   }, []) // INSTANT: Empty deps = load only once on mount, not on tab switches
@@ -423,6 +444,50 @@ export function TrainSection({ onStartWorkout, onAddProgram, shouldAutoStart = f
           </div>
         </div>
       </div>
+
+      {/* Program Completion Celebration Dialog */}
+      <Dialog open={showCompletionDialog} onOpenChange={setShowCompletionDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader className="text-center">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-r from-yellow-400 to-orange-500">
+              <Trophy className="h-8 w-8 text-white" />
+            </div>
+            <DialogTitle className="text-2xl font-bold text-center">
+              Congratulations!
+            </DialogTitle>
+            <DialogDescription className="text-center space-y-2">
+              <p className="text-lg font-medium text-foreground">
+                You completed {completedProgramName}!
+              </p>
+              <p className="text-muted-foreground">
+                Amazing work! You've finished every workout in this program.
+                Take a moment to celebrate your dedication and progress.
+              </p>
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-center py-4">
+            <PartyPopper className="h-12 w-12 text-yellow-500 animate-bounce" />
+          </div>
+          <DialogFooter className="flex-col gap-2 sm:flex-col">
+            <Button
+              className="w-full gradient-primary text-primary-foreground"
+              onClick={() => {
+                setShowCompletionDialog(false)
+                onAddProgram()
+              }}
+            >
+              Start New Program
+            </Button>
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={() => setShowCompletionDialog(false)}
+            >
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

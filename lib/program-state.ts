@@ -5,6 +5,7 @@ import { programTemplateService } from "./services/program-template-service"
 import { programForkService } from "./services/program-fork-service"
 import { ExerciseLibraryService } from "./services/exercise-library-service"
 import { ProgressionRouter } from "./progression-router"
+import { getExerciseMuscleGroup } from "./exercise-muscle-groups"
 // Native platform support for SQLite-first storage
 import { isNative } from "./native/platform"
 import { unifiedStorage } from "./native/storage-service"
@@ -226,6 +227,12 @@ export class ProgramStateManager {
         const parsed = JSON.parse(value)
         await unifiedStorage.set(key, parsed)
         console.log(`[ProgramState] Saved to native storage: ${key}`)
+        // Also mirror to localStorage so legacy consumers (WorkoutLogger/calendar) see the active program
+        try {
+          localStorage.setItem(key, value)
+        } catch (mirrorError) {
+          console.warn(`[ProgramState] Failed to mirror ${key} to localStorage:`, mirrorError)
+        }
         return
       } catch (error) {
         console.warn(`[ProgramState] Native storage set failed for ${key}, falling back to localStorage:`, error)
@@ -243,6 +250,11 @@ export class ProgramStateManager {
     if (this.shouldUseNativeStorage()) {
       try {
         await unifiedStorage.remove(key)
+        try {
+          localStorage.removeItem(key)
+        } catch (mirrorError) {
+          console.warn(`[ProgramState] Failed to remove ${key} from localStorage:`, mirrorError)
+        }
         return
       } catch (error) {
         console.warn(`[ProgramState] Native storage remove failed for ${key}, falling back to localStorage:`, error)
@@ -727,7 +739,10 @@ export class ProgramStateManager {
         templateMetadata: this.extractTemplateMetadata(template),
       }
 
-      await this.saveActiveProgram(activeProgram)
+      // SYNC PROTECTION FIX: Use isCritical=true for new program creation
+      // This ensures the new instanceId is in Supabase immediately, preventing
+      // stale data from overwriting the fresh local state on app restart
+      await this.saveActiveProgram(activeProgram, { isCritical: true })
       console.log("[v0] Set active program:", activeProgram)
 
       const history = this.getProgramHistory()
@@ -970,7 +985,12 @@ export class ProgramStateManager {
           dayNumber: templateExerciseIds && templateExerciseIds.length > 0 ? undefined : dayNumber,
           fromExerciseId: templateExerciseIds && templateExerciseIds.length > 0 ? undefined : fromExerciseId,
         })
+        // CRITICAL FIX: Clear BOTH caches to ensure fresh template is loaded
+        // 1. Clear programTemplateService cache (database query cache)
         programTemplateService.clearCache()
+        // 2. Clear ProgramStateManager's own templateCache
+        this.templateCache.delete(targetTemplateId)
+        console.log(`[ProgramState] Cleared template caches after DB update for templateId: ${targetTemplateId}`)
       } catch (error) {
         const err = error as any
         console.error("[ProgramState] Failed to update template exercise:", {
@@ -979,6 +999,16 @@ export class ProgramStateManager {
           details: err?.details,
           hint: err?.hint,
         })
+      }
+
+      // CRITICAL FIX: Reload template from database to ensure we have the latest version
+      // This is necessary because the DB update changed the exercises and we need fresh data
+      if (applyToFutureWeeks) {
+        const freshTemplate = await this.loadTemplate(targetTemplateId)
+        if (freshTemplate) {
+          activeProgram.template = freshTemplate
+          console.log(`[ProgramState] Reloaded fresh template from database after exercise replacement`)
+        }
       }
 
       const dayKey = `day${dayNumber}`
@@ -1004,7 +1034,7 @@ export class ProgramStateManager {
         return exercise
       }
 
-      // Apply replacement to current day
+      // Apply replacement to current day (for in-memory update - handles case where DB update fails)
       let changed = false
       const dayEntry = activeProgram.template.schedule?.[dayKey]
       if (dayEntry) {
@@ -1012,17 +1042,16 @@ export class ProgramStateManager {
         changed = true  // Mark as changed so we save
       }
 
-      // CRITICAL FIX: Apply replacement to future weeks ONLY if applyToFutureWeeks is true
+      // CRITICAL FIX: Apply replacement to ALL days in schedule (since same exercise may appear on multiple days)
       // This allows current-week-only replacements while still forking the program
       const totalWeeks = activeProgram.template.weeks || 0
 
       if (applyToFutureWeeks) {
-        // Update the same day for all future weeks
-        for (let week = activeProgram.currentWeek; week <= totalWeeks; week++) {
-          const weekDayKey = dayKey  // Same day slot across all weeks
-          const weekDayEntry = activeProgram.template.schedule?.[weekDayKey]
-          if (weekDayEntry && week >= activeProgram.currentWeek) {
-            weekDayEntry.exercises = weekDayEntry.exercises.map(applyExerciseReplacement)
+        // Update ALL days in schedule (exercises are shared across weeks)
+        for (const scheduleKey of Object.keys(activeProgram.template.schedule || {})) {
+          const daySchedule = activeProgram.template.schedule?.[scheduleKey]
+          if (daySchedule && daySchedule.exercises) {
+            daySchedule.exercises = daySchedule.exercises.map(applyExerciseReplacement)
             changed = true
           }
         }
@@ -1264,7 +1293,11 @@ export class ProgramStateManager {
         exerciseData = await exerciseService.getExerciseByName(exercise.name)
       }
 
-      const muscleGroup = exerciseData?.muscleGroup || exercise.muscleGroup || "Other"
+      // Prefer DB muscle group; fall back to template and finally name-based detection to avoid "Other"
+      const muscleGroup =
+        exerciseData?.muscleGroup ||
+        exercise.muscleGroup ||
+        getExerciseMuscleGroup(exercise.name)
       const equipmentType = exerciseData?.equipmentType || exercise.equipmentType || "Bodyweight"
       
       // Determine category based on muscle group - compound movements are typically for larger muscle groups
@@ -1556,6 +1589,10 @@ export class ProgramStateManager {
         console.warn(`[ProgramState] Could not fetch exercise metadata for "${exercise.exerciseName}":`, error)
         // Continue with fallback values
       }
+      // Final fallback: derive muscle group from name if still unknown
+      if (!muscleGroup || muscleGroup.toLowerCase() === "other") {
+        muscleGroup = getExerciseMuscleGroup(exercise.exerciseName)
+      }
       // Get target sets for the CURRENT week (not hardcoded to week1)
       const weekKey = `week${activeProgram.currentWeek}` as keyof typeof exercise.progressionTemplate
       const weekData = exercise.progressionTemplate[weekKey]
@@ -1798,9 +1835,11 @@ export class ProgramStateManager {
         this.saveProgramHistory(history)
       }
 
-      // Clear localStorage
-      localStorage.removeItem(this.ACTIVE_PROGRAM_KEY)
-      localStorage.removeItem(this.PROGRAM_PROGRESS_KEY)
+      // Clear storage (platform-aware: native SQLite or localStorage)
+      // CRITICAL FIX: Must use removeStorageValue() to clear BOTH native SQLite AND localStorage
+      // Using localStorage.removeItem() directly only clears web storage, leaving native SQLite stale
+      await this.removeStorageValue(this.ACTIVE_PROGRAM_KEY)
+      await this.removeStorageValue(this.PROGRAM_PROGRESS_KEY)
 
       // Delete from database FIRST before dispatching events
       if (resolvedUserId && supabase) {
@@ -1840,6 +1879,18 @@ export class ProgramStateManager {
 
       // Dispatch programEnded event (NOT programChanged) to trigger immediate UI updates
       if (typeof window !== "undefined") {
+        // If program was completed naturally (not ended early), dispatch programCompleted event
+        // This allows UI to show a celebration dialog
+        if (!options?.endedEarly) {
+          window.dispatchEvent(new CustomEvent("programCompleted", {
+            detail: {
+              programName: activeProgram.templateMetadata?.name || activeProgram.template?.name || "Program",
+              totalWorkouts: activeProgram.totalWorkouts,
+              completedWorkouts: activeProgram.completedWorkouts,
+            }
+          }))
+          console.log("[ProgramState] Dispatched programCompleted event (natural completion)")
+        }
         window.dispatchEvent(new CustomEvent("programEnded"))
         console.log("[ProgramState] Dispatched programEnded event")
       }
@@ -1852,8 +1903,9 @@ export class ProgramStateManager {
     // Get current user ID
     const userId = this.getCurrentUserId()
 
-    await this.ensureDatabaseLoaded(userId, { force: true })
-    await WorkoutLogger.ensureDatabaseLoaded(userId, { force: true })
+    // Use non-forced loads to avoid overwriting fresh local/native state immediately after completion
+    await this.ensureDatabaseLoaded(userId)
+    await WorkoutLogger.ensureDatabaseLoaded(userId)
 
     const scheduleKeys = Object.keys(activeProgram.template.schedule)
     const daysPerWeek = scheduleKeys.length
@@ -1905,7 +1957,16 @@ export class ProgramStateManager {
     }
   }
 
-  private static async saveActiveProgram(program: ActiveProgram): Promise<void> {
+  /**
+   * Save active program to local storage and optionally sync to Supabase immediately.
+   * 
+   * @param program - The active program to save
+   * @param options.isCritical - If true, performs immediate Supabase sync even on native.
+   *                             Use for critical state changes like new program creation or program end.
+   *                             This prevents stale Supabase data from overwriting fresh local state
+   *                             when the app restarts before background sync completes.
+   */
+  private static async saveActiveProgram(program: ActiveProgram, options?: { isCritical?: boolean }): Promise<void> {
     if (typeof window === "undefined") return
 
     if (!program.templateMetadata) {
@@ -1919,12 +1980,39 @@ export class ProgramStateManager {
     const serializedProgram = this.serializeProgramForStorage(program)
 
     // NATIVE OPTIMIZATION: Use SQLite storage on native for instant saves
-    // Background sync will handle Supabase synchronization
+    // Background sync will handle Supabase synchronization for regular saves
     if (this.shouldUseNativeStorage()) {
       try {
         await this.setStorageValue(this.ACTIVE_PROGRAM_KEY, serializedProgram)
         console.log("[ProgramState] Saved to native SQLite storage")
-        // On native, background sync handles Supabase - don't block on it
+        
+        // SYNC PROTECTION FIX: For critical operations (new program, end program),
+        // also sync to Supabase immediately to prevent stale data overwrites
+        if (options?.isCritical) {
+          console.log("[ProgramState] Critical operation - performing immediate Supabase sync")
+          const userId = this.getCurrentUserId()
+          if (userId && supabase) {
+            try {
+              await supabase
+                .from("active_programs")
+                .upsert({
+                  user_id: userId,
+                  program_id: program.templateId,
+                  instance_id: program.instanceId,
+                  program_name: program.template.name,
+                  days_per_week: Object.keys(program.template.schedule).length,
+                  total_weeks: program.template.weeks || 6,
+                  start_date: new Date(program.startDate).toISOString(),
+                  current_week: program.currentWeek,
+                  current_day: program.currentDay,
+                }, { onConflict: 'user_id' })
+              console.log("[ProgramState] Critical sync completed - instanceId now in Supabase:", program.instanceId)
+            } catch (error) {
+              logSupabaseError("[ProgramState] Critical sync failed (will retry via background sync):", error)
+              // Don't throw - SQLite already has the data, background sync will retry
+            }
+          }
+        }
         return
       } catch (error) {
         console.warn("[ProgramState] Native storage failed, falling back to web storage:", error)
@@ -2167,7 +2255,7 @@ export class ProgramStateManager {
     }
 
     try {
-      await WorkoutLogger.ensureDatabaseLoaded(userId, { force: true })
+      await WorkoutLogger.ensureDatabaseLoaded(userId)
 
       // Load active program from database
       const { data: activeProgramData, error: activeProgramError } = await supabase
