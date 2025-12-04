@@ -1907,6 +1907,18 @@ export class ProgramStateManager {
     await this.ensureDatabaseLoaded(userId)
     await WorkoutLogger.ensureDatabaseLoaded(userId)
 
+    // DEFENSIVE: Retag orphaned workouts before checking completion
+    // This ensures any workouts that got saved without instanceId are recovered
+    // before we check if the program is complete
+    if (activeProgram.instanceId && activeProgram.templateId) {
+      WorkoutLogger.tagWorkoutsWithInstance(
+        activeProgram.instanceId,
+        activeProgram.templateId,
+        userId
+      )
+      console.log("[ProgramState] Retagged orphaned workouts before progress recalculation")
+    }
+
     const scheduleKeys = Object.keys(activeProgram.template.schedule)
     const daysPerWeek = scheduleKeys.length
 
@@ -2336,6 +2348,29 @@ export class ProgramStateManager {
         }
         await this.saveActiveProgram(activeProgram)
         WorkoutLogger.tagWorkoutsWithInstance(instanceId, activeProgram.templateId, userId)
+
+        // REPAIR: Update orphaned workouts in Supabase that match this program but lack instanceId
+        // This fixes workouts that were saved before instanceId tracking was implemented,
+        // or workouts that lost their instanceId due to sync issues
+        const instanceStart = new Date(activeProgramData.start_date).getTime()
+        try {
+          const { error: repairError } = await supabase
+            .from("workout_sessions")
+            .update({ program_instance_id: instanceId })
+            .eq("user_id", userId)
+            .eq("program_id", activeProgramData.program_id)
+            .is("program_instance_id", null)
+            .gte("start_time", instanceStart)
+
+          if (repairError) {
+            console.warn("[ProgramState] Failed to repair orphaned workouts in database:", repairError)
+          } else {
+            console.log("[ProgramState] Repaired orphaned workouts in database with instanceId:", instanceId)
+          }
+        } catch (error) {
+          console.warn("[ProgramState] Error repairing database workouts:", error)
+          // Don't throw - this is a repair operation, not critical for program loading
+        }
 
         console.log("[ProgramState] Loaded active program from database")
       } else {

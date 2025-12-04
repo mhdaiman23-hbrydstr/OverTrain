@@ -556,6 +556,19 @@ export class WorkoutLogger implements SetSyncProvider {
     }
   }
 
+  /**
+   * Tag workouts with the current program instanceId.
+   * 
+   * This is critical for program completion detection - workouts without an instanceId
+   * won't be counted by hasCompletedWorkout(), which uses strict instanceId matching.
+   * 
+   * Enhanced to catch workouts that:
+   * 1. Were created within the instance time window (startTime >= instanceStart)
+   * 2. OR have valid week/day context within program bounds (catches timestamp edge cases)
+   * 
+   * This ensures all workouts for the current program run are properly tagged,
+   * allowing finalizeActiveProgram() to fire when the program is truly complete.
+   */
   static tagWorkoutsWithInstance(instanceId: string, templateId: string, userId?: string): void {
     if (typeof window === "undefined") return
     if (!instanceId || !templateId) return
@@ -573,6 +586,8 @@ export class WorkoutLogger implements SetSyncProvider {
     const storageKeys = this.getUserStorageKeys(userId)
     const active = this.getActiveProgram()
     const instanceStart = typeof active?.startDate === 'number' ? active.startDate : undefined
+    // Get program bounds for week/day validation
+    const programWeeks = active?.template?.weeks || 52
 
     const assign = (key: string) => {
       const stored = localStorage.getItem(key)
@@ -585,6 +600,18 @@ export class WorkoutLogger implements SetSyncProvider {
           typeof workout?.startTime === 'number' &&
           typeof instanceStart === 'number' &&
           workout.startTime >= instanceStart
+
+        // ENHANCED: Also consider workouts with valid week/day within program bounds.
+        // This catches workouts that may have timestamp issues but are clearly
+        // part of this program run based on their week/day context.
+        // Only applies if the workout matches the templateId to prevent cross-program contamination.
+        const hasValidProgramContext =
+          workout.week !== undefined &&
+          workout.day !== undefined &&
+          workout.week >= 1 &&
+          workout.week <= programWeeks &&
+          workout.completed === true && // Only tag completed workouts by context
+          (workout.programId === templateId || !workout.programId)
 
         // If a workout was previously tagged to this instance but predates the
         // instance start, clear the tag so it doesn't leak into the new run.
@@ -600,12 +627,14 @@ export class WorkoutLogger implements SetSyncProvider {
           }
         }
 
+        // ENHANCED: Tag if within time window OR has valid program context
         if (
           !workout.programInstanceId &&
           (workout.programId === templateId || !workout.programId) &&
-          withinInstanceWindow
+          (withinInstanceWindow || hasValidProgramContext)
         ) {
           changed = true
+          console.log(`[WorkoutLogger] Tagging orphaned workout Week ${workout.week} Day ${workout.day} with instanceId ${instanceId}`)
           return {
             ...workout,
             programId: workout.programId || templateId,
@@ -617,6 +646,7 @@ export class WorkoutLogger implements SetSyncProvider {
 
       if (changed) {
         localStorage.setItem(key, JSON.stringify(updated))
+        console.log(`[WorkoutLogger] Tagged orphaned workouts in ${key}`)
       }
     }
 
