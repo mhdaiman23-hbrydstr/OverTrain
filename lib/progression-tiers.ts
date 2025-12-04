@@ -149,8 +149,9 @@ export function calculateVolumeCompensation(
     ? 0
     : ((userWeight - idealWeight) / idealWeight) * 100
 
-  // One rep of adjustment for every ~1% change in load (rounded to nearest percent)
-  const repSteps = Math.round(Math.abs(percentDiff))
+  // One rep per ~2.5% load change, ignore micro-changes under ~1.5%
+  const absPercentDiff = Math.abs(percentDiff)
+  const repSteps = absPercentDiff < 1.5 ? 0 : Math.round(absPercentDiff / 2.5)
 
   if (repSteps === 0) {
     return {
