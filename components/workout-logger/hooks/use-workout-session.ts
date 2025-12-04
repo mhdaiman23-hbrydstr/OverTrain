@@ -936,6 +936,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
     if (!exercise) return
 
     const volumeKey = `${exerciseId}_${setId}`
+    const currentSet = exercise.sets.find((s) => s.id === setId)
 
     let calculatedAdjustedReps: number | undefined
     let shouldClearReps = false
@@ -972,7 +973,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
             message,
           }
         } else {
-            const baseReps = 10 // Default to 10 since templateRecommendedReps should not be used
+            const baseReps = Math.max(1, currentSet?.reps ?? 10) // Use current reps if set, fall back to 10
           const targetVolume = exercise.suggestedWeight * baseReps
 
           const compensation = calculateVolumeCompensation(
