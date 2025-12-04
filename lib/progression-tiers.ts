@@ -149,9 +149,9 @@ export function calculateVolumeCompensation(
     ? 0
     : ((userWeight - idealWeight) / idealWeight) * 100
 
-  // One rep per ~2.5% load change, ignore micro-changes under ~1.5%
+  // One rep per ~4% load change, ignore micro-changes under ~3% to reduce aggressiveness
   const absPercentDiff = Math.abs(percentDiff)
-  const repSteps = absPercentDiff < 1.5 ? 0 : Math.round(absPercentDiff / 2.5)
+  const repSteps = absPercentDiff < 3 ? 0 : Math.round(absPercentDiff / 4)
 
   if (repSteps === 0) {
     return {

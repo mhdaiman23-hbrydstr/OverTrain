@@ -21,6 +21,20 @@ interface MuscleGroupData {
 export function MuscleGroupStats({ open, onClose }: MuscleGroupStatsProps) {
   const [muscleGroupStats, setMuscleGroupStats] = useState<MuscleGroupData[]>([])
 
+  const resolveMuscleGroup = (exercise: any, safeName: string): string => {
+    const explicitGroup =
+      (typeof exercise?.muscleGroup === "string" && exercise.muscleGroup) ||
+      (typeof exercise?.primaryMuscleGroup === "string" && exercise.primaryMuscleGroup) ||
+      (typeof exercise?.muscle_group === "string" && exercise.muscle_group)
+
+    if (explicitGroup) {
+      const normalized = explicitGroup.trim().toUpperCase()
+      if (normalized) return normalized
+    }
+
+    return getExerciseMuscleGroup(safeName)
+  }
+
   useEffect(() => {
     const loadStats = async () => {
       const workouts = WorkoutLogger.getWorkoutHistory()
@@ -80,7 +94,9 @@ export function MuscleGroupStats({ open, onClose }: MuscleGroupStatsProps) {
           const setsArray = Array.isArray((exercise as any)?.sets) ? (exercise as any).sets : []
           const completedSets = setsArray.filter((set: any) => set?.completed && (set?.reps ?? 0) > 0).length
 
-          weekData.set(muscleGroup, (weekData.get(muscleGroup) || 0) + completedSets)
+          const resolvedGroup = resolveMuscleGroup(exercise, safeName)
+
+          weekData.set(resolvedGroup, (weekData.get(resolvedGroup) || 0) + completedSets)
         })
       })
 

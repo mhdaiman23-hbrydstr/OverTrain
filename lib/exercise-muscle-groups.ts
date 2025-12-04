@@ -10,13 +10,17 @@ export function getExerciseMuscleGroup(exerciseName?: string): string {
     return "LEGS"
   }
 
+  const isShoulderPress = name.includes("shoulder") || name.includes("overhead") || name.includes("military")
+  const isPress = name.includes("press")
+
   // Chest exercises
   if (
     name.includes("bench press") ||
     name.includes("bench") ||
-    (name.includes("incline") && name.includes("press")) ||
-    (name.includes("decline") && name.includes("press")) ||
-    (name.includes("dumbbell") && name.includes("press") && !name.includes("shoulder")) ||
+    (name.includes("incline") && isPress) ||
+    (name.includes("decline") && isPress) ||
+    (name.includes("dumbbell") && isPress && !isShoulderPress) ||
+    (isPress && !isShoulderPress && !name.includes("row")) ||
     name.includes("chest") ||
     name.includes("pec") ||
     name.includes("fly") ||
