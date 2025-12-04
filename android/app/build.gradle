@@ -53,6 +53,11 @@ android {
 
             // Use production keystore for release signing
             signingConfig signingConfigs.release
+            
+            // Preserve native debug symbols for Google Play
+            ndk {
+                debugSymbolLevel 'SYMBOL_TABLE'
+            }
         }
     }
     
