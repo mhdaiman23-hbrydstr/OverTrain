@@ -1992,21 +1992,18 @@ export class ProgramStateManager {
         }
       }
 
-      // On Native, don't await database sync - let it happen in background
-      // On Web, await to maintain consistency (faster connections)
-      const isNativePlatform = typeof window !== "undefined" && 
-        (window.navigator?.userAgent?.includes("CapacitorNative") || 
-         (window as any).Capacitor?.isNativePlatform?.())
-      
-      if (isNativePlatform) {
-        // Fire-and-forget on Native - don't block UI
-        syncToDatabase().catch(err => {
-          console.error("[ProgramState] Background database sync failed:", err)
-          StorageTelemetry.logSyncFailure('finalizeActiveProgram.syncToDatabase', err)
-        })
-      } else {
-        // Await on Web for consistency
+      // CRITICAL FIX: Always await database sync for program end
+      // This is a critical operation - we MUST ensure Supabase is updated
+      // before the function returns, otherwise reinstalling the app will load stale data.
+      // The ~1-2 second delay is acceptable for this infrequent operation.
+      try {
         await syncToDatabase()
+        console.log("[ProgramState] Database sync completed for program finalization")
+      } catch (err) {
+        console.error("[ProgramState] Database sync failed for program finalization:", err)
+        StorageTelemetry.logSyncFailure('finalizeActiveProgram.syncToDatabase', err)
+        // Don't throw - local storage is already updated, and we've shown the UI
+        // The next app restart will try to sync again
       }
 
       StorageTelemetry.endSyncOperation(telemetryId, true)
@@ -2274,6 +2271,11 @@ export class ProgramStateManager {
       return
     }
 
+    const telemetryId = StorageTelemetry.startSyncOperation('program_start', {
+      userId,
+      context: 'syncToDatabase',
+    })
+
     try {
       const activeProgram = await this.getActiveProgram({ skipDatabaseLoad: true })
 
@@ -2371,8 +2373,11 @@ export class ProgramStateManager {
       }
 
       this.markDatabaseLoaded()
+      StorageTelemetry.endSyncOperation(telemetryId, true)
     } catch (error) {
       logSupabaseError("[ProgramState] Sync to database failed:", error)
+      StorageTelemetry.endSyncOperation(telemetryId, false, String(error))
+      StorageTelemetry.logSyncFailure('syncToDatabase', error, { userId })
     }
   }
 
