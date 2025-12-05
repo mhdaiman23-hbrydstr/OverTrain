@@ -973,11 +973,36 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
             message,
           }
         } else {
-          // FIX: Don't use currentSet.reps if it's 0 or 1 (likely from a previous bad calculation)
-          // Use a sensible default of 8 reps for volume compensation baseline
+          // FIX: Use previous week's actual reps (from perSetSuggestions) for volume compensation
+          // This ensures we're maintaining volume relative to what the user actually did last week,
+          // not some theoretical baseline from week 1
           const DEFAULT_BASELINE_REPS = 8
           const currentReps = currentSet?.reps ?? 0
-          const baseReps = currentReps >= 3 ? currentReps : DEFAULT_BASELINE_REPS
+          
+          // Find the set index to get per-set suggestion
+          const setIndex = exercise.sets.findIndex((s) => s.id === setId)
+          const perSetSuggestion = (exercise as any).perSetSuggestions?.[setIndex]
+          
+          // Priority for baseline reps:
+          // 1. Previous week's actual reps from perSetSuggestions (best - what user actually did)
+          // 2. Current set reps if valid (>=3)
+          // 3. Default fallback of 8
+          let baseReps: number
+          let baseSource: string
+          
+          if (perSetSuggestion?.baseReps && perSetSuggestion.baseReps >= 3) {
+            // Use previous week's actual reps for this specific set
+            baseReps = perSetSuggestion.baseReps
+            baseSource = 'previous_week'
+          } else if (currentReps >= 3) {
+            // Fall back to current set reps if valid
+            baseReps = currentReps
+            baseSource = 'current_set'
+          } else {
+            // Final fallback
+            baseReps = DEFAULT_BASELINE_REPS
+            baseSource = 'default'
+          }
           
           const suggestedWeight = exercise.suggestedWeight || 0
           const targetVolume = suggestedWeight * baseReps
@@ -987,17 +1012,18 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
             exerciseName: exercise.exerciseName,
             suggestedWeight,
             baseReps,
+            baseSource,
             targetVolume,
             newWeight: validatedValue,
             currentSetReps: currentSet?.reps,
-            usedDefaultBaseline: currentReps < 3,
+            perSetSuggestionReps: perSetSuggestion?.baseReps,
           })
 
           // Safety check: If suggestedWeight is 0 or undefined, don't adjust reps
           if (!suggestedWeight || targetVolume <= 0) {
             console.warn("[handleSetUpdate] No valid suggestedWeight - preserving current reps")
-            // Preserve current reps if valid, otherwise use the default baseline
-            calculatedAdjustedReps = currentReps >= 1 ? currentReps : DEFAULT_BASELINE_REPS
+            // Preserve current reps if valid, otherwise use the best available baseline
+            calculatedAdjustedReps = currentReps >= 1 ? currentReps : baseReps
             compensationDetails = {
               adjustedReps: calculatedAdjustedReps,
               strategy: "volume_compensated",
@@ -1432,6 +1458,16 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
           await ProgramStateManager.completeWorkout(user?.id)
         }
 
+        // Step 4.5: Check if program was completed (finalized) by this workout
+        // If there's no active program anymore, the program was just completed
+        const activeProgramAfter = await ProgramStateManager.getActiveProgram({ skipDatabaseLoad: true })
+        const wasProgramCompleted = !activeProgramAfter
+        
+        if (wasProgramCompleted) {
+          console.log("[handleCompleteWorkout] 🎉 Program was completed with this workout!")
+          setProgramWasEnded(true)
+        }
+
         // Step 5: Start database sync in background (non-blocking)
         // Data is already safe in localStorage, so UI can proceed immediately
         if (user?.id) {
@@ -1455,7 +1491,8 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
           detail: {
             week: completedWorkout.week,
             day: completedWorkout.day,
-            completed: true
+            completed: true,
+            programCompleted: wasProgramCompleted,
           }
         }))
 
@@ -1466,7 +1503,10 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
         setCompletedWorkout(completedWorkout)
         setShowCompletionDialog(true)
 
-        console.log("[handleCompleteWorkout] Workout completion flow completed (sync in background)")
+        console.log("[handleCompleteWorkout] Workout completion flow completed", { 
+          sync: "background", 
+          programCompleted: wasProgramCompleted 
+        })
       }
     } catch (error) {
       console.error("Error completing workout:", error)
@@ -2749,6 +2789,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
     setShowCompletionDialog,
     completedWorkout,
     setCompletedWorkout,
+    programWasEnded,
     workoutNotes,
     setWorkoutNotes,
     endWorkoutConfirmation,

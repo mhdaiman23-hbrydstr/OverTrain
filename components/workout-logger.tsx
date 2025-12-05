@@ -32,6 +32,7 @@ function WorkoutLoggerView({ initialWorkout, onComplete, onCancel, onViewAnalyti
     setShowEndProgramDialog,
     showCompletionDialog,
     completedWorkout,
+    programWasEnded,
     workoutNotes,
     setWorkoutNotes,
     endWorkoutConfirmation,
@@ -245,6 +246,7 @@ showBodyweightDialog={showBodyweightDialog}        setShowBodyweightDialog={setS
         onClose={handleCompletionDialogClose}
         onViewMuscleGroupStats={handleViewMuscleGroupStats}
         onStartNextWorkout={handleStartNextWorkout}
+        programCompleted={programWasEnded}
       />
 
       <MuscleGroupStats open={showMuscleGroupStats} onClose={handleMuscleGroupStatsClose} />

@@ -23,6 +23,7 @@ interface WorkoutCompletionDialogProps {
   onClose: () => void
   onViewMuscleGroupStats: () => void
   onStartNextWorkout?: () => void
+  programCompleted?: boolean  // True when this was the last workout of the program
 }
 
 export function WorkoutCompletionDialog({
@@ -31,6 +32,7 @@ export function WorkoutCompletionDialog({
   onClose,
   onViewMuscleGroupStats,
   onStartNextWorkout,
+  programCompleted = false,
 }: WorkoutCompletionDialogProps) {
   const [showCelebration, setShowCelebration] = useState(false)
   const [hasNext, setHasNext] = useState(false)
@@ -38,14 +40,19 @@ export function WorkoutCompletionDialog({
   useEffect(() => {
     if (open && workout) {
       setShowCelebration(true)
-      const timer = setTimeout(() => setShowCelebration(false), 2000)
+      // Longer celebration for program completion
+      const timer = setTimeout(() => setShowCelebration(false), programCompleted ? 3000 : 2000)
       
-      // Check if there's a next workout
-      hasNextWorkout().then(setHasNext)
+      // Check if there's a next workout (unless program is completed)
+      if (!programCompleted) {
+        hasNextWorkout().then(setHasNext)
+      } else {
+        setHasNext(false)
+      }
       
       return () => clearTimeout(timer)
     }
-  }, [open, workout])
+  }, [open, workout, programCompleted])
 
   if (!workout || !workout.exercises) return null
 
@@ -98,6 +105,7 @@ export function WorkoutCompletionDialog({
   const stats = getWorkoutStats()
 
   const getCompletionMessage = () => {
+    if (programCompleted) return "You crushed it! 🏆"
     if (stats.completionRate >= 90) return "Outstanding workout! 🔥"
     if (stats.completionRate >= 75) return "Great job! 💪"
     if (stats.completionRate >= 50) return "Good effort! 👍"
@@ -153,7 +161,9 @@ export function WorkoutCompletionDialog({
               <Trophy className="trophy-icon h-8 w-8 sm:h-10 sm:w-10 md:h-16 md:w-16 text-yellow-500 mx-auto" />
             )}
           </div>
-          <DialogTitle className="dialog-title text-base sm:text-lg md:text-2xl">Workout Complete!</DialogTitle>
+          <DialogTitle className="dialog-title text-base sm:text-lg md:text-2xl">
+            {programCompleted ? "🎉 Program Complete! 🎉" : "Workout Complete!"}
+          </DialogTitle>
           <DialogDescription className={`dialog-description text-xs sm:text-sm md:text-lg font-medium ${getCompletionColor()}`}>
             {getCompletionMessage()}
           </DialogDescription>

@@ -83,18 +83,23 @@ try {
     console.log('       }');
   }
 
-  console.log('\n🎯 Google Play Upload Instructions:');
-  console.log('\n1️⃣ Upload AAB file to Google Play Console');
-  console.log('2️⃣ When prompted for debug symbols, upload:');
-  console.log('   • mapping.txt (from android/app/build/outputs/mapping/release/)');
-  console.log('   • Native symbol files (if generated above)');
-  console.log('\n📄 Ready Files:');
-  console.log(`   • AAB: android/app/build/outputs/bundle/release/app-release.aab`);
-  console.log(`   • Mapping: android/app/build/outputs/mapping/release/mapping.txt`);
+  console.log('\nGoogle Play Upload Instructions:');
+  console.log('\n1) Upload AAB file to Google Play Console');
+  console.log('2) When prompted for debug symbols, upload:');
+  console.log('   - mapping.txt (from android/app/build/outputs/mapping/release/)');
+  console.log('   - Native symbol files (if generated above)');
+  console.log('\nReady Files:');
+  console.log('   - AAB: android/app/build/outputs/bundle/release/app-release.aab');
+  console.log('   - Mapping: android/app/build/outputs/mapping/release/mapping.txt');
   
-  if (fs.existsSync(outputDir) && fs.readdirSync(outputDir).length > 0) {
-    console.log(`   • Native symbols: ${outputDir}/`);
+  const hasNativeSymbols = fs.existsSync(outputDir) && fs.readdirSync(outputDir).length > 0;
+  if (hasNativeSymbols) {
+    console.log(`   - Native symbols: ${outputDir}/`);
+  } else {
+    console.log('   - Native symbols: not generated (objdump missing or no native .so files found)');
   }
+
+  console.log('\nExtraction complete.\n');
 
 } catch (error) {
   console.error('❌ Error:', error.message);
