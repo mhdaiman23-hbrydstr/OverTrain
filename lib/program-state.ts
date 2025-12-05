@@ -7,6 +7,7 @@ import { ExerciseLibraryService } from "./services/exercise-library-service"
 import { ProgressionRouter } from "./progression-router"
 import { getExerciseMuscleGroup } from "./exercise-muscle-groups"
 import { ConnectionMonitor } from "./connection-monitor"
+import { StorageTelemetry } from "./storage-telemetry"
 // Native platform support for SQLite-first storage
 import { isNative } from "./native/platform"
 import { unifiedStorage } from "./native/storage-service"
@@ -1728,49 +1729,59 @@ export class ProgramStateManager {
       // Get current user ID if not provided
       const resolvedUserId = userId ?? this.getCurrentUserId()
 
-      await WorkoutLogger.ensureDatabaseLoaded(resolvedUserId)
-
-      activeProgram.completedWorkouts += 1
-      activeProgram.progress = (activeProgram.completedWorkouts / activeProgram.totalWorkouts) * 100
-
-      const scheduleKeys = Object.keys(activeProgram.template.schedule)
-      const daysPerWeek = scheduleKeys.length
-
-      // Check if all days in the current week are now completed
-      const isCurrentWeekComplete = WorkoutLogger.isWeekCompleted(
-        activeProgram.currentWeek,
-        daysPerWeek,
-        resolvedUserId,
-        activeProgram.instanceId
-      )
-
-      // DEBUG: Log detailed program state for diagnosing completion issues
-      const programWeeks = activeProgram.template?.weeks || activeProgram.templateMetadata?.weeks || 6
-      console.log("[v0] Workout completion check:", {
+      // Start telemetry tracking
+      const telemetryId = StorageTelemetry.startSyncOperation('program_complete', {
         currentWeek: activeProgram.currentWeek,
         currentDay: activeProgram.currentDay,
-        daysPerWeek,
-        programWeeks,
-        templateWeeks: activeProgram.template?.weeks,
-        metadataWeeks: activeProgram.templateMetadata?.weeks,
-        isCurrentWeekComplete,
-        instanceId: activeProgram.instanceId,
+        completedWorkouts: activeProgram.completedWorkouts,
+        totalWorkouts: activeProgram.totalWorkouts,
       })
 
-      if (isCurrentWeekComplete) {
-        // Check if we've reached the program's final week
-        // Use templateMetadata.weeks as fallback if template.weeks is missing
-        if (activeProgram.currentWeek >= programWeeks) {
-          // Program is complete - finalize it instead of advancing to next week
-          console.log("[v0] Program completed! Finalizing program after week", activeProgram.currentWeek, "of", programWeeks)
-          await this.finalizeActiveProgram(resolvedUserId, { endedEarly: false })
-          return
-        }
+      try {
+        await WorkoutLogger.ensureDatabaseLoaded(resolvedUserId)
 
-        // All days in current week are done, advance to next week
-        activeProgram.currentWeek += 1
-        activeProgram.currentDay = 1
-        console.log("[v0] Week completed! Advanced to week", activeProgram.currentWeek)
+        activeProgram.completedWorkouts += 1
+        activeProgram.progress = (activeProgram.completedWorkouts / activeProgram.totalWorkouts) * 100
+
+        const scheduleKeys = Object.keys(activeProgram.template.schedule)
+        const daysPerWeek = scheduleKeys.length
+
+        // Check if all days in the current week are now completed
+        const isCurrentWeekComplete = WorkoutLogger.isWeekCompleted(
+          activeProgram.currentWeek,
+          daysPerWeek,
+          resolvedUserId,
+          activeProgram.instanceId
+        )
+
+        // DEBUG: Log detailed program state for diagnosing completion issues
+        const programWeeks = activeProgram.template?.weeks || activeProgram.templateMetadata?.weeks || 6
+        console.log("[v0] Workout completion check:", {
+          currentWeek: activeProgram.currentWeek,
+          currentDay: activeProgram.currentDay,
+          daysPerWeek,
+          programWeeks,
+          templateWeeks: activeProgram.template?.weeks,
+          metadataWeeks: activeProgram.templateMetadata?.weeks,
+          isCurrentWeekComplete,
+          instanceId: activeProgram.instanceId,
+        })
+
+        if (isCurrentWeekComplete) {
+          // Check if we've reached the program's final week
+          // Use templateMetadata.weeks as fallback if template.weeks is missing
+          if (activeProgram.currentWeek >= programWeeks) {
+            // Program is complete - finalize it instead of advancing to next week
+            console.log("[v0] Program completed! Finalizing program after week", activeProgram.currentWeek, "of", programWeeks)
+            StorageTelemetry.endSyncOperation(telemetryId, true)
+            await this.finalizeActiveProgram(resolvedUserId, { endedEarly: false })
+            return
+          }
+
+          // All days in current week are done, advance to next week
+          activeProgram.currentWeek += 1
+          activeProgram.currentDay = 1
+          console.log("[v0] Week completed! Advanced to week", activeProgram.currentWeek)
       } else {
         // Find the next incomplete day in the current week
         // Start from day AFTER the current day to ensure we advance
@@ -1852,16 +1863,42 @@ export class ProgramStateManager {
       if (resolvedUserId) {
         await this.syncToDatabase(resolvedUserId)
       }
+
+      StorageTelemetry.endSyncOperation(telemetryId, true)
+      } catch (error) {
+        StorageTelemetry.endSyncOperation(telemetryId, false, String(error))
+        StorageTelemetry.logSyncFailure('completeWorkout', error, {
+          currentWeek: activeProgram?.currentWeek,
+          currentDay: activeProgram?.currentDay,
+        })
+        throw error
+      }
     })
   }
 
 
   static async finalizeActiveProgram(userId?: string, options?: { endedEarly?: boolean }): Promise<void> {
+    // Start telemetry tracking
+    const telemetryId = StorageTelemetry.startSyncOperation('program_complete', {
+      endedEarly: options?.endedEarly,
+      context: 'finalizeActiveProgram',
+    })
+
     return this.withLock(async () => {
       const activeProgram = await this.getActiveProgram()
-      if (!activeProgram) return
+      if (!activeProgram) {
+        StorageTelemetry.endSyncOperation(telemetryId, false, 'No active program')
+        return
+      }
 
       const resolvedUserId = userId ?? this.getCurrentUserId()
+
+      console.log("[ProgramState] Finalizing program:", {
+        programName: activeProgram.templateMetadata?.name || activeProgram.template?.name,
+        endedEarly: options?.endedEarly,
+        completedWorkouts: activeProgram.completedWorkouts,
+        totalWorkouts: activeProgram.totalWorkouts,
+      })
 
       activeProgram.completedWorkouts = activeProgram.totalWorkouts
       activeProgram.progress = 100
@@ -1963,13 +2000,16 @@ export class ProgramStateManager {
       
       if (isNativePlatform) {
         // Fire-and-forget on Native - don't block UI
-        syncToDatabase().catch(err => 
+        syncToDatabase().catch(err => {
           console.error("[ProgramState] Background database sync failed:", err)
-        )
+          StorageTelemetry.logSyncFailure('finalizeActiveProgram.syncToDatabase', err)
+        })
       } else {
         // Await on Web for consistency
         await syncToDatabase()
       }
+
+      StorageTelemetry.endSyncOperation(telemetryId, true)
     })
   }
   static async recalculateProgress(options?: { silent?: boolean }): Promise<void> {

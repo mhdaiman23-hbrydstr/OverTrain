@@ -1666,6 +1666,13 @@ export class WorkoutLogger implements SetSyncProvider {
       }
     }
 
+    // Start telemetry tracking for workout completion
+    const telemetryId = StorageTelemetry.startSyncOperation('workout_complete', {
+      workoutId,
+      week: workoutToComplete?.week,
+      day: workoutToComplete?.day,
+    })
+
     // CRITICAL: Flush any pending set completions BEFORE completing the workout
     // This ensures all set data is synced to Supabase before the workout is finished
     console.log("[WorkoutLogger.completeWorkout] Flushing pending set completions before completing workout")
@@ -1673,6 +1680,7 @@ export class WorkoutLogger implements SetSyncProvider {
       await this.flushSetCompletions()
     } catch (flushError) {
       console.error("[WorkoutLogger.completeWorkout] Warning: Failed to flush set completions:", flushError)
+      StorageTelemetry.logSyncFailure('workout_complete.flushSets', flushError, { workoutId })
       // Continue anyway - sets are backed up in localStorage
     }
 
@@ -1690,6 +1698,7 @@ export class WorkoutLogger implements SetSyncProvider {
         const stored = localStorage.getItem(storageKeys.inProgress)
         if (!stored) {
           console.error(`[WorkoutLogger.completeWorkout] No in-progress workouts found in localStorage (key: ${storageKeys.inProgress})`)
+          StorageTelemetry.endSyncOperation(telemetryId, false, 'No in-progress workouts found')
           return null
         }
 
@@ -1700,6 +1709,7 @@ export class WorkoutLogger implements SetSyncProvider {
         workout = workouts.find((w) => w.id === workoutId)
         if (!workout) {
           console.error(`[WorkoutLogger.completeWorkout] Workout ID ${workoutId} not found in in-progress workouts`)
+          StorageTelemetry.endSyncOperation(telemetryId, false, 'Workout ID not found')
           return null
         }
       }
@@ -1747,9 +1757,12 @@ export class WorkoutLogger implements SetSyncProvider {
         }
       }
 
+      StorageTelemetry.endSyncOperation(telemetryId, true)
       return workout
     } catch (error) {
       console.error("[WorkoutLogger.completeWorkout] Failed to complete workout:", error)
+      StorageTelemetry.endSyncOperation(telemetryId, false, String(error))
+      StorageTelemetry.logSyncFailure('workout_complete', error, { workoutId })
       return null
     }
   }
