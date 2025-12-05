@@ -973,21 +973,57 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
             message,
           }
         } else {
-            const baseReps = Math.max(1, currentSet?.reps ?? 10) // Use current reps if set, fall back to 10
-          const targetVolume = exercise.suggestedWeight * baseReps
+          // FIX: Don't use currentSet.reps if it's 0 or 1 (likely from a previous bad calculation)
+          // Use a sensible default of 8 reps for volume compensation baseline
+          const DEFAULT_BASELINE_REPS = 8
+          const currentReps = currentSet?.reps ?? 0
+          const baseReps = currentReps >= 3 ? currentReps : DEFAULT_BASELINE_REPS
+          
+          const suggestedWeight = exercise.suggestedWeight || 0
+          const targetVolume = suggestedWeight * baseReps
 
-          const compensation = calculateVolumeCompensation(
-            targetVolume,
-            validatedValue,
+          // DEBUG: Log volume compensation inputs for diagnosing reps reset issue
+          console.log("[handleSetUpdate] Volume compensation inputs:", {
+            exerciseName: exercise.exerciseName,
+            suggestedWeight,
             baseReps,
-            tierRules.maxRepAdjustment
-          )
+            targetVolume,
+            newWeight: validatedValue,
+            currentSetReps: currentSet?.reps,
+            usedDefaultBaseline: currentReps < 3,
+          })
 
-          calculatedAdjustedReps = compensation.adjustedReps
-          compensationDetails = {
-            adjustedReps: compensation.adjustedReps,
-            strategy: compensation.strategy,
-            message: compensation.message,
+          // Safety check: If suggestedWeight is 0 or undefined, don't adjust reps
+          if (!suggestedWeight || targetVolume <= 0) {
+            console.warn("[handleSetUpdate] No valid suggestedWeight - preserving current reps")
+            // Preserve current reps if valid, otherwise use the default baseline
+            calculatedAdjustedReps = currentReps >= 1 ? currentReps : DEFAULT_BASELINE_REPS
+            compensationDetails = {
+              adjustedReps: calculatedAdjustedReps,
+              strategy: "volume_compensated",
+              message: undefined,
+            }
+          } else {
+            const compensation = calculateVolumeCompensation(
+              targetVolume,
+              validatedValue,
+              baseReps,
+              tierRules.maxRepAdjustment
+            )
+
+            console.log("[handleSetUpdate] Volume compensation result:", {
+              adjustedReps: compensation.adjustedReps,
+              strategy: compensation.strategy,
+              message: compensation.message,
+            })
+
+            // FIX: Ensure adjusted reps never drops below 3 (avoid 1-2 rep anomalies from bad math)
+            calculatedAdjustedReps = Math.max(3, compensation.adjustedReps)
+            compensationDetails = {
+              adjustedReps: calculatedAdjustedReps,
+              strategy: compensation.strategy,
+              message: compensation.message,
+            }
           }
 
           setUserOverrides((prev) => ({ ...prev, [exerciseId]: false }))

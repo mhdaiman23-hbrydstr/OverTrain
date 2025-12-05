@@ -6,6 +6,7 @@ import { programForkService } from "./services/program-fork-service"
 import { ExerciseLibraryService } from "./services/exercise-library-service"
 import { ProgressionRouter } from "./progression-router"
 import { getExerciseMuscleGroup } from "./exercise-muscle-groups"
+import { ConnectionMonitor } from "./connection-monitor"
 // Native platform support for SQLite-first storage
 import { isNative } from "./native/platform"
 import { unifiedStorage } from "./native/storage-service"
@@ -614,7 +615,47 @@ export class ProgramStateManager {
         await WorkoutLogger.ensureDatabaseLoaded(currentUserId, { force: options?.refreshTemplate })
       }
 
-      const stored = await this.getStorageValue(this.ACTIVE_PROGRAM_KEY)
+      let stored = await this.getStorageValue(this.ACTIVE_PROGRAM_KEY)
+
+      // NATIVE COLD START FIX: If SQLite/localStorage is empty but user is logged in,
+      // check Supabase directly to restore program state. This handles:
+      // - App reinstall (SQLite cleared)
+      // - Development testing (data cleared)
+      // - First launch after login on a new device
+      if (!stored && currentUserId && this.shouldUseNativeStorage() && !options?.skipDatabaseLoad && supabase) {
+        // Check connectivity before attempting Supabase sync
+        if (!ConnectionMonitor.isOnline()) {
+          console.log("[ProgramState] Native cold start detected but offline - skipping Supabase sync")
+        } else {
+          console.log("[ProgramState] Native cold start detected - checking Supabase for active program...")
+          try {
+            // Verify authentication before syncing
+            const { data: { user: authUser }, error: authError } = await supabase.auth.getUser()
+            if (authError || !authUser) {
+              console.warn("[ProgramState] Not authenticated - skipping Supabase sync:", authError?.message)
+            } else if (authUser.id !== currentUserId) {
+              console.warn("[ProgramState] User ID mismatch - skipping Supabase sync")
+            } else {
+              // Load both program state AND workout history from Supabase
+              // WorkoutLogger is needed to determine which workouts are completed
+              await Promise.all([
+                this.loadFromDatabase(currentUserId),
+                WorkoutLogger.ensureDatabaseLoaded(currentUserId, { force: true })
+              ])
+              // After loading from database, try reading again
+              stored = await this.getStorageValue(this.ACTIVE_PROGRAM_KEY)
+              if (stored) {
+                console.log("[ProgramState] Successfully restored program from Supabase on cold start")
+              } else {
+                console.log("[ProgramState] No active program found in Supabase")
+              }
+            }
+          } catch (error) {
+            console.warn("[ProgramState] Failed to restore from Supabase on cold start:", error)
+          }
+        }
+      }
+
       if (!stored) return null
 
       let program = JSON.parse(stored) as ActiveProgram
@@ -1703,12 +1744,25 @@ export class ProgramStateManager {
         activeProgram.instanceId
       )
 
+      // DEBUG: Log detailed program state for diagnosing completion issues
+      const programWeeks = activeProgram.template?.weeks || activeProgram.templateMetadata?.weeks || 6
+      console.log("[v0] Workout completion check:", {
+        currentWeek: activeProgram.currentWeek,
+        currentDay: activeProgram.currentDay,
+        daysPerWeek,
+        programWeeks,
+        templateWeeks: activeProgram.template?.weeks,
+        metadataWeeks: activeProgram.templateMetadata?.weeks,
+        isCurrentWeekComplete,
+        instanceId: activeProgram.instanceId,
+      })
+
       if (isCurrentWeekComplete) {
         // Check if we've reached the program's final week
-        const programWeeks = activeProgram.template.weeks || 6 // Default to 6 weeks if not set
+        // Use templateMetadata.weeks as fallback if template.weeks is missing
         if (activeProgram.currentWeek >= programWeeks) {
           // Program is complete - finalize it instead of advancing to next week
-          console.log("[v0] Program completed! Finalizing program after week", activeProgram.currentWeek)
+          console.log("[v0] Program completed! Finalizing program after week", activeProgram.currentWeek, "of", programWeeks)
           await this.finalizeActiveProgram(resolvedUserId, { endedEarly: false })
           return
         }
@@ -1841,43 +1895,9 @@ export class ProgramStateManager {
       await this.removeStorageValue(this.ACTIVE_PROGRAM_KEY)
       await this.removeStorageValue(this.PROGRAM_PROGRESS_KEY)
 
-      // Delete from database FIRST before dispatching events
-      if (resolvedUserId && supabase) {
-        try {
-          await supabase.from("active_programs").delete().eq("user_id", resolvedUserId)
-          console.log("[ProgramState] Removed active program from database")
-        } catch (error) {
-          logSupabaseError("[ProgramState] Failed to remove active program from database:", error)
-        }
-      }
-
-      // Sync program history to database
-      if (resolvedUserId && supabase && history.length > 0) {
-        try {
-          await supabase
-            .from("program_history")
-            .upsert(
-              history.map((h) => ({
-                id: h.id,
-                user_id: resolvedUserId,
-                template_id: h.templateId,
-                instance_id: this.normalizeInstanceId(h.instanceId ?? h.id),
-                name: h.name,
-                start_date: h.startDate,
-                end_date: h.endDate || null,
-                completion_rate: h.completionRate,
-                total_workouts: h.totalWorkouts,
-                completed_workouts: h.completedWorkouts,
-                is_active: h.isActive,
-              }))
-            )
-          console.log("[ProgramState] Synced program history to database")
-        } catch (error) {
-          logSupabaseError("[ProgramState] Failed to sync program history:", error)
-        }
-      }
-
-      // Dispatch programEnded event (NOT programChanged) to trigger immediate UI updates
+      // FIX: Dispatch events IMMEDIATELY BEFORE database operations
+      // This ensures the UI updates even if Supabase calls hang or fail on Native
+      // The celebration dialog must show regardless of network conditions
       if (typeof window !== "undefined") {
         // If program was completed naturally (not ended early), dispatch programCompleted event
         // This allows UI to show a celebration dialog
@@ -1893,6 +1913,62 @@ export class ProgramStateManager {
         }
         window.dispatchEvent(new CustomEvent("programEnded"))
         console.log("[ProgramState] Dispatched programEnded event")
+      }
+
+      // Database sync happens AFTER events are dispatched (fire-and-forget on Native)
+      // This prevents slow/hanging network calls from blocking the UI celebration
+      const syncToDatabase = async () => {
+        // Delete from database
+        if (resolvedUserId && supabase) {
+          try {
+            await supabase.from("active_programs").delete().eq("user_id", resolvedUserId)
+            console.log("[ProgramState] Removed active program from database")
+          } catch (error) {
+            logSupabaseError("[ProgramState] Failed to remove active program from database:", error)
+          }
+        }
+
+        // Sync program history to database
+        if (resolvedUserId && supabase && history.length > 0) {
+          try {
+            await supabase
+              .from("program_history")
+              .upsert(
+                history.map((h) => ({
+                  id: h.id,
+                  user_id: resolvedUserId,
+                  template_id: h.templateId,
+                  instance_id: this.normalizeInstanceId(h.instanceId ?? h.id),
+                  name: h.name,
+                  start_date: h.startDate,
+                  end_date: h.endDate || null,
+                  completion_rate: h.completionRate,
+                  total_workouts: h.totalWorkouts,
+                  completed_workouts: h.completedWorkouts,
+                  is_active: h.isActive,
+                }))
+              )
+            console.log("[ProgramState] Synced program history to database")
+          } catch (error) {
+            logSupabaseError("[ProgramState] Failed to sync program history:", error)
+          }
+        }
+      }
+
+      // On Native, don't await database sync - let it happen in background
+      // On Web, await to maintain consistency (faster connections)
+      const isNativePlatform = typeof window !== "undefined" && 
+        (window.navigator?.userAgent?.includes("CapacitorNative") || 
+         (window as any).Capacitor?.isNativePlatform?.())
+      
+      if (isNativePlatform) {
+        // Fire-and-forget on Native - don't block UI
+        syncToDatabase().catch(err => 
+          console.error("[ProgramState] Background database sync failed:", err)
+        )
+      } else {
+        // Await on Web for consistency
+        await syncToDatabase()
       }
     })
   }
