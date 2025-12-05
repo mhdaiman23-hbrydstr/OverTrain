@@ -1740,6 +1740,11 @@ export class ProgramStateManager {
       try {
         await WorkoutLogger.ensureDatabaseLoaded(resolvedUserId)
 
+        // Ensure legacy workouts are tagged with the current instance so completion checks are accurate after reinstalls
+        if (activeProgram.instanceId && activeProgram.templateId) {
+          WorkoutLogger.tagWorkoutsWithInstance(activeProgram.instanceId, activeProgram.templateId, resolvedUserId)
+        }
+
         activeProgram.completedWorkouts += 1
         activeProgram.progress = (activeProgram.completedWorkouts / activeProgram.totalWorkouts) * 100
 
@@ -1766,6 +1771,14 @@ export class ProgramStateManager {
           isCurrentWeekComplete,
           instanceId: activeProgram.instanceId,
         })
+
+        // SAFEGUARD: If counts show we've hit total workouts, finalize even if per-week check fails (prevents stuck programs)
+        if (activeProgram.completedWorkouts >= activeProgram.totalWorkouts) {
+          console.log("[v0] Total workouts reached, finalizing program defensively")
+          StorageTelemetry.endSyncOperation(telemetryId, true)
+          await this.finalizeActiveProgram(resolvedUserId, { endedEarly: false })
+          return
+        }
 
         if (isCurrentWeekComplete) {
           // Check if we've reached the program's final week

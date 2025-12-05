@@ -1005,12 +1005,17 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
           }
           
           const suggestedWeight = exercise.suggestedWeight || 0
-          const targetVolume = suggestedWeight * baseReps
+          // Use the weight actually performed last week for this set when available to preserve true volume
+          const baseWeightForVolume = perSetSuggestion?.baseWeight && perSetSuggestion.baseWeight > 0
+            ? perSetSuggestion.baseWeight
+            : suggestedWeight
+          const targetVolume = baseWeightForVolume * baseReps
 
           // DEBUG: Log volume compensation inputs for diagnosing reps reset issue
           console.log("[handleSetUpdate] Volume compensation inputs:", {
             exerciseName: exercise.exerciseName,
             suggestedWeight,
+            baseWeightForVolume,
             baseReps,
             baseSource,
             targetVolume,
