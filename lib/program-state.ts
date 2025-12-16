@@ -1,4 +1,4 @@
-﻿import { type GymTemplate, processTemplateWithDeload } from "./gym-templates"
+import { type GymTemplate, processTemplateWithDeload } from "./gym-templates"
 import { WorkoutLogger } from "./workout-logger"
 import { supabase } from "./supabase"
 import { programTemplateService } from "./services/program-template-service"
@@ -1281,7 +1281,8 @@ export class ProgramStateManager {
       }
 
       await this.saveActiveProgram(activeProgram)
-      window.dispatchEvent(new Event("programChanged"))
+      // NOTE: Do NOT dispatch programChanged here - caller handles workout state
+      // Dispatching here causes race condition with handleConfirmAddSet
     })
   }
 
@@ -1436,7 +1437,8 @@ export class ProgramStateManager {
       }
 
       await this.saveActiveProgram(activeProgram)
-      window.dispatchEvent(new Event("programChanged"))
+      // NOTE: Do NOT dispatch programChanged here - caller handles workout state
+      // Dispatching here causes race condition with handleSelectExerciseFromLibrary
     })
   }
 
@@ -1553,7 +1555,7 @@ export class ProgramStateManager {
     console.log("[ProgramState] Program history cleared successfully")
   }
 
-  static async getCurrentWorkout(): Promise<{ name: string; exercises: any[] } | null> {
+  static async getCurrentWorkout(_options?: { week?: number; day?: number }): Promise<{ name: string; exercises: any[] } | null> {
     const activeProgram = await this.getActiveProgram()
 
     if (!activeProgram) {

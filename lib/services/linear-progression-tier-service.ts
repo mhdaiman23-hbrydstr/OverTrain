@@ -49,9 +49,9 @@ export class LinearProgressionTierService {
   private ensureSupabase() {
     if (!supabase) {
       console.warn('[LinearProgressionTierService] Supabase client not initialized')
-      return false
+      return null
     }
-    return true
+    return supabase
   }
 
   // ==========================================================================
@@ -97,10 +97,11 @@ export class LinearProgressionTierService {
     const cached = this.getCache(cacheKey)
     if (cached) return cached
 
-    if (!this.ensureSupabase()) return []
+    const client = this.ensureSupabase()
+    if (!client) return []
 
     try {
-      const { data, error } = await supabase
+      const { data, error } = await client
         .from('linear_progression_tiers')
         .select('*')
         .order('tier_name')
@@ -126,10 +127,11 @@ export class LinearProgressionTierService {
     const cached = this.getCache(cacheKey)
     if (cached) return cached
 
-    if (!this.ensureSupabase()) return null
+    const client = this.ensureSupabase()
+    if (!client) return null
 
     try {
-      const { data, error } = await supabase
+      const { data, error } = await client
         .from('linear_progression_tiers')
         .select('*')
         .eq('id', id)
@@ -158,10 +160,11 @@ export class LinearProgressionTierService {
     const cached = this.getCache(cacheKey)
     if (cached) return cached
 
-    if (!this.ensureSupabase()) return null
+    const client = this.ensureSupabase()
+    if (!client) return null
 
     try {
-      const { data, error } = await supabase
+      const { data, error } = await client
         .from('linear_progression_tiers')
         .select('*')
         .eq('tier_name', tierName)
@@ -191,11 +194,12 @@ export class LinearProgressionTierService {
     const cached = this.getCache(cacheKey)
     if (cached) return cached
 
-    if (!this.ensureSupabase()) return null
+    const client = this.ensureSupabase()
+    if (!client) return null
 
     try {
       // Join exercise_library with linear_progression_tiers
-      const { data, error } = await supabase
+      const { data, error } = await client
         .from('exercise_library')
         .select(`
           linear_progression_tier_id,
@@ -261,10 +265,11 @@ export class LinearProgressionTierService {
    * Get tier name for an exercise (useful for debugging/display)
    */
   async getTierNameForExercise(exerciseId: string): Promise<string | null> {
-    if (!this.ensureSupabase()) return null
+    const client = this.ensureSupabase()
+    if (!client) return null
 
     try {
-      const { data, error } = await supabase
+      const { data, error } = await client
         .from('exercise_library')
         .select(`
           linear_progression_tiers:linear_progression_tier_id (tier_name)
@@ -311,10 +316,11 @@ export class LinearProgressionTierService {
   // ==========================================================================
 
   async createTier(tier: Omit<DbLinearProgressionTier, 'id' | 'created_at' | 'updated_at'>): Promise<string | null> {
-    if (!this.ensureSupabase()) return null
+    const client = this.ensureSupabase()
+    if (!client) return null
 
     try {
-      const { data, error } = await supabase
+      const { data, error } = await client
         .from('linear_progression_tiers')
         .insert({
           tier_name: tier.tier_name,
@@ -338,10 +344,11 @@ export class LinearProgressionTierService {
   }
 
   async updateTier(id: string, updates: Partial<DbLinearProgressionTier>): Promise<boolean> {
-    if (!this.ensureSupabase()) return false
+    const client = this.ensureSupabase()
+    if (!client) return false
 
     try {
-      const { error } = await supabase
+      const { error } = await client
         .from('linear_progression_tiers')
         .update(updates)
         .eq('id', id)
@@ -357,10 +364,11 @@ export class LinearProgressionTierService {
   }
 
   async deleteTier(id: string): Promise<boolean> {
-    if (!this.ensureSupabase()) return false
+    const client = this.ensureSupabase()
+    if (!client) return false
 
     try {
-      const { error } = await supabase
+      const { error } = await client
         .from('linear_progression_tiers')
         .delete()
         .eq('id', id)

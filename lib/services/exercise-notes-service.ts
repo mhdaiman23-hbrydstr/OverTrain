@@ -696,7 +696,7 @@ export class ExerciseNotesService {
     // If we got nothing, try toString
     if (Object.keys(info).length === 0) {
       try {
-        info.toString = String(error)
+        info.error = String(error)
       } catch {
         info.error = 'Failed to extract error information'
       }

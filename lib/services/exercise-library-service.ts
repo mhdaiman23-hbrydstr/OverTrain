@@ -33,6 +33,7 @@ export class ExerciseLibraryService {
 
   private ensureSupabase() {
     if (!supabase) throw new Error('Supabase client not initialized - check environment variables')
+    return supabase
   }
 
   // Map database row (snake_case) to TypeScript interface (camelCase)
@@ -50,9 +51,9 @@ export class ExerciseLibraryService {
 
   // Basic CRUD operations
   async getAllExercises(): Promise<Exercise[]> {
-    this.ensureSupabase()
+    const client = this.ensureSupabase()
     
-    const { data, error } = await supabase
+    const { data, error } = await client
       .from('exercise_library')
       .select('*')
       .order('name')
@@ -62,8 +63,8 @@ export class ExerciseLibraryService {
   }
 
   async getExerciseById(id: string): Promise<Exercise | null> {
-    this.ensureSupabase()
-    const { data, error } = await supabase
+    const client = this.ensureSupabase()
+    const { data, error } = await client
       .from('exercise_library')
       .select('*')
       .eq('id', id)
@@ -74,10 +75,10 @@ export class ExerciseLibraryService {
   }
 
   async getExerciseByName(name: string): Promise<Exercise | null> {
-    this.ensureSupabase()
+    const client = this.ensureSupabase()
     
     try {
-      const { data, error } = await supabase
+      const { data, error } = await client
         .from('exercise_library')
         .select('*')
         .eq('name', name)
@@ -97,8 +98,8 @@ export class ExerciseLibraryService {
 
   // Filtering operations
   async getExercisesByMuscleGroup(muscleGroup: string): Promise<Exercise[]> {
-    this.ensureSupabase()
-    const { data, error } = await supabase
+    const client = this.ensureSupabase()
+    const { data, error } = await client
       .from('exercise_library')
       .select('*')
       .eq('muscle_group', muscleGroup)
@@ -109,8 +110,8 @@ export class ExerciseLibraryService {
   }
 
   async getExercisesByEquipment(equipmentType: string): Promise<Exercise[]> {
-    this.ensureSupabase()
-    const { data, error } = await supabase
+    const client = this.ensureSupabase()
+    const { data, error } = await client
       .from('exercise_library')
       .select('*')
       .eq('equipment_type', equipmentType)
@@ -121,8 +122,8 @@ export class ExerciseLibraryService {
   }
 
   async searchExercises(query: string): Promise<Exercise[]> {
-    this.ensureSupabase()
-    const { data, error } = await supabase
+    const client = this.ensureSupabase()
+    const { data, error } = await client
       .from('exercise_library')
       .select('*')
       .ilike('name', `%${query}%`)
@@ -139,8 +140,8 @@ export class ExerciseLibraryService {
     equipmentType?: string
     search?: string
   }): Promise<Exercise[]> {
-    this.ensureSupabase()
-    let query = supabase
+    const client = this.ensureSupabase()
+    let query = client
       .from('exercise_library')
       .select('*')
     
@@ -164,8 +165,8 @@ export class ExerciseLibraryService {
 
   // Utility methods
   async getMuscleGroups(): Promise<string[]> {
-    this.ensureSupabase()
-    const { data, error } = await supabase
+    const client = this.ensureSupabase()
+    const { data, error } = await client
       .from('exercise_library')
       .select('muscle_group')
     
@@ -176,8 +177,8 @@ export class ExerciseLibraryService {
   }
 
   async getEquipmentTypes(): Promise<string[]> {
-    this.ensureSupabase()
-    const { data, error } = await supabase
+    const client = this.ensureSupabase()
+    const { data, error } = await client
       .from('exercise_library')
       .select('equipment_type')
     
@@ -189,8 +190,8 @@ export class ExerciseLibraryService {
 
   // Admin operations for future exercise management
   async addExercise(exercise: Omit<Exercise, 'id' | 'created_at' | 'updated_at'>): Promise<Exercise> {
-    this.ensureSupabase()
-    const { data, error } = await supabase
+    const client = this.ensureSupabase()
+    const { data, error } = await client
       .from('exercise_library')
       .insert(exercise)
       .select()
@@ -201,8 +202,8 @@ export class ExerciseLibraryService {
   }
 
   async updateExercise(id: string, updates: Partial<Exercise>): Promise<Exercise> {
-    this.ensureSupabase()
-    const { data, error } = await supabase
+    const client = this.ensureSupabase()
+    const { data, error } = await client
       .from('exercise_library')
       .update(updates)
       .eq('id', id)
@@ -214,8 +215,8 @@ export class ExerciseLibraryService {
   }
 
   async deleteExercise(id: string): Promise<void> {
-    this.ensureSupabase()
-    const { error } = await supabase
+    const client = this.ensureSupabase()
+    const { error } = await client
       .from('exercise_library')
       .delete()
       .eq('id', id)

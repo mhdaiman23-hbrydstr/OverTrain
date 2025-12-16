@@ -37,7 +37,13 @@ interface WorkoutDialogsProps {
   setEndProgramConfirmation: Dispatch<SetStateAction<string>>
   onEndProgram: () => void
   isCompletingWorkout?: boolean
-// Bodyweight dialog props  showBodyweightDialog: boolean  setShowBodyweightDialog: Dispatch<SetStateAction<boolean>>  bodyweightInput: string  setBodyweightInput: Dispatch<SetStateAction<string>>  onSaveBodyweight: (bodyweight: number) => Promise<void>  userBodyweight?: number
+  // Bodyweight dialog props
+  showBodyweightDialog: boolean
+  setShowBodyweightDialog: Dispatch<SetStateAction<boolean>>
+  bodyweightInput: string
+  setBodyweightInput: Dispatch<SetStateAction<string>>
+  onSaveBodyweight: (bodyweight: number) => Promise<void>
+  userBodyweight?: number
 }
 
 export function WorkoutDialogs({
@@ -65,7 +71,12 @@ export function WorkoutDialogs({
   setEndProgramConfirmation,
   onEndProgram,
   isCompletingWorkout = false,
-showBodyweightDialog,  setShowBodyweightDialog,  bodyweightInput,  setBodyweightInput,  onSaveBodyweight,  userBodyweight,
+  showBodyweightDialog,
+  setShowBodyweightDialog,
+  bodyweightInput,
+  setBodyweightInput,
+  onSaveBodyweight,
+  userBodyweight,
 }: WorkoutDialogsProps) {
   return (
     <>
@@ -258,7 +269,15 @@ showBodyweightDialog,  setShowBodyweightDialog,  bodyweightInput,  setBodyweight
           </DialogFooter>
         </DialogContent>
       </Dialog>
-<BodyweightDialog        open={showBodyweightDialog}        onOpenChange={setShowBodyweightDialog}        bodyweightValue={bodyweightInput}        onBodyweightChange={setBodyweightInput}        onSave={onSaveBodyweight}        existingBodyweight={userBodyweight}      />
+
+      <BodyweightDialog
+        open={showBodyweightDialog}
+        onOpenChange={setShowBodyweightDialog}
+        bodyweightValue={bodyweightInput}
+        onBodyweightChange={setBodyweightInput}
+        onSave={onSaveBodyweight}
+        existingBodyweight={userBodyweight}
+      />
     </>
   )
 }

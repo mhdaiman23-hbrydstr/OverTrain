@@ -15,6 +15,13 @@ export default function AuthCallbackPage() {
       try {
         console.log('[Auth Callback] Processing OAuth callback...')
 
+        if (!supabase) {
+          console.error('[Auth Callback] Supabase client is not configured')
+          setError('Authentication is temporarily unavailable. Please try again later.')
+          setLoading(false)
+          return
+        }
+
         // Get the code from URL parameters
         const code = searchParams.get('code')
         const error_description = searchParams.get('error_description')

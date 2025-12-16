@@ -41,20 +41,20 @@ export async function register() {
         "TimeoutError",
         // Abort errors (user cancelled)
         "AbortError",
-      ],
+      ], 
 
       beforeSend(event, hint) {
         // Filter out errors that shouldn't be sent to Sentry
         if (event.exception) {
-          const error = hint.originalException;
+          const error = hint.originalException as { message?: string } | undefined;
 
           // Don't send user-triggered cancellations
-          if (error?.message?.includes("cancel")) {
+          if (error?.message && error.message.includes("cancel")) {
             return null;
           }
 
           // Don't send abort errors
-          if (error?.message?.includes("AbortError")) {
+          if (error?.message && error.message.includes("AbortError")) {
             return null;
           }
         }

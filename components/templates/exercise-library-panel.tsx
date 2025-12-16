@@ -30,7 +30,7 @@ interface ExerciseLibraryPanelProps {
   error: string | null
   activeDayName?: string
   listHeightClassName?: string
-  searchInputRef?: RefObject<HTMLInputElement>
+  searchInputRef?: RefObject<HTMLInputElement | null>
 }
 export function ExerciseLibraryPanel({
   filters,
@@ -168,7 +168,7 @@ export function ExerciseLibraryPanel({
                   </span>
                 ))}
                 {hasActiveFilters && (
-                  <Button type="button" variant="ghost" size="xs" className="h-6 px-2" onClick={clearFilters}>
+                  <Button type="button" variant="ghost" size="sm" className="h-6 px-2" onClick={clearFilters}>
                     Clear
                   </Button>
                 )}
@@ -238,4 +238,3 @@ export function ExerciseLibraryPanel({
     </>
   )
 }
-

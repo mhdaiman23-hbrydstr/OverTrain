@@ -62,7 +62,7 @@ export function MobileTooltip({
    * Toggles the tooltip open/closed state
    * stopPropagation prevents parent click handlers from interfering
    */
-  const handleTriggerClick = (e: React.MouseEvent) => {
+  const handleTriggerClick = (e: React.MouseEvent | React.TouchEvent) => {
     e.preventDefault()
     e.stopPropagation()
     setOpen((prev) => !prev)

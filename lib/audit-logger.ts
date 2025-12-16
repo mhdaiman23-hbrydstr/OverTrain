@@ -25,6 +25,8 @@ const CRITICAL_ACTIONS = {
   "PROGRAM_CREATED": true,
   "PROGRAM_DELETED": true,
   "WORKOUT_COMPLETED": true,
+  "ACCOUNT_DELETED": true,
+  "PASSWORD_RESET": true,
   "ADMIN_ACTION": true,
 } as const;
 
@@ -190,6 +192,11 @@ export async function logAuditEvent(event: AuditLogEvent) {
  */
 export async function getAuditLogsForUser(userId: string, limit = 50) {
   try {
+    if (!supabase) {
+      console.warn("[AuditLogger] Supabase not configured, skipping audit log fetch")
+      return []
+    }
+
     const { data, error } = await supabase
       .from("audit_logs")
       .select("*")
@@ -211,6 +218,11 @@ export async function getAuditLogsForUser(userId: string, limit = 50) {
  */
 export async function getAuditLogsByAction(action: AuditAction, limit = 50) {
   try {
+    if (!supabase) {
+      console.warn("[AuditLogger] Supabase not configured, skipping audit log fetch by action")
+      return []
+    }
+
     const { data, error } = await supabase
       .from("audit_logs")
       .select("*")
@@ -232,6 +244,11 @@ export async function getAuditLogsByAction(action: AuditAction, limit = 50) {
  */
 export async function getRecentAuditLogs(days = 7, limit = 100) {
   try {
+    if (!supabase) {
+      console.warn("[AuditLogger] Supabase not configured, skipping recent audit log fetch")
+      return []
+    }
+
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - days);
 
@@ -261,6 +278,11 @@ export async function getRecentAuditLogs(days = 7, limit = 100) {
  */
 export async function cleanupOldAuditLogs() {
   try {
+    if (!supabase) {
+      console.warn("[AuditLogger] Supabase not configured, skipping audit log cleanup")
+      return 0
+    }
+
     const ninetyDaysAgo = new Date();
     ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
 
@@ -301,6 +323,11 @@ export function getClientIP(request?: Request): string | null {
  */
 export async function exportAuditLogsCSV(days = 30) {
   try {
+    if (!supabase) {
+      console.warn("[AuditLogger] Supabase not configured, skipping audit log export")
+      return ""
+    }
+
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - days);
 

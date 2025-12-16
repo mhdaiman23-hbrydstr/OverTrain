@@ -229,7 +229,8 @@ export class StorageTelemetry {
     if (typeof navigator !== "undefined" && navigator.storage?.estimate) {
       try {
         const estimate = await navigator.storage.estimate()
-        storageUsage = estimate.usage ?? estimate.usageDetails?.indexedDB
+        const usageDetails = (estimate as any).usageDetails?.indexedDB
+        storageUsage = estimate.usage ?? usageDetails
         storageQuota = estimate.quota
       } catch {
         // ignore estimate failures

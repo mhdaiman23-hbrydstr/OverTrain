@@ -280,7 +280,7 @@ export function WorkoutCalendar({ onWorkoutClick, selectedWeek, selectedDay, rea
     ProgramTemplateService.getInstance()
       .getTemplate(templateId)
       .then((tpl) => {
-        if (mounted) {
+        if (mounted && tpl) {
           setActiveTemplate(tpl)
 
           // CRITICAL FIX: Verify cached metadata matches actual template

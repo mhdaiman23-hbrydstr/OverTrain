@@ -231,9 +231,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Clear any ongoing intervals when component unmounts
       if (typeof window !== 'undefined') {
         // Clear all intervals (simpler approach)
-        const maxIntervalId = setTimeout(() => {}, 0)
+        const maxIntervalId = window.setTimeout(() => {}, 0)
         for (let i = 1; i < maxIntervalId; i++) {
-          clearInterval(i)
+          window.clearInterval(i)
         }
       }
     }

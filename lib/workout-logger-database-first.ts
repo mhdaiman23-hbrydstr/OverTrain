@@ -73,8 +73,8 @@ export function useWorkoutLoggerDatabaseFirst({
   const [error, setError] = useState<string | null>(null)
   const [syncStatus, setSyncStatus] = useState(DataSyncService.getSyncStatus())
   
-  const syncStatusInterval = useRef<NodeJS.Timeout>()
-  const connectionMonitorInterval = useRef<NodeJS.Timeout>()
+  const syncStatusInterval = useRef<NodeJS.Timeout | null>(null)
+  const connectionMonitorInterval = useRef<NodeJS.Timeout | null>(null)
 
   // Initialize connection monitoring
   useEffect(() => {
@@ -122,7 +122,7 @@ export function useWorkoutLoggerDatabaseFirst({
           .from('in_progress_workouts')
           .select('*')
           .eq('user_id', userId)
-          .order('start_time', { descending: true })
+          .order('start_time', { ascending: false })
           .limit(1)
           .maybeSingle()
 

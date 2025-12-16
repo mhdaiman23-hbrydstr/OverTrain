@@ -21,6 +21,7 @@ export interface WorkoutExercise {
   exerciseLibraryId?: string  // UUID from exercise library (for notes/RPE storage)
   exerciseName: string
   targetSets: number
+  targetReps?: string
   // NOTE: performedReps removed - it was only used for template display
   // Actual set reps come from perSetSuggestions (Week 2+) or user input (Week 1)
   targetRest: string
@@ -104,7 +105,7 @@ function getErrorMessage(error: any): string {
   return String(error) || 'Unknown error'
 }
 
-export class WorkoutLogger implements SetSyncProvider {
+export class WorkoutLogger {
   private static readonly STORAGE_KEY = "liftlog_workouts"
   private static readonly IN_PROGRESS_KEY = "liftlog_in_progress_workouts"
   private static readonly DATABASE_LOAD_KEY = "liftlog_workouts_db_loaded_at"
@@ -830,7 +831,7 @@ export class WorkoutLogger implements SetSyncProvider {
             }
 
             return repairedExercise
-          }).filter(Boolean) // Remove any null exercises
+          }).filter((exercise): exercise is WorkoutExercise => Boolean(exercise)) // Remove any null exercises
 
           // Check if workout still has valid exercises
           if (repairedWorkout.exercises.length === 0) {
@@ -921,7 +922,7 @@ export class WorkoutLogger implements SetSyncProvider {
             }
 
             return repairedExercise
-          }).filter(Boolean)
+          }).filter((exercise): exercise is WorkoutExercise => Boolean(exercise))
 
           if (repairedWorkout.exercises.length === 0) {
             return null
@@ -1807,10 +1808,11 @@ export class WorkoutLogger implements SetSyncProvider {
 
       // Sync to database using connection monitor
       if (userId && supabase) {
+        const client = supabase
         // Add to connection monitor queue for auto-sync
         ConnectionMonitor.addToQueue(async () => {
           try {
-            await supabase
+            await client
               .from("workouts")
               .upsert({
                 id: normalizedWorkout.id,
@@ -2900,7 +2902,7 @@ export class WorkoutLogger implements SetSyncProvider {
           const { error } = await supabase
             .from("workouts")
             .upsert(
-              workouts.map((w) => ({
+              workouts.map((w: WorkoutSession) => ({
                 id: w.id,
                 user_id: userId,
                 program_id: w.programId || null,

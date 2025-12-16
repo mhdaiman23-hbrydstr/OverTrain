@@ -110,6 +110,7 @@ export class ProgramTemplateService {
 
   private ensureSupabase() {
     if (!supabase) throw new Error('Supabase client not initialized - check environment variables')
+    return supabase
   }
 
   // ==========================================================================
@@ -156,9 +157,9 @@ export class ProgramTemplateService {
     const cached = this.getCache(cacheKey)
     if (cached) return cached
 
-    this.ensureSupabase()
+    const client = this.ensureSupabase()
 
-    const { data, error } = await supabase
+    const { data, error } = await client
       .from('program_templates')
       .select('*')
       .eq('is_active', true)
@@ -180,9 +181,9 @@ export class ProgramTemplateService {
     const cached = this.getCache(cacheKey)
     if (cached) return cached
 
-    this.ensureSupabase()
+    const client = this.ensureSupabase()
 
-    const { data, error } = await supabase
+    const { data, error } = await client
       .from('program_templates')
       .select('*')
       .eq('owner_user_id', userId)
@@ -195,9 +196,9 @@ export class ProgramTemplateService {
   }
 
   async renameUserProgram(templateId: string, userId: string, name: string): Promise<void> {
-    this.ensureSupabase()
+    const client = this.ensureSupabase()
 
-    const { error } = await supabase
+    const { error } = await client
       .from('program_templates')
       .update({ name, updated_at: new Date().toISOString() })
       .eq('id', templateId)
@@ -222,9 +223,9 @@ export class ProgramTemplateService {
     const cached = this.getCache(cacheKey)
     if (cached) return cached
 
-    this.ensureSupabase()
+    const client = this.ensureSupabase()
 
-    let query = supabase
+    let query = client
       .from('program_templates')
       .select('*')
       .eq('is_active', true)
@@ -262,10 +263,10 @@ export class ProgramTemplateService {
     const cached = this.getCache(cacheKey)
     if (cached) return cached
 
-    this.ensureSupabase()
+    const client = this.ensureSupabase()
 
     // Single query with nested joins (PostgreSQL magic!)
-    const { data, error } = await supabase
+    const { data, error } = await client
       .from('program_templates')
       .select(`
         *,
@@ -288,10 +289,10 @@ export class ProgramTemplateService {
 
     // Sort days and exercises by order
     if (data && data.days) {
-      data.days.sort((a, b) => a.day_number - b.day_number)
-      data.days.forEach(day => {
+      data.days.sort((a: any, b: any) => a.day_number - b.day_number)
+      data.days.forEach((day: any) => {
         if (day.exercises) {
-          day.exercises.sort((a, b) => a.exercise_order - b.exercise_order)
+          day.exercises.sort((a: any, b: any) => a.exercise_order - b.exercise_order)
         }
       })
     }
@@ -444,14 +445,14 @@ export class ProgramTemplateService {
   // ==========================================================================
 
   async createTemplate(template: Omit<DbProgramTemplate, 'id' | 'created_at' | 'updated_at'>): Promise<string> {
-    this.ensureSupabase()
+    const client = this.ensureSupabase()
 
     const payload = {
       ...template,
       is_public: template.is_public ?? false,
     }
 
-    const { data, error } = await supabase
+    const { data, error } = await client
       .from('program_templates')
       .insert(payload)
       .select('id')
@@ -464,9 +465,9 @@ export class ProgramTemplateService {
   }
 
   async updateTemplate(id: string, updates: Partial<DbProgramTemplate>): Promise<void> {
-    this.ensureSupabase()
+    const client = this.ensureSupabase()
 
-    const { error } = await supabase
+    const { error } = await client
       .from('program_templates')
       .update(updates)
       .eq('id', id)
@@ -477,9 +478,9 @@ export class ProgramTemplateService {
   }
 
   async deleteTemplate(id: string): Promise<void> {
-    this.ensureSupabase()
+    const client = this.ensureSupabase()
 
-    const { error } = await supabase
+    const { error } = await client
       .from('program_templates')
       .delete()
       .eq('id', id)

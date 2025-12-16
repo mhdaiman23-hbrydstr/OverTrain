@@ -149,7 +149,7 @@ export class ProgressionCalculator {
     const targetSets = currentWeekData?.sets || 3
 
     // Determine if user hit all target reps in previous week
-    const performedRepsStr = previousExercise.performedReps || "8-10"
+    const performedRepsStr = previousExercise.targetReps || "8-10"
     const performedRepsMax = Number.parseInt(performedRepsStr.split("-")[1] || performedRepsStr)
     const allSetsCompletedWithGoodReps = completedSets.every((s) => s.reps >= performedRepsMax)
 
@@ -500,7 +500,7 @@ export class ProgressionCalculator {
       engineUsed: progressionResult.engineUsed,
       strategy: progressionResult.strategy,
       targetWeight: progressionResult.targetWeight,
-      performedReps: progressionResult.performedReps,
+      performedReps: progressionResult.templateRecommendedReps,
       note: progressionResult.progressionNote
     })
 
@@ -508,14 +508,14 @@ export class ProgressionCalculator {
     const adaptiveResult: AdaptiveProgressionResult = {
       targetWeight: progressionResult.targetWeight,
       targetSets: progressionResult.targetSets || this.getCurrentWeekSets(exerciseTemplate, currentWeek),
-      performedReps: this.formatRepRange(progressionResult.performedReps),
+      performedReps: this.formatRepRange(progressionResult.templateRecommendedReps),
       progressionNote: progressionResult.progressionNote,
       hasPreviousData: !!previousPerformance,
       tier: getExerciseTier(exerciseName, exerciseTemplate.category),
       strategy: this.mapStrategy(progressionResult.strategy),
       adjustedReps: progressionResult.additionalData?.adjustedReps,
       bounds: progressionResult.additionalData?.bounds,
-      targetVolume: progressionResult.targetWeight * progressionResult.performedReps,
+      targetVolume: progressionResult.targetWeight * progressionResult.templateRecommendedReps,
       userWeightAdjustment,
       perSetSuggestions: progressionResult.perSetSuggestions  // NEW: pass through per-set suggestions
     }
@@ -523,7 +523,7 @@ export class ProgressionCalculator {
     // Add percentage-specific data if available
     if (progressionResult.engineUsed === "percentage" && progressionResult.additionalData) {
       adaptiveResult.targetVolume = progressionResult.additionalData.percentage ?
-        (progressionResult.additionalData.oneRepMaxUsed || 0) * (progressionResult.additionalData.percentage / 100) * progressionResult.performedReps :
+        (progressionResult.additionalData.oneRepMaxUsed || 0) * (progressionResult.additionalData.percentage / 100) * progressionResult.templateRecommendedReps :
         adaptiveResult.targetVolume
     }
 

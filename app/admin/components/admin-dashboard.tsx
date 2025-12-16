@@ -26,6 +26,11 @@ import {
   ResponsiveContainer
 } from 'recharts'
 
+interface AdminDashboardProps {
+  initialView?: string
+  onViewChange?: (view: string) => void
+}
+
 interface AppAnalytics {
   totalUsers: number
   activeUsers: number
@@ -45,8 +50,8 @@ interface AppAnalytics {
 
 const DEFAULT_VIEW = "dashboard"
 
-export function AdminDashboard() {
-  const [currentView, setCurrentView] = useState<string>(DEFAULT_VIEW)
+export function AdminDashboard({ initialView = DEFAULT_VIEW, onViewChange }: AdminDashboardProps = {}) {
+  const [currentView, setCurrentView] = useState<string>(initialView)
   const [analytics, setAnalytics] = useState<AppAnalytics | null>(null)
   const [loading, setLoading] = useState(true)
   const { user } = useAuth()
@@ -213,6 +218,7 @@ export function AdminDashboard() {
 
   const handleViewChange = (view: string) => {
     setCurrentView(view)
+    onViewChange?.(view)
   }
 
   if (loading) {

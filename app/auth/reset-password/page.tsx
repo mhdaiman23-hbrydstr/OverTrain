@@ -109,6 +109,8 @@ export default function ResetPasswordPage() {
     }
   }
 
+  const disableSubmit = submitting || status === "checking"
+
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-6">
       <div className="w-full max-w-md">
@@ -168,7 +170,7 @@ export default function ResetPasswordPage() {
                     <Button
                       type="submit"
                       className="w-full gradient-primary text-primary-foreground"
-                      disabled={submitting || status === "checking"}
+                      disabled={disableSubmit}
                     >
                       {submitting ? "Updating..." : "Update Password"}
                     </Button>
@@ -188,4 +190,3 @@ export default function ResetPasswordPage() {
     </div>
   )
 }
-

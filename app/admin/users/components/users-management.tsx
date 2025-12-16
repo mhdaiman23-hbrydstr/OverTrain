@@ -38,7 +38,8 @@ import {
   Tablet,
   Activity,
   Calendar,
-  TrendingUp
+  TrendingUp,
+  Users
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { supabase } from "@/lib/supabase"
@@ -65,6 +66,7 @@ interface UserProfile {
 
 interface UsersManagementProps {
   // No props needed for now
+  [key: string]: never
 }
 
 export function UsersManagement({}: UsersManagementProps) {
@@ -613,7 +615,7 @@ export function UsersManagement({}: UsersManagementProps) {
                             </>
                           ) : (
                             <>
-                              <User className="w-3 h-3 mr-1" />
+                              <Users className="w-3 h-3 mr-1" />
                               User
                             </>
                           )}

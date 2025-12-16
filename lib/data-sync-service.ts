@@ -134,7 +134,8 @@ export class DataSyncService {
     // Step 2: Log set to database (immediate, not queued)
     if (setData.completed && setData.reps && setData.weight) {
       const exercise = workout.exercises.find(ex => ex.id === exerciseId)
-      const setNumber = exercise?.sets.findIndex(s => s.id === setId) + 1 || 1
+      const setIndex = exercise ? exercise.sets.findIndex(s => s.id === setId) : -1
+      const setNumber = setIndex >= 0 ? setIndex + 1 : 1
       const exerciseName = exercise?.exerciseName || 'Unknown Exercise'
       
       // Try immediate sync, but don't block UI
@@ -622,5 +623,4 @@ if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
   }
   console.log('[DataSync] Development tools available at window.DataSyncServiceDev')
 }
-
 

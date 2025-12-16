@@ -5,7 +5,7 @@ import { WorkoutProgressBar } from "@/components/ui/workout-progress-bar"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Spinner } from "@/components/ui/spinner"
 import { Calendar, MoreVertical, FileText, BarChart3, Plus, Check, AlertTriangle } from "lucide-react"
-import { ConnectionStatus } from "@/components/workout-logger/hooks/use-connection-status"
+import type { ConnectionStatus } from "@/lib/connection-monitor"
 import { useState } from "react"
 
 interface WorkoutHeaderProps {

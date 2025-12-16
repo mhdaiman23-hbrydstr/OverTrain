@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
 import { WorkoutLogger } from "@/lib/workout-logger"
-import { AnalyticsEngine } from "@/lib/analytics"
+import { AnalyticsEngine, type AdvancedAnalytics } from "@/lib/analytics"
 import type { WorkoutSession } from "@/lib/workout-logger"
 
 interface MobileAnalyticsTabProps {
@@ -91,11 +91,11 @@ export function MobileAnalyticsTab({ onLogWorkout }: MobileAnalyticsTabProps) {
   }, [workouts, selectedPeriod, customStartDate, customEndDate])
 
   // Calculate advanced analytics
-  const advancedAnalytics = useMemo(() => {
+  const advancedAnalytics = useMemo<AdvancedAnalytics>(() => {
     if (filteredWorkouts.length === 0) {
       return {
         trainingLoad: [],
-        acwr: { acuteLoad: 0, chronicLoad: 0, ratio: 0, zone: "safe", recommendation: "No data available" },
+        acwr: { acuteLoad: 0, chronicLoad: 0, ratio: 0, zone: "safe" as const, recommendation: "No data available" },
         personalRecords: [],
         heatmap: [],
         insights: [],
@@ -105,6 +105,8 @@ export function MobileAnalyticsTab({ onLogWorkout }: MobileAnalyticsTabProps) {
     }
     return AnalyticsEngine.calculateAdvancedAnalytics(filteredWorkouts)
   }, [filteredWorkouts])
+
+  const handleLogWorkout = onLogWorkout ?? (() => {})
 
   return (
     <div className="min-h-screen bg-background pb-20">
@@ -176,7 +178,7 @@ export function MobileAnalyticsTab({ onLogWorkout }: MobileAnalyticsTabProps) {
         <WeeklyFocusCard
           workouts={filteredWorkouts}
           weeklyGoal={weeklyGoal}
-          onLogWorkout={onLogWorkout}
+          onLogWorkout={handleLogWorkout}
         />
 
         {/* Tabs */}

@@ -524,10 +524,13 @@ function SidebarMenuButton({
     return button
   }
 
-  if (typeof tooltip === 'string') {
-    tooltip = {
-      children: tooltip,
-    }
+  const tooltipContent =
+    typeof tooltip === 'string'
+      ? tooltip
+      : tooltip?.children
+  
+  if (!tooltipContent) {
+    return button
   }
 
   // MOBILE FIX: Use MobileTooltip for touch-aware behavior
@@ -542,7 +545,7 @@ function SidebarMenuButton({
     return (
       <MobileTooltip
         side="right"
-        content={tooltip.children || tooltip}
+        content={tooltipContent}
       >
         {button}
       </MobileTooltip>

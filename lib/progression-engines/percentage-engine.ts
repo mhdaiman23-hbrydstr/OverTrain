@@ -185,7 +185,7 @@ export class PercentageProgressionEngine {
    * Check if current week is a deload week
    */
   private static isDeloadWeek(currentWeek: number, exercise: ExerciseTemplate): boolean {
-    const templateWeeks = exercise.weeks || 6
+    const templateWeeks = Object.keys(exercise.progressionTemplate || {}).length || 6
     return currentWeek === templateWeeks
   }
 

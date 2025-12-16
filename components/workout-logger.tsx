@@ -87,7 +87,6 @@ function WorkoutLoggerView({ initialWorkout, onComplete, onCancel, onViewAnalyti
     getWorkoutProgress,
     canFinishWorkout,
     groupedExercises,
-    hasCompletedPreviousWorkout,
     // New properties for notes and RPE
     exerciseNotesData,
     customRpesData,
@@ -96,7 +95,11 @@ function WorkoutLoggerView({ initialWorkout, onComplete, onCancel, onViewAnalyti
     blockLevelRir,
     handleSaveExerciseNote,
     handleSaveCustomRpe,
-showBodyweightDialog,    setShowBodyweightDialog,    bodyweightInput,    setBodyweightInput,    handleSaveBodyweight,
+    showBodyweightDialog,
+    setShowBodyweightDialog,
+    bodyweightInput,
+    setBodyweightInput,
+    handleSaveBodyweight,
     showAddSetDialog,
     setShowAddSetDialog,
     addSetExerciseId,
@@ -160,6 +163,7 @@ showBodyweightDialog,    setShowBodyweightDialog,    bodyweightInput,    setBody
         onOpenAddExercise={handleOpenAddExercise}
         onOpenEndWorkout={() => setShowEndWorkoutDialog(true)}
         onOpenEndProgram={() => setShowEndProgramDialog(true)}
+        connectionStatus={connectionStatus}
       />
 
       <ConnectionStatusBanner status={connectionStatus} />
@@ -170,7 +174,7 @@ showBodyweightDialog,    setShowBodyweightDialog,    bodyweightInput,    setBody
         </div>
       )}
 
-      {!isWorkoutBlocked && !hasCompletedPreviousWorkout && workout.notes && (
+      {!isWorkoutBlocked && workout.notes && (
         <ProgressionNoteBanner week={workout.week} day={workout.day} note={workout.notes} />
       )}
 
@@ -201,7 +205,11 @@ showBodyweightDialog,    setShowBodyweightDialog,    bodyweightInput,    setBody
         setEndProgramConfirmation={setEndProgramConfirmation}
         onEndProgram={handleEndProgram}
         isCompletingWorkout={isCompletingWorkout}
-showBodyweightDialog={showBodyweightDialog}        setShowBodyweightDialog={setShowBodyweightDialog}        bodyweightInput={bodyweightInput}        setBodyweightInput={setBodyweightInput}        onSaveBodyweight={handleSaveBodyweight}        
+        showBodyweightDialog={showBodyweightDialog}
+        setShowBodyweightDialog={setShowBodyweightDialog}
+        bodyweightInput={bodyweightInput}
+        setBodyweightInput={setBodyweightInput}
+        onSaveBodyweight={handleSaveBodyweight}
       />
 
       <ExerciseGroups
@@ -230,6 +238,7 @@ showBodyweightDialog={showBodyweightDialog}        setShowBodyweightDialog={setS
         blockLevelRir={blockLevelRir}
         onSaveExerciseNote={handleSaveExerciseNote}
         onSaveCustomRpe={handleSaveCustomRpe}
+        onSaveExerciseNotes={handleSaveExerciseNotes}
       />
 
       <CompletionBar

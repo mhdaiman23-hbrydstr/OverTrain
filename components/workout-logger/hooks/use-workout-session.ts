@@ -424,10 +424,11 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
         // Load custom RPEs for all exercises in current week
         const rpesByExercise: { [exerciseId: string]: { [setNumber: number]: number } } = {}
         for (const exercise of workout.exercises) {
+          const libraryId = exercise.exerciseLibraryId || exercise.id
           const exerciseRpes = await CustomRpeService.getExerciseRpesMapForWeek(
             user.id,
             activeProgram.instanceId,
-            exercise.exerciseLibraryId,
+            libraryId,
             activeProgram.currentWeek
           )
           if (Object.keys(exerciseRpes).length > 0) {
@@ -437,8 +438,12 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
         setCustomRpesData(rpesByExercise)
 
         // Get block-level progression
+        const totalWeeks = Math.min(
+          Math.max(activeProgram.templateMetadata?.weeks ?? 4, 4),
+          8
+        ) as 4 | 5 | 6 | 7 | 8
         const progression = ProgressionConfigService.getProgressionForWeek(
-          activeProgram.templateMetadata?.weeks ?? 4,
+          totalWeeks,
           activeProgram.currentWeek
         )
         if (progression) {
@@ -519,10 +524,11 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
           // Load custom RPEs for all exercises in current week
           const rpesByExercise: { [exerciseId: string]: { [setNumber: number]: number } } = {}
           for (const exercise of workout.exercises) {
+            const libraryId = exercise.exerciseLibraryId || exercise.id
             const exerciseRpes = await CustomRpeService.getExerciseRpesMapForWeek(
               user.id,
               activeProgram.instanceId,
-              exercise.exerciseLibraryId,
+              libraryId,
               activeProgram.currentWeek
             )
             if (Object.keys(exerciseRpes).length > 0) {
@@ -1325,7 +1331,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
               await WorkoutLogger.logSetCompletion(
                 persistedWorkout.id,
                 exerciseId,
-                exercise.exerciseName,  // FIX: was exercise.name
+                persistedExercise.exerciseName,  // FIX: was exercise.name
                 setNumber,              // FIX: calculate from index, not updatedSet.number
                 updatedSet.reps,
                 updatedSet.weight,
@@ -1994,7 +2000,36 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
         return
       }
 
-      // If repeat in following weeks, update the template
+      // RACE CONDITION FIX: Build and save workout FIRST before any template updates
+      // This ensures the set persists before any operations that might trigger state reloads
+      const setIndex = exercise.sets.findIndex((s) => s.id === addSetAfterSetId)
+      const newSet = {
+        id: Math.random().toString(36).substr(2, 9),
+        reps: 0,
+        weight: 0,
+        completed: false,
+        userAdded: true,
+      }
+
+      // Create new arrays/objects to ensure React detects the change
+      const updatedExercises = workout.exercises.map((ex) => {
+        if (ex.id === addSetExerciseId) {
+          const newSets = [...ex.sets]
+          newSets.splice(setIndex + 1, 0, newSet)
+          return { ...ex, sets: newSets }
+        }
+        return ex
+      })
+      const updatedWorkout = { ...workout, exercises: updatedExercises }
+
+      // Step 1: Save to storage FIRST (before any state updates or template changes)
+      await WorkoutLogger.saveCurrentWorkout(updatedWorkout, user?.id)
+      console.log("[handleConfirmAddSet] Saved workout with new set to storage")
+
+      // Step 2: Update React state
+      setWorkout(updatedWorkout)
+
+      // Step 3: Update template (if repeat is enabled) - this no longer dispatches programChanged
       if (repeatInFollowingWeeks) {
         try {
           const activeProgram = await ProgramStateManager.getActiveProgram()
@@ -2024,29 +2059,6 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
           description: "Set added to current workout only",
         })
       }
-
-      // Add set to current workout - use immutable update pattern
-      const setIndex = exercise.sets.findIndex((s) => s.id === addSetAfterSetId)
-      const newSet = {
-        id: Math.random().toString(36).substr(2, 9),
-        reps: 0,
-        weight: 0,
-        completed: false,
-        userAdded: true,
-      }
-
-      // Create new arrays/objects to ensure React detects the change
-      const updatedExercises = workout.exercises.map((ex) => {
-        if (ex.id === addSetExerciseId) {
-          const newSets = [...ex.sets]
-          newSets.splice(setIndex + 1, 0, newSet)
-          return { ...ex, sets: newSets }
-        }
-        return ex
-      })
-      const updatedWorkout = { ...workout, exercises: updatedExercises }
-      setWorkout(updatedWorkout)
-      WorkoutLogger.saveCurrentWorkout(updatedWorkout, user?.id)
 
       setShowAddSetDialog(false)
       setAddSetExerciseId(null)
@@ -2234,7 +2246,41 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
 
         const repeatInFollowingWeeks = options?.repeat ?? false
 
-        // If repeat in following weeks, update the template
+        // RACE CONDITION FIX: Create exercise and save workout FIRST
+        // This ensures the exercise persists before any template updates that might
+        // trigger state reloads via programChanged events
+        const newExercise = {
+          id: Math.random().toString(36).substr(2, 9),
+          exerciseId: selectedExercise.id,
+          exerciseLibraryId: selectedExercise.id,
+          exerciseName: selectedExercise.name,
+          targetSets: 3,
+          targetRest: "90s",
+          muscleGroup: selectedExercise.muscleGroup,
+          equipmentType: selectedExercise.equipmentType,
+          sets: Array.from({ length: 3 }, () => ({
+            id: Math.random().toString(36).substr(2, 9),
+            reps: 0,
+            weight: 0,
+            completed: false,
+          })),
+          completed: false,
+        }
+
+        // Build updated workout directly from current state (not functional update)
+        const updatedWorkout: WorkoutSession = {
+          ...workout,
+          exercises: [...workout.exercises, newExercise],
+        }
+
+        // Step 1: Save to storage FIRST (before any state updates or template changes)
+        await WorkoutLogger.saveCurrentWorkout(updatedWorkout, user?.id)
+        console.log("[handleSelectExerciseFromLibrary] Saved workout with new exercise to storage")
+
+        // Step 2: Update React state
+        setWorkout(updatedWorkout)
+
+        // Step 3: Update template (if repeat is enabled) - this no longer dispatches programChanged
         if (repeatInFollowingWeeks) {
           try {
             await ProgramStateManager.addExerciseToDay({
@@ -2264,41 +2310,6 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
             title: "Exercise added",
             description: "Exercise added to current workout only",
           })
-        }
-
-        // Add exercise to current workout - use functional update to avoid stale closure
-        const newExercise = {
-          id: Math.random().toString(36).substr(2, 9),
-          exerciseId: selectedExercise.id,
-          exerciseLibraryId: selectedExercise.id,
-          exerciseName: selectedExercise.name,
-          targetSets: 3,
-          targetRest: "90s",
-          muscleGroup: selectedExercise.muscleGroup,
-          equipmentType: selectedExercise.equipmentType,
-          sets: Array.from({ length: 3 }, () => ({
-            id: Math.random().toString(36).substr(2, 9),
-            reps: 0,
-            weight: 0,
-            completed: false,
-          })),
-          completed: false,
-        }
-
-        // Use functional update to ensure we get the latest workout state
-        let updatedWorkout: WorkoutSession | null = null
-        setWorkout((prevWorkout) => {
-          if (!prevWorkout) return prevWorkout
-          updatedWorkout = {
-            ...prevWorkout,
-            exercises: [...prevWorkout.exercises, newExercise],
-          }
-          return updatedWorkout
-        })
-        
-        // Save the updated workout after state update
-        if (updatedWorkout) {
-          await WorkoutLogger.saveCurrentWorkout(updatedWorkout, user?.id)
         }
       } catch (error) {
         console.error("[WorkoutLogger] Error adding exercise:", error)

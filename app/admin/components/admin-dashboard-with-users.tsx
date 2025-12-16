@@ -12,6 +12,7 @@ import { BarChart3, TrendingUp, Users, Activity, Trophy, Dumbbell, Smartphone, C
 import { useState, useEffect } from "react"
 import { useAuth } from "@/contexts/auth-context"
 import { supabase } from "@/lib/supabase"
+import type { AdvancedAnalytics } from "@/lib/analytics"
 import {
   LineChart,
   Line,
@@ -30,7 +31,7 @@ import {
   ResponsiveContainer
 } from 'recharts'
 
-interface AppAnalytics {
+interface AppAnalytics extends AdvancedAnalytics {
   totalUsers: number
   activeUsers: number
   dailyActiveUsers: number
@@ -192,6 +193,22 @@ export function AdminDashboardWithUsers() {
         { feature: 'Personal Records', usage: 56 }
       ]
 
+      const advancedAnalyticsDefaults: AdvancedAnalytics = {
+        trainingLoad: [],
+        acwr: {
+          acuteLoad: 0,
+          chronicLoad: 0,
+          ratio: 0,
+          zone: "safe",
+          recommendation: "Need more workout data to calculate ACWR",
+        },
+        personalRecords: [],
+        heatmap: [],
+        insights: [],
+        consistencyScore: 0,
+        topExercises: [],
+      }
+
       setAnalytics({
         totalUsers,
         activeUsers,
@@ -206,7 +223,8 @@ export function AdminDashboardWithUsers() {
         userGrowth,
         workoutTrends,
         deviceUsage,
-        featureUsage
+        featureUsage,
+        ...advancedAnalyticsDefaults,
       })
     } catch (error) {
       console.error('Error loading app analytics:', error)

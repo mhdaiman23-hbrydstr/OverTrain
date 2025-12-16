@@ -238,7 +238,7 @@ export const PROGRAM_TEMPLATES: Program[] = [
 
 export class ProgramRecommendationEngine {
   static recommendPrograms(userProfile: {
-    gender: "male" | "female"
+    gender: "male" | "female" | "Prefer not say"
     experience: "beginner" | "intermediate" | "advanced"
     goals: string[]
     equipment: string[]
@@ -248,7 +248,10 @@ export class ProgramRecommendationEngine {
 
     return PROGRAM_TEMPLATES.filter((program) => {
       // Filter by gender (unisex programs work for everyone)
-      const genderMatch = program.gender === "unisex" || program.gender === userProfile.gender
+      const genderMatch =
+        program.gender === "unisex" ||
+        userProfile.gender === "Prefer not say" ||
+        program.gender === userProfile.gender
 
       // Filter by experience level (allow same level or one below)
       const experienceMatch = this.isExperienceLevelSuitable(program.difficulty, userProfile.experience)

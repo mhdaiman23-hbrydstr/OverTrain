@@ -9,7 +9,8 @@ import { WorkoutLogger } from "@/lib/workout-logger"
 import { ProgramHistoryPaginated } from "./program-history-paginated"
 
 interface ProgramsTabContentProps {
-  // This component uses internal state from the app
+  // This component uses internal state from app
+  [key: string]: never
 }
 
 export function ProgramsTabContent({}: ProgramsTabContentProps) {

@@ -17,6 +17,7 @@ export class ProgramForkService {
 
   private ensureSupabase() {
     if (!supabase) throw new Error('Supabase client not initialized - check environment variables')
+    return supabase
   }
 
   /**
@@ -24,14 +25,14 @@ export class ProgramForkService {
    * Deep-clones days and exercises.
    */
   async forkTemplateToMyProgram(templateId: string, ownerUserId: string, options?: ForkOptions): Promise<string> {
-    this.ensureSupabase()
+    const client = this.ensureSupabase()
 
     const source = await programTemplateService.getFullTemplate(templateId)
     if (!source) throw new Error('Source template not found')
 
     const name = options?.nameOverride || `${source.name} (My Copy)`
 
-    const { data: newTemplate, error: insertError } = await supabase
+    const { data: newTemplate, error: insertError } = await client
       .from('program_templates')
       .insert({
         name,
@@ -64,7 +65,7 @@ export class ProgramForkService {
     // Insert days sequentially to capture new IDs
     const sortedDays = [...(source.days || [])].sort((a, b) => a.day_number - b.day_number)
     for (const day of sortedDays) {
-      const { data: createdDay, error: dayError } = await supabase
+      const { data: createdDay, error: dayError } = await client
         .from('program_template_days')
         .insert({
           program_template_id: newTemplateId,
@@ -93,7 +94,7 @@ export class ProgramForkService {
       }))
 
       if (exercises.length > 0) {
-        const { error: exError } = await supabase
+        const { error: exError } = await client
           .from('program_template_exercises')
           .insert(exercises)
 
@@ -108,13 +109,13 @@ export class ProgramForkService {
    * Create a blank user-owned program skeleton and return its ID.
    */
   async createBlankProgram(ownerUserId: string, name?: string, weeks?: number, deloadWeekParam?: number): Promise<string> {
-    this.ensureSupabase()
+    const client = this.ensureSupabase()
 
     const programName = name?.trim() || 'New Program'
     const totalWeeks = weeks || 1
     const deloadWeek = deloadWeekParam || totalWeeks
     
-    const { data: newTemplate, error } = await supabase!
+    const { data: newTemplate, error } = await client
       .from('program_templates')
       .insert({
         name: programName,
@@ -140,7 +141,7 @@ export class ProgramForkService {
     if (error || !newTemplate) throw error ?? new Error('Failed to create blank program')
 
     // Create minimal day 1
-    const { error: dayError } = await supabase!
+    const { error: dayError } = await client
       .from('program_template_days')
       .insert({
         program_template_id: newTemplate.id,
@@ -160,12 +161,12 @@ export class ProgramForkService {
     dayNumber?: number
     fromExerciseId?: string
   }): Promise<number> {
-    this.ensureSupabase()
+    const client = this.ensureSupabase()
 
     const { templateId, toExerciseId, templateExerciseIds, dayNumber, fromExerciseId } = params
 
     if (templateExerciseIds && templateExerciseIds.length > 0) {
-      const { data, error } = await supabase
+      const { data, error } = await client
         .from('program_template_exercises')
         .update({ exercise_id: toExerciseId })
         .in('id', templateExerciseIds)
@@ -180,7 +181,7 @@ export class ProgramForkService {
       return 0
     }
 
-    const { data: days, error: dayError } = await supabase
+    const { data: days, error: dayError } = await client
       .from('program_template_days')
       .select('id')
       .eq('program_template_id', templateId)
@@ -194,7 +195,7 @@ export class ProgramForkService {
 
     const dayIds = days.map((day) => day.id)
 
-    const { data, error } = await supabase
+    const { data, error } = await client
       .from('program_template_exercises')
       .update({ exercise_id: toExerciseId })
       .in('template_day_id', dayIds)

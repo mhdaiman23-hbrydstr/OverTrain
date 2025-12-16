@@ -902,7 +902,10 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
                           <div className="flex items-center gap-2 mb-1">
                             <h3 className="font-semibold text-base leading-tight">{template.name}</h3>
                             {isFemaleOnlyTemplate && (
-                              <Venus className="h-4 w-4 text-pink-500 dark:text-pink-400 flex-shrink-0" title="Female-only" />
+                              <Venus
+                                className="h-4 w-4 text-pink-500 dark:text-pink-400 flex-shrink-0"
+                                aria-label="Female-only"
+                              />
                             )}
                           </div>
                           <p className="text-xs text-muted-foreground uppercase">

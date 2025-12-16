@@ -1,17 +1,15 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { AdminDashboard } from "../components/admin-dashboard"
 import { useAuth } from "@/contexts/auth-context"
-import { UsersManagement } from "./components/users-management"
 
 const DEFAULT_VIEW = "users"
 
 export default function AdminUsersPage() {
   const { user, isLoading } = useAuth()
   const router = useRouter()
-  const [currentView, setCurrentView] = useState<string>(DEFAULT_VIEW)
 
   useEffect(() => {
     if (!isLoading && user) {
@@ -21,10 +19,6 @@ export default function AdminUsersPage() {
       }
     }
   }, [user, isLoading, router])
-
-  const handleViewChange = (view: string) => {
-    setCurrentView(view)
-  }
 
   if (isLoading) {
     return (
@@ -50,5 +44,5 @@ export default function AdminUsersPage() {
     )
   }
 
-  return <AdminDashboard currentView={currentView} onViewChange={handleViewChange} />
+  return <AdminDashboard initialView={DEFAULT_VIEW} />
 }

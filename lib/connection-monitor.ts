@@ -188,7 +188,7 @@ export class ConnectionMonitor {
     status: ConnectionStatus;
     lastSync?: number;
   } {
-    let setSyncStatus = { queueSize: 0, lastSync: undefined }
+    let setSyncStatus: { queueSize: number; lastSync?: number } = { queueSize: 0 }
 
     if (this.setSyncProvider) {
       try {
@@ -247,4 +247,3 @@ export class ConnectionMonitor {
     }
   }
 }
-

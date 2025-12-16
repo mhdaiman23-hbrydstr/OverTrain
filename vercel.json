@@ -1,0 +1,62 @@
+{
+  "version": 2,
+  "env": {
+    "NEXT_PUBLIC_IS_NATIVE": "false"
+  },
+  "build": {
+    "env": {
+      "NEXT_PUBLIC_IS_NATIVE": "false"
+    }
+  },
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        }
+      ]
+    },
+    {
+      "source": "/sw.js",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        },
+        {
+          "key": "Service-Worker-Allowed",
+          "value": "/"
+        }
+      ]
+    },
+    {
+      "source": "/manifest.json",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/__sentry-tunnel",
+      "destination": "https://o4509982419349504.ingest.us.sentry.io/api/4509982421794816/?sentry_key=012748ea4f07432b9f1ac1ef6f63d417&sentry_version=7&sentry_client=sentry.javascript.nextjs"
+    }
+  ]
+}

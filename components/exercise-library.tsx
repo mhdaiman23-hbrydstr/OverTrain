@@ -171,7 +171,7 @@ export function ExerciseLibrary({ open, onOpenChange, onSelectExercise, currentE
               <Button
                 type="button"
                 variant="ghost"
-                size="xs"
+                size="sm"
                 className="h-6 px-2"
                 onClick={handleClearFilters}
               >

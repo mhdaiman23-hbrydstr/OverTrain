@@ -1,7 +1,7 @@
 "use client"
 
 import { WifiOff, Loader2, XCircle } from "lucide-react"
-import { ConnectionStatus } from "@/components/workout-logger/hooks/use-connection-status"
+import type { ConnectionStatus } from "@/lib/connection-monitor"
 
 interface ConnectionStatusBannerProps {
   status: ConnectionStatus

@@ -72,12 +72,16 @@ export class ProgressionValidator {
    * Validate custom progression rules
    */
   private static validateCustomRules(
-    customRules: ProgressionOverride["customRules"],
+    customRules: ProgressionOverride["customRules"] | undefined,
     userProfile: UserProfile,
     warnings: string[],
     errors: string[],
     recommendations: string[]
   ): void {
+    if (!customRules) return
+
+    const requiresOneRM = customRules.percentage?.requiresOneRM ?? false
+
     // Linear rules validation
     if (customRules.linear) {
       const { weeklyIncrease, minIncrement } = customRules.linear
@@ -286,7 +290,8 @@ export class ProgressionValidator {
       }
     }
 
-    if (override.customRules?.linear?.weeklyIncrease > 0.05) {
+    const weeklyIncrease = override.customRules?.linear?.weeklyIncrease
+    if (weeklyIncrease !== undefined && weeklyIncrease > 0.05) {
       return {
         requires: true,
         reason: "Weekly increase of more than 5% may be too aggressive and increase injury risk. Continue?"
