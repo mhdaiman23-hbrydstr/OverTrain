@@ -235,12 +235,10 @@ class UnifiedStorageService {
     try {
       if (mapping.isArray && Array.isArray(value)) {
         // For array data (workouts, in-progress workouts, history)
-        // Clear existing and insert all
-        await sqliteService.deleteAll(mapping.table);
-        for (const item of value) {
-          const row = this.objectToSQLiteRow(item, mapping.table);
-          await sqliteService.insert(mapping.table, row);
-        }
+        // Atomically replace all records in a transaction — if any insert fails,
+        // the entire operation rolls back preserving existing data
+        const rows = value.map(item => this.objectToSQLiteRow(item, mapping.table));
+        await sqliteService.replaceAll(mapping.table, rows);
       } else if (value) {
         // For single objects (active program)
         // Clear existing first (one active program per user)

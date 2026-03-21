@@ -42,13 +42,13 @@ const config: CapacitorConfig = {
   plugins: {
     // Splash Screen configuration
     SplashScreen: {
-      launchShowDuration: 2000,
-      launchAutoHide: true,
+      launchShowDuration: 0,
+      launchAutoHide: false, // Manually hidden after React mounts to prevent white flash
       backgroundColor: '#000000',
       androidScaleType: 'CENTER_CROP',
       showSpinner: false,
       splashFullScreen: true,
-      splashImmersive: false, // Changed to false to show status bar after splash
+      splashImmersive: false, // Show status bar after splash
     },
     
     // Status Bar configuration

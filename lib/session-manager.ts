@@ -16,6 +16,7 @@
  */
 
 import { supabase } from './supabase'
+import { ConnectionMonitor } from './connection-monitor'
 
 export interface SessionStatus {
   isValid: boolean
@@ -59,6 +60,8 @@ export class SessionManager {
         this.stopMonitoring()
       } else if (event === 'SIGNED_IN') {
         console.log('[SessionManager] 🔓 User signed in')
+        // Cache session for offline use
+        this.cacheSessionForOffline().catch(() => {})
         // Start periodic checks
         this.startPeriodicChecks()
       }
@@ -194,6 +197,9 @@ export class SessionManager {
 
       this.isRefreshing = false
 
+      // Cache session for offline startup (fire-and-forget)
+      this.cacheSessionForOffline().catch(() => {})
+
       // Emit success event
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new CustomEvent('sessionRefreshed', {
@@ -257,6 +263,72 @@ export class SessionManager {
   static async forceCheck(): Promise<SessionStatus> {
     await this.checkSessionHealth()
     return this.getStatus()
+  }
+
+  /**
+   * Cache session to native Preferences for offline app startup.
+   * Called after every successful session refresh.
+   */
+  private static async cacheSessionForOffline(): Promise<void> {
+    try {
+      const { Preferences } = await import('@capacitor/preferences')
+      const { data: { session } } = await supabase!.auth.getSession()
+      if (session) {
+        await Preferences.set({
+          key: 'overtrain_cached_session',
+          value: JSON.stringify({
+            access_token: session.access_token,
+            refresh_token: session.refresh_token,
+            expires_at: session.expires_at,
+            user: { id: session.user.id, email: session.user.email },
+            cached_at: Date.now(),
+          }),
+        })
+      }
+    } catch {
+      // Not on native or Preferences not available — safe to ignore
+    }
+  }
+
+  /**
+   * Attempt to restore session from native cache when offline.
+   * Returns the cached user ID if a valid cached session exists.
+   */
+  static async restoreOfflineSession(): Promise<{ userId: string; email: string } | null> {
+    // Only use offline cache when actually offline
+    if (ConnectionMonitor.isOnline()) return null
+
+    try {
+      const { Preferences } = await import('@capacitor/preferences')
+      const { value } = await Preferences.get({ key: 'overtrain_cached_session' })
+      if (!value) return null
+
+      const cached = JSON.parse(value)
+      // Accept cached sessions up to 7 days old
+      const maxAge = 7 * 24 * 60 * 60 * 1000
+      if (Date.now() - cached.cached_at > maxAge) {
+        console.log('[SessionManager] Cached session too old, discarding')
+        await Preferences.remove({ key: 'overtrain_cached_session' })
+        return null
+      }
+
+      // Try to set the cached session in Supabase
+      if (supabase && cached.access_token && cached.refresh_token) {
+        try {
+          await supabase.auth.setSession({
+            access_token: cached.access_token,
+            refresh_token: cached.refresh_token,
+          })
+          console.log('[SessionManager] Restored cached session for offline use')
+        } catch {
+          console.log('[SessionManager] Could not restore session to Supabase (offline)')
+        }
+      }
+
+      return { userId: cached.user?.id, email: cached.user?.email }
+    } catch {
+      return null
+    }
   }
 }
 

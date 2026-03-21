@@ -134,11 +134,37 @@ class SQLiteService {
       for (const migration of MIGRATIONS) {
         if (migration.version > currentVersion) {
           console.log(`[SQLite] Running migration version ${migration.version}`);
-          await this.db.execute(migration.sql);
-          await this.db.run(
-            'INSERT INTO _migrations (version) VALUES (?)',
-            [migration.version]
-          );
+          try {
+            // Split multi-statement migrations and run each individually
+            // This handles ALTER TABLE failures gracefully (e.g., column already exists)
+            const statements = migration.sql
+              .split(';')
+              .map(s => s.trim())
+              .filter(s => s.length > 0 && !s.startsWith('--'));
+
+            for (const stmt of statements) {
+              try {
+                await this.db.execute(stmt + ';');
+              } catch (stmtError: any) {
+                // Ignore "duplicate column" errors from ALTER TABLE
+                const msg = String(stmtError?.message || stmtError || '').toLowerCase();
+                if (msg.includes('duplicate column') || msg.includes('already exists')) {
+                  console.log(`[SQLite] Column already exists, skipping: ${stmt.substring(0, 60)}...`);
+                } else {
+                  throw stmtError;
+                }
+              }
+            }
+
+            await this.db.run(
+              'INSERT INTO _migrations (version) VALUES (?)',
+              [migration.version]
+            );
+            console.log(`[SQLite] Migration version ${migration.version} applied successfully`);
+          } catch (migrationError) {
+            console.error(`[SQLite] Migration version ${migration.version} failed:`, migrationError);
+            throw migrationError;
+          }
         }
       }
     } catch (error) {
@@ -283,6 +309,44 @@ class SQLiteService {
    */
   async deleteAll(table: TableName): Promise<void> {
     await this.run(`DELETE FROM ${table}`);
+  }
+
+  /**
+   * Atomically replace all records in a table (delete + insert in a transaction).
+   * If any insert fails, the entire operation rolls back preserving existing data.
+   */
+  async replaceAll<T extends Record<string, any>>(table: TableName, rows: T[]): Promise<void> {
+    if (!await this.initialize() || !this.db) {
+      throw new Error('SQLite not available');
+    }
+
+    await this.db.execute('BEGIN TRANSACTION');
+
+    try {
+      await this.db.run(`DELETE FROM ${table}`, []);
+
+      for (const data of rows) {
+        const keys = Object.keys(data);
+        const placeholders = keys.map(() => '?').join(', ');
+        const values = keys.map(k => {
+          const v = data[k];
+          if (v !== null && typeof v === 'object') {
+            return stringifyJsonField(v);
+          }
+          return v;
+        });
+
+        await this.db.run(
+          `INSERT OR REPLACE INTO ${table} (${keys.join(', ')}) VALUES (${placeholders})`,
+          values
+        );
+      }
+
+      await this.db.execute('COMMIT');
+    } catch (error) {
+      await this.db.execute('ROLLBACK');
+      throw error;
+    }
   }
 
   /**

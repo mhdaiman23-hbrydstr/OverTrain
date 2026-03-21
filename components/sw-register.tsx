@@ -7,6 +7,12 @@ export function ServiceWorkerRegister() {
     // Only register in browser environment
     if (typeof window === "undefined") return
 
+    // Skip SW registration on native (Capacitor) — SW caching inside a WebView causes stale content
+    if ((window as any).Capacitor?.isNativePlatform?.()) {
+      console.log("[PWA] Skipping Service Worker registration on native platform")
+      return
+    }
+
     // Check if service workers are supported
     if (!("serviceWorker" in navigator)) {
       console.log("[PWA] Service Workers are not supported in this browser")

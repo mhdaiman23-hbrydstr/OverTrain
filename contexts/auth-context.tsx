@@ -64,15 +64,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
         } else {
           console.log('[Auth] No OAuth session, checking local storage...')
-          const localUser = AuthService.getUser()
+          let localUser = AuthService.getUser()
+
+          // If no local user found, try restoring from offline session cache (native)
+          if (!localUser) {
+            try {
+              const offlineSession = await SessionManager.restoreOfflineSession()
+              if (offlineSession) {
+                console.log('[Auth] Restored offline session for:', offlineSession.email)
+                localUser = AuthService.getUser() // Re-check after session restore
+              }
+            } catch {
+              // Offline restore failed, continue normally
+            }
+          }
+
           setState({ user: localUser, isLoading: false })
-          
+
           if (localUser) {
             console.log('[Auth] Found local user:', localUser.email)
           } else {
             console.log('[Auth] No user found, showing login screen')
           }
-          
+
           // Load user data from database if user exists (only if not already loaded)
           if (localUser && localUser.id && !dataLoaded) {
             await loadUserApplicationData(localUser.id)
@@ -81,10 +95,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             startPeriodicSync(localUser.id)
           }
         }
+        // Hide splash screen now that app is ready (prevents white flash on native)
+        try {
+          const { SplashScreen } = await import('@capacitor/splash-screen')
+          await SplashScreen.hide({ fadeOutDuration: 200 })
+        } catch {
+          // Not on native or plugin not available — safe to ignore
+        }
       } catch (error) {
         console.error('[Auth] Initialization error:', error)
         // Ensure we don't stay in loading state on error
         setState({ user: null, isLoading: false })
+        // Still hide splash on error so user can see the login screen
+        try {
+          const { SplashScreen } = await import('@capacitor/splash-screen')
+          await SplashScreen.hide({ fadeOutDuration: 200 })
+        } catch {
+          // Not on native — safe to ignore
+        }
       }
     }
 

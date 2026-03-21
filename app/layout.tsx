@@ -9,6 +9,7 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { PWAInstallPrompt } from "@/components/pwa-install-prompt"
 import { ServiceWorkerRegister } from "@/components/sw-register"
+import { ErrorBoundary } from "@/components/error-boundary"
 import { Analytics } from "@vercel/analytics/next"
 import "./globals.css"
 
@@ -85,22 +86,24 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${montserrat.variable} font-sans antialiased`}>
-        <AuthProvider>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
-          >
-            <TooltipProvider>
-              <TemplateCacheWarmer />
-              <ServiceWorkerRegister />
-              <Suspense fallback={null}>{children}</Suspense>
-              <Toaster />
-              <PWAInstallPrompt />
-            </TooltipProvider>
-          </ThemeProvider>
-        </AuthProvider>
+        <ErrorBoundary>
+          <AuthProvider>
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="system"
+              enableSystem
+              disableTransitionOnChange
+            >
+              <TooltipProvider>
+                <TemplateCacheWarmer />
+                <ServiceWorkerRegister />
+                <Suspense fallback={null}>{children}</Suspense>
+                <Toaster />
+                <PWAInstallPrompt />
+              </TooltipProvider>
+            </ThemeProvider>
+          </AuthProvider>
+        </ErrorBoundary>
       </body>
     </html>
   )

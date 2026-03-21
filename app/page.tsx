@@ -164,6 +164,47 @@ export default function HomePage() {
     return () => window.removeEventListener("programChanged", handleProgramChange)
   }, [])  // FIX: Empty dependencies! Register listener once, use refs for current values
 
+  // Android hardware back button handling
+  useEffect(() => {
+    let backButtonCleanup: (() => void) | null = null
+    let lastBackPress = 0
+
+    const setupBackButton = async () => {
+      try {
+        const { App } = await import('@capacitor/app')
+        const listener = await App.addListener('backButton', () => {
+          const view = currentViewRef.current
+          const defaultView = 'workout' // or 'train' if no active program
+
+          // If on a sub-view, navigate back to the default view
+          if (view && view !== defaultView && view !== 'train') {
+            setCurrentView(defaultView)
+            return
+          }
+
+          // If already on the root view, double-tap to exit
+          const now = Date.now()
+          if (now - lastBackPress < 2000) {
+            App.exitApp()
+          } else {
+            lastBackPress = now
+            // Show a brief toast-like message (using console for now, but could use toast)
+            if (typeof window !== 'undefined' && (window as any).__showBackToast) {
+              (window as any).__showBackToast()
+            }
+          }
+        })
+
+        backButtonCleanup = () => listener.remove()
+      } catch {
+        // Not on native — safe to ignore
+      }
+    }
+
+    setupBackButton()
+    return () => { backButtonCleanup?.() }
+  }, [])
+
   const handleAuth = async (type: "login" | "signup") => {
     setIsLoading(true)
     setError("")

@@ -173,16 +173,26 @@ export class AuthService {
     }
 
     // Check if we're in a native Capacitor environment
-    const isNative = typeof window !== 'undefined' && 
+    const isNativePlatform = typeof window !== 'undefined' &&
       (window as any).Capacitor?.isNativePlatform?.() === true;
 
-    if (isNative) {
-      // For native apps, Google OAuth requires special handling with deep links
-      // For now, throw a user-friendly error suggesting email login
-      throw new Error(
-        "Google Sign-In is not yet available in the mobile app. " +
-        "Please use email and password to sign in, or use the web version for Google Sign-In."
-      );
+    if (isNativePlatform) {
+      // On native, use Supabase PKCE flow with in-app browser.
+      // The in-app browser handles the OAuth redirect and returns via deep link.
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: 'overtrain://auth/callback',
+          skipBrowserRedirect: false,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
+        },
+      })
+
+      if (error) throw error
+      return
     }
 
     const { error } = await supabase.auth.signInWithOAuth({
@@ -220,8 +230,7 @@ export class AuthService {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'apple',
       options: {
-        redirectTo: typeof window !== 'undefined' ? `${window.location.origin}/auth/callback` : undefined,
-        // Skip browser redirect for native handling
+        redirectTo: 'overtrain://auth/callback',
         skipBrowserRedirect: false,
       },
     })

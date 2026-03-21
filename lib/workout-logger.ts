@@ -161,6 +161,8 @@ export class WorkoutLogger {
     try {
       await unifiedStorage.initialize()
       await unifiedStorage.set(storageKey, workouts)
+      // Also mirror to localStorage so sync consumers (calendar, etc.) see up-to-date data
+      this.mirrorArrayToLocalStorage(storageKey, workouts)
     } catch (error) {
       console.warn(`[WorkoutLogger] Failed to persist ${storageKey} to native storage: ${getErrorMessage(error)}`)
     }
@@ -929,7 +931,7 @@ export class WorkoutLogger {
 
           validatedWorkouts++
           return repairedWorkout
-        }).filter(Boolean) // Remove any null workouts
+        }).filter((w): w is WorkoutSession => Boolean(w)) // Remove any null workouts
 
         if (repairedWorkouts.length !== completedWorkouts.length) {
           localStorage.setItem(storageKeys.workouts, JSON.stringify(repairedWorkouts))
@@ -1019,7 +1021,7 @@ export class WorkoutLogger {
 
           validatedWorkouts++
           return repairedWorkout
-        }).filter(Boolean)
+        }).filter((w): w is WorkoutSession => Boolean(w))
 
         if (repairedInProgress.length !== inProgressWorkouts.length) {
           localStorage.setItem(storageKeys.inProgress, JSON.stringify(repairedInProgress))
@@ -1957,6 +1959,136 @@ export class WorkoutLogger {
       console.error(`[WorkoutLogger] Error parsing workout history: ${getErrorMessage(error)}`)
       return []
     }
+  }
+
+  /**
+   * Async version of getWorkoutHistory that reads from SQLite on native.
+   * On native, SQLite is the source of truth. On web, falls back to localStorage.
+   * Always mirrors results to localStorage for sync consumers (calendar, etc.)
+   */
+  static async getWorkoutHistoryAsync(userId?: string): Promise<WorkoutSession[]> {
+    if (typeof window === "undefined") return []
+
+    if (!userId) {
+      userId = this.getCurrentUserId()
+    }
+
+    // On native, read from SQLite (source of truth)
+    if (isNative() && userId) {
+      try {
+        await unifiedStorage.initialize()
+        const nativeHistory = await unifiedStorage.getWorkouts(userId)
+        if (Array.isArray(nativeHistory) && nativeHistory.length > 0) {
+          // Mirror to localStorage so sync consumers see up-to-date data
+          const storageKeys = this.getUserStorageKeys(userId)
+          this.mirrorArrayToLocalStorage(storageKeys.workouts, nativeHistory)
+          return nativeHistory
+        }
+      } catch (error) {
+        console.warn(`[WorkoutLogger] Failed to read history from native storage, falling back to localStorage: ${getErrorMessage(error)}`)
+      }
+    }
+
+    // Fall back to localStorage (web or native fallback)
+    return this.getWorkoutHistory(userId)
+  }
+
+  /**
+   * Async version of hasCompletedWorkout that reads from SQLite on native.
+   * MUST be used for all progression-critical checks (week advancement, etc.)
+   */
+  static async hasCompletedWorkoutAsync(
+    week: number,
+    day: number,
+    userId?: string,
+    programInstanceId?: string
+  ): Promise<boolean> {
+    if (!userId) {
+      userId = this.getCurrentUserId()
+    }
+
+    const activeProgram = this.getActiveProgram()
+    const instanceId = programInstanceId ?? activeProgram?.instanceId
+    const templateId = activeProgram?.templateId
+
+    if (instanceId && templateId) {
+      this.tagWorkoutsWithInstance(instanceId, templateId, userId)
+    }
+
+    const history = await this.getWorkoutHistoryAsync(userId)
+
+    if (!Array.isArray(history)) {
+      console.warn('[WorkoutLogger] History is not an array, treating as empty')
+      return false
+    }
+
+    console.log(`[WorkoutLogger.hasCompletedWorkoutAsync] Checking Week ${week} Day ${day}:`, {
+      historyCount: history.length,
+      instanceId,
+      templateId,
+      userId,
+    })
+
+    const completedWorkout = history.find(
+      (workout) =>
+        workout.week === week &&
+        workout.day === day &&
+        workout.completed &&
+        this.matchesInstance(workout, instanceId, templateId)
+    )
+
+    if (!completedWorkout) {
+      const matchingWeekDay = history.filter(w => w.week === week && w.day === day)
+      if (matchingWeekDay.length > 0) {
+        console.log(`[WorkoutLogger.hasCompletedWorkoutAsync] Found ${matchingWeekDay.length} workouts for Week ${week} Day ${day}, but none matched:`,
+          matchingWeekDay.map(w => ({
+            id: w.id,
+            completed: w.completed,
+            programInstanceId: w.programInstanceId,
+            programId: w.programId,
+            matchesInstance: this.matchesInstance(w, instanceId, templateId)
+          }))
+        )
+      }
+    } else {
+      console.log(`[WorkoutLogger.hasCompletedWorkoutAsync] Found completed workout for Week ${week} Day ${day}:`, completedWorkout.id)
+    }
+
+    // Additional validation: ensure the completed workout has actual exercise data
+    if (completedWorkout) {
+      const hasValidData = completedWorkout.exercises &&
+                           completedWorkout.exercises.length > 0 &&
+                           completedWorkout.exercises.every(ex => ex.sets && ex.sets.length > 0)
+
+      if (!hasValidData) {
+        console.warn(`[WorkoutLogger] Found completed workout for Week ${week}, Day ${day} with invalid data - treating as not completed`)
+        return false
+      }
+    }
+
+    return !!completedWorkout
+  }
+
+  /**
+   * Async version of isWeekCompleted that reads from SQLite on native.
+   * MUST be used for all progression-critical checks (week advancement, etc.)
+   */
+  static async isWeekCompletedAsync(
+    week: number,
+    daysPerWeek: number,
+    userId?: string,
+    programInstanceId?: string
+  ): Promise<boolean> {
+    if (!userId) {
+      userId = this.getCurrentUserId()
+    }
+
+    for (let day = 1; day <= daysPerWeek; day++) {
+      if (!(await this.hasCompletedWorkoutAsync(week, day, userId, programInstanceId))) {
+        return false
+      }
+    }
+    return true
   }
 
   static getCompletedWorkout(

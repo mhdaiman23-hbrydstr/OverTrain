@@ -1754,7 +1754,8 @@ export class ProgramStateManager {
         const daysPerWeek = scheduleKeys.length
 
         // Check if all days in the current week are now completed
-        const isCurrentWeekComplete = WorkoutLogger.isWeekCompleted(
+        // Use async version to read from SQLite on native (source of truth)
+        const isCurrentWeekComplete = await WorkoutLogger.isWeekCompletedAsync(
           activeProgram.currentWeek,
           daysPerWeek,
           resolvedUserId,
@@ -1804,9 +1805,9 @@ export class ProgramStateManager {
         let nextDay = currentDay
         let foundIncomplete = false
         
-        // First, check days after the current day
+        // First, check days after the current day (async to read from SQLite on native)
         for (let day = currentDay + 1; day <= daysPerWeek; day++) {
-          const isCompleted = WorkoutLogger.hasCompletedWorkout(activeProgram.currentWeek, day, resolvedUserId, activeProgram.instanceId)
+          const isCompleted = await WorkoutLogger.hasCompletedWorkoutAsync(activeProgram.currentWeek, day, resolvedUserId, activeProgram.instanceId)
           console.log(`[v0] Checking day ${day}: completed=${isCompleted}`)
           if (!isCompleted) {
             nextDay = day
@@ -1814,12 +1815,12 @@ export class ProgramStateManager {
             break
           }
         }
-        
+
         // If no incomplete day found after current day, check from beginning
         // (in case user completed days out of order)
         if (!foundIncomplete) {
           for (let day = 1; day < currentDay; day++) {
-            const isCompleted = WorkoutLogger.hasCompletedWorkout(activeProgram.currentWeek, day, resolvedUserId, activeProgram.instanceId)
+            const isCompleted = await WorkoutLogger.hasCompletedWorkoutAsync(activeProgram.currentWeek, day, resolvedUserId, activeProgram.instanceId)
             console.log(`[v0] Checking day ${day} (wrap-around): completed=${isCompleted}`)
             if (!isCompleted) {
               nextDay = day
@@ -2053,12 +2054,12 @@ export class ProgramStateManager {
     console.log("[ProgramState] Recalculating progress for user:", userId)
     console.log("[ProgramState] Days per week:", daysPerWeek)
 
-    // Debug: Check what workouts are completed
+    // Debug: Check what workouts are completed (async to read from SQLite on native)
     const completedWorkouts: { week: number; day: number }[] = []
     const debugWeeks = activeProgram.template.weeks || 6 // Use template weeks or fallback
     for (let week = 1; week <= debugWeeks; week++) {
       for (let day = 1; day <= daysPerWeek; day++) {
-        if (WorkoutLogger.hasCompletedWorkout(week, day, userId, activeProgram.instanceId)) {
+        if (await WorkoutLogger.hasCompletedWorkoutAsync(week, day, userId, activeProgram.instanceId)) {
           completedWorkouts.push({ week, day })
         }
       }
@@ -2070,7 +2071,7 @@ export class ProgramStateManager {
     const maxWeeks = activeProgram.template.weeks || 6 // Fallback to 6 weeks if not set
     for (let week = 1; week <= maxWeeks; week++) {
       for (let day = 1; day <= daysPerWeek; day++) {
-        const isCompleted = WorkoutLogger.hasCompletedWorkout(week, day, userId, activeProgram.instanceId)
+        const isCompleted = await WorkoutLogger.hasCompletedWorkoutAsync(week, day, userId, activeProgram.instanceId)
         console.log(`[ProgramState] Week ${week}, Day ${day}: ${isCompleted ? 'COMPLETED' : 'INCOMPLETE'}`)
 
         if (!isCompleted) {
@@ -2463,7 +2464,7 @@ export class ProgramStateManager {
         for (let week = 1; week <= activeProgramData.current_week; week++) {
           for (let day = 1; day <= activeProgramData.days_per_week; day++) {
             if (week === activeProgramData.current_week && day >= activeProgramData.current_day) break
-            if (WorkoutLogger.hasCompletedWorkout(week, day, userId, instanceId)) {
+            if (await WorkoutLogger.hasCompletedWorkoutAsync(week, day, userId, instanceId)) {
               completedWorkouts++
             }
           }

@@ -11,7 +11,7 @@ export default defineConfig({
   },
   test: {
     environment: "jsdom",
-    setupFiles: ["./tests/setupTests.ts"],
     globals: true,
+    exclude: ["mcp-playwright/**", "node_modules/**", "OverTrain/**"],
   },
 })
