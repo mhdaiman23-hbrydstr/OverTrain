@@ -201,7 +201,7 @@ Components can listen to refresh UI when programs change.
 
 ### Mobile Set Sync (Fire-and-Forget Patterns)
 
-**CRITICAL PATTERN** - Documented in [AUDIT_MOBILE_SET_SYNC_BUG.md](./AUDIT_MOBILE_SET_SYNC_BUG.md)
+**CRITICAL PATTERN** — see `logSetCompletion` / `flushSetCompletions` in [workout-logger.ts](./lib/workout-logger.ts) and [docs/WORKOUT_GUARDRAILS.md](./docs/WORKOUT_GUARDRAILS.md)
 
 The `WorkoutLogger` uses a **queued batching system** for set logging to prevent UI blocking on mobile. However, this introduces a subtle bug risk:
 
@@ -229,4 +229,4 @@ static async completeWorkout(workoutId: string) {
 4. Always wrap flush in try-catch - use graceful degradation if it fails (sets backed up in localStorage)
 5. Document queue-based APIs with ⚠️ warnings in JSDoc
 
-See [AUDIT_MOBILE_SET_SYNC_BUG.md](./AUDIT_MOBILE_SET_SYNC_BUG.md) for detailed analysis and testing recommendations.
+See [docs/WORKOUT_GUARDRAILS.md](./docs/WORKOUT_GUARDRAILS.md) for guardrails and [workout-logger.ts](./lib/workout-logger.ts) for implementation.

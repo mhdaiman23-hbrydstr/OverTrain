@@ -29,6 +29,9 @@ next-env.d.ts
 # OS files
 .DS_Store
 
+# Stray local logs
+*.log
+
 # Claude Code settings (exclude local config with API keys)
 .claude/settings.local.json
 .vercel
@@ -67,4 +70,4 @@ Certificates.p12
 CertificateSigningRequest.*
 
 # Apple secret generator script with credentials
-generate-apple-secret.js
+scripts/generate-apple-secret.js

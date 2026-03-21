@@ -42,7 +42,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 ### Database Setup
 1. Create Supabase project at https://supabase.com
 2. Run schema files in order:
-   - `supabase-schema.sql` - Core tables (users, profiles)
+   - `migrations/supabase-schema.sql` - Core tables (users, profiles)
    - `exercise-library-schema.sql` - Exercise database (259 exercises)
    - `program-templates-schema.sql` - Template storage
 
@@ -106,9 +106,10 @@ OverTrain/
 │   ├── workout-logger.smoke.test.tsx
 │   ├── one-rm-context.test.tsx
 │   └── progression-router.registry.test.ts
-├── supabase-schema.sql          # Core database schema
-├── exercise-library-schema.sql  # Exercise library structure
-└── program-templates-schema.sql # Template storage schema
+├── migrations/                  # SQL migrations & baseline schema
+│   └── supabase-schema.sql      # Core database schema
+├── docs/                        # Setup guides & runbooks
+└── signing/                     # Local Apple keys/certs (gitignored patterns; optional)
 ```
 
 ---
@@ -227,6 +228,8 @@ import { Button } from "@/components/ui/button"
 ---
 
 ## 📖 Documentation
+
+Project guides and runbooks live under [`docs/`](./docs/) (iOS/Android signing, EAS, Codemagic, OAuth, security, etc.).
 
 ### Essential Reading
 - **[CLAUDE.md](./CLAUDE.md)** - Comprehensive architecture guide for AI coding
