@@ -3,6 +3,8 @@ import { ConnectionMonitor, type SetSyncProvider } from "./connection-monitor"
 import { StorageLock } from "./storage-lock"
 import StorageManager from "./indexed-db-storage"
 import { StorageTelemetry } from "./storage-telemetry"
+import { isNative } from "./native/platform"
+import { unifiedStorage } from "./native/storage-service"
 
 export interface WorkoutSet {
   id: string
@@ -143,42 +145,119 @@ export class WorkoutLogger {
    * Async storage helpers - use IndexedDB on mobile, localStorage fallback
    * These are non-blocking and high-capacity, solving mobile quota issues
    */
+  private static mirrorArrayToLocalStorage(storageKey: string, workouts: WorkoutSession[]): void {
+    if (typeof window === "undefined") return
+
+    try {
+      localStorage.setItem(storageKey, JSON.stringify(workouts))
+    } catch (mirrorError) {
+      console.warn(`[WorkoutLogger] Failed to mirror ${storageKey} to localStorage:`, mirrorError)
+    }
+  }
+
+  private static async persistArrayToNativeStorage(storageKey: string, workouts: WorkoutSession[]): Promise<void> {
+    if (!isNative()) return
+
+    try {
+      await unifiedStorage.initialize()
+      await unifiedStorage.set(storageKey, workouts)
+    } catch (error) {
+      console.warn(`[WorkoutLogger] Failed to persist ${storageKey} to native storage: ${getErrorMessage(error)}`)
+    }
+  }
+
   private static async getInProgressWorkoutsAsync(storageKey: string): Promise<WorkoutSession[]> {
+    const usingNative = isNative()
+    let nativeWorkouts: WorkoutSession[] | null = null
+
+    if (usingNative) {
+      try {
+        await unifiedStorage.initialize()
+        const nativeValue = await unifiedStorage.get(storageKey)
+        if (Array.isArray(nativeValue)) {
+          nativeWorkouts = nativeValue
+          this.mirrorArrayToLocalStorage(storageKey, nativeValue)
+        } else if (nativeValue === null || nativeValue === undefined) {
+          nativeWorkouts = []
+        }
+      } catch (error) {
+        console.warn(`[WorkoutLogger] Failed to read in-progress workouts from native storage: ${getErrorMessage(error)}`)
+      }
+
+      if (nativeWorkouts && nativeWorkouts.length > 0) {
+        return nativeWorkouts
+      }
+    }
+
     try {
       const data = await StorageManager.get(storageKey)
-      return data && Array.isArray(data) ? data : []
+      if (data && Array.isArray(data)) {
+        this.mirrorArrayToLocalStorage(storageKey, data)
+        if (usingNative && (!nativeWorkouts || nativeWorkouts.length === 0)) {
+          await this.persistArrayToNativeStorage(storageKey, data)
+        }
+        return data
+      }
     } catch (error) {
       console.error(`[WorkoutLogger] Failed to read in-progress workouts: ${getErrorMessage(error)}`)
-      // Fallback to localStorage if IndexedDB fails
-      try {
-        const stored = localStorage.getItem(storageKey)
-        return stored ? JSON.parse(stored) : []
-      } catch {
-        return []
+      // Continue to localStorage fallback
+    }
+
+    try {
+      const stored = localStorage.getItem(storageKey)
+      const parsed = stored ? JSON.parse(stored) : []
+      const workouts = Array.isArray(parsed) ? parsed : []
+
+      if (usingNative && workouts.length > 0 && (!nativeWorkouts || nativeWorkouts.length === 0)) {
+        await this.persistArrayToNativeStorage(storageKey, workouts)
       }
+
+      return workouts
+    } catch {
+      return []
     }
   }
 
   private static async saveInProgressWorkoutsAsync(storageKey: string, workouts: WorkoutSession[]): Promise<void> {
+    const usingNative = isNative()
+
+    if (usingNative) {
+      await this.persistArrayToNativeStorage(storageKey, workouts)
+    }
+
     try {
       await StorageManager.set(storageKey, workouts)
-      // CRITICAL: Also mirror to localStorage so sync functions (getInProgressWorkoutSync) can read it
-      // IndexedDB is async-only, but some callers need sync access
-      try {
-        localStorage.setItem(storageKey, JSON.stringify(workouts))
-      } catch (mirrorError) {
-        console.warn(`[WorkoutLogger] Failed to mirror in-progress workouts to localStorage:`, mirrorError)
-      }
     } catch (error) {
       console.error(`[WorkoutLogger] Failed to save in-progress workouts to IndexedDB: ${getErrorMessage(error)}`)
-      // Fallback to localStorage
+    }
+
+    // Always mirror to localStorage so sync functions (getInProgressWorkoutSync) can read it
+    this.mirrorArrayToLocalStorage(storageKey, workouts)
+  }
+
+  private static async removeInProgressWorkouts(storageKey: string): Promise<void> {
+    const usingNative = isNative()
+
+    if (usingNative) {
       try {
-        localStorage.setItem(storageKey, JSON.stringify(workouts))
-      } catch (quotaError) {
-        if (quotaError instanceof DOMException && quotaError.name === "QuotaExceededError") {
-          console.error("[WorkoutLogger] Storage quota exceeded, cannot persist workouts")
-        }
-        throw quotaError
+        await unifiedStorage.initialize()
+        await unifiedStorage.remove(storageKey)
+      } catch (error) {
+        console.warn(`[WorkoutLogger] Failed to clear ${storageKey} from native storage: ${getErrorMessage(error)}`)
+      }
+    }
+
+    try {
+      await StorageManager.remove(storageKey)
+    } catch (error) {
+      console.warn(`[WorkoutLogger] Failed to remove ${storageKey} from IndexedDB: ${getErrorMessage(error)}`)
+    }
+
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.removeItem(storageKey)
+      } catch (error) {
+        console.warn(`[WorkoutLogger] Failed to remove ${storageKey} from localStorage: ${getErrorMessage(error)}`)
       }
     }
   }
@@ -647,6 +726,7 @@ export class WorkoutLogger {
 
       if (changed) {
         localStorage.setItem(key, JSON.stringify(updated))
+        void this.persistArrayToNativeStorage(key, updated)
         console.log(`[WorkoutLogger] Tagged orphaned workouts in ${key}`)
       }
     }
@@ -675,7 +755,7 @@ export class WorkoutLogger {
         // Guard against corrupted localStorage (must be an array)
         if (!Array.isArray(inProgressWorkouts)) {
           console.warn("[WorkoutLogger] In-progress workouts is not an array, resetting")
-          localStorage.removeItem(storageKeys.inProgress)
+          void this.removeInProgressWorkouts(storageKeys.inProgress)
           return
         }
 
@@ -696,6 +776,7 @@ export class WorkoutLogger {
 
         if (cleanedInProgress.length !== inProgressWorkouts.length) {
           localStorage.setItem(storageKeys.inProgress, JSON.stringify(cleanedInProgress))
+          void this.persistArrayToNativeStorage(storageKeys.inProgress, cleanedInProgress)
           console.log(`[WorkoutLogger] Cleaned up ${inProgressWorkouts.length - cleanedInProgress.length} corrupted in-progress workouts`)
         }
       }
@@ -713,6 +794,7 @@ export class WorkoutLogger {
         if (!Array.isArray(completedWorkouts)) {
           console.warn("[WorkoutLogger] Completed workouts is not an array, resetting")
           localStorage.removeItem(storageKeys.workouts)
+          void this.persistArrayToNativeStorage(storageKeys.workouts, [])
           return
         }
 
@@ -733,6 +815,7 @@ export class WorkoutLogger {
 
         if (cleanedWorkouts.length !== completedWorkouts.length) {
           localStorage.setItem(storageKeys.workouts, JSON.stringify(cleanedWorkouts))
+          void this.persistArrayToNativeStorage(storageKeys.workouts, cleanedWorkouts)
           console.log(`[WorkoutLogger] Cleaned up ${completedWorkouts.length - cleanedWorkouts.length} corrupted completed workouts`)
         }
       }
@@ -850,6 +933,7 @@ export class WorkoutLogger {
 
         if (repairedWorkouts.length !== completedWorkouts.length) {
           localStorage.setItem(storageKeys.workouts, JSON.stringify(repairedWorkouts))
+          void this.persistArrayToNativeStorage(storageKeys.workouts, repairedWorkouts)
           console.log(`[WorkoutLogger] Validated ${validatedWorkouts} completed workouts, repaired ${repairedCount}`)
         }
       }
@@ -939,6 +1023,7 @@ export class WorkoutLogger {
 
         if (repairedInProgress.length !== inProgressWorkouts.length) {
           localStorage.setItem(storageKeys.inProgress, JSON.stringify(repairedInProgress))
+          void this.persistArrayToNativeStorage(storageKeys.inProgress, repairedInProgress)
           console.log(`[WorkoutLogger] Validated in-progress workouts, total repairs: ${repairedCount}`)
         }
       }
@@ -1069,6 +1154,7 @@ export class WorkoutLogger {
         workouts[matchIndex] = updated
         // Save updated workouts back synchronously
         localStorage.setItem(storageKeys.inProgress, JSON.stringify(workouts))
+        void this.persistArrayToNativeStorage(storageKeys.inProgress, workouts)
         return updated
       }
 
@@ -1435,7 +1521,7 @@ export class WorkoutLogger {
         }
       } else {
         // Clear all in-progress workouts using async storage
-        await StorageManager.remove(storageKeys.inProgress)
+        await this.removeInProgressWorkouts(storageKeys.inProgress)
 
         // Delete all from database
         if (userId && supabase) {
@@ -1795,6 +1881,8 @@ export class WorkoutLogger {
     const storageKeys = this.getUserStorageKeys(userId)
 
     try {
+      let updatedHistory: WorkoutSession[] = []
+
       // RACE CONDITION FIX: Atomically read-modify-write localStorage
       await StorageLock.withLock(storageKeys.workouts, async () => {
         const existing = localStorage.getItem(storageKeys.workouts)
@@ -1804,7 +1892,11 @@ export class WorkoutLogger {
         const filteredWorkouts = workouts.filter(w => w.id !== normalizedWorkout.id)
         filteredWorkouts.push(normalizedWorkout)
         localStorage.setItem(storageKeys.workouts, JSON.stringify(filteredWorkouts))
+        updatedHistory = filteredWorkouts
       })
+
+      // Mirror completed workouts to native SQLite on Capacitor builds
+      await this.persistArrayToNativeStorage(storageKeys.workouts, updatedHistory)
 
       // Sync to database using connection monitor
       if (userId && supabase) {
@@ -2724,6 +2816,7 @@ export class WorkoutLogger {
         const existingLocalData = localStorage.getItem(storageKeys.workouts)
         if (forceRefresh || !existingLocalData) {
           localStorage.setItem(storageKeys.workouts, JSON.stringify(workouts))
+          await this.persistArrayToNativeStorage(storageKeys.workouts, workouts)
           console.log("[WorkoutLogger] Loaded", workouts.length, "workouts from database (forceRefresh:", forceRefresh, ")")
         } else {
           console.log("[WorkoutLogger] Preserving local workouts, found", existingLocalData.length, "characters of local data")
@@ -2772,6 +2865,7 @@ export class WorkoutLogger {
         const existingLocalInProgress = localStorage.getItem(storageKeys.inProgress)
         if (forceRefresh || !existingLocalInProgress) {
           localStorage.setItem(storageKeys.inProgress, JSON.stringify(inProgressWorkouts))
+          await this.persistArrayToNativeStorage(storageKeys.inProgress, inProgressWorkouts)
           console.log("[WorkoutLogger] Loaded", inProgressWorkouts.length, "in-progress workouts from database (forceRefresh:", forceRefresh, ")")
         } else {
           console.log("[WorkoutLogger] Preserving local in-progress workouts, found", existingLocalInProgress.length, "characters of local data")
@@ -2788,8 +2882,9 @@ export class WorkoutLogger {
       if (!hasDatabaseData) {
         if (forceRefresh) {
           const storageKeys = this.getUserStorageKeys(userId)
+          await this.persistArrayToNativeStorage(storageKeys.workouts, [])
+          await this.removeInProgressWorkouts(storageKeys.inProgress)
           localStorage.removeItem(storageKeys.workouts)
-          localStorage.removeItem(storageKeys.inProgress)
           localStorage.removeItem(this.STORAGE_KEY)
           localStorage.removeItem(this.IN_PROGRESS_KEY)
           console.log("[WorkoutLogger] No data found in database. Cleared local caches (force refresh)")
@@ -2972,17 +3067,12 @@ export class WorkoutLogger {
 
     const storageKeys = this.getUserStorageKeys(userId)
 
-    // Clear from IndexedDB/StorageManager (primary storage for async operations)
     try {
-      await StorageManager.remove(storageKeys.inProgress)
-      console.log("[WorkoutLogger] Cleared in-progress workouts from IndexedDB")
+      await this.removeInProgressWorkouts(storageKeys.inProgress)
+      console.log("[WorkoutLogger] Cleared in-progress workouts from local storage backends")
     } catch (error) {
-      console.warn("[WorkoutLogger] Failed to clear from IndexedDB:", error)
+      console.warn("[WorkoutLogger] Failed to clear local in-progress workouts:", error)
     }
-
-    // Also clear from localStorage (sync fallback)
-    localStorage.removeItem(storageKeys.inProgress)
-    console.log("[WorkoutLogger] Cleared in-progress workouts from localStorage")
 
     // Also delete from database
     if (userId && supabase) {
