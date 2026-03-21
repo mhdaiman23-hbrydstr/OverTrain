@@ -8,7 +8,6 @@ workflows:
     environment:
       groups:
         - Supabase
-        - ios_credentials # Upload .p12 + .mobileprovision in Codemagic UI → Code signing identities
       ios_signing:
         distribution_type: app_store
         bundle_identifier: app.overtrain.gooonemore
