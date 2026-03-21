@@ -169,6 +169,10 @@ export class ProgramTemplateService {
 
     if (error) throw error
 
+    if (!data || data.length === 0) {
+      console.warn('[ProgramTemplateService] No templates returned. This likely means RLS is blocking access — check that is_public=true for canonical templates.')
+    }
+
     this.setCache(cacheKey, data || [])
     return data || []
   }
