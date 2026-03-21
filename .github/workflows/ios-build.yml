@@ -97,7 +97,7 @@ jobs:
         env:
           TEAM_ID: ${{ secrets.IOS_DEVELOPMENT_TEAM }}
           IOS_CERTIFICATE_BASE64: ${{ secrets.IOS_CERTIFICATE_BASE64 }}
-          P12_PASSWORD: "temp_password_12345"
+          P12_PASSWORD: ${{ secrets.P12_PASSWORD }}
 
       - name: Build for Ad-Hoc
         if: github.event.inputs.build_type == 'adhoc'

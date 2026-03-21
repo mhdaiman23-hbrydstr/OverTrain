@@ -71,3 +71,9 @@ CertificateSigningRequest.*
 
 # Apple secret generator script with credentials
 scripts/generate-apple-secret.js
+
+# Signing keys and certificates (private keys - NEVER commit)
+signing/
+distribution.key
+distribution.pem
+distribution_base64.txt

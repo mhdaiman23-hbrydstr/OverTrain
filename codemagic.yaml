@@ -23,7 +23,7 @@ workflows:
         # Optional: Add Sentry auth token for error tracking
         # SENTRY_AUTH_TOKEN: your_sentry_token
       node: v20.11.0
-      xcode: 26.1
+      xcode: latest
       cocoapods: default
     scripts:
       - name: Install Node.js dependencies
