@@ -22,11 +22,13 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { useAuth } from "@/contexts/auth-context"
-import { User, Mail, Target, Award, LogOut, Edit2, Check, X, Settings, HelpCircle, MessageSquare } from "lucide-react"
+import { User, Mail, Target, Award, LogOut, Edit2, Check, X, Settings, HelpCircle, MessageSquare, Info } from "lucide-react"
 import type { User as UserType } from "@/lib/auth"
 import { ProfileSettingsPanel } from "@/components/profile-settings-panel"
 import { ProfileHelpSection } from "@/components/profile-help-section"
 import { ProfileFeedbackSection } from "@/components/profile-feedback-section"
+import { ProfileAboutSection } from "@/components/profile-about-section"
+import { APP_VERSION } from "@/lib/version"
 import { SubscriptionManagement } from "@/components/subscription-management"
 import { RpeRirPreferenceToggle } from "@/components/profile/rpe-rir-preference-toggle"
 import { UserPreferenceService } from "@/lib/services/user-preference-service"
@@ -628,7 +630,7 @@ export function ProfileSection() {
           {/* Help Tab */}
           <TabsContent value="help" className="space-y-6">
             <Tabs defaultValue="faq" className="space-y-6">
-              <TabsList className="grid w-full grid-cols-2">
+              <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="faq" className="flex items-center gap-2">
                   <HelpCircle className="h-4 w-4" />
                   <span>FAQ</span>
@@ -636,6 +638,10 @@ export function ProfileSection() {
                 <TabsTrigger value="feedback" className="flex items-center gap-2">
                   <MessageSquare className="h-4 w-4" />
                   <span>Feedback</span>
+                </TabsTrigger>
+                <TabsTrigger value="about" className="flex items-center gap-2">
+                  <Info className="h-4 w-4" />
+                  <span>About</span>
                 </TabsTrigger>
               </TabsList>
 
@@ -646,13 +652,17 @@ export function ProfileSection() {
               <TabsContent value="feedback">
                 <ProfileFeedbackSection initialType={feedbackType} />
               </TabsContent>
+
+              <TabsContent value="about">
+                <ProfileAboutSection />
+              </TabsContent>
             </Tabs>
           </TabsContent>
         </Tabs>
 
         {/* App Info */}
         <div className="text-center text-xs text-muted-foreground pb-4 pt-6">
-          <p>OverTrain v1.0.0</p>
+          <p>OverTrain v{APP_VERSION}</p>
           <p className="mt-1">Made with 💪 for fitness enthusiasts</p>
         </div>
       </div>

@@ -14,6 +14,8 @@ import { Calendar } from "@/components/ui/calendar"
 import { WorkoutLogger } from "@/lib/workout-logger"
 import { AnalyticsEngine, type AdvancedAnalytics } from "@/lib/analytics"
 import type { WorkoutSession } from "@/lib/workout-logger"
+import { EmptyState } from "@/components/ui/empty-state"
+import { BarChart3 } from "lucide-react"
 
 interface MobileAnalyticsTabProps {
   onLogWorkout?: () => void
@@ -107,6 +109,24 @@ export function MobileAnalyticsTab({ onLogWorkout }: MobileAnalyticsTabProps) {
   }, [filteredWorkouts])
 
   const handleLogWorkout = onLogWorkout ?? (() => {})
+
+  if (workouts.length === 0) {
+    return (
+      <div className="min-h-screen bg-background pb-20">
+        <MobileAnalyticsHeader
+          selectedPeriod={selectedPeriod}
+          onPeriodChange={handlePeriodChange}
+        />
+        <EmptyState
+          icon={BarChart3}
+          title="No Workout Data Yet"
+          description="Complete your first workout to start seeing analytics, progress trends, and personal records."
+          action={{ label: "Start Training", onClick: handleLogWorkout }}
+          className="mt-12"
+        />
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-background pb-20">

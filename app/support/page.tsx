@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import Link from "next/link"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 
@@ -105,6 +106,9 @@ export default function SupportPage() {
             first workout. Visit <strong>Profile &gt; Help Center &gt; Getting Started</strong> for a step-by-step
             walkthrough.
           </p>
+          <Button variant="outline" asChild>
+            <Link href="/faq">Browse FAQ</Link>
+          </Button>
         </div>
       </div>
     </main>
