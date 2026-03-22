@@ -24,21 +24,27 @@ android {
     }
     
     // Signing configuration for release builds
+    // Reads from: Gradle -P properties → local.properties → environment variables
     signingConfigs {
         release {
-            storeFile file('release-keystore.jks')
-
-            // Read credentials from local.properties (not checked into git)
-            // or from environment variables for CI/CD
             def props = new Properties()
             def propsFile = rootProject.file('local.properties')
             if (propsFile.exists()) {
                 props.load(new FileInputStream(propsFile))
             }
 
-            storePassword props.getProperty('KEYSTORE_PASSWORD') ?: System.getenv('KEYSTORE_PASSWORD') ?: ''
-            keyAlias props.getProperty('KEY_ALIAS') ?: System.getenv('KEY_ALIAS') ?: 'keystore'
-            keyPassword props.getProperty('KEY_PASSWORD') ?: System.getenv('KEY_PASSWORD') ?: ''
+            def ksPath = project.hasProperty('KEYSTORE_PATH') ? project.property('KEYSTORE_PATH')
+                       : props.getProperty('KEYSTORE_PATH')
+                       ?: System.getenv('CM_KEYSTORE_PATH')
+                       ?: 'release-keystore.jks'
+
+            storeFile file(ksPath)
+            storePassword project.hasProperty('KEYSTORE_PASSWORD') ? project.property('KEYSTORE_PASSWORD')
+                        : props.getProperty('KEYSTORE_PASSWORD') ?: System.getenv('CM_KEYSTORE_PASSWORD') ?: ''
+            keyAlias project.hasProperty('KEY_ALIAS') ? project.property('KEY_ALIAS')
+                    : props.getProperty('KEY_ALIAS') ?: System.getenv('CM_KEY_ALIAS') ?: 'keystore'
+            keyPassword project.hasProperty('KEY_PASSWORD') ? project.property('KEY_PASSWORD')
+                       : props.getProperty('KEY_PASSWORD') ?: System.getenv('CM_KEY_PASSWORD') ?: ''
         }
     }
     

@@ -99,20 +99,18 @@ workflows:
           success: true
           failure: true
 
-  # Optional: Android workflow for completeness
   android-capacitor-workflow:
     name: Android Capacitor Build
     max_build_duration: 120
     instance_type: linux_x2
     environment:
       android_signing:
-        - overtrain_keystore # Configure this in Codemagic UI
+        - overtrain_keystore # Upload keystore in Codemagic UI → Code signing → Android
       groups:
-        - android_credentials # Add KEYSTORE_PASSWORD, KEY_ALIAS, KEY_PASSWORD
-        - Supabase
+        - google_play_credentials # GCLOUD_SERVICE_ACCOUNT_CREDENTIALS (JSON key)
+        - Supabase # NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY
       vars:
         PACKAGE_NAME: "app.overtrain.gooonemore"
-        NOTIFICATION_EMAIL: "mhd.aiman23@gmail.com"
       node: v20.11.0
       java: 17
     scripts:
@@ -124,12 +122,10 @@ workflows:
         script: |
           if [ -z "$NEXT_PUBLIC_SUPABASE_URL" ]; then
             echo "ERROR: NEXT_PUBLIC_SUPABASE_URL is not set!"
-            echo "Please add this environment variable in Codemagic UI under Environment Variables"
             exit 1
           fi
           if [ -z "$NEXT_PUBLIC_SUPABASE_ANON_KEY" ]; then
             echo "ERROR: NEXT_PUBLIC_SUPABASE_ANON_KEY is not set!"
-            echo "Please add this environment variable in Codemagic UI under Environment Variables"
             exit 1
           fi
           echo "Supabase environment variables are configured"
@@ -142,26 +138,51 @@ workflows:
         script: |
           npx cap sync android
 
-      - name: Set version code
+      - name: Set version code and wire keystore
         script: |
           cd android
-          # Auto-increment version code based on build number
-          echo "VERSION_CODE=$BUILD_NUMBER" >> gradle.properties
 
-      - name: Build Android release
+          # Use Codemagic build number as versionCode
+          BNUM=${BUILD_NUMBER:-1}
+          sed -i "s/versionCode [0-9]*/versionCode $BNUM/" app/build.gradle
+          echo "Set versionCode to $BNUM"
+
+          # Point build.gradle at the Codemagic-managed keystore
+          # CM_KEYSTORE_PATH, CM_KEYSTORE_PASSWORD, CM_KEY_ALIAS, CM_KEY_PASSWORD
+          # are set automatically by the android_signing integration
+          cat > keystore.properties <<PROPS
+          KEYSTORE_PATH=$CM_KEYSTORE_PATH
+          KEYSTORE_PASSWORD=$CM_KEYSTORE_PASSWORD
+          KEY_ALIAS=$CM_KEY_ALIAS
+          KEY_PASSWORD=$CM_KEY_PASSWORD
+          PROPS
+
+      - name: Build Android AAB and APK
         script: |
           cd android
-          ./gradlew assembleRelease
+          # AAB for Play Store
+          ./gradlew bundleRelease \
+            -PKEYSTORE_PATH="$CM_KEYSTORE_PATH" \
+            -PKEYSTORE_PASSWORD="$CM_KEYSTORE_PASSWORD" \
+            -PKEY_ALIAS="$CM_KEY_ALIAS" \
+            -PKEY_PASSWORD="$CM_KEY_PASSWORD"
+          # APK for direct install / testing
+          ./gradlew assembleRelease \
+            -PKEYSTORE_PATH="$CM_KEYSTORE_PATH" \
+            -PKEYSTORE_PASSWORD="$CM_KEYSTORE_PASSWORD" \
+            -PKEY_ALIAS="$CM_KEY_ALIAS" \
+            -PKEY_PASSWORD="$CM_KEY_PASSWORD"
 
     artifacts:
       - android/app/build/outputs/**/*.apk
       - android/app/build/outputs/**/*.aab
+      - android/app/build/outputs/**/mapping.txt
 
     publishing:
-      # Optional: Submit to Google Play
-      # google_play:
-      #   credentials: $GCLOUD_SERVICE_ACCOUNT_CREDENTIALS
-      #   track: internal
+      google_play:
+        credentials: $GCLOUD_SERVICE_ACCOUNT_CREDENTIALS
+        track: internal
+        submit_as_draft: true
 
       email:
         recipients:
