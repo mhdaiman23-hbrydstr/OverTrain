@@ -20,9 +20,10 @@ import {
 interface SidebarNavigationProps {
   currentView: string
   onViewChange: (view: string) => void
+  hasActiveProgram?: boolean
 }
 
-export function SidebarNavigation({ currentView, onViewChange }: SidebarNavigationProps) {
+export function SidebarNavigation({ currentView, onViewChange, hasActiveProgram }: SidebarNavigationProps) {
   const { signOut, user } = useAuth()
   const router = useRouter()
   const [showSignOutDialog, setShowSignOutDialog] = useState(false)
@@ -62,7 +63,7 @@ export function SidebarNavigation({ currentView, onViewChange }: SidebarNavigati
   }, [])
 
   const baseNavigationItems = [
-    { id: "train", label: "Train", icon: Dumbbell },
+    { id: "train", label: hasActiveProgram ? "Workout" : "Train", icon: Dumbbell },
     { id: "programs", label: "Programs", icon: Calendar },
     { id: "analytics", label: "Analytics", icon: BarChart3 },
     { id: "profile", label: "Profile", icon: User },
@@ -129,10 +130,15 @@ export function SidebarNavigation({ currentView, onViewChange }: SidebarNavigati
 
         {/* Navigation */}
         <nav className="flex-1 px-2 py-4 space-y-1">
-          {baseNavigationItems.map((item) => (
+          {baseNavigationItems.map((item) => {
+            // "train" tab should highlight when currentView is "train" OR "workout"
+            const isActive = item.id === "train"
+              ? (currentView === "train" || currentView === "workout")
+              : currentView === item.id
+            return (
           <Button
             key={item.id}
-            variant={currentView === item.id ? "secondary" : "ghost"}
+            variant={isActive ? "secondary" : "ghost"}
             className="w-full justify-start text-sm font-normal"
             onClick={() => {
               if (item.id === "templates") {
@@ -145,7 +151,8 @@ export function SidebarNavigation({ currentView, onViewChange }: SidebarNavigati
               <item.icon className="mr-3 h-4 w-4" />
               {item.label}
             </Button>
-          ))}
+            )
+          })}
           {adminNavigationItems.length > 0 && (
             <div className="my-3 border-t border-border/70" />
           )}

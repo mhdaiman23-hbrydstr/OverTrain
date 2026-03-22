@@ -552,19 +552,21 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
 
   useEffect(() => {
     const loadProgramData = async () => {
-      // First, check raw localStorage data
-      console.log("💾 RAW LOCALSTORAGE CHECK:", {
-        inProgressKey: 'liftlog_in_progress_workouts',
-        rawValue: localStorage.getItem('liftlog_in_progress_workouts'),
-        parsed: (() => {
-          try {
-            const raw = localStorage.getItem('liftlog_in_progress_workouts')
-            return raw ? JSON.parse(raw) : null
-          } catch (e) {
-            return { error: (e as Error).message }
-          }
-        })()
-      })
+      // Debug logging gated to development only to avoid perf overhead on mobile
+      if (process.env.NODE_ENV === 'development') {
+        console.log("💾 RAW LOCALSTORAGE CHECK:", {
+          inProgressKey: 'liftlog_in_progress_workouts',
+          rawValue: localStorage.getItem('liftlog_in_progress_workouts'),
+          parsed: (() => {
+            try {
+              const raw = localStorage.getItem('liftlog_in_progress_workouts')
+              return raw ? JSON.parse(raw) : null
+            } catch (e) {
+              return { error: (e as Error).message }
+            }
+          })()
+        })
+      }
 
       const activeProgram = await ProgramStateManager.getActiveProgram()
       if (activeProgram) {
@@ -573,24 +575,25 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
 
       const existingWorkout = await WorkoutLogger.getCurrentWorkout()
       if (existingWorkout) {
-        console.log("📥 COMPONENT LOAD - Existing workout from localStorage:", {
-          id: existingWorkout.id,
-          week: existingWorkout.week,
-          day: existingWorkout.day,
-          exerciseCount: existingWorkout.exercises?.length || 0,
-          exercises: existingWorkout.exercises?.map((ex) => ({
-            name: ex.exerciseName,
-            setsCount: ex.sets?.length || 0,
-            hasSets: !!ex.sets,
-            firstSetState: ex.sets?.[0] ? {
-              reps: ex.sets[0].reps,
-              weight: ex.sets[0].weight,
-              completed: ex.sets[0].completed,
-              skipped: ex.sets[0].skipped
-            } : null
-          })),
-          fullWorkout: JSON.parse(JSON.stringify(existingWorkout))
-        })
+        if (process.env.NODE_ENV === 'development') {
+          console.log("📥 COMPONENT LOAD - Existing workout from localStorage:", {
+            id: existingWorkout.id,
+            week: existingWorkout.week,
+            day: existingWorkout.day,
+            exerciseCount: existingWorkout.exercises?.length || 0,
+            exercises: existingWorkout.exercises?.map((ex) => ({
+              name: ex.exerciseName,
+              setsCount: ex.sets?.length || 0,
+              hasSets: !!ex.sets,
+              firstSetState: ex.sets?.[0] ? {
+                reps: ex.sets[0].reps,
+                weight: ex.sets[0].weight,
+                completed: ex.sets[0].completed,
+                skipped: ex.sets[0].skipped
+              } : null
+            })),
+          })
+        }
         setWorkout(existingWorkout)
         setWorkoutNotes(existingWorkout.notes || "")
 
@@ -785,19 +788,14 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
         const day = activeProgram?.currentDay
 
         const newWorkout = await WorkoutLogger.startWorkout(initialWorkout.name, initialWorkout.exercises, week, day, user?.id)
-        console.log("🆕 COMPONENT NEW WORKOUT - Created from initialWorkout:", {
-          id: newWorkout.id,
-          week: newWorkout.week,
-          day: newWorkout.day,
-          exerciseCount: newWorkout.exercises.length,
-          firstExerciseFirstSet: newWorkout.exercises[0]?.sets[0] ? {
-            reps: newWorkout.exercises[0].sets[0].reps,
-            weight: newWorkout.exercises[0].sets[0].weight,
-            completed: newWorkout.exercises[0].sets[0].completed,
-            skipped: newWorkout.exercises[0].sets[0].skipped
-          } : null,
-          fullWorkout: JSON.parse(JSON.stringify(newWorkout))
-        })
+        if (process.env.NODE_ENV === 'development') {
+          console.log("🆕 COMPONENT NEW WORKOUT - Created from initialWorkout:", {
+            id: newWorkout.id,
+            week: newWorkout.week,
+            day: newWorkout.day,
+            exerciseCount: newWorkout.exercises.length,
+          })
+        }
         setWorkout(newWorkout)
         setIsWorkoutBlocked(false)
         setIsFullyBlocked(false)

@@ -130,9 +130,9 @@ export class ProgramStateManager {
   private static readonly PROGRAM_HISTORY_KEY = "liftlog_program_history"
   private static readonly DATABASE_LOAD_KEY = "liftlog_program_db_loaded_at"
   private static readonly LOCAL_SAVE_KEY = "liftlog_program_local_saved_at"
-  private static readonly DATABASE_STALE_MS = 5_000
+  private static readonly DATABASE_STALE_MS = 30_000
   // RACE CONDITION FIX: Time window to protect fresh local saves from being overwritten by database
-  private static readonly LOCAL_SAVE_PROTECTION_MS = 3_000
+  private static readonly LOCAL_SAVE_PROTECTION_MS = 10_000
   private static databaseLoadPromise: Promise<void> | null = null
   private static ensureCustomTemplatePromise: Promise<void> | null = null
 
@@ -612,8 +612,11 @@ export class ProgramStateManager {
       // NATIVE OPTIMIZATION: Skip database sync on native - SQLite is the cache
       // Background sync handles Supabase synchronization separately
       if (!options?.skipDatabaseLoad && !this.shouldUseNativeStorage()) {
-        await this.ensureDatabaseLoaded(currentUserId, { force: options?.refreshTemplate })
-        await WorkoutLogger.ensureDatabaseLoaded(currentUserId, { force: options?.refreshTemplate })
+        // PERF FIX: Load both in parallel instead of sequentially
+        await Promise.all([
+          this.ensureDatabaseLoaded(currentUserId, { force: options?.refreshTemplate }),
+          WorkoutLogger.ensureDatabaseLoaded(currentUserId, { force: options?.refreshTemplate })
+        ])
       }
 
       let stored = await this.getStorageValue(this.ACTIVE_PROGRAM_KEY)
@@ -818,36 +821,41 @@ export class ProgramStateManager {
       history.push(newHistoryEntry)
       this.saveProgramHistory(history)
 
-      // Sync to database
-      if (resolvedUserId) {
-        await this.syncToDatabase(resolvedUserId)
-      }
+      // Dispatch programChanged event IMMEDIATELY after localStorage is saved
+      // This must happen before slow async work so consumers read fresh local data
+      window.dispatchEvent(new Event("programChanged"))
 
-      // Log audit event for program creation
+      // Fire-and-forget: Sync to database and log audit in background
+      // These are slow network calls that should NOT block program activation
       if (resolvedUserId) {
-        try {
-          const { logAuditEvent } = await import('./audit-logger')
-          await logAuditEvent({
+        const bgUserId = resolvedUserId
+        const bgTemplateId = templateId
+        const bgTemplateName = template.name
+        const bgScheduleKeys = Object.keys(template.schedule).length
+        const bgWeeks = template.weeks
+
+        this.syncToDatabase(bgUserId).catch(err =>
+          console.error("[ProgramState] Background sync after program creation failed:", err)
+        )
+
+        import('./audit-logger').then(({ logAuditEvent }) =>
+          logAuditEvent({
             action: 'PROGRAM_CREATED',
-            userId: resolvedUserId,
+            userId: bgUserId,
             resourceType: 'PROGRAM',
-            resourceId: templateId,
+            resourceId: bgTemplateId,
             details: {
-              programName: template.name,
-              daysPerWeek: Object.keys(template.schedule).length,
-              totalWeeks: template.weeks,
+              programName: bgTemplateName,
+              daysPerWeek: bgScheduleKeys,
+              totalWeeks: bgWeeks,
             },
             ipAddress: null,
             userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : null,
-          })
-        } catch (auditError) {
-          console.error('[ProgramState] Failed to log program creation audit event:', auditError)
-          // Don't throw - audit logging shouldn't break program creation
-        }
+          }).catch(err =>
+            console.error('[ProgramState] Background audit log failed:', err)
+          )
+        ).catch(() => {})
       }
-
-      // Dispatch programChanged event AFTER all state is set up
-      window.dispatchEvent(new Event("programChanged"))
 
       return activeProgram
     })

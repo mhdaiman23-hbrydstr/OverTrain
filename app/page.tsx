@@ -33,6 +33,7 @@ export default function HomePage() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
   const [programKey, setProgramKey] = useState(0)
+  const [hasActiveProgram, setHasActiveProgram] = useState(false)
   const [dataLoadingStatus, setDataLoadingStatus] = useState<string>("")
   const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false)
   const [forgotPasswordEmail, setForgotPasswordEmail] = useState("")
@@ -88,6 +89,7 @@ export default function HomePage() {
       // Immediately check for active program without delay
       const initializeView = async () => {
         const activeProgram = await ProgramStateManager.getActiveProgram()
+        setHasActiveProgram(!!activeProgram)
 
         if (activeProgram) {
           // User has program - go to workout view
@@ -106,6 +108,7 @@ export default function HomePage() {
   useEffect(() => {
     const handleProgramEnded = () => {
       console.log("[HomePage] Program ended, navigating to program selection")
+      setHasActiveProgram(false)
       setCurrentView("train")
       setProgramKey(prev => prev + 1) // Force re-render of programs section
     }
@@ -144,7 +147,10 @@ export default function HomePage() {
     const handleProgramChange = async () => {
       // Check current values from refs, not closed-over props
       if (userRef.current && userRef.current.gender) {
-        const activeProgram = await ProgramStateManager.getActiveProgram()
+        // PERF FIX: Skip database load — programChanged fires right after localStorage save,
+        // so local data is fresh. Hitting Supabase here risks overwriting with stale data.
+        const activeProgram = await ProgramStateManager.getActiveProgram({ skipDatabaseLoad: true })
+        setHasActiveProgram(!!activeProgram)
         // Only redirect to workout if:
         // 1. There is an active program AND
         // 2. We're currently in train view (not profile, programs, etc.)
@@ -289,23 +295,23 @@ export default function HomePage() {
     setCurrentView("workout")
   }
 
-  const handleViewChange = async (view: string) => {
-    // INSTANT: Switch view immediately for responsive UX
+  const handleViewChange = (view: string) => {
+    // INSTANT: Switch view immediately — no async calls for responsive UX
     if (view === "train") {
-      const activeProgram = await ProgramStateManager.getActiveProgram()
-      setCurrentView(activeProgram ? "workout" : "train")
+      // Use tracked state instead of async getActiveProgram() call
+      setCurrentView(hasActiveProgram ? "workout" : "train")
     } else {
       setCurrentView(view as "dashboard" | "programs" | "workout" | "analytics" | "train" | "profile")
     }
 
     // BACKGROUND: Preload data for adjacent/likely next tabs (non-blocking)
-    // This makes subsequent tab switches feel instant
+    // PERF FIX: Use skipDatabaseLoad — prefetch only needs localStorage, not Supabase
     if (typeof window !== "undefined") {
       // Fire-and-forget preloading - don't await
       switch (view) {
         case "programs":
           // User in Programs might go to Train next
-          ProgramStateManager.getActiveProgram().catch(() => {})
+          ProgramStateManager.getActiveProgram({ skipDatabaseLoad: true }).catch(() => {})
           break
         case "train":
         case "workout":
@@ -314,13 +320,14 @@ export default function HomePage() {
           break
         case "analytics":
           // User in Analytics might go to Train next
-          ProgramStateManager.getActiveProgram().catch(() => {})
+          ProgramStateManager.getActiveProgram({ skipDatabaseLoad: true }).catch(() => {})
           break
       }
     }
   }
 
   const handleProgramStarted = () => {
+    setHasActiveProgram(true)
     setProgramKey((prev) => prev + 1)
     setCurrentView("workout")
   }
@@ -374,7 +381,7 @@ export default function HomePage() {
   if (user && (currentView === "programs" || currentView === "train" || currentView === "workout" || currentView === "analytics" || currentView === "profile")) {
     return (
       <div className="flex h-screen bg-background overflow-hidden touch-action-none" style={{ touchAction: 'pan-y' }}>
-        <SidebarNavigation currentView={currentView} onViewChange={(view) => setCurrentView(view as any)} />
+        <SidebarNavigation currentView={currentView} onViewChange={handleViewChange} hasActiveProgram={hasActiveProgram} />
 
         {/* Programs Section - Hidden but mounted */}
         <div
@@ -446,7 +453,7 @@ export default function HomePage() {
           <ProfileSection />
         </div>
 
-        <BottomNavigation currentView={currentView} onViewChange={handleViewChange} />
+        <BottomNavigation currentView={currentView} onViewChange={handleViewChange} hasActiveProgram={hasActiveProgram} />
       </div>
     )
   }

@@ -111,7 +111,7 @@ export class WorkoutLogger {
   private static readonly STORAGE_KEY = "liftlog_workouts"
   private static readonly IN_PROGRESS_KEY = "liftlog_in_progress_workouts"
   private static readonly DATABASE_LOAD_KEY = "liftlog_workouts_db_loaded_at"
-  private static readonly DATABASE_STALE_MS = 5_000
+  private static readonly DATABASE_STALE_MS = 30_000
   private static databaseLoadPromise: Promise<void> | null = null
 
   /**

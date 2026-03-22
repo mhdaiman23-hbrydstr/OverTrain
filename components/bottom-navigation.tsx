@@ -6,13 +6,14 @@ import { Dumbbell, Calendar, BarChart3, User } from "lucide-react"
 interface BottomNavigationProps {
   currentView: string
   onViewChange: (view: string) => void
+  hasActiveProgram?: boolean
 }
 
-export function BottomNavigation({ currentView, onViewChange }: BottomNavigationProps) {
+export function BottomNavigation({ currentView, onViewChange, hasActiveProgram }: BottomNavigationProps) {
   const navItems = [
     {
       id: "train",
-      label: "Train",
+      label: hasActiveProgram ? "Workout" : "Train",
       icon: Dumbbell,
     },
     {
@@ -37,7 +38,10 @@ export function BottomNavigation({ currentView, onViewChange }: BottomNavigation
       <div className="flex items-center justify-around py-2">
         {navItems.map((item) => {
           const Icon = item.icon
-          const isActive = currentView === item.id
+          // "train" tab should highlight when currentView is "train" OR "workout"
+          const isActive = item.id === "train"
+            ? (currentView === "train" || currentView === "workout")
+            : currentView === item.id
 
           return (
             <Button
