@@ -147,36 +147,31 @@ export function TemplateTable({ accessToken, onCreate, onEdit, onDuplicate, refr
   return (
     <>
       <Card>
-        <CardHeader className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div className="space-y-2">
-            <div className="flex flex-wrap items-center gap-2">
-              <CardTitle className="text-lg">Program Templates</CardTitle>
-              <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
+        <CardHeader className="space-y-3 pb-4">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 min-w-0">
+              <CardTitle className="text-lg whitespace-nowrap">Program Templates</CardTitle>
+              <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground shrink-0">
                 {totalTemplates} total
               </span>
               {searchTerm.trim() && (
-                <span className="text-xs text-muted-foreground">
-                  Showing {visibleTemplates} match{visibleTemplates === 1 ? "" : "es"}
+                <span className="text-xs text-muted-foreground shrink-0">
+                  ({visibleTemplates})
                 </span>
               )}
             </div>
-            <p className="text-sm text-muted-foreground">
-              Manage existing templates or start a new one. Duplicate to iterate safely without publishing immediately.
-            </p>
-          </div>
-          <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center sm:justify-end md:w-auto">
-            <Input
-              value={searchTerm}
-              onChange={(event) => setSearchTerm(event.target.value)}
-              placeholder="Search templates..."
-              aria-label="Search program templates"
-              className="sm:w-64"
-            />
-            <Button onClick={onCreate} className="whitespace-nowrap">
-              <Plus className="mr-2 h-4 w-4" />
-              New Template
+            <Button onClick={onCreate} size="sm" className="whitespace-nowrap shrink-0">
+              <Plus className="mr-1.5 h-4 w-4" />
+              <span className="hidden sm:inline">New Template</span>
+              <span className="sm:hidden">New</span>
             </Button>
           </div>
+          <Input
+            value={searchTerm}
+            onChange={(event) => setSearchTerm(event.target.value)}
+            placeholder="Search templates..."
+            aria-label="Search program templates"
+          />
         </CardHeader>
         <CardContent>
           {isLoading ? (
@@ -208,12 +203,12 @@ export function TemplateTable({ accessToken, onCreate, onEdit, onDuplicate, refr
                 <TableHeader>
                   <TableRow>
                     <TableHead>Template</TableHead>
-                    <TableHead className="w-[80px] text-center">Days</TableHead>
-                    <TableHead className="w-[110px] text-center">Block Length</TableHead>
-                    <TableHead>Progression</TableHead>
-                    <TableHead>Gender</TableHead>
-                    <TableHead>Experience</TableHead>
-                    <TableHead className="w-[60px]" />
+                    <TableHead className="w-[60px] text-center">Days</TableHead>
+                    <TableHead className="w-[80px] text-center">Weeks</TableHead>
+                    <TableHead className="hidden lg:table-cell">Progression</TableHead>
+                    <TableHead className="hidden md:table-cell">Gender</TableHead>
+                    <TableHead className="hidden md:table-cell">Experience</TableHead>
+                    <TableHead className="w-[48px]" />
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -231,11 +226,11 @@ export function TemplateTable({ accessToken, onCreate, onEdit, onDuplicate, refr
                       </TableCell>
                       <TableCell className="text-center text-sm font-medium">{template.daysPerWeek}</TableCell>
                       <TableCell className="text-center text-sm text-muted-foreground">{template.totalWeeks}</TableCell>
-                      <TableCell className="capitalize">
+                      <TableCell className="hidden lg:table-cell capitalize">
                         {template.progressionType.replace(/_/g, " ")}
                       </TableCell>
-                      <TableCell>{formatList(template.gender)}</TableCell>
-                      <TableCell>{formatList(template.experienceLevel)}</TableCell>
+                      <TableCell className="hidden md:table-cell">{formatList(template.gender)}</TableCell>
+                      <TableCell className="hidden md:table-cell">{formatList(template.experienceLevel)}</TableCell>
                       <TableCell className="text-right">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
