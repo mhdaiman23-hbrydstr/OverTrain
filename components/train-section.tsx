@@ -199,8 +199,19 @@ export function TrainSection({ onStartWorkout, onAddProgram, shouldAutoStart = f
     }
 
     const handleProgramChange = () => {
-      console.log("[TrainSection] Active program changed event received, reloading...")
-      loadProgramData()
+      console.log("[TrainSection] Active program changed event received")
+      // PERF: Use sync localStorage to update state immediately, skip async call if tab is hidden
+      const stored = localStorage.getItem('liftlog_active_program')
+      if (stored) {
+        try { setActiveProgram(JSON.parse(stored)) } catch { /* ignore */ }
+      } else {
+        setActiveProgram(null)
+        setCurrentWorkout(null)
+      }
+      // Only do full async reload if this tab is currently visible
+      if (shouldAutoStartRef.current) {
+        loadProgramData()
+      }
     }
 
     const handleProgramEnded = async () => {

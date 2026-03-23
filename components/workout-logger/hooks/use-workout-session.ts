@@ -845,9 +845,9 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
       // Set loading state to prevent "No workout to log" flash during transition
       setIsLoadingWorkout(true)
 
-      // CRITICAL FIX: Force refresh program state from database to avoid using stale cached data
-      // This ensures we get the LATEST week/day after workout completion
-      const activeProgram = await ProgramStateManager.getActiveProgram({ refreshTemplate: false, skipDatabaseLoad: false })
+      // PERF FIX: programChanged fires right after localStorage save, so local data is fresh.
+      // Skip database load to avoid slow Supabase call and race with stale data.
+      const activeProgram = await ProgramStateManager.getActiveProgram({ refreshTemplate: false, skipDatabaseLoad: true })
 
       console.log("[handleProgramChange] Program state after refresh:", JSON.stringify({
         currentWeek: activeProgram?.currentWeek,

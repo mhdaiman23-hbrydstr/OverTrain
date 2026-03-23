@@ -1,4 +1,5 @@
 "use client"
+import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Dumbbell, Calendar, BarChart3, User, HelpCircle, LogOut, FilePlus2, MessageSquare, Check, AlertCircle, Wifi, WifiOff } from "lucide-react"
 import { useAuth } from "@/contexts/auth-context"
@@ -135,14 +136,23 @@ export function SidebarNavigation({ currentView, onViewChange, hasActiveProgram 
             const isActive = item.id === "train"
               ? (currentView === "train" || currentView === "workout")
               : currentView === item.id
+            // Grey out Train tab when no active program — nothing to train with
+            const isDisabled = item.id === "train" && !hasActiveProgram
             return (
           <Button
             key={item.id}
-            variant={isActive ? "secondary" : "ghost"}
-            className="w-full justify-start text-sm font-normal"
+            variant={isActive && !isDisabled ? "secondary" : "ghost"}
+            className={cn(
+              "w-full justify-start text-sm font-normal",
+              isDisabled && "opacity-40",
+            )}
             onClick={() => {
               if (item.id === "templates") {
                 router.push("/admin/templates")
+                return
+              }
+              if (isDisabled) {
+                onViewChange("programs")
                 return
               }
               onViewChange(item.id)

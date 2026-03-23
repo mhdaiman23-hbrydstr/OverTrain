@@ -22,12 +22,23 @@ Note: TypeScript and ESLint errors are ignored during builds (see next.config.mj
 ## Build & Deployment
 
 **iOS Builds**: All iOS builds are handled through **Codemagic CI/CD** using the `codemagic.yaml` workflow. Do not build iOS locally unless testing. The workflow:
-- Builds the Next.js static export
+- Builds the Next.js static export via `npm run build:native` (uses `next.config.native.mjs`)
 - Syncs Capacitor
 - Signs and uploads to TestFlight automatically
 - Uses `ios-capacitor-workflow` in `codemagic.yaml`
 
-**Android Builds**: Can be built locally or through CI/CD (check `codemagic.yaml` for Android workflow if configured).
+**Android Builds**: Handled through Codemagic CI/CD (`android-capacitor-workflow` in `codemagic.yaml`). Can also be built locally.
+
+**Native Build Pipeline** (`scripts/build-native.js`):
+- Swaps `next.config.mjs` → `next.config.native.mjs` (enables `output: 'export'`, `trailingSlash: true`)
+- Hides `app/api/` routes (not needed in static export)
+- Outputs to `out/` directory which Capacitor serves in the WebView
+- Restores original config on completion
+
+**Capacitor Configuration** (`capacitor.config.ts`):
+- `webDir: 'out'` — serves the Next.js static export
+- iOS: `scrollEnabled: true`, `contentInset: 'automatic'`
+- Android: `useLegacyBridge: false`
 
 ## Testing
 
@@ -67,6 +78,24 @@ tests/
 - **Program State**: Managed via `lib/program-state.ts` using localStorage with events (`programChanged` event)
 - **Workout State**: In-progress workouts stored per week/day in localStorage, moved to history on completion
 
+### Native Storage Architecture (Capacitor)
+
+On native (iOS/Android), storage uses a dual-layer system:
+
+**Storage Hierarchy**:
+- **SQLite** (via `lib/native/sqlite-service.ts`) — primary store on native
+- **localStorage** — always mirrored as fallback (see `setStorageValue()` in `program-state.ts`)
+- **Supabase** — remote sync, loaded on startup and synced in background
+
+**Critical Rule**: `setStorageValue()` always writes to BOTH SQLite and localStorage on native (`program-state.ts` lines 226-244). This means localStorage is always a reliable synchronous fallback.
+
+**Platform Detection**: `isNative()` from `lib/native/platform.ts` uses `Capacitor.isNativePlatform()`
+
+**Storage Service** (`lib/native/storage-service.ts`):
+- `UnifiedStorageService` singleton with lazy initialization
+- Routes to SQLite on native, IndexedDB/localStorage on web
+- Key mappings: `liftlog_active_program` → `ACTIVE_PROGRAMS` table, etc.
+
 ### Key Architecture Patterns
 
 **Program-to-Workout Flow**:
@@ -98,11 +127,6 @@ tests/
 - `liftlog_program_history` - Historical programs with completion rates
 
 ### Component Structure
-
-**View Routing** (in app/page.tsx):
-- `currentView` state controls which section renders: `dashboard | programs | workout | analytics | train | profile`
-- Bottom navigation updates view on mobile
-- Sidebar navigation on desktop (lg breakpoint)
 
 **Auth-Gated Views**:
 - No user → Landing page with sign-in/sign-up
@@ -198,6 +222,23 @@ window.dispatchEvent(new Event("programChanged"))
 ```
 
 Components can listen to refresh UI when programs change.
+
+**CRITICAL: `programChanged` Event Handler Rules** (prevents race conditions on native):
+
+1. **Never use async `getActiveProgram()` in `programChanged` handlers for view routing** — on native, async SQLite reads can resolve after other state changes and override correct navigation. Use synchronous `localStorage.getItem('liftlog_active_program')` instead (localStorage is always mirrored on native).
+2. **`programChanged` fires synchronously** from `setActiveProgram()` BEFORE it returns to the caller. Any async work in handlers creates a race with the caller's subsequent code.
+3. **`handleProgramStarted()` in `page.tsx` uses a guard ref** (`programActivationGuardRef`) to prevent the `programChanged` handler from overriding its navigation. The guard clears after 2 seconds.
+4. **`setActiveProgram()` fires database sync and audit logging in background** (fire-and-forget) — the event and return happen immediately after localStorage save.
+5. **Use `skipDatabaseLoad: true`** when handling `programChanged` — local data is fresh right after the event fires.
+
+### Navigation & Tab Behavior
+
+**View Routing** uses keep-alive pattern — all views are rendered and shown/hidden with CSS `display` to preserve component state across tab switches.
+
+**Train/Workout Tab**:
+- `hasActiveProgram=true` → Tab shows "Workout", routes to workout logger
+- `hasActiveProgram=false` → Tab shows "Train", greyed out (`opacity-40`), tapping redirects to Programs
+- `hasActiveProgram` is initialized synchronously from localStorage (`getInitialHasActiveProgram()`) to prevent flash of wrong label on native
 
 ### Mobile Set Sync (Fire-and-Forget Patterns)
 

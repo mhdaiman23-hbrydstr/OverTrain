@@ -42,16 +42,25 @@ export function BottomNavigation({ currentView, onViewChange, hasActiveProgram }
           const isActive = item.id === "train"
             ? (currentView === "train" || currentView === "workout")
             : currentView === item.id
+          // Grey out Train tab when no active program — nothing to train with
+          const isDisabled = item.id === "train" && !hasActiveProgram
 
           return (
             <Button
               key={item.id}
               variant="ghost"
               size="touch"
-              onClick={() => onViewChange(item.id)}
+              onClick={() => {
+                if (isDisabled) {
+                  onViewChange("programs")
+                  return
+                }
+                onViewChange(item.id)
+              }}
               className={cn(
                 "flex-col gap-1.5",
-                isActive && "text-primary bg-primary/10",
+                isActive && !isDisabled && "text-primary bg-primary/10",
+                isDisabled && "opacity-40",
               )}
             >
               <Icon className="h-5 w-5" />

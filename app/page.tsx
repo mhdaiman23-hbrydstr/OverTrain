@@ -28,12 +28,21 @@ if (typeof window !== "undefined" && process.env.NODE_ENV === "development") {
   debugLogCapture.start()
 }
 
+// Sync localStorage check for immediate hasActiveProgram state on native
+// Mirrors pattern from train-section.tsx getInitialActiveProgram()
+function getInitialHasActiveProgram(): boolean {
+  try {
+    if (typeof window === "undefined") return false
+    return !!localStorage.getItem('liftlog_active_program')
+  } catch { return false }
+}
+
 export default function HomePage() {
   const { user, signIn, signUp, signInWithGoogle, signInWithApple, signOut, isLoading: authLoading, requestPasswordReset } = useAuth()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
   const [programKey, setProgramKey] = useState(0)
-  const [hasActiveProgram, setHasActiveProgram] = useState(false)
+  const [hasActiveProgram, setHasActiveProgram] = useState(getInitialHasActiveProgram)
   const [dataLoadingStatus, setDataLoadingStatus] = useState<string>("")
   const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false)
   const [forgotPasswordEmail, setForgotPasswordEmail] = useState("")
@@ -49,6 +58,8 @@ export default function HomePage() {
   // This prevents being pulled back to Train when saving profile
   const currentViewRef = useRef(currentView)
   const userRef = useRef(user)
+  // RACE FIX: Guard prevents programChanged handler from overriding handleProgramStarted navigation
+  const programActivationGuardRef = useRef(false)
 
   useEffect(() => {
     currentViewRef.current = currentView
@@ -144,22 +155,27 @@ export default function HomePage() {
   // Listen for program state changes (e.g., after loading from database)
   // FIX: Use refs to prevent stale closures, empty dependency array to register listener once
   useEffect(() => {
-    const handleProgramChange = async () => {
+    const handleProgramChange = () => {
+      // RACE FIX: Skip if program was just activated via handleProgramStarted —
+      // that handler already set the correct view, don't override it
+      if (programActivationGuardRef.current) {
+        console.log("[HomePage] Skipping programChanged — activation guard active")
+        return
+      }
+
       // Check current values from refs, not closed-over props
       if (userRef.current && userRef.current.gender) {
-        // PERF FIX: Skip database load — programChanged fires right after localStorage save,
-        // so local data is fresh. Hitting Supabase here risks overwriting with stale data.
-        const activeProgram = await ProgramStateManager.getActiveProgram({ skipDatabaseLoad: true })
-        setHasActiveProgram(!!activeProgram)
-        // Only redirect to workout if:
-        // 1. There is an active program AND
-        // 2. We're currently in train view (not profile, programs, etc.)
-        // This prevents redirecting when saving profile or editing other tabs
-        if (activeProgram && currentViewRef.current === "train") {
+        // RACE FIX: Use synchronous localStorage instead of async getActiveProgram().
+        // On native, localStorage is always mirrored (program-state.ts setStorageValue L232-234).
+        // Sync read completes before handler yields, eliminating the race where async
+        // getActiveProgram() resolves after handleProgramStarted() and overrides the view.
+        const hasProgram = !!localStorage.getItem('liftlog_active_program')
+        setHasActiveProgram(hasProgram)
+
+        if (hasProgram && currentViewRef.current === "train") {
           console.log("[HomePage] Redirecting from train to workout due to active program")
           setCurrentView("workout")
-        } else if (!activeProgram && currentViewRef.current === "workout") {
-          // If program ended, redirect back to train
+        } else if (!hasProgram && currentViewRef.current === "workout") {
           console.log("[HomePage] Program ended, redirecting to train")
           setCurrentView("train")
         }
@@ -327,9 +343,13 @@ export default function HomePage() {
   }
 
   const handleProgramStarted = () => {
+    // RACE FIX: Guard prevents programChanged handler from overriding this navigation
+    programActivationGuardRef.current = true
     setHasActiveProgram(true)
     setProgramKey((prev) => prev + 1)
     setCurrentView("workout")
+    // Clear guard after async handlers have had time to resolve
+    setTimeout(() => { programActivationGuardRef.current = false }, 2000)
   }
 
   const handleWorkoutComplete = () => {
