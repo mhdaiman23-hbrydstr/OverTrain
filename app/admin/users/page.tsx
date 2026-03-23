@@ -37,7 +37,7 @@ export default function AdminUsersPage() {
             You need admin access to view the users management.
           </p>
           <p className="text-sm text-muted-foreground">
-            If you believe this is an error, contact the LiftLog team.
+            If you believe this is an error, contact the OverTrain team.
           </p>
         </div>
       </div>

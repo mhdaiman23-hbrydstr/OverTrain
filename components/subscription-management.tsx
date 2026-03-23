@@ -31,7 +31,7 @@ export function SubscriptionManagement() {
                 </Badge>
               </div>
               <p className="text-sm text-muted-foreground">
-                You're currently enjoying LiftLog for free during our beta period
+                You're currently enjoying OverTrain for free during our beta period
               </p>
             </div>
           </div>

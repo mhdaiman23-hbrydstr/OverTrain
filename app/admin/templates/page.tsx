@@ -56,7 +56,7 @@ export default function AdminTemplatesPage() {
           </CardHeader>
           <CardContent className="space-y-2 text-sm text-muted-foreground">
             <p>You need admin access to manage program templates.</p>
-            <p>If you believe this is an error, contact the LiftLog team.</p>
+            <p>If you believe this is an error, contact the OverTrain team.</p>
           </CardContent>
         </Card>
       </div>

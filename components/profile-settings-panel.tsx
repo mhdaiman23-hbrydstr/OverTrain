@@ -176,7 +176,7 @@ export function ProfileSettingsPanel() {
             Appearance
           </CardTitle>
           <CardDescription>
-            Customize how LiftLog looks and feels
+            Customize how OverTrain looks and feels
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -262,7 +262,7 @@ export function ProfileSettingsPanel() {
             <div className="space-y-0.5">
               <Label>Analytics Sharing</Label>
               <p className="text-sm text-muted-foreground">
-                Help improve LiftLog with anonymous usage data
+                Help improve OverTrain with anonymous usage data
               </p>
             </div>
             <Switch defaultChecked />
