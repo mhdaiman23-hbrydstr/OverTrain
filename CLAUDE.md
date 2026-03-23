@@ -89,12 +89,15 @@ On native (iOS/Android), storage uses a dual-layer system:
 
 **Critical Rule**: `setStorageValue()` always writes to BOTH SQLite and localStorage on native (`program-state.ts` lines 226-244). This means localStorage is always a reliable synchronous fallback.
 
+**Critical Rule**: `getStorageValue()` MUST fall through to localStorage when SQLite returns null. SQLite inserts can fail silently due to schema constraint violations (e.g., `user_id NOT NULL`, `program_name NOT NULL` when the ActiveProgram object doesn't have those fields). The localStorage mirror always succeeds, so the fall-through is essential.
+
 **Platform Detection**: `isNative()` from `lib/native/platform.ts` uses `Capacitor.isNativePlatform()`
 
 **Storage Service** (`lib/native/storage-service.ts`):
 - `UnifiedStorageService` singleton with lazy initialization
 - Routes to SQLite on native, IndexedDB/localStorage on web
 - Key mappings: `liftlog_active_program` → `ACTIVE_PROGRAMS` table, etc.
+- **Known issue**: `objectToSQLiteRow()` may not generate all required columns (e.g., `id`, `user_id`, `program_name`) from the ActiveProgram object, causing silent insert failures. The localStorage mirror in `setStorageValue()` and the fall-through in `getStorageValue()` compensate for this.
 
 ### Key Architecture Patterns
 

@@ -106,8 +106,9 @@ export default function HomePage() {
           // User has program - go to workout view
           setCurrentView("workout")
         } else {
-          // No program - show train section with CTA
-          setCurrentView("train")
+          // No program - send to Programs so user can pick one
+          // Train tab is disabled when no active program
+          setCurrentView("programs")
         }
       }
 
@@ -120,7 +121,7 @@ export default function HomePage() {
     const handleProgramEnded = () => {
       console.log("[HomePage] Program ended, navigating to program selection")
       setHasActiveProgram(false)
-      setCurrentView("train")
+      setCurrentView("programs")
       setProgramKey(prev => prev + 1) // Force re-render of programs section
     }
 
@@ -176,8 +177,8 @@ export default function HomePage() {
           console.log("[HomePage] Redirecting from train to workout due to active program")
           setCurrentView("workout")
         } else if (!hasProgram && currentViewRef.current === "workout") {
-          console.log("[HomePage] Program ended, redirecting to train")
-          setCurrentView("train")
+          console.log("[HomePage] Program ended, redirecting to programs")
+          setCurrentView("programs")
         }
       }
     }
@@ -315,7 +316,8 @@ export default function HomePage() {
     // INSTANT: Switch view immediately — no async calls for responsive UX
     if (view === "train") {
       // Use tracked state instead of async getActiveProgram() call
-      setCurrentView(hasActiveProgram ? "workout" : "train")
+      // No active program → redirect to Programs (Train tab is disabled)
+      setCurrentView(hasActiveProgram ? "workout" : "programs")
     } else {
       setCurrentView(view as "dashboard" | "programs" | "workout" | "analytics" | "train" | "profile")
     }

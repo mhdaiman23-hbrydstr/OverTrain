@@ -211,7 +211,11 @@ export class ProgramStateManager {
       try {
         const value = await unifiedStorage.get(key)
         // UnifiedStorage returns parsed object, we need to stringify for compatibility
-        return value ? JSON.stringify(value) : null
+        if (value) return JSON.stringify(value)
+        // SQLite returned null — fall through to localStorage mirror.
+        // This handles cases where SQLite insert failed silently (e.g., schema
+        // constraint violations) but localStorage mirror succeeded.
+        console.log(`[ProgramState] Native storage returned null for ${key}, checking localStorage mirror`)
       } catch (error) {
         console.warn(`[ProgramState] Native storage get failed for ${key}, falling back to localStorage:`, error)
       }

@@ -803,17 +803,60 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
       } else {
         // No existing workout and no initialWorkout prop - load current workout from program
         console.log("No existing workout or initialWorkout, loading current workout from program")
-        const currentWorkout = await ProgramStateManager.getCurrentWorkout()
-        
-        if (!currentWorkout) {
-          console.warn("No current workout available from program - this is normal if no active program exists")
+
+        // NATIVE FIX: Re-read active program to ensure we have fresh data.
+        // On native, the first getActiveProgram() call above may have read from SQLite
+        // before the localStorage mirror was checked. Force a fresh read here.
+        const freshActiveProgram = await ProgramStateManager.getActiveProgram()
+
+        if (!freshActiveProgram) {
+          console.warn("No active program found - nothing to load")
           setIsLoadingWorkout(false)
           return
         }
 
-        const activeProgram = await ProgramStateManager.getActiveProgram()
-        const week = activeProgram?.currentWeek
-        const day = activeProgram?.currentDay
+        const currentWorkout = await ProgramStateManager.getCurrentWorkout()
+
+        if (!currentWorkout) {
+          // NATIVE FALLBACK: If getCurrentWorkout() still fails, try building workout
+          // directly from the active program's template data in localStorage
+          console.warn("getCurrentWorkout() returned null, attempting localStorage fallback...")
+          try {
+            const raw = localStorage.getItem('liftlog_active_program')
+            if (raw) {
+              const localProgram = JSON.parse(raw)
+              const scheduleKeys = Object.keys(localProgram.template?.schedule || {})
+              const dayKey = scheduleKeys[(localProgram.currentDay || 1) - 1]
+              const workoutDay = localProgram.template?.schedule?.[dayKey]
+
+              if (workoutDay?.exercises?.length) {
+                console.log("Building workout from localStorage fallback, day:", dayKey)
+                const fallbackWorkout = await WorkoutLogger.startWorkout(
+                  workoutDay.name || `Day ${localProgram.currentDay}`,
+                  workoutDay.exercises,
+                  localProgram.currentWeek,
+                  localProgram.currentDay,
+                  user?.id
+                )
+                setWorkout(fallbackWorkout)
+                setIsWorkoutBlocked(false)
+                setIsFullyBlocked(false)
+                setBlockedMessage("")
+                setIsLoadingWorkout(false)
+                return
+              }
+            }
+          } catch (fallbackError) {
+            console.error("localStorage fallback failed:", fallbackError)
+          }
+
+          console.warn("No current workout available from program")
+          setIsLoadingWorkout(false)
+          return
+        }
+
+        const week = freshActiveProgram.currentWeek
+        const day = freshActiveProgram.currentDay
 
         const newWorkout = await WorkoutLogger.startWorkout(currentWorkout.name, currentWorkout.exercises, week, day, user?.id)
         console.log("🆕 COMPONENT NEW WORKOUT - Created from current program workout:", {
