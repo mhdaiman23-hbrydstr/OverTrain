@@ -34,7 +34,7 @@ export function BottomNavigation({ currentView, onViewChange, hasActiveProgram }
   ]
 
   return (
-    <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-background border-t border-border z-50">
+    <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-background neu-raised z-50">
       <div className="flex items-center justify-around py-2">
         {navItems.map((item) => {
           const Icon = item.icon
@@ -59,7 +59,7 @@ export function BottomNavigation({ currentView, onViewChange, hasActiveProgram }
               }}
               className={cn(
                 "flex-col gap-1.5",
-                isActive && !isDisabled && "text-primary bg-primary/10",
+                isActive && !isDisabled && "text-primary bg-primary/10 shadow-[var(--neu-shadow-pressed)] rounded-lg",
                 isDisabled && "opacity-40",
               )}
             >

@@ -4,83 +4,93 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* Clean white and blue theme inspired by modern fitness apps */
-  --background: oklch(1 0 0); /* Pure white */
-  --foreground: oklch(0.2 0 0); /* Dark gray text */
-  --card: oklch(1 0 0); /* White cards */
-  --card-foreground: oklch(0.2 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.2 0 0);
-  /* Updated primary to blue accent color */
-  --primary: oklch(0.5 0.2 240); /* Modern blue */
-  --primary-foreground: oklch(1 0 0); /* White text on blue */
-  --secondary: oklch(0.96 0 0); /* Light gray */
-  --secondary-foreground: oklch(0.2 0 0);
-  --muted: oklch(0.96 0 0);
-  --muted-foreground: oklch(0.5 0 0);
-  --accent: oklch(0.96 0 0);
-  --accent-foreground: oklch(0.2 0 0);
-  /* Updated destructive to orange for warmup sets */
-  --destructive: oklch(0.65 0.2 40); /* Orange accent */
-  --destructive-foreground: oklch(1 0 0);
-  --border: oklch(0.9 0 0); /* Light gray borders */
-  --input: oklch(0.98 0 0); /* Very light gray inputs */
-  --ring: oklch(0.5 0.2 240); /* Blue focus ring */
-  /* Updated chart colors for fitness app */
-  --chart-1: oklch(0.5 0.2 240); /* Blue */
-  --chart-2: oklch(0.65 0.2 40); /* Orange */
-  --chart-3: oklch(0.6 0.2 140); /* Green */
-  --chart-4: oklch(0.55 0.2 300); /* Purple */
-  --chart-5: oklch(0.45 0.2 20); /* Red */
-  --radius: 0.75rem; /* Slightly more rounded */
-  --sidebar: oklch(0.98 0 0);
-  --sidebar-foreground: oklch(0.2 0 0);
-  --sidebar-primary: oklch(0.5 0.2 240);
-  --sidebar-primary-foreground: oklch(1 0 0);
-  --sidebar-accent: oklch(0.96 0 0);
-  --sidebar-accent-foreground: oklch(0.2 0 0);
-  --sidebar-border: oklch(0.9 0 0);
-  --sidebar-ring: oklch(0.5 0.2 240);
+  /* Neumorphism design system — light, airy surfaces */
+  --background: #F0EFED; /* Light warm gray — neumorphic base */
+  --foreground: #1E2938; /* Dark navy text */
+  --card: #F0EFED; /* Cards match background for neumorphic effect */
+  --card-foreground: #1E2938;
+  --popover: #F5F4F2;
+  --popover-foreground: #1E2938;
+  --primary: #006666; /* Teal */
+  --primary-foreground: #FFFFFF;
+  --secondary: #F7F7F9; /* Very light gray surface */
+  --secondary-foreground: #1E2938;
+  --muted: #E4E2E0;
+  --muted-foreground: #57606A;
+  --accent: #E8E6E4;
+  --accent-foreground: #1E2938;
+  --destructive: #FF2157; /* Danger red-pink */
+  --destructive-foreground: #FFFFFF;
+  --border: #E0DEDA; /* Subtle border for neumorphism */
+  --input: #EAE8E6; /* Slightly recessed input surface */
+  --ring: #006666; /* Teal focus ring */
+  /* Chart colors using neumorphism palette */
+  --chart-1: #006666; /* Teal */
+  --chart-2: #FE9900; /* Warning orange */
+  --chart-3: #00A63D; /* Success green */
+  --chart-4: #7C3AED; /* Purple */
+  --chart-5: #FF2157; /* Danger */
+  --radius: 0.625rem; /* Compact density */
+  --sidebar: #ECEAE8;
+  --sidebar-foreground: #1E2938;
+  --sidebar-primary: #006666;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #E4E2E0;
+  --sidebar-accent-foreground: #1E2938;
+  --sidebar-border: #E0DEDA;
+  --sidebar-ring: #006666;
+
+  /* Neumorphic shadow tokens */
+  --neu-shadow-raised: 6px 6px 12px rgba(0, 0, 0, 0.08), -6px -6px 12px rgba(255, 255, 255, 0.8);
+  --neu-shadow-pressed: inset 4px 4px 8px rgba(0, 0, 0, 0.08), inset -4px -4px 8px rgba(255, 255, 255, 0.8);
+  --neu-shadow-sm: 3px 3px 6px rgba(0, 0, 0, 0.06), -3px -3px 6px rgba(255, 255, 255, 0.7);
+  --neu-shadow-lg: 10px 10px 20px rgba(0, 0, 0, 0.1), -10px -10px 20px rgba(255, 255, 255, 0.9);
 }
 
 .dark {
-  /* Soft dark mode - easier on the eyes with subtle blue undertones */
-  --background: oklch(0.18 0.01 240); /* Softer gray with subtle blue tint */
-  --foreground: oklch(0.95 0.01 240); /* Warm white text with blue tint */
-  --card: oklch(0.22 0.01 240); /* Slightly darker than background for depth */
-  --card-foreground: oklch(0.95 0.01 240);
-  --popover: oklch(0.22 0.01 240);
-  --popover-foreground: oklch(0.95 0.01 240);
-  --primary: oklch(0.65 0.15 240); /* Brighter, more vibrant blue */
-  --primary-foreground: oklch(0.08 0.01 240); /* Dark text on primary */
-  --secondary: oklch(0.25 0.01 240); /* Gentle secondary background */
-  --secondary-foreground: oklch(0.95 0.01 240);
-  --muted: oklch(0.25 0.01 240); /* Softer muted colors */
-  --muted-foreground: oklch(0.65 0.01 240); /* Less harsh muted text */
-  --accent: oklch(0.28 0.01 240); /* Subtle accent highlights */
-  --accent-foreground: oklch(0.95 0.01 240);
-  --destructive: oklch(0.75 0.15 40); /* Softer, warmer orange */
-  --destructive-foreground: oklch(0.08 0.01 240);
-  --border: oklch(0.28 0.01 240); /* Subtle borders with transparency */
-  --input: oklch(0.25 0.01 240); /* Softer input backgrounds */
-  --ring: oklch(0.65 0.15 240); /* Softer focus rings */
-  --chart-1: oklch(0.65 0.15 240); /* Brighter chart colors */
-  --chart-2: oklch(0.75 0.15 40);
-  --chart-3: oklch(0.7 0.15 140);
-  --chart-4: oklch(0.65 0.15 300);
-  --chart-5: oklch(0.55 0.15 20);
-  --sidebar: oklch(0.20 0.01 240); /* Slightly darker sidebar */
-  --sidebar-foreground: oklch(0.95 0.01 240);
-  --sidebar-primary: oklch(0.65 0.15 240);
-  --sidebar-primary-foreground: oklch(0.08 0.01 240);
-  --sidebar-accent: oklch(0.25 0.01 240);
-  --sidebar-accent-foreground: oklch(0.95 0.01 240);
-  --sidebar-border: oklch(0.28 0.01 240);
-  --sidebar-ring: oklch(0.65 0.15 240);
+  /* Neumorphism dark mode — deep surfaces with soft shadow pairs */
+  --background: #2A2A2E;
+  --foreground: #E8E6E3;
+  --card: #2A2A2E;
+  --card-foreground: #E8E6E3;
+  --popover: #313136;
+  --popover-foreground: #E8E6E3;
+  --primary: #00A3A3; /* Brighter teal for dark mode */
+  --primary-foreground: #0A0A0B;
+  --secondary: #353539;
+  --secondary-foreground: #E8E6E3;
+  --muted: #353539;
+  --muted-foreground: #9CA3AF;
+  --accent: #3A3A3F;
+  --accent-foreground: #E8E6E3;
+  --destructive: #FF4D7A; /* Softer danger */
+  --destructive-foreground: #0A0A0B;
+  --border: #3A3A3F;
+  --input: #323236;
+  --ring: #00A3A3;
+  --chart-1: #00A3A3;
+  --chart-2: #FFB84D;
+  --chart-3: #33C46A;
+  --chart-4: #A78BFA;
+  --chart-5: #FF6B8A;
+  --sidebar: #262629;
+  --sidebar-foreground: #E8E6E3;
+  --sidebar-primary: #00A3A3;
+  --sidebar-primary-foreground: #0A0A0B;
+  --sidebar-accent: #353539;
+  --sidebar-accent-foreground: #E8E6E3;
+  --sidebar-border: #3A3A3F;
+  --sidebar-ring: #00A3A3;
+
+  /* Dark neumorphic shadows */
+  --neu-shadow-raised: 6px 6px 12px rgba(0, 0, 0, 0.3), -6px -6px 12px rgba(255, 255, 255, 0.04);
+  --neu-shadow-pressed: inset 4px 4px 8px rgba(0, 0, 0, 0.3), inset -4px -4px 8px rgba(255, 255, 255, 0.04);
+  --neu-shadow-sm: 3px 3px 6px rgba(0, 0, 0, 0.25), -3px -3px 6px rgba(255, 255, 255, 0.03);
+  --neu-shadow-lg: 10px 10px 20px rgba(0, 0, 0, 0.35), -10px -10px 20px rgba(255, 255, 255, 0.05);
 }
 
 @theme inline {
-  /* Updated font system with clean, modern typography */
+  /* Typography — Montserrat */
   --font-sans: var(--font-montserrat), ui-sans-serif, system-ui, sans-serif;
   --font-display: var(--font-montserrat), ui-sans-serif, system-ui, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
@@ -179,14 +189,35 @@
   }
 }
 
-/* Updated utility classes for white and blue theme */
+/* Neumorphism utility classes */
 @layer utilities {
   .text-display {
     font-family: var(--font-display);
   }
 
+  /* Neumorphic shadow utilities */
+  .neu-raised {
+    box-shadow: var(--neu-shadow-raised);
+  }
+
+  .neu-pressed {
+    box-shadow: var(--neu-shadow-pressed);
+  }
+
+  .neu-sm {
+    box-shadow: var(--neu-shadow-sm);
+  }
+
+  .neu-lg {
+    box-shadow: var(--neu-shadow-lg);
+  }
+
+  .neu-flat {
+    box-shadow: none;
+  }
+
   .gradient-primary {
-    background: linear-gradient(135deg, oklch(0.5 0.2 240), oklch(0.45 0.25 250));
+    background: linear-gradient(135deg, #006666, #004D4D);
   }
 
   .gradient-card {
@@ -194,7 +225,7 @@
   }
 
   .text-gradient {
-    background: linear-gradient(135deg, oklch(0.5 0.2 240), oklch(0.45 0.25 250));
+    background: linear-gradient(135deg, #006666, #004D4D);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -202,18 +233,18 @@
 
   .glass-effect {
     backdrop-filter: blur(16px);
-    background: rgba(255, 255, 255, 0.9);
-    border: 1px solid rgba(0, 0, 0, 0.1);
+    background: rgba(240, 239, 237, 0.88);
+    border: 1px solid rgba(0, 0, 0, 0.06);
   }
 
   /* Fitness app specific utilities */
   .warmup-badge {
-    background: oklch(0.65 0.2 40);
+    background: #FE9900;
     color: white;
   }
 
   .completed-badge {
-    background: oklch(0.6 0.2 140);
+    background: #00A63D;
     color: white;
   }
 
