@@ -33,9 +33,10 @@ const nextConfig = {
     unoptimized: true,
   },
   
-  // Environment variable to detect native context
+  // Environment variables injected at build time
   env: {
     NEXT_PUBLIC_IS_NATIVE: 'true',
+    NEXT_PUBLIC_APP_VERSION: process.env.npm_package_version || '1.0.2',
   },
   
   // Disable server-side features for static export

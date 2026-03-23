@@ -40,9 +40,10 @@ const nextConfig = {
     formats: ['image/webp', 'image/avif'],
   },
   
-  // Environment variable to detect web context
+  // Environment variables injected at build time
   env: {
     NEXT_PUBLIC_IS_NATIVE: 'false',
+    NEXT_PUBLIC_APP_VERSION: process.env.npm_package_version || '1.0.2',
   },
   
   // Enable server-side features for web

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect, useCallback } from "react"
 import { MobileAnalyticsHeader } from "./mobile-analytics-header"
 import { EnhancedKPIGrid } from "./enhanced-kpi-grid"
 import { WeeklyFocusCard } from "./weekly-focus-card"
@@ -28,10 +28,24 @@ export function MobileAnalyticsTab({ onLogWorkout }: MobileAnalyticsTabProps) {
   const [customStartDate, setCustomStartDate] = useState<Date | undefined>(undefined)
   const [customEndDate, setCustomEndDate] = useState<Date | undefined>(undefined)
 
-  // Load workout data
-  const workouts = useMemo(() => {
-    return WorkoutLogger.getWorkoutHistory()
+  // Load workout data — use state instead of useMemo so we can refresh on events.
+  // The keep-alive pattern means this component never unmounts, so useMemo([]) would
+  // cache stale data forever.
+  const [workouts, setWorkouts] = useState<WorkoutSession[]>(() => WorkoutLogger.getWorkoutHistory())
+
+  const refreshWorkouts = useCallback(() => {
+    setWorkouts(WorkoutLogger.getWorkoutHistory())
   }, [])
+
+  // Refresh when a workout is completed or program state changes
+  useEffect(() => {
+    window.addEventListener("workoutCompleted", refreshWorkouts)
+    window.addEventListener("programChanged", refreshWorkouts)
+    return () => {
+      window.removeEventListener("workoutCompleted", refreshWorkouts)
+      window.removeEventListener("programChanged", refreshWorkouts)
+    }
+  }, [refreshWorkouts])
 
   // Calculate weekly goal (could be configurable)
   const weeklyGoal = 4

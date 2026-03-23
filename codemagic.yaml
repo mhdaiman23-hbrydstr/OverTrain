@@ -58,13 +58,19 @@ workflows:
 
       - name: Set build number and version
         script: |
-          # Set CFBundleVersion (build number) from Codemagic's BUILD_NUMBER
+          # Read version from package.json (single source of truth)
+          APP_VERSION=$(node -p "require('./package.json').version")
+          echo "App version from package.json: $APP_VERSION"
+
           cd ios/App
           if [ -z "$BUILD_NUMBER" ]; then
             echo "BUILD_NUMBER is not set, defaulting to 1"
             BUILD_NUMBER=1
           fi
+          # Set CFBundleVersion (build number) from Codemagic's BUILD_NUMBER
           agvtool new-version -all "$BUILD_NUMBER"
+          # Set CFBundleShortVersionString (marketing version) from package.json
+          agvtool new-marketing-version "$APP_VERSION"
 
       - name: Prepare signing assets (profiles & export options)
         script: |

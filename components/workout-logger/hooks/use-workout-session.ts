@@ -2456,7 +2456,7 @@ export function useWorkoutSession({ initialWorkout, onComplete, onCancel }: Work
           muscleGroup: selectedExercise.muscleGroup,
           equipmentType: selectedExercise.equipmentType,
         },
-        applyToFutureWeeks: options?.repeat ?? true,
+        applyToFutureWeeks: options?.repeat === true,
       })
 
       // If repeat is enabled, the replacement will be applied to future weeks

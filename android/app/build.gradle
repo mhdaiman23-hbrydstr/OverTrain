@@ -10,9 +10,10 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         
         // Version configuration for Play Store
-        // Increment versionCode for each release
-        versionCode 3
-        versionName "1.0.1"
+        // versionCode auto-set by Codemagic CI via BUILD_NUMBER
+        // versionName read from package.json — single source of truth
+        versionCode 4
+        versionName new groovy.json.JsonSlurper().parseText(new File("$rootDir/../package.json").text).version
         
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         
