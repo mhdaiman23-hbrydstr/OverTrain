@@ -111,7 +111,7 @@ workflows:
     instance_type: linux_x2
     environment:
       android_signing:
-        - keystore: overtrain_keystore # Upload keystore in Codemagic UI → Code signing → Android
+        - keystore: OverTrain
       groups:
         - google_play_credentials # GCLOUD_SERVICE_ACCOUNT_CREDENTIALS (JSON key)
         - Supabase # NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY
