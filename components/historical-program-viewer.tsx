@@ -76,7 +76,7 @@ export function HistoricalProgramViewer({ historyEntry, workouts, onClose }: His
   return (
     <div className="min-h-screen bg-background pb-24">
       {/* Header - matches WorkoutHeader */}
-      <div className="sticky top-0 bg-background/95 backdrop-blur-sm border-b border-border/50 z-[60] shadow-sm">
+      <div className="sticky top-0 bg-background/95 backdrop-blur-sm border-b border-border/50 z-[60] shadow-sm" style={{ paddingTop: 'var(--safe-area-inset-top)' }}>
         <div className="flex items-center justify-between px-4 py-3 sm:py-4 max-w-4xl mx-auto">
           <div className="flex items-center gap-2 flex-1 min-w-0">
             <Button

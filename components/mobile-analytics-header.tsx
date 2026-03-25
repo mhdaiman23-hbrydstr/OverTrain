@@ -18,7 +18,7 @@ const periods = [
 
 export function MobileAnalyticsHeader({ selectedPeriod, onPeriodChange }: MobileAnalyticsHeaderProps) {
   return (
-    <div className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border/50 shadow-sm dark:bg-background/95">
+    <div className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border/50 shadow-sm dark:bg-background/95" style={{ paddingTop: 'var(--safe-area-inset-top)' }}>
       <div className="text-center space-y-1 px-4 py-3 relative z-10">
         <div className="flex items-center justify-center gap-2">
           <TrendingUp className="h-5 w-5 text-primary" />

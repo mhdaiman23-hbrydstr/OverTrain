@@ -27,15 +27,40 @@ export async function initializeStatusBar(): Promise<void> {
     await StatusBar.setStyle({ style: Style.Light });
     console.log('[StatusBar] Style set to Light');
 
-    // Ensure status bar doesn't overlay the webview content
-    // This is critical - when false, the app gets padding for the status bar
-    await StatusBar.setOverlaysWebView({ overlay: false });
-    console.log('[StatusBar] Overlay disabled');
-
-    // Set background color for Android
     if (isAndroid()) {
-      await StatusBar.setBackgroundColor({ color: '#000000' });
-      console.log('[StatusBar] Background color set for Android');
+      // On Android 15+ (API 35), edge-to-edge is enforced — the WebView draws
+      // behind the status bar regardless of the overlaysWebView setting.
+      // Setting overlay: true tells the browser this is intentional, which
+      // causes env(safe-area-inset-top) to be populated with the correct value.
+      // CSS safe-area padding on headers (WorkoutHeader, TemplateDetailView)
+      // then creates the visual spacing below the status bar.
+      await StatusBar.setOverlaysWebView({ overlay: true });
+      await StatusBar.setBackgroundColor({ color: '#00000000' }); // transparent
+      console.log('[StatusBar] Android: overlay enabled, transparent background');
+
+      // Fallback: if env(safe-area-inset-top) is still 0 after overlay change,
+      // set the CSS variable directly using standard Android status bar height (24dp)
+      requestAnimationFrame(() => {
+        const testEl = document.createElement('div');
+        testEl.style.paddingTop = 'env(safe-area-inset-top, 0px)';
+        testEl.style.position = 'absolute';
+        testEl.style.visibility = 'hidden';
+        document.body.appendChild(testEl);
+        const measured = parseFloat(getComputedStyle(testEl).paddingTop) || 0;
+        document.body.removeChild(testEl);
+
+        if (measured === 0) {
+          document.documentElement.style.setProperty('--safe-area-inset-top', '24px');
+          console.log('[StatusBar] Android safe-area fallback applied: 24px');
+        } else {
+          console.log('[StatusBar] Android env(safe-area-inset-top):', measured + 'px');
+        }
+      });
+    } else {
+      // iOS: contentInset: 'automatic' in Capacitor config handles safe areas.
+      // overlay: false prevents double-padding from both contentInset and env().
+      await StatusBar.setOverlaysWebView({ overlay: false });
+      console.log('[StatusBar] iOS: overlay disabled');
     }
 
     console.log('[StatusBar] Initialization complete');
