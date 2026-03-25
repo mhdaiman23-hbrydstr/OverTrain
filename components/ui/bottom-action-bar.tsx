@@ -90,7 +90,7 @@ export function BottomActionBar({
         "left-0 right-0",
         "bg-background border-t border-border",
         "p-4 z-[60] shadow-lg"
-      )}>
+      )} style={!includeMobileBottomNav ? { paddingBottom: 'max(1rem, var(--safe-area-inset-bottom))' } : undefined}>
         {actionContent}
       </div>
 

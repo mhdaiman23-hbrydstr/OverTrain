@@ -69,7 +69,7 @@ export function TemplateDetailView({ templateId, onClose, onStartProgram, isStar
   // Show skeleton while parent is loading template or while component is loading exercises
   if (parentIsLoading || isLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="fixed inset-0 bg-background flex items-center justify-center z-[55]">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
           <p className="text-muted-foreground">Loading template...</p>
@@ -80,7 +80,7 @@ export function TemplateDetailView({ templateId, onClose, onStartProgram, isStar
 
   if (!template) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="fixed inset-0 bg-background flex items-center justify-center z-[55]">
         <div className="text-center">
           <h2 className="text-xl font-semibold mb-2">Template not found</h2>
           <Button onClick={onClose}>Go Back</Button>
@@ -109,7 +109,7 @@ export function TemplateDetailView({ templateId, onClose, onStartProgram, isStar
   console.log("[v0] Workout days:", workoutDays.length)
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="fixed inset-0 bg-background flex flex-col z-[55]">
       <div className="max-w-4xl mx-auto w-full flex flex-col flex-1">
         {/* Header */}
         <div className="flex items-center justify-between p-4 sm:p-6 lg:p-8 pt-6 sm:pt-8 border-b bg-background z-10 sticky top-0" style={{ paddingTop: `max(1.5rem, var(--safe-area-inset-top))` }}>

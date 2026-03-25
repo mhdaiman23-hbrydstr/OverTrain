@@ -55,7 +55,7 @@ export function WorkoutHeader({
   }
 
   return (
-    <div className="sticky top-0 bg-background border-b border-border/50 z-[60] shadow-sm backdrop-blur-sm bg-background/95">
+    <div className="sticky top-0 bg-background border-b border-border/50 z-[60] shadow-sm backdrop-blur-sm bg-background/95" style={{ paddingTop: 'var(--safe-area-inset-top)' }}>
       <div className="w-full px-4 py-3 sm:py-4">
         <div className="flex items-center justify-between gap-3">
           <div className="flex-1 min-w-0 space-y-0.5 sm:space-y-1">

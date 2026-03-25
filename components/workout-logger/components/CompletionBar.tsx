@@ -48,17 +48,17 @@ export function CompletionBar({ workout, isWorkoutBlocked, isCompletingWorkout, 
     </Button>
   )
 
-  // When workout is blocked, still show the spacer to prevent content from being hidden
+  // When workout is blocked, still show the spacer to clear bottom nav
   if (isWorkoutBlocked) {
     return (
-      <div className="h-36 lg:h-20" />
+      <div className="h-20 lg:h-20" />
     )
   }
 
   return (
     <>
-      {/* Mobile & Tablet: Fixed bar above bottom navigation (64px height) */}
-      <div className="lg:hidden fixed bottom-16 left-0 right-0 bg-background border-t border-border p-4 z-[60] shadow-lg">
+      {/* Mobile & Tablet: Inline at bottom of exercise list, visible when scrolled down */}
+      <div className="lg:hidden p-4">
         {workout.completed ? renderCompletedState() : renderActionButton()}
       </div>
 
@@ -69,10 +69,8 @@ export function CompletionBar({ workout, isWorkoutBlocked, isCompletingWorkout, 
         </div>
       </div>
 
-      {/* Spacer to prevent content from being hidden behind fixed bars */}
-      {/* Mobile: CompletionBar (80px) + BottomNav (64px) = 144px */}
-      {/* Desktop: CompletionBar only (80px) */}
-      <div className="h-36 lg:h-20" />
+      {/* Spacer to clear bottom nav (mobile) and fixed bar (desktop) */}
+      <div className="h-20 lg:h-20" />
     </>
   )
 }

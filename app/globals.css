@@ -158,9 +158,10 @@
   }
 
   /* Prevent horizontal swipe gestures from triggering browser back/forward */
+  /* Prevent vertical overscroll bounce on Android that shifts content behind status bar */
   html {
     touch-action: pan-y;
-    overscroll-behavior-x: none;
+    overscroll-behavior: none;
   }
 
   /* Clean, modern typography optimized for fitness apps */
