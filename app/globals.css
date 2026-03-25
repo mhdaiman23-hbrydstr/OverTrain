@@ -151,10 +151,9 @@
     @apply bg-background text-foreground;
     touch-action: pan-y;
     overscroll-behavior-x: none;
-    /* Apply safe area padding for native apps */
-    padding-top: var(--safe-area-inset-top);
+    /* Safe area insets handled by sticky headers and bottom nav individually.
+       Body padding removed to prevent double-padding with sticky elements. */
     padding-right: var(--safe-area-inset-right);
-    padding-bottom: var(--safe-area-inset-bottom);
     padding-left: var(--safe-area-inset-left);
   }
 

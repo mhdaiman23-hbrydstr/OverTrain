@@ -112,7 +112,7 @@ export function TemplateDetailView({ templateId, onClose, onStartProgram, isStar
     <div className="min-h-screen bg-background flex flex-col">
       <div className="max-w-4xl mx-auto w-full flex flex-col flex-1">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 sm:p-6 lg:p-8 pt-6 sm:pt-8 border-b bg-background z-10 sticky top-0">
+        <div className="flex items-center justify-between p-4 sm:p-6 lg:p-8 pt-6 sm:pt-8 border-b bg-background z-10 sticky top-0" style={{ paddingTop: `max(1.5rem, var(--safe-area-inset-top))` }}>
           <div className="flex-1 min-w-0">
             <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-balance leading-tight">{template.name}</h1>
             <p className="text-sm sm:text-base text-muted-foreground mt-1 uppercase tracking-wide">
@@ -125,7 +125,7 @@ export function TemplateDetailView({ templateId, onClose, onStartProgram, isStar
         </div>
 
         {/* Workout days list */}
-        <div className="flex-1 overflow-y-auto overscroll-y-contain pb-24">
+        <div className="flex-1 overflow-y-auto overscroll-y-contain pb-24" style={{ touchAction: 'pan-y', WebkitOverflowScrolling: 'touch' }}>
           <div className="divide-y divide-border">
             {workoutDays.map((day, dayIndex) => (
               <div key={dayIndex} className="px-4 sm:px-6 lg:px-8 py-4 sm:py-6">

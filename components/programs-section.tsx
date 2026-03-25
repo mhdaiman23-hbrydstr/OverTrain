@@ -1,6 +1,6 @@
 ﻿"use client"
 
-import { useState, useEffect, useCallback, useMemo } from "react"
+import { useState, useEffect, useCallback, useMemo, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -73,7 +73,8 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
   const [renameValue, setRenameValue] = useState("")
   const [renameTarget, setRenameTarget] = useState<MyProgramInfo | null>(null)
   const [isRenamingProgram, setIsRenamingProgram] = useState(false)
-  const [suppressNextRowClick, setSuppressNextRowClick] = useState(false)
+  const suppressNextRowClickRef = useRef(false)
+  const setSuppressNextRowClick = (v: boolean) => { suppressNextRowClickRef.current = v }
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [deleteTarget, setDeleteTarget] = useState<MyProgramInfo | null>(null)
   const [isDeletingProgram, setIsDeletingProgram] = useState(false)
@@ -230,8 +231,8 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
   }, [onAddProgram, router])
 
   const handleDraftClick = useCallback((draftId: string) => {
-    if (suppressNextRowClick) {
-      setSuppressNextRowClick(false)
+    if (suppressNextRowClickRef.current) {
+      suppressNextRowClickRef.current = false
       return
     }
 
@@ -245,7 +246,7 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
 
     router.push(`/program-wizard?${params.toString()}`)
     onAddProgram()
-  }, [onAddProgram, router, setSuppressNextRowClick, suppressNextRowClick])
+  }, [onAddProgram, router])
 
   const handleDeleteDraft = useCallback((draftId: string) => {
     programWizardDraftManager.deleteDraft(draftId)
@@ -513,8 +514,8 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
   }
 
   const handleTemplateClick = async (templateId: string, isActive: boolean) => {
-    if (suppressNextRowClick) {
-      setSuppressNextRowClick(false)
+    if (suppressNextRowClickRef.current) {
+      suppressNextRowClickRef.current = false
       return
     }
     console.log("[v0] Template clicked:", templateId, "isActive:", isActive)
@@ -548,13 +549,21 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
   const handleStartProgram = async (templateId: string, progressionOverride?: any) => {
     console.log("[v0] Start Program clicked for:", templateId, "with override:", !!progressionOverride)
 
-    const activeProgram = await ProgramStateManager.getActiveProgram()
+    // Use synchronous localStorage check first to avoid stale SQLite data on native
+    // (see CLAUDE.md: programChanged event handler rules)
+    const localData = typeof window !== "undefined"
+      ? localStorage.getItem("liftlog_active_program")
+      : null
+    const hasLocalActive = localData ? (() => { try { return !!JSON.parse(localData) } catch { return false } })() : false
 
-    if (activeProgram) {
-      console.log("[v0] Active program exists, showing confirmation dialog")
-      setPendingProgramId({ templateId, progressionOverride })
-      setShowSwitchDialog(true)
-      return
+    if (hasLocalActive) {
+      const activeProgram = await ProgramStateManager.getActiveProgram({ skipDatabaseLoad: true })
+      if (activeProgram) {
+        console.log("[v0] Active program exists, showing confirmation dialog")
+        setPendingProgramId({ templateId, progressionOverride })
+        setShowSwitchDialog(true)
+        return
+      }
     }
 
     await startNewProgram(templateId, progressionOverride)
@@ -699,7 +708,7 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
       ) : (
         <div className="w-full min-h-screen pb-20 lg:pb-4">
           {/* Sticky Header */}
-          <div className="sticky top-0 bg-background/95 backdrop-blur-sm border-b border-border/50 z-[60] shadow-sm">
+          <div className="sticky top-0 bg-background/95 backdrop-blur-sm border-b border-border/50 z-[60] shadow-sm" style={{ paddingTop: 'var(--safe-area-inset-top)' }}>
             <div className="flex items-center justify-between px-4 py-3 sm:py-4 max-w-4xl mx-auto">
               <h1 className="text-xl sm:text-2xl font-bold">Programs</h1>
               <div className="flex items-center gap-2">
@@ -970,7 +979,7 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
                                 <Button
                                   variant="ghost"
                                   size="sm"
-                                  className="h-8 w-8 p-0"
+                                  className="h-10 w-10 p-0"
                                   onPointerDown={(event) => {
                                     event.stopPropagation()
                                     setSuppressNextRowClick(true)
@@ -1053,7 +1062,7 @@ export function ProgramsSection({ onAddProgram, onProgramStarted, onNavigateToTr
                                   <Button
                                     variant="ghost"
                                     size="sm"
-                                    className="h-8 w-8 p-0"
+                                    className="h-10 w-10 p-0"
                                     onPointerDown={(event) => {
                                       event.stopPropagation()
                                       setSuppressNextRowClick(true)
