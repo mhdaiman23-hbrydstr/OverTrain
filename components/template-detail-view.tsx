@@ -1,7 +1,6 @@
 "use client"
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { BottomActionBar } from "@/components/ui/bottom-action-bar"
 import { X, Play } from "lucide-react"
 import { ProgramStateManager } from "@/lib/program-state"
 import type { GymTemplate } from "@/lib/gym-templates"
@@ -110,9 +109,9 @@ export function TemplateDetailView({ templateId, onClose, onStartProgram, isStar
 
   return (
     <div className="fixed inset-0 bg-background flex flex-col z-[55]">
-      <div className="max-w-4xl mx-auto w-full flex flex-col flex-1">
+      <div className="max-w-4xl mx-auto w-full flex flex-col flex-1 min-h-0">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 sm:p-6 lg:p-8 pt-6 sm:pt-8 border-b bg-background z-10 sticky top-0" style={{ paddingTop: `max(1.5rem, var(--safe-area-inset-top))` }}>
+        <div className="shrink-0 flex items-center justify-between p-4 sm:p-6 lg:p-8 pt-6 sm:pt-8 border-b bg-background z-10" style={{ paddingTop: `max(1.5rem, var(--safe-area-inset-top))` }}>
           <div className="flex-1 min-w-0">
             <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-balance leading-tight">{template.name}</h1>
             <p className="text-sm sm:text-base text-muted-foreground mt-1 uppercase tracking-wide">
@@ -125,7 +124,7 @@ export function TemplateDetailView({ templateId, onClose, onStartProgram, isStar
         </div>
 
         {/* Workout days list */}
-        <div className="flex-1 overflow-y-auto overscroll-y-contain pb-24" style={{ touchAction: 'pan-y', WebkitOverflowScrolling: 'touch' }}>
+        <div className="flex-1 min-h-0 overflow-y-auto overscroll-y-contain" style={{ touchAction: 'pan-y', WebkitOverflowScrolling: 'touch' }}>
           <div className="divide-y divide-border">
             {workoutDays.map((day, dayIndex) => (
               <div key={dayIndex} className="px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
@@ -168,45 +167,47 @@ export function TemplateDetailView({ templateId, onClose, onStartProgram, isStar
             />
           </div>
         </div>
-      </div>
 
-      {/* Bottom action bar with start button */}
-      <BottomActionBar
-        leftContent={
-          progressionOverride ? (
-            <span className="text-xs font-medium uppercase tracking-wide text-primary sm:text-sm">
-              Progression override applied
-            </span>
-          ) : (
-            <span className="text-xs text-muted-foreground sm:text-sm">
-              No custom progression overrides set
-            </span>
-          )
-        }
-        rightContent={
-          <Button
-            className="w-full gradient-primary text-primary-foreground h-auto py-2 px-4 sm:py-3 sm:px-6 text-center"
-            disabled={!!isStarting}
-            onClick={() => {
-              console.log("[v0] Start Program clicked for:", templateId, "with override:", !!progressionOverride)
-              onStartProgram(templateId, progressionOverride)
-            }}
-          >
-            {isStarting ? (
-              <span className="flex items-center justify-center">
-                <span className="mr-2 inline-block h-4 w-4 sm:h-5 sm:w-5 animate-spin rounded-full border-2 border-white/50 border-t-transparent"></span>
-                {startingStep || "Starting..."}
+        {/* Footer — inline (not fixed) so it doesn't intercept touches on Android */}
+        <div
+          className="shrink-0 border-t border-border bg-background p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4"
+          style={{ paddingBottom: 'max(1rem, var(--safe-area-inset-bottom))' }}
+        >
+          <div className="flex-1 sm:flex-initial">
+            {progressionOverride ? (
+              <span className="text-xs font-medium uppercase tracking-wide text-primary sm:text-sm">
+                Progression override applied
               </span>
             ) : (
-              <span className="flex items-center justify-center">
-                <Play className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
-                Start Program
+              <span className="text-xs text-muted-foreground sm:text-sm">
+                No custom progression overrides set
               </span>
             )}
-          </Button>
-        }
-        showFixed={true}
-      />
+          </div>
+          <div className="w-full sm:flex-initial">
+            <Button
+              className="w-full gradient-primary text-primary-foreground h-auto py-2 px-4 sm:py-3 sm:px-6 text-center"
+              disabled={!!isStarting}
+              onClick={() => {
+                console.log("[v0] Start Program clicked for:", templateId, "with override:", !!progressionOverride)
+                onStartProgram(templateId, progressionOverride)
+              }}
+            >
+              {isStarting ? (
+                <span className="flex items-center justify-center">
+                  <span className="mr-2 inline-block h-4 w-4 sm:h-5 sm:w-5 animate-spin rounded-full border-2 border-white/50 border-t-transparent"></span>
+                  {startingStep || "Starting..."}
+                </span>
+              ) : (
+                <span className="flex items-center justify-center">
+                  <Play className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+                  Start Program
+                </span>
+              )}
+            </Button>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
